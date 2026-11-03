@@ -1,0 +1,32 @@
+-- Sample data for MONO Finance (placeholders). Load AFTER mono_schema_v1.sql.
+-- Reference date in the design: Wed 28 Oct 2026. Expected results are in docs/DESIGN.md section 10.
+-- Note: the future_date guard compares with the real clock, so every date here must be in the past.
+BEGIN;
+INSERT INTO accounts (id, name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES (1, 'BCA Tabungan', 'bank', 1200000, '2026-01-01', NULL, 0, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO accounts (id, name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES (2, 'Cash wallet', 'cash', 450000, '2026-01-01', NULL, 0, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO accounts (id, name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES (3, 'GoPay', 'ewallet', 312500, '2026-01-01', NULL, 0, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO accounts (id, name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES (4, 'Jago Pocket', 'savings', 275000, '2026-01-01', NULL, 0, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (1, 'income', 1, NULL, 11, 7500000, '2026-06-25', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (2, 'expense', 1, NULL, 4, 4100500, '2026-08-10', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (3, 'income', 1, NULL, 11, 7000000, '2026-10-25', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (4, 'income', 1, NULL, 12, 500000, '2026-10-26', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (5, 'expense', 1, NULL, 3, 812000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (6, 'expense', 1, NULL, 4, 1150000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (7, 'expense', 1, NULL, 2, 540000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (8, 'expense', 1, NULL, 1, 1425000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (9, 'expense', 1, NULL, 6, 210000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (10, 'expense', 1, NULL, 5, 120000, '2026-10-20', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO transactions (id, kind, account_id, to_account_id, category_id, amount, occurred_on, description, note, source, created_at, updated_at) VALUES (11, 'transfer', 1, 4, NULL, 1000000, '2026-10-27', '', NULL, 'manual', '2026-11-03T10:00:00+07:00', '2026-11-03T10:00:00+07:00');
+INSERT INTO monthly_limits (month, amount, repeat) VALUES ('2026-10', 5000000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (1, 3, '2026-10', 700000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (2, 4, '2026-10', 1200000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (3, 2, '2026-10', 600000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (4, 1, '2026-10', 1800000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (5, 6, '2026-10', 400000, 1);
+INSERT INTO budgets (id, category_id, month, limit_amount, repeat) VALUES (6, 5, '2026-10', 300000, 1);
+INSERT INTO goals (id, name, mode, account_id, target_amount, target_date, sort_order, created_at) VALUES (1, 'Total assets', 'total_assets', NULL, 30000000, '2027-06-30', 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO goals (id, name, mode, account_id, target_amount, target_date, sort_order, created_at) VALUES (2, 'Emergency fund', 'account', 1, 15000000, '2027-12-31', 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO goals (id, name, mode, account_id, target_amount, target_date, sort_order, created_at) VALUES (3, 'Travel fund', 'account', 2, 8000000, NULL, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO recurring (id, name, amount, amount_varies, account_id, category_id, day_of_month, first_due_on, end_on, remind, archived, created_at) VALUES (1, 'Gym membership', 200000, 0, 1, 5, 28, '2026-10-28', NULL, 1, 0, '2026-11-03T10:00:00+07:00');
+INSERT INTO recurring (id, name, amount, amount_varies, account_id, category_id, day_of_month, first_due_on, end_on, remind, archived, created_at) VALUES (2, 'Electricity token', 562000, 1, 1, 4, 31, '2026-08-31', NULL, 1, 0, '2026-11-03T10:00:00+07:00');
+COMMIT;
