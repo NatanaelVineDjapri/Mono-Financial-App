@@ -12,10 +12,13 @@ The design is finished and lives in a Claude Design canvas (owner's claude.ai ac
 | `docs/SCREENS.md` | The 22 screens + 3 sheets, proposed routes, board name per screen |
 | `docs/DATABASE.md` | Database design, guards, views, backup and restore |
 | `docs/TYPOGRAPHY.md` | Type scale with React Native styles and font loading |
-| `db/mono_schema_v1.sql` | **Canonical schema.** Tables, 13 views, 15 triggers, seed. If a doc disagrees with this file, the file wins |
-| `db/sample_data.sql` | The sample dataset as inserts (load after the schema) |
-| `db/verify_schema.py` | Reference test that proves the schema against the sample numbers. Port it to Jest |
-| `docs/screens/` | Optional screenshots of the boards, named after the board |
+| `docs/PAGES.md` | Per board (Indonesian): purpose, layout and components, states, notes. Board names match SCREENS.md |
+| `src/data/db/mono_schema_v1.sql` | **Canonical schema.** Tables, 13 views, 15 triggers, seed. If a doc disagrees with this file, the file wins |
+| `tools/sample_data.sql` | The sample dataset as inserts (load after the schema) |
+| `tools/verify_schema.py` | Reference test that proves the schema against the sample numbers. Port it to Jest |
+| `docs/screens/` | Screenshots of the boards, named after the board (Main.png, Tx-Add.png). Added by the owner phase by phase |
+
+You cannot open the design canvas. For the visuals of a screen, look in docs/screens/<Board>.png first, then docs/PAGES.md and docs/DESIGN.md section 11. If a layout detail is unclear or no screenshot exists for the screen you are building, ask the owner for the screenshot instead of guessing.
 
 ## Non-negotiable rules
 
@@ -37,7 +40,7 @@ The design is finished and lives in a Claude Design canvas (owner's claude.ai ac
 Expo (development build, not Expo Go only), `expo-router`, `expo-sqlite`, `@tanstack/react-query` (reads, invalidate after writes), `zustand` (UI-only state), `react-native-reanimated`, `react-native-gesture-handler`, `@shopify/react-native-skia`, `victory-native` (two charts), `expo-font` + `@expo-google-fonts/*`, `expo-video`, `expo-sharing`, `expo-document-picker`, `expo-file-system`, `expo-asset`, `expo-crypto`, `expo-local-authentication`, `expo-screen-capture`, `expo-notifications`, `expo-secure-store`. Dev: `jest`, `better-sqlite3`, `eslint`. Styling: `StyleSheet` plus the token file. Pin versions with `expo-doctor`.
 
 ```
-app/          expo-router routes only, thin
+src/app/      expo-router routes only, thin
 src/theme  core  data (db, repo, backup)  domain  features  components
 assets/       brand, mascot
 __tests__/    domain and SQL tests
@@ -57,12 +60,12 @@ Reference "today" in the design is **Wed 28 Oct 2026**. Every figure in the boar
 - Goals: Total assets 29,60%, Emergency fund 45,62% (BCA), Travel fund 0.
 - Fixed expenses: Gym Rp200.000 (28th, due today), Internet Rp385.000 (5th), Music subscription Rp54.990 (12th), Electricity token about Rp562.000 (24th, varies).
 
-`db/sample_data.sql` holds 11 transactions that reproduce the totals, plus two fixed expenses (Gym, and Electricity on day 31 on purpose, to test the end-of-month clamp; the boards show it on the 24th). The transaction lists in the boards (names, merchants) are illustrative and are not all in the seed. Use the seed for tests and a dev "load sample data" action, never ship it as real data.
+`tools/sample_data.sql` holds 11 transactions that reproduce the totals, plus two fixed expenses (Gym, and Electricity on day 31 on purpose, to test the end-of-month clamp; the boards show it on the 24th). The transaction lists in the boards (names, merchants) are illustrative and are not all in the seed. Use the seed for tests and a dev "load sample data" action, never ship it as real data.
 
 ## Build order
 
 1. **Foundation:** Expo project, TypeScript, `tokens.ts`, `typography.ts`, `money.ts` with tests, fonts, theme.
-2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `db/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above and all 7 guard codes.
+2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `tools/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above and all 7 guard codes.
 3. **Components:** Button, Chip, Segmented, Field, AmountField, Sheet, Toast, ProgressBar, MonoSwitch, BankCard, ChartTable.
 4. **Tabs:** Overview, Transactions, Accounts, Budgets, More.
 5. **Entry:** Add/edit transaction (expense, income, transfer, errors), then account, budget and goal create/edit, categories.
