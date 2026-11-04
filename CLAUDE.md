@@ -1,6 +1,6 @@
 # MONO Finance
 
-Premium, strictly monochrome, local-first personal finance app for Android. Rupiah (IDR) only, no accounts, no sync. Built with React Native (Expo), TypeScript, Expo SQLite and Expo Router. The only network use is an optional AI chat with the user's own Gemini key.
+Premium, monochrome with one amber accent for graphics plus red/green for loss/gain, local-first personal finance app for Android. Rupiah (IDR) is the base currency; one optional **Valas** account holds foreign money in one pocket per currency, valued in rupiah. No accounts, no sync. Built with React Native (Expo), TypeScript, Expo SQLite and Expo Router. Network use is limited to two optional features: the AI chat with the user's own Gemini key, and a refresh of exchange rates.
 
 The design is finished and lives in a Claude Design canvas (owner's claude.ai account): `https://claude.ai/artifact/2vo4tyC5vNz1HR3uhxEgXX`. Everything needed to build is also in this repo. **Follow the design; if something is unclear or you want to deviate, ask first.**
 
@@ -9,11 +9,11 @@ The design is finished and lives in a Claude Design canvas (owner's claude.ai ac
 | File | What it holds |
 |---|---|
 | `docs/DESIGN.md` | Full spec: tokens, components, every screen, accounting rules, flows, messages, sample dataset (section 10), React Native handoff (section 16) |
-| `docs/SCREENS.md` | The 22 screens + 3 sheets, proposed routes, board name per screen |
+| `docs/SCREENS.md` | The 24 screens + 4 sheets, proposed routes, board name per screen |
 | `docs/DATABASE.md` | Database design, guards, views, backup and restore |
 | `docs/TYPOGRAPHY.md` | Type scale with React Native styles and font loading |
 | `docs/PAGES.md` | Per board (Indonesian): purpose, layout and components, states, notes. Board names match SCREENS.md |
-| `src/data/db/mono_schema_v1.sql` | **Canonical schema.** Tables, 13 views, 15 triggers, seed. If a doc disagrees with this file, the file wins |
+| `src/data/db/mono_schema_v1.sql` | **Canonical schema.** 14 tables, 17 views, 23 triggers, seed (13 currencies). If a doc disagrees with this file, the file wins |
 | `tools/sample_data.sql` | The sample dataset as inserts (load after the schema) |
 | `tools/verify_schema.py` | Reference test that proves the schema against the sample numbers. Port it to Jest |
 | `docs/screens/` | Screenshots of the boards, named after the board (Main.png, Tx-Add.png). Added by the owner phase by phase |
@@ -22,18 +22,19 @@ You cannot open the design canvas. For the visuals of a screen, look in docs/scr
 
 ## Non-negotiable rules
 
-1. **Money is an integer of whole rupiah.** No float anywhere. Percentages are basis points (10000 = 100%), rounded half away from zero. Format with the own `rp()` and `pct()` in `src/core/money.ts` (spec in DESIGN.md section 16), not `Intl`.
+1. **Money is an integer in the minor unit of its currency.** Whole rupiah for IDR, cents for USD or SGD, `currencies.minor_factor` says which. No float anywhere. Percentages are basis points (10000 = 100%), rounded half away from zero. Format with the own `rp()`, `money()` and `pct()` in `src/core/money.ts` (spec in DESIGN.md section 16), not `Intl`. Exchange rates are integers too: `rate_e4` is rupiah per 1 major unit times 10.000 (USD at Rp16.250 is `162500000`).
 2. **No stored balances.** Account balance, net worth, budget progress, goal progress, savings rate and reports are read from the SQL views. Never write a derived number to a table.
-3. **A transfer is one row** (`to_account_id` set, no category). It changes two balances and never net worth, income or expense.
-4. **Rules live in the database.** CHECKs and triggers raise named codes: `future_date`, `before_opening_date`, `category_kind_mismatch`, `insufficient_balance`, `budget_needs_expense_category`, `over_monthly_limit`, `budgets_exist_for_month`. The domain layer may pre-check for friendly messages, but the schema is the real guard. Message wording is in DESIGN.md section 14.
-5. **Strictly monochrome.** Nine colour tokens only (`src/theme/tokens.ts`). No hue, ever. Gain/loss, error/success, over-budget are shown by sign, label, icon and line weight. `#737373` is for disabled and placeholder text only; small captions use `#8A8A8A`.
+3. **A transfer is one row** (`to_account_id` set, no category). It changes two balances and never net worth, income or expense. A transfer between two different currencies is an **exchange**: the same row stores `amount` (source currency) and `amount_to` (destination), and a transfer inside one Valas account is allowed only between two different pockets.
+4. **Rules live in the database.** CHECKs and triggers raise named codes: `future_date`, `before_opening_date`, `category_kind_mismatch`, `insufficient_balance`, `budget_needs_expense_category`, `over_monthly_limit`, `budgets_exist_for_month`, `currency_not_in_account`, `missing_fx_rate`, `pocket_needs_forex_account`, `pocket_not_empty`, `account_type_locked`, `recurring_needs_idr_account`. The domain layer may pre-check for friendly messages, but the schema is the real guard. Message wording is in DESIGN.md section 14.
+5. **Monochrome plus three colours with strict jobs.** Twelve colour tokens in `src/theme/tokens.ts`. `accent: '#E3C27A'` (amber) is ONLY for graphics: main chart series, progress-bar fills, selected bar; never text, icons, buttons or status. `positive: '#4ADE80'` (green) and `negative: '#FF6B6B'` (red) mark gain and loss: plus/minus amounts, over-budget, errors. Colour only reinforces a sign, icon or word and is never the only signal. Colour follows meaning, the sign follows arithmetic (spending up is `+Rp…` in red). Transfers are never coloured. Over-budget bars keep a striped (red) overflow segment plus icon and "Over by" text. No other hue, ever. `#737373` is for disabled and placeholder text only; small captions use `#8A8A8A`.
 6. **Type.** IBM Plex Sans for UI and figures (tabular numbers), Newsreader for screen titles and hero balances only, at most one serif moment per screen. IBM Plex Mono never for money. Fonts are bundled, never fetched.
 7. **Accessibility.** Touch targets 44 to 48dp. Support text scale to 200%: rows grow, numbers never truncate. Every chart has an accessibility label and an exact-value table beneath. Never use `Alert` for styled dialogs.
-8. **Offline-first.** Only `src/features/ai_chat` may call the network (plain `fetch`, 20 s timeout). Enforce with an ESLint rule. No analytics, no crash SDK, no Firebase.
+8. **Offline-first.** Only two places may call the network, each with plain `fetch` and a 20 s timeout: `src/features/ai_chat` and `src/features/fx` (exchange-rate refresh). Enforce with an ESLint rule. The rate refresh runs only when the user taps "Update rates now" or has switched on "Update automatically" (off by default), sends no user data (one GET with no body), and never blocks the app: on failure keep the stored rates. No analytics, no crash SDK, no Firebase.
 9. **AI only proposes.** Nothing is written until the user taps Simpan. Names map to ids by exact match; unknown or missing names become a clarification, never a guess. Sent to Gemini: typed text, today's date, account names, category names. Never sent: balances, transactions, budgets, goals, backups. The key lives in `expo-secure-store` and is excluded from backups and logs.
 10. **Fixed expenses are templates.** They change nothing until the user confirms a due date. Confirming writes one expense and one `recurring_events` row in one exclusive transaction. Due dates are computed (`v_recurring_due`), not stored.
 11. **Restore is all-or-nothing.** One exclusive transaction: set `meta.guards_off` to 1, delete, insert, set it back to 0, `PRAGMA foreign_key_check`, read `v_integrity_issues`. Any error or any returned row rolls back. `backup_log` and `meta` are not exported.
 12. **Hidden amounts mode** goes through one gate (`shown()`); every currency figure passes it.
+13. **Valas and rupiah values.** Only a `forex` account has pockets (`account_currencies`); every other account is implicitly IDR. Every transaction stores `amount_idr`, the rupiah value on the day it was recorded, and budgets, reports, income and expense use only that. Account totals and net worth value each pocket at the latest rate (`v_latest_fx`) and show `≈`; when a pocket has no rate, net worth is flagged `incomplete` and the UI says so. Fixed expenses can only use IDR accounts.
 
 ## Stack and layout
 
@@ -48,7 +49,7 @@ __tests__/    domain and SQL tests
 
 Full tree in DESIGN.md section 16. The schema is loaded from a bundled `.sql` asset (add `sql` to Metro `assetExts`) and run with `db.execAsync`. Always `PRAGMA foreign_keys = ON`. Add `.sql` migrations from v2 onwards, each in one transaction, with a safety backup first.
 
-Android manifest: Expo declares INTERNET by default. Keep it for the AI chat only, strip unused permissions with `android.blockedPermissions`, read the merged manifest after prebuild, and check that `expo-notifications` does not require the exact-alarm permission.
+Android manifest: Expo declares INTERNET by default. Keep it for the AI chat and the rate refresh only, strip unused permissions with `android.blockedPermissions`, read the merged manifest after prebuild, and check that `expo-notifications` does not require the exact-alarm permission.
 
 ## Sample data
 
@@ -60,12 +61,14 @@ Reference "today" in the design is **Wed 28 Oct 2026**. Every figure in the boar
 - Goals: Total assets 29,60%, Emergency fund 45,62% (BCA), Travel fund 0.
 - Fixed expenses: Gym Rp200.000 (28th, due today), Internet Rp385.000 (5th), Music subscription Rp54.990 (12th), Electricity token about Rp562.000 (24th, varies).
 
+The Valas boards use a **separate** sample: Valas holds US$250,00 and S$180,00 (after a S$20 dinner on 15 Oct) at the rates of 28 Oct 2026 09:00, US$1 = Rp16.250 and S$1 = Rp12.500, so Valas is about Rp6.312.500 and net worth with Valas about Rp15.192.500. `tools/verify_schema.py` and `src/data/db/__tests__/schema.test.ts` build it as a fixture on top of the IDR dataset; the IDR numbers above never change.
+
 `tools/sample_data.sql` holds 11 transactions that reproduce the totals, plus two fixed expenses (Gym, and Electricity on day 31 on purpose, to test the end-of-month clamp; the boards show it on the 24th). The transaction lists in the boards (names, merchants) are illustrative and are not all in the seed. Use the seed for tests and a dev "load sample data" action, never ship it as real data.
 
 ## Build order
 
 1. **Foundation:** Expo project, TypeScript, `tokens.ts`, `typography.ts`, `money.ts` with tests, fonts, theme.
-2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `tools/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above and all 7 guard codes.
+2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `tools/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above, the Valas section, and all 13 guard codes. (The schema and this Jest port are already done — `src/data/db/__tests__/schema.test.ts` — but `open.ts`, the repo layer and domain functions are not yet started.)
 3. **Components:** Button, Chip, Segmented, Field, AmountField, Sheet, Toast, ProgressBar, MonoSwitch, BankCard, ChartTable.
 4. **Tabs:** Overview, Transactions, Accounts, Budgets, More.
 5. **Entry:** Add/edit transaction (expense, income, transfer, errors), then account, budget and goal create/edit, categories.
@@ -73,7 +76,8 @@ Reference "today" in the design is **Wed 28 Oct 2026**. Every figure in the boar
 7. **Data safety:** Backup, restore (with guards_off flow), Settings, app lock, hide amounts, screenshot block.
 8. **Fixed expenses:** list, edit, confirm sheet, reminders.
 9. **AI chat:** setup and consent, chat, draft edit sheet, error states.
-10. **Welcome** and polish (empty states, validation catalogue, 200% text scale pass).
+10. **Valas and exchange rates:** Valas account and pockets, exchange, rates screen and refresh (the schema and tests landed in step 2; `src/features/fx/fetchRates.ts` and `throttle.ts` are done, the UI is here).
+11. **Welcome** and polish (empty states, validation catalogue, 200% text scale pass).
 
 Definition of done per screen: matches its board (layout, copy, states), uses only token colours, passes the rules above, has no number computed outside SQL views or `src/domain`.
 
@@ -82,7 +86,7 @@ Definition of done per screen: matches its board (layout, copy, states), uses on
 - **UI language.** The boards mix English (most screens) and Indonesian (Welcome, AI chat, fixed-expense confirm). Decide whether to ship one language or both before writing strings; keep all copy in one module so it can change.
 - Token names in the DS-Foundations board (`MonoColors.bg2`, `elevated`, `text2`, `muted`) differ from `tokens.ts` (`surface`, `raised`, `textSecond`, `textDisabled`). Use the `tokens.ts` names; the colours are identical.
 - The schema was tested in plain SQLite only. Verify on a device that Android's SQLite supports window functions (3.25+), used by `v_account_activity`; otherwise bundle SQLite.
-- Error messages for the 7 guard codes in DATABASE.md are proposed wording, not yet in the design's message catalogue.
+- Error messages for the 13 guard codes in DATABASE.md are proposed wording, not yet in the design's message catalogue.
 
 ## Working agreements
 

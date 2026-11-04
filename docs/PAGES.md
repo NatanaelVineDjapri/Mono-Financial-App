@@ -6,7 +6,7 @@ Setiap papan di kanvas desain: tujuan, tata letak, keadaan, dan catatan. Nama be
 
 ### DS-1 · Design system · Fondasi
 
-Papan: `DS-Foundations` · 1280 × 3300 (papan lebar)
+Papan: `DS-Foundations` · 1280 × 5440 (papan lebar)
 
 **Tujuan.** Satu halaman rujukan untuk semua token visual: warna, tipografi, jarak, bentuk, ikon, dan logo.
 
@@ -28,7 +28,7 @@ Papan: `DS-Foundations` · 1280 × 3300 (papan lebar)
 
 ### DS-2 · Design system · Komponen
 
-Papan: `DS-Components` · 1280 × 2480
+Papan: `DS-Components` · 1280 × 3960
 
 **Tujuan.** Katalog komponen UI beserta keadaannya, supaya developer tidak perlu menebak.
 
@@ -51,7 +51,7 @@ Papan: `DS-Components` · 1280 × 2480
 
 ### DS-3 · Navigasi dan alur pengguna
 
-Papan: `Flows` · 1280 × 1330
+Papan: `Flows` · 1280 × 1500
 
 **Tujuan.** Peta bagaimana layar saling terhubung dan tiga alur utama dari awal sampai selesai.
 
@@ -72,7 +72,7 @@ Papan: `Flows` · 1280 × 1330
 
 ### DS-4 · Serah terima React Native
 
-Papan: `Handoff` · 1280 × 4130
+Papan: `Handoff` · 1280 × 4720
 
 **Tujuan.** Catatan pengerjaan untuk engineer: tema, format, pemetaan komponen ke widget, aturan akuntansi, skema data, dan pengujian.
 
@@ -96,15 +96,15 @@ Papan: `Handoff` · 1280 × 4130
 
 ### DS-5 · Database · skema v1
 
-Papan: `Database` · 1280 × 3290
+Papan: `Database` · 1280 × 4340
 
 **Tujuan.** Rancangan database lokal: diagram relasi antartabel, fungsi tiap tabel, data turunan, penjaga, cadangan, dan migrasi.
 
 **Tata letak dan komponen**
 
-- 1 · Diagram relasi (ERD) 11 tabel dengan kunci utama, kunci asing, dan satu tautan lunak (month antara budgets dan monthly_limits).
+- 1 · Diagram relasi (ERD) 14 tabel dengan kunci utama, kunci asing, dan satu tautan lunak (month antara budgets dan monthly_limits).
 - 2 · Tabel: isi dan hal yang perlu diketahui tiap tabel.
-- 3 · Data turunan yang tidak pernah disimpan: 13 view (saldo, kekayaan bersih, arus periode, tingkat tabungan, status anggaran, progres target, jatuh tempo, audit integritas).
+- 3 · Data turunan yang tidak pernah disimpan: 17 view (kantong, kurs, saldo, kekayaan bersih, arus periode, tingkat tabungan, status anggaran, progres target, jatuh tempo, audit integritas).
 - 4 · Konvensi: uang bilangan bulat, rasio basis point, tanggal ISO, periode mengikuti month_start_day, arsip bukan hapus.
 - 5 · Penjaga: 15 trigger dengan 7 kode galat dan pesan yang disarankan (saldo tidak minus, tanpa tanggal masa depan, anggaran dalam batas bulanan).
 - 6 · Cadangan dan restore: tabel yang ikut berkas, dan enam langkah restore di sisi database.
@@ -173,7 +173,7 @@ Papan: `Main` · 390 × 2890
 **Catatan**
 
 - Semua angka diturunkan dari catatan. Tidak ada total yang diketik manual.
-- Naik/turun ditandai tanda + dan − serta ikon, bukan warna.
+- Naik/turun ditandai tanda + dan − serta ikon; hijau dan merah hanya menguatkan, tidak pernah jadi satu-satunya penanda.
 
 ### A2 · Overview — keadaan kosong
 
@@ -324,7 +324,7 @@ Papan: `Accounts` · 390 × 1400
 **Tata letak dan komponen**
 
 - Judul layar dan kartu ringkasan "Total balance · net worth" Rp8.880.000 untuk 4 akun, dengan catatan bahwa transfer tidak mengubah total.
-- Grup Bank, Cash, E-wallet, Savings. Tiap grup memiliki label dan subtotal, lalu satu kartu selebar layar.
+- Grup Bank, Cash, E-wallet, Savings. Tiap grup memiliki label dan subtotal, lalu satu kartu selebar layar. Bila ada akun Valas, lihat papan `Accounts-Valas` (bagian V).
 - Kartu: BCA Tabungan (gelap, garis diagonal, chip, tag DEBIT), Cash wallet (garis putus-putus, tag CASH), GoPay (abu-abu, pola titik, tag E-WALLET), Jago Pocket (putih, lingkaran, tag SAVINGS POCKET).
 - Tombol "Transfer between accounts" (utama) dan "Add account" (sekunder).
 - Catatan bahwa MONO tidak meminta login bank dan akun hanyalah label di perangkat.
@@ -367,7 +367,7 @@ Papan: `Account-Edit` · 390 × 844
 
 **Tata letak dan komponen**
 
-- Pilihan tipe berupa ubin: Bank, Cash, E-wallet, Savings.
+- Pilihan tipe berupa ubin: Bank, Cash, E-wallet, Savings, dan Valas (lihat `Valas-Edit` di bagian V).
 - Nama akun dan saldo awal (Rp1.200.000) per tanggal 1 Jan 2026 dengan penjelasan bahwa mengubahnya akan menghitung ulang saldo saat ini.
 - Pilihan ikon (opsional).
 - Catatan: tidak perlu login bank atau nomor kartu.
@@ -611,7 +611,7 @@ Papan: `Restore-Confirm` · 390 × 884
 
 **Catatan**
 
-- Tindakan merusak diberi bingkai penekanan 1,5 px, bukan warna merah.
+- Tindakan merusak diberi bingkai penekanan 1,5 px, bukan warna merah (merah dipakai untuk uang keluar dan kesalahan).
 
 ### I3 · Restore — berkas tidak kompatibel
 
@@ -628,7 +628,7 @@ Papan: `Restore-Invalid` · 390 × 844
 
 **Keadaan**
 
-- Tiap butir pemeriksaan memakai ikon dan teks, bukan warna.
+- Tiap butir pemeriksaan memakai ikon dan teks; warna tidak pernah jadi satu-satunya penanda.
 
 **Catatan**
 
@@ -638,18 +638,18 @@ Papan: `Restore-Invalid` · 390 × 844
 
 ### J · Settings
 
-Papan: `Settings` · 390 × 1380
+Papan: `Settings` · 390 × 1720
 
 **Tujuan.** Privasi, format, dan data.
 
 **Tata letak dan komponen**
 
 - Privacy: App lock (sidik jari atau PIN), Hide amounts on launch, Block screenshots and app preview.
-- Format: Currency (rupiah, tetap, tanpa desimal, ikon gembok), Number format, Month starts on, Time zone (WIB, UTC+7).
+- Format: Currency (rupiah, tanpa desimal, uang asing ada di akun Valas, ikon gembok), Exchange rates (terakhir diperbarui 28 Okt 2026 09:00, membuka papan Rates), Number format, Month starts on, Time zone (WIB, UTC+7).
 - Data: Monthly backup reminder, Fixed expense reminders (sakelar, 09:00, nominal tidak ditampilkan di notifikasi bila Hide amounts aktif), Backup and restore (cadangan terakhir 21 Okt 2026), Categories.
 - Assistant: sakelar "Catat lewat chat (AI)" (mati secara default) dan baris "API key Gemini" yang membuka layar setup.
 - Erase: "Erase all data on this device" dengan bingkai penekanan.
-- About: tanda MONO, MONO Finance, versi 1.0.0 build 1 schema 1, "Works offline" (hanya chat AI opsional yang memakai internet), lisensi sumber terbuka.
+- About: tanda MONO, MONO Finance, versi 1.0.0 build 1 schema 1, "Works offline" (hanya chat AI opsional dan pembaruan kurs opsional yang memakai internet), lisensi sumber terbuka.
 
 **Keadaan**
 
@@ -820,6 +820,161 @@ Papan: `Recurring-Confirm` · 390 × 844
 **Catatan**
 
 - Mengonfirmasi membuat satu transaksi pengeluaran biasa dan satu catatan peristiwa dalam satu transaksi SQLite.
+
+## V · Valas (mata uang asing)
+
+Satu akun bernama Valas memegang banyak mata uang. Tiap mata uang adalah satu kantong dengan saldonya sendiri; akun hanya menampilkan total dalam rupiah, diperkirakan dari kurs terbaru dan ditandai ≈. Data contoh papan-papan ini terpisah dari data contoh lainnya: US$250,00 dan S$180,00 pada kurs US$1 = Rp16.250 dan S$1 = Rp12.500 (28 Okt 2026, 09:00), jadi Valas ≈ Rp6.312.500 dan kekayaan bersih dengan Valas ≈ Rp15.192.500.
+
+### V1 · Accounts dengan akun Valas
+
+Papan: `Accounts-Valas` · 390 × 1800
+
+**Tujuan.** Menunjukkan bagaimana akun Valas tampil di daftar akun.
+
+**Tata letak dan komponen**
+
+- Sama seperti D1, tetapi kartu total menampilkan "≈ Rp15.192.500" untuk 5 akun dan catatan bahwa uang asing dinilai dengan kurs terbaru (28 Okt 2026, 09:00) sehingga totalnya perkiraan.
+- Grup "Foreign currency" dengan subtotal ≈ Rp6.312.500 dan satu kartu Valas: tag "2 CURRENCIES", dua koin mata uang yang saling menumpuk (US$, S$), nilai ≈ Rp6.312.500, dan jumlah asli di bawahnya (US$250,00 · S$180,00).
+- Baris "Exchange rates · updated 28 Oct, 09:00" yang membuka papan Rates.
+- Catatan di bawah menyebut bahwa akun Valas menyimpan tiap mata uang di kantongnya sendiri.
+
+**Keadaan**
+
+- Bila kurs sebuah mata uang belum ada, total ditandai tidak lengkap dan Valas menampilkan jumlah aslinya tanpa nilai rupiah.
+
+**Catatan**
+
+- Kartu Valas bergaya monokrom, berbingkai abu-abu terang dengan garis vertikal halus. Tidak ada warna baru.
+
+### V2 · Detail akun Valas
+
+Papan: `Valas-Detail` · 390 × 1100
+
+**Tujuan.** Melihat setiap kantong mata uang dan aktivitasnya.
+
+**Tata letak dan komponen**
+
+- App bar "Valas" dengan tombol ubah. Label "Multi-currency account · value today" dan angka besar "≈ Rp6.312.500" dengan penjelasan bahwa nilainya perkiraan dari kurs 28 Okt 2026, 09:00.
+- Kartu kantong: satu baris per mata uang berisi kode (USD, SGD), nama, kurs yang dipakai (Rp16.250 per US$1), jumlah asli (US$250,00) dan nilai rupiah (≈ Rp4.062.500).
+- Tombol putus-putus "Add currency" dan dua tombol: Add (utama) dan Exchange.
+- Aktivitas Oktober, terbaru dulu, dengan chip All / USD / SGD. Pengeluaran S$20,00 "Dinner, Singapore" (15 Okt) tampil −S$20,00 berwarna merah dengan nilai ≈ Rp250.000; saldo awal tiap kantong tampil sebagai baris "Opening".
+- Tautan "View all transactions for this account", baris "Exchange rates · 28 Oct, 09:00", dan catatan bahwa setiap transaksi menyimpan nilai rupiah pada hari dicatat sehingga anggaran dan laporan tidak berubah saat kurs berubah.
+
+**Keadaan**
+
+- Kantong yang kosong tetap tampil dan bisa diarsipkan; kantong yang masih berisi tidak.
+
+**Catatan**
+
+- Tidak ada satu saldo tunggal untuk Valas. Angka besar selalu total dalam rupiah.
+
+### V3 · Buat akun Valas
+
+Papan: `Valas-Edit` · 390 × 1040
+
+**Tujuan.** Membuat akun Valas dengan satu atau lebih mata uang.
+
+**Tata letak dan komponen**
+
+- Ubin tipe: Bank, Cash, E-wallet, Savings, dan ubin lebar "Valas · foreign currency" yang terpilih (bingkai 1,5 px terang, "Several currencies in one account").
+- Nama akun (Valas).
+- Daftar "Currencies": tiap mata uang punya kode, nama, tombol hapus dan satu kolom saldo awal (US$ 250,00, S$ 200,00).
+- Tombol "Add currency" yang membuka lembar V4.
+- Tanggal buka (1 Okt 2026) berlaku untuk semua mata uang yang ditambahkan sekarang; mata uang yang ditambahkan nanti punya tanggalnya sendiri.
+- Catatan: akun Valas tidak punya satu saldo, tidak perlu login bank. Tombol Cancel dan "Create account".
+
+**Keadaan**
+
+- Tanpa satu pun mata uang, tombol "Create account" nonaktif.
+
+**Catatan**
+
+- Saldo awal akun Valas selalu 0 di tabel `accounts`; saldo awal sebenarnya ada di `account_currencies`.
+
+### V4 · Lembar tambah mata uang
+
+Papan: `Valas-Add-Currency` · 390 × 844
+
+**Tujuan.** Memilih mata uang yang akan menjadi kantong baru.
+
+**Tata letak dan komponen**
+
+- Lembar bawah di atas layar yang diredupkan: pegangan, judul "Add currency", tombol tutup, kolom cari "Search currency or code".
+- Daftar 12 mata uang yang didukung (USD, SGD, EUR, MYR, AUD, GBP, JPY, CNY, HKD, KRW, THB, SAR). Yang sudah ada ditandai "Added" dan diredupkan.
+- Catatan bahwa tiap mata uang butuh kurs untuk menampilkan nilai rupiah: MONO mengambilnya setelah ditambahkan, atau pengguna mengetik sendiri di Exchange rates.
+
+**Keadaan**
+
+- Pencarian tanpa hasil menampilkan "Tidak ada mata uang yang cocok".
+
+**Catatan**
+
+- Daftar mata uang berasal dari tabel statis `currencies`.
+
+### V5 · Tambah pengeluaran di kantong Valas
+
+Papan: `Tx-Add-Valas` · 390 × 820
+
+**Tujuan.** Mencatat pengeluaran dalam mata uang asing.
+
+**Tata letak dan komponen**
+
+- Sama seperti C1. Label jumlah "Amount in SGD", angka S$20,00 dan baris "≈ Rp250.000 · Rp12.500 per S$1" yang langsung terhitung.
+- Baris akun menampilkan Valas dengan "Balance after: S$160,00", lalu chip kantong USD dan SGD (SGD terpilih) dengan label "Which currency pays".
+- Tanggal 15 Okt 2026 dengan Today dan Yesterday, deskripsi "Dinner, Singapore".
+- Catatan bahwa transaksi dihitung ke anggaran Food & drink sebesar kira-kira Rp250.000, nilai pada hari dicatat, dan nilainya tetap walau kurs berubah.
+
+**Keadaan**
+
+- Jumlah melebihi saldo kantong: pesan "The SGD pocket has S$245,00. This expense is S$300,00." Kurs belum ada: "Add an exchange rate for SGD first."
+
+**Catatan**
+
+- Hanya kantong milik akun yang dapat dipilih. Pada akun biasa chip kantong tidak muncul.
+
+### V6 · Tukar mata uang
+
+Papan: `Tx-Exchange` · 390 × 1040
+
+**Tujuan.** Menukar uang antar mata uang, misalnya rupiah ke USD.
+
+**Tata letak dan komponen**
+
+- Sama seperti C3 dengan tab Transfer terpilih dan kotak info "Different currencies. Enter both amounts exactly as your bank or exchange gave them."
+- Kartu dua bagian: From "BCA Tabungan · IDR" (Balance after Rp5.217.500) dengan "You send Rp1.625.000", tombol tukar arah, lalu To "Valas · USD" (Balance after US$350,00) dengan "You receive US$100,00".
+- Kartu ringkasan kurs: Your rate Rp16.250 per US$1, Latest stored rate, dan Difference 0,00%.
+- Penjelasan bahwa MONO menyimpan kedua jumlah dan menghitung kurs sendiri; kekayaan bersih hanya berubah sebesar selisih kurs pengguna dengan kurs tersimpan.
+- Tanggal, deskripsi opsional ("Buy USD"), tombol Cancel dan "Save exchange".
+
+**Keadaan**
+
+- Akun asal dan tujuan sama dengan mata uang sama ditolak. Dalam satu akun Valas, penukaran hanya boleh antar dua kantong berbeda.
+
+**Catatan**
+
+- Penukaran adalah satu baris transfer dengan `amount` dan `amount_to`.
+
+### V7 · Kurs
+
+Papan: `Rates` · 390 × 860
+
+**Tujuan.** Mengatur dan memperbarui kurs yang dipakai untuk menilai uang asing.
+
+**Tata letak dan komponen**
+
+- Kartu: sakelar "Update automatically" (mati secara default, sehari sekali saat MONO terbuka dan online) dan baris "Update rates now" dengan waktu pembaruan terakhir.
+- "Rates in use": satu baris per mata uang yang dipegang, dengan sumber dan waktu (28 Okt, 09:00), kurs Rp16.250,00 per US$1, dan chevron. Ketuk untuk mengetik kurs sendiri; kurs manual bertahan sampai pembaruan berikutnya.
+- Kotak "Couldn't update rates." berbingkai merah dengan ikon peringatan: tidak ada internet, MONO tetap memakai kurs 28 Okt, tidak ada yang berubah atau hilang.
+- "How rates are used": total akun dan kekayaan bersih menilai kantong dengan kurs di atas (ditandai ≈), sedangkan tiap transaksi menyimpan nilai rupiah pada hari dicatat.
+- Catatan privasi (hanya kode mata uang yang dikirim, tidak pernah catatan pengguna) dan atribusi "Rates By Exchange Rate API".
+
+**Keadaan**
+
+- Memperbarui: tombol menampilkan indikator dan dinonaktifkan. Gagal: kotak merah di atas. Batas permintaan (HTTP 429): pesan "Coba lagi nanti" dan tombol nonaktif 20 menit.
+
+**Catatan**
+
+- Layanan: satu permintaan GET `https://open.er-api.com/v6/latest/USD` (semua kurs dalam satu respons), kurs rupiah per X = rates.IDR ÷ rates[X]. Simpan hasilnya sebagai `rate_e4` dengan `source = 'api'`. Respons di-cache minimal satu jam (disarankan sehari). Sudah dicek pada 4 Nov 2026: respons berisi `result: "success"`, IDR, dan ke-12 mata uang yang didukung; diperbarui sekali sehari (`time_next_update_utc`). Cek lagi saat membangun, dan perlakukan `result` selain `success` sebagai gagal.
 
 ## Keadaan sistem
 

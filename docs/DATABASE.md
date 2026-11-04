@@ -8,17 +8,21 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 2. **Satu kejadian uang, satu baris.** Transfer adalah satu baris dengan `to_account_id`. Karena itu transfer tidak bisa terhitung sebagai pemasukan atau pengeluaran, dan tidak mengubah kekayaan bersih.
 3. **Aturan ada di database, bukan hanya di layar.** Bentuk satu baris dijaga CHECK. Aturan yang butuh baris lain (saldo tidak boleh minus, tanggal tidak boleh di masa depan, anggaran tidak melebihi batas bulanan) dijaga trigger yang melempar kode galat bernama.
 4. **Riwayat tidak boleh yatim.** Semua foreign key `ON DELETE RESTRICT`, kecuali `recurring_events` yang ikut terhapus bersama transaksinya. Akun, kategori, dan pengeluaran tetap diarsipkan, bukan dihapus.
-5. **Uang bilangan bulat.** Rupiah utuh sebagai INTEGER, persen sebagai basis point (10000 = 100%), tanggal sebagai teks ISO 8601. Pembulatan setengah menjauhi nol, dilakukan di SQL.
+5. **Uang bilangan bulat.** Satuan terkecil tiap mata uang sebagai INTEGER (rupiah utuh untuk IDR, sen untuk USD atau SGD, lihat `currencies.minor_factor`). Kurs juga bilangan bulat: `rate_e4` = rupiah per 1 satuan utama × 10.000. Persen sebagai basis point (10000 = 100%), tanggal sebagai teks ISO 8601. Pembulatan setengah menjauhi nol, dilakukan di SQL.
+6. **Valas = satu akun, banyak kantong.** Hanya akun bertipe `forex` yang punya kantong (`account_currencies`), satu per mata uang. Akun lain otomatis IDR. Tiap transaksi menyimpan `amount_idr`, nilai rupiah pada hari dicatat, supaya anggaran dan laporan tidak bergeser saat kurs berubah. Saldo akun dan kekayaan bersih menilai tiap kantong dengan kurs terbaru dan ditandai perkiraan.
 
 ## 2. Tabel
 
 | Tabel | Isi | Catatan |
 |---|---|---|
 | `meta` | `schema_version`, `guards_off` | `guards_off` adalah saklar sementara saat restore. Dibuat ulang, tidak ikut cadangan. |
-| `settings` | satu baris per pengaturan | `month_start_day`, `timezone`, `ai_enabled`, dan lainnya. Kunci Gemini tidak ada di sini, tersimpan di secure storage. |
-| `accounts` | bank, tunai, e-wallet, tabungan | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. Nama unik tanpa membedakan huruf besar kecil. |
+| `settings` | satu baris per pengaturan | `month_start_day`, `timezone`, `ai_enabled`, `fx_auto_update` (default 0), dan lainnya. Kunci Gemini tidak ada di sini, tersimpan di secure storage. |
+| `currencies` | daftar mata uang yang didukung (13, termasuk IDR) | Seed statis: `code`, `name`, `minor_factor` (100 untuk USD, 1 untuk IDR, JPY, KRW). Tidak ikut cadangan. |
+| `fx_rates` | riwayat kurs | `currency`, `rate_e4`, `fetched_at`, `source` (api atau manual). Kurs terbaru per mata uang dibaca lewat `v_latest_fx`. IDR tidak punya kurs. |
+| `accounts` | bank, tunai, e-wallet, tabungan, valas (`forex`) | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. Akun valas selalu `opening_balance = 0`, saldo awalnya ada di kantong. Nama unik tanpa membedakan huruf besar kecil. |
+| `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan. |
 | `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)`. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
-| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring). |
+| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring). Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
 | `monthly_limits` | batas total per bulan | `repeat = 1` berarti bulan berikutnya dibuat dari baris ini. |
 | `budgets` | batas per kategori pengeluaran per bulan | `UNIQUE(category_id, month)`. Jumlah semua anggaran tidak boleh melebihi batas bulan itu. |
 | `goals` | target per akun atau total aset | Progres diturunkan dari saldo. |
@@ -29,6 +33,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 ### Relasi
 
 - `accounts` 1—N `transactions` lewat `account_id`, dan 1—N lewat `to_account_id` (hanya transfer).
+- `accounts` (tipe forex) 1—N `account_currencies`; `currencies` 1—N `account_currencies`, `fx_rates` dan `transactions`.
 - `categories` 1—N `transactions`, `budgets`, `recurring`.
 - `accounts` 1—N `goals` (mode akun) dan 1—N `recurring`.
 - `recurring` 1—N `recurring_events`, dan `recurring_events.transaction_id` menunjuk ke satu transaksi.
@@ -37,6 +42,8 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 ## 3. Batasan di tingkat baris (CHECK)
 
 - `amount > 0`, `opening_balance >= 0`, `limit_amount > 0`, `target_amount > 0`.
+- Baris IDR: `amount_idr = amount`. Mata uang yang sama: `amount_to = amount`. Transfer di akun yang sama hanya boleh antar mata uang berbeda (penukaran).
+- Akun valas: `opening_balance = 0`. Kantong tidak boleh IDR. Kurs tidak boleh untuk IDR.
 - Transfer jika dan hanya jika `to_account_id` terisi.
 - Transfer jika dan hanya jika `category_id` kosong.
 - Akun asal tidak sama dengan akun tujuan.
@@ -46,7 +53,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 
 ## 4. Penjaga (trigger)
 
-15 trigger, 7 kode galat. Aplikasi memetakan tiap kode ke satu pesan.
+23 trigger, 13 kode galat. Aplikasi memetakan tiap kode ke satu pesan.
 
 | Kode | Memblokir | Pesan yang disarankan |
 |---|---|---|
@@ -57,6 +64,12 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `budget_needs_expense_category` | anggaran untuk kategori pemasukan | "Anggaran hanya untuk pengeluaran." |
 | `over_monthly_limit` | anggaran yang jumlahnya melebihi batas bulan, atau menurunkan batas di bawah anggaran | "Naikkan batas bulanan dulu." |
 | `budgets_exist_for_month` | menghapus batas bulan yang masih punya anggaran | "Hapus anggarannya dulu." |
+| `currency_not_in_account` | transaksi dalam mata uang yang bukan kantong akunnya, atau di kantong yang diarsipkan | "Akun ini tidak punya kantong SGD." |
+| `missing_fx_rate` | transaksi valas tanpa kurs tersimpan untuk mata uangnya | "Tambahkan kurs SGD dulu." |
+| `pocket_needs_forex_account` | kantong pada akun yang bukan valas | "Hanya akun Valas yang punya kantong." |
+| `pocket_not_empty` | mengarsipkan kantong yang masih berisi | "Kosongkan kantong dulu." |
+| `account_type_locked` | mengubah tipe akun dari atau menjadi valas | "Tipe akun tidak bisa diubah." |
+| `recurring_needs_idr_account` | pengeluaran tetap pada akun valas | "Pengeluaran tetap hanya untuk akun rupiah." |
 
 Semua trigger berhenti bekerja bila `meta.guards_off = '1'`. Itu hanya dipakai saat restore (bagian 7).
 
@@ -65,16 +78,20 @@ Semua trigger berhenti bekerja bila `meta.guards_off = '1'`. Itu hanya dipakai s
 | View | Fungsi |
 |---|---|
 | `v_tx` | Setiap transaksi beserta periodenya. Periode mengikuti `month_start_day`. |
-| `v_account_balance` | Saldo akun: saldo awal + pemasukan + transfer masuk − pengeluaran − transfer keluar. |
-| `v_net_worth` | Jumlah semua saldo akun. |
+| `v_latest_fx` | Kurs terbaru per mata uang. |
+| `v_pocket` | Semua kantong: tiap akun biasa punya satu kantong IDR implisit, akun valas punya kantong sesuai `account_currencies`. |
+| `v_pocket_balance` | Saldo kantong dalam mata uangnya: saldo awal + pemasukan + transfer masuk − pengeluaran − transfer keluar. |
+| `v_pocket_value` | Nilai rupiah tiap kantong memakai kurs terbaru (kosong bila kurs belum ada). |
+| `v_account_balance` | Saldo akun dalam rupiah (jumlah nilai kantong) dan `missing_rates`, jumlah kantong tanpa kurs. |
+| `v_net_worth` | Jumlah semua saldo akun, plus penanda `incomplete` bila ada kantong tanpa kurs. |
 | `v_period_flow` | Pemasukan, pengeluaran, selisih, dan total transfer per periode. |
 | `v_savings_rate` | Selisih dibagi pemasukan, dalam basis point. Kosong bila pemasukan 0. |
 | `v_category_spend` | Pengeluaran per kategori per periode. |
 | `v_budget_status` | Terpakai, sisa, `used_bp`, dan `is_over` per anggaran. |
 | `v_month_budget` | Batas, teralokasi, terpakai, dan sisa untuk satu bulan. |
 | `v_goal_progress` | Jumlah saat ini, sisa, dan `progress_bp` per target. |
-| `v_account_activity` | Riwayat akun dengan saldo berjalan. |
-| `v_net_worth_by_month` | Kekayaan bersih akhir bulan untuk grafik tren. |
+| `v_account_activity` | Riwayat per kantong dengan saldo berjalan dalam mata uang kantong itu. |
+| `v_net_worth_by_month` | Kekayaan bersih akhir bulan untuk grafik tren. Kantong valas memakai kurs terbaru pada atau sebelum akhir bulan, bila tidak ada maka kurs tertua. |
 | `v_recurring_due` | Tanggal jatuh tempo yang belum dikonfirmasi. Tanggal 29 sampai 31 jatuh di hari terakhir bulan yang lebih pendek. |
 | `v_integrity_issues` | Daftar audit. Harus kosong setelah restore. |
 
@@ -92,7 +109,12 @@ Data contoh sama dengan desain (hari acuan Rabu, 28 Oktober 2026). Semua nilai i
 | Progres target | Total aset 2960 bp, Dana darurat 4562 bp |
 | Kekayaan bersih September | Rp5.637.000 |
 | Jatuh tempo tanggal 31 (Listrik) | 31 Agustus, 30 September, 31 Oktober |
-| 13 kasus uji penjaga | semuanya diblokir seperti seharusnya |
+| 13 kasus uji penjaga (data IDR) | semuanya diblokir seperti seharusnya |
+| Valas (data terpisah): USD 250,00 dan SGD 180,00 pada kurs 16.250 dan 12.500 | nilai Valas Rp6.312.500, kekayaan bersih dengan Valas Rp15.192.500 |
+| Penukaran Rp1.625.000 ke US$100,00 | saldo BCA dan kantong USD berubah, kekayaan bersih tidak |
+| Kurs baru (USD 16.300) | kekayaan bersih ikut berubah, anggaran dan laporan tidak |
+| Pembulatan 1 yen × 108,5 dan 3 yen × 108,5 | 109 dan 326 (setengah menjauhi nol) |
+| Kasus uji penjaga valas | semuanya diblokir: mata uang bukan kantong, tanpa kurs, kantong berisi, tipe terkunci, pengeluaran tetap di akun valas |
 | `month_start_day = 25` | 24 Sep masuk periode Agustus, 25 Sep sampai 24 Okt masuk September, 25 Okt masuk Oktober |
 | Konfirmasi pengeluaran tetap | tagihan hilang dari daftar. Menghapus transaksinya memunculkannya lagi |
 | Muat massal dengan `guards_off` | audit `v_integrity_issues` menemukan saldo negatif |
@@ -100,7 +122,7 @@ Data contoh sama dengan desain (hari acuan Rabu, 28 Oktober 2026). Semua nilai i
 
 ## 7. Cadangan dan restore
 
-Berkas JSON memuat sembilan tabel: `accounts`, `categories`, `transactions`, `budgets`, `monthly_limits`, `goals`, `recurring`, `recurring_events`, `settings`. Semua punya jumlah di `counts`. Tidak ikut: `meta` (dibuat ulang), `backup_log` (milik perangkat), dan kunci Gemini (secure storage).
+Berkas JSON memuat sebelas tabel: `accounts`, `account_currencies`, `categories`, `transactions`, `budgets`, `monthly_limits`, `goals`, `recurring`, `recurring_events`, `fx_rates`, `settings`. Semua punya jumlah di `counts`. Tidak ikut: `currencies` (seed statis), `meta` (dibuat ulang), `backup_log` (milik perangkat), dan kunci Gemini (secure storage).
 
 Urutan restore di sisi database:
 
@@ -125,6 +147,10 @@ Urutan restore di sisi database:
 - **Riwayat chat AI tidak disimpan.** Yang tersimpan hanya transaksi yang pengguna simpan, bertanda `source = 'ai'`.
 - **Nomor kartu bertopeng** di kartu akun hanyalah hiasan dan tidak ada di skema. Gaya kartu diturunkan dari `accounts.type`.
 - **Pengubahan dari desain lama:** kolom `note` tunggal kini `description` dan `note`, karena form Tambah transaksi punya dua kolom itu. Ditambah `source`, `repeat`, tabel `backup_log`, dan `created_at`/`updated_at`.
+- **Satu akun valas dengan kantong, bukan satu akun per mata uang.** Pengguna melihat satu akun "Valas". Dengan begitu kekayaan bersih cukup menjumlah kantong × kurs, dan penukaran antar kantong adalah satu baris transfer.
+- **Nilai rupiah dibekukan per transaksi (`amount_idr`)**, sedangkan saldo akun dan kekayaan bersih memakai kurs terbaru. Akibatnya anggaran dan laporan stabil, dan hanya nilai kepemilikan valas yang bergerak mengikuti kurs.
+- **Kurs disimpan sebagai riwayat**, bukan ditimpa, supaya grafik kekayaan bersih bulanan bisa memakai kurs yang berlaku pada akhir bulan itu.
+- **Pengeluaran tetap hanya untuk akun rupiah** pada versi ini.
 - **Trigger, bukan CHECK,** untuk "saldo tidak minus" dan "tanggal tidak di masa depan", karena keduanya bergantung pada baris lain atau jam sistem.
 
 ## 10. Yang belum dilakukan
@@ -132,3 +158,5 @@ Urutan restore di sisi database:
 - Skema diuji di SQLite biasa (Python `sqlite3`), belum dijalankan di perangkat lewat `expo-sqlite`. Rencana: bundel berkas `.sql` sebagai aset dan jalankan dengan `db.execAsync`, lalu uji ulang SQL yang sama dengan `better-sqlite3` di Jest. Pastikan SQLite di Android lama mendukung window function (3.25 ke atas), karena `v_account_activity` memakainya.
 - Rendering papan Database dan Handoff yang diperbarui diperiksa dengan peramban lokal tanpa mengambil font Google, jadi tinggi sebenarnya dengan IBM Plex bisa sedikit berbeda.
 - Pesan galat di tabel bagian 4 adalah usulan teks, belum masuk katalog pesan di papan States-Validation.
+- Layanan kurs yang dipilih pemilik (API gratis) belum dipanggil dari aplikasi. Dicek pada 4 Nov 2026: `https://open.er-api.com/v6/latest/USD` mengembalikan `result: "success"`, IDR, dan ke-12 mata uang yang didukung, diperbarui sekali sehari. Saat membangun, ulangi satu permintaan nyata sebelum mengandalkannya.
+- Pada penukaran, kedua jumlah diketik pengguna sesuai struk bank atau tempat penukaran. Kurs yang tampil di formulir dihitung dari keduanya dan hanya informasi; selisih dengan kurs tersimpan juga tidak disimpan.

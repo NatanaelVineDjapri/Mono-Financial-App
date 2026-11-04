@@ -1,16 +1,16 @@
 # MONO Finance — Design Specification
 
-Premium, strictly monochrome, local-only personal finance app. Android, React Native (Expo) + SQLite, IDR.
+Premium, monochrome with one amber accent for graphics plus red and green for loss and gain, local-only personal finance app. Android, React Native (Expo) + SQLite, rupiah base with an optional multi-currency Valas account.
 All figures below are **sample placeholders** computed from one consistent sample dataset. Stock features were removed; the app tracks accounts, transactions, budgets and goals only.
 
 ---
 
 ## 1. Principles
 
-- Monochrome only. No hue anywhere. Direction (gain/loss, error/success) is shown by **sign, icon, label and border weight**, never colour.
-- Local only: no account, no sync, no analytics. The one exception is the optional AI chat, which is off by default and uses the user's own Gemini API key (see section K).
+- Monochrome, plus three colours with strict jobs. **Amber** (`#E3C27A`) is for graphics only: the main chart series, progress-bar fills and the selected bar. **Green** (`#4ADE80`) and **red** (`#FF6B6B`) mark gain and loss: plus-signed and minus-signed amounts, over-budget and errors. Colour only reinforces a **sign, icon or word**; it is never the only signal, so every screen still reads in greyscale.
+- Local only: no account, no sync, no analytics. Two optional exceptions use the network: the AI chat (off by default, the user's own Gemini key, see section K) and the exchange-rate refresh for the Valas account (user-triggered, or automatic if switched on; sends only currency codes; see section M).
 - Every dashboard figure is derived from stored records. Nothing is typed in as a total.
-- Money is whole rupiah stored as integers. Percentages are computed in basis points.
+- Money is an integer in the minor unit of its currency (whole rupiah, or cents for foreign currency). Exchange rates are integers (rate × 10.000). Percentages are computed in basis points.
 - Every chart has an exact-value table and a text label.
 - Touch targets are 44–48 dp. Chips are 40 dp tall. Text scales to 200% without hiding numbers.
 
@@ -33,8 +33,13 @@ Used in the Overview header (mark + wordmark), More footer (lockup), Settings Ab
 | textMeta | #8A8A8A | Small captions (**derived**, 5.6:1 on bg) |
 | textDisabled | #737373 | Disabled and placeholder text only |
 | border | #2B2B2B | 1 px hairlines |
+| accent | #E3C27A | Graphics only: main chart series, progress fills, selected bar. Never text, status, buttons or icons |
+| positive | #4ADE80 | Plus-signed amounts (income, net worth up, spending down). Always with the + sign |
+| negative | #FF6B6B | Minus-signed amounts, spending up, over-budget, errors. Always with a sign, icon or words |
 
 **Deviation from the brief:** `#8A8A8A` was added because `#737373` is only 4.2:1 on `#0A0A0A`, below AA for small text. `#737373` is kept for disabled text, placeholders, and secondary outlines. Chart greys used in allocation bars: `#A3A3A3`, `#6B6B6B`, `#4A4A4A`.
+
+**Colour rules.** `accent`, `positive` and `negative` are tokens 10 to 12. (1) Amber only on graphics: the primary series of a chart, the fill of a progress bar, the selected bar. Never on text, icons, buttons, borders or tab indicators. (2) Green and red follow *meaning*, the sign follows *arithmetic*: income, net worth up and spending down are green with a `+`; expenses, net worth down and spending up are red (so "+Rp317.000 spending vs last month" keeps its plus and is red). Transfers are never coloured. (3) Over-budget uses a red alert icon and words ("Over by Rp…"), and the overflow segment of the bar is striped red; the stripes plus the words keep it readable without colour. Errors use a red 1.5 px border, a red icon and a sentence. (4) Colour is never the only signal; every red or green value also has a sign, icon or word. Roughly 1 in 12 men are red-green colour blind, which is why this rule exists. (5) Never pair amber and white as two chart series (about 1.6:1 apart in lightness); a second series uses `#A3A3A3`/`#6B6B6B` and a dash. (6) Contrast on `#0A0A0A`: amber 11.6:1, green 11.4:1, red 7.1:1. On card `#171717`: 10.5, 10.3, 6.5. (7) Each chart still has its value table and text label.
 
 ## 4. Typography
 
@@ -106,6 +111,8 @@ Net worth at 30 Sep: Rp5.637.000 → change +Rp3.243.000 (+57,53%).
 Monthly flow (Rp million): May 6,8 / 6,8 · Jun 7,0 / 6,6 · Jul 7,0 / 6,3 · Aug 7,2 / 5,8 · Sep 7,0 / 3,9 · Oct 7,5 / 4,3.
 Net worth month-end (Rp million): May 0,0 · Jun 0,4 · Jul 1,1 · Aug 2,5 · Sep 5,6 · Oct 8,9.
 
+**Valas sample (only on the Valas boards, not part of the figures above):** pockets US$250,00 (≈ Rp4.062.500 at Rp16.250) and S$180,00 (≈ Rp2.250.000 at Rp12.500, after a S$20 expense "Dinner, Singapore" on 15 Oct), Valas ≈ Rp6.312.500, net worth with Valas ≈ Rp15.192.500, rates updated 28 Oct 2026 09:00. Exchange example: Rp1.625.000 from BCA Tabungan becomes US$100,00 at Rp16.250 (BCA after Rp5.217.500, USD pocket after US$350,00).
+
 Budgets, October (monthly limit Rp5.000.000, spent Rp4.257.000, 85,14% used, Rp743.000 left):
 
 | Category | Limit | Spent | Used |
@@ -137,7 +144,7 @@ Search, date range, type chips, category and account chips, summary (income, exp
 Segmented Income / Expense / Transfer. Expense form: amount with quick chips, category chips, account with "Balance after", date, description, notes. Transfer form: from/to with swap, info banner that net worth is unchanged. *Validation variant:* missing category, insufficient funds (Rp450.000 vs Rp1.500.000), "2 fields need attention".
 
 **D. Accounts**
-Total balance (equals net worth), one full-width bank-style card per account grouped by type (see Account cards below), Transfer and Add account buttons, no-bank-login note. *Detail:* balance reconciliation (opening + in − out) and statement-style activity with running balances. *Edit:* type tiles (Bank, Cash, E-wallet, Savings), name, opening balance and date, icon.
+Total balance (equals net worth), one full-width bank-style card per account grouped by type (see Account cards below), Transfer and Add account buttons, no-bank-login note. *Detail:* balance reconciliation (opening + in − out) and statement-style activity with running balances. *Edit:* type tiles (Bank, Cash, E-wallet, Savings, **Valas**), name, opening balance and date, icon. See section M for the Valas account.
 
 **Account cards** (Overview carousel 312×184, Accounts list full width, radius 16, monochrome only)
 | Account | Treatment | Tag |
@@ -162,7 +169,7 @@ Period selector, cash flow (savings rate), six-month trend with table, spending 
 Local-only banner, last backup, "Create backup now", contents list, restore entry, recent backups. *Restore confirm:* file info, comparison of this device versus file, warning, safety-backup switch, required tick, disabled Replace until ticked. *Invalid file:* explicit checklist (readable JSON ✓, MONO marker ✓, schema version ✕, totals skipped), data untouched.
 
 **J. Settings**
-Privacy (app lock, hide amounts on launch, block screenshots), assistant (AI chat switch, Gemini API key), format (fixed IDR, number format, month start, time zone), data (backup reminder, backup, categories), erase all data, About.
+Privacy (app lock, hide amounts on launch, block screenshots), assistant (AI chat switch, Gemini API key), format (rupiah currency, exchange rates, number format, month start, time zone), data (backup reminder, backup, categories), erase all data, About.
 
 **K. AI chat (optional): add transactions by chatting**
 - *AI-Setup (consent and key):* title "Catat lewat chat", what is sent to Gemini (typed message, account and category names, today's date) versus never sent (balances, transaction history, budgets, goals, backups), API key field (masked, Paste), note that the key stays on the phone (Android Keystore), is excluded from backups and that MONO has no server, warning that usage follows the key's quota or billing and that this feature needs the internet, button "Simpan dan tes kunci".
@@ -171,7 +178,18 @@ Privacy (app lock, hide amounts on launch, block screenshots), assistant (AI cha
 - *AI-Draft-Edit ("Ubah" and "Ubah satu per satu"):* a form like Add transaction, pre-filled from the draft. Header with close and "1 dari 2" plus a two-segment progress bar, the original message quoted ("Dari pesanmu"), type switch, amount with quick chips, category and date marked "Ditebak AI" where the AI inferred them, account with "Saldo setelah", description. Bottom bar: "Buang" (discard this draft) and "Simpan, lanjut ke draf 2" (becomes "Simpan" on the last draft). Later drafts are computed from balances after the earlier ones (Cash wallet Rp402.000 then Rp397.000). A single draft opens the same form as "1 dari 1".
 - *Entry points:* the **+ button on Transactions opens the chat directly**; inside the chat a "Catat manual" button opens the manual Add transaction form; the manual form has a "Chat" button to switch back; Settings → Assistant (switch, off by default, and "API key Gemini").
 - *Rules:* the AI only proposes, nothing is written until Simpan; names map to ids by exact match, unknown names trigger a question; drafts pass the same guards as manual entry; the key never goes into backups or logs.
-- *Open point:* the INTERNET permission must now be declared in the Android manifest. "No network permission" is no longer true for the app as a whole; only the AI chat code may open connections.
+- *Open point:* the INTERNET permission must now be declared in the Android manifest. "No network permission" is no longer true for the app as a whole; only the AI chat code and the exchange-rate refresh may open connections.
+
+**M. Valas (foreign currency)**
+One account called Valas holds any number of currencies the user adds (USD, SGD, EUR, MYR, AUD, GBP, JPY, CNY, HKD, KRW, THB, SAR). Each currency is a *pocket* with its own balance. There is no single Valas balance: the account shows a total in rupiah, estimated from the latest stored rate and marked ≈. Sample data for these boards is separate from the rest of the design: US$250,00 and S$180,00 at US$1 = Rp16.250 and S$1 = Rp12.500 (28 Oct 2026, 09:00), Valas ≈ Rp6.312.500, net worth with Valas ≈ Rp15.192.500.
+- *Accounts with a Valas account (Accounts-Valas):* total shows ≈ with a note that foreign currency uses the latest rates; a "Foreign currency" group with the Valas card (two overlapping currency coins, "2 CURRENCIES" tag, ≈ value, native amounts beneath) and an "Exchange rates · updated 28 Oct, 09:00" row.
+- *Valas detail (Valas-Detail):* ≈ total, one row per pocket (code, name, rate used, native balance, rupiah value), "Add currency", Add and Exchange buttons, October activity with currency chips (All, USD, SGD), rate link and a note that each transaction keeps the rupiah value of its day.
+- *Create Valas account (Valas-Edit):* type tile "Valas", name, one opening balance per currency with remove buttons, "Add currency", opening date. No single balance field.
+- *Add currency (sheet):* searchable list of the 12 supported currencies, added ones marked, note that a rate is needed to show rupiah values.
+- *Add expense in a pocket (Tx-Add-Valas):* amount in the pocket's currency with a live "≈ Rp250.000 · Rp12.500 per S$1" line, account row with the pocket chips (USD, SGD), "Balance after" in that currency, budget note that it counts as the rupiah value of the day.
+- *Exchange (Tx-Exchange):* a transfer between two different currencies. "You send" and "You receive" are both typed as the bank or exchange gave them; the card shows the user's rate, the latest stored rate and the difference, and says net worth only moves by that difference.
+- *Exchange rates (Rates):* switch "Update automatically" (off by default), "Update rates now", the rates in use (source and time, tap to type a manual rate), a failure message that keeps the old rates, an explanation of how rates are used, a privacy line (only currency codes are sent) and the attribution link "Rates By Exchange Rate API".
+- *Rules:* only a Valas account has pockets; a transaction can use only a pocket the account has; income and expense in a pocket store the rupiah value of that day (`amount_idr`), and budgets and reports use only that; a currency with no rate blocks new transactions until a rate exists; fixed expenses cannot use a Valas account; exchange rates come from one free API request (all rates in one response) or from a manual entry.
 
 **L. Fixed expenses (recurring monthly costs)**
 Confirm-first model: a fixed expense is a template, and the transaction is created only when the user confirms.
@@ -191,7 +209,7 @@ Confirm-first model: a fixed expense is a template, and the transaction is creat
 4. Net cash flow = income − expense. Savings rate = net ÷ income.
 5. Budget spent = sum of expense rows in the category and month. Transfers are excluded. The monthly limit must cover the sum of category budgets.
 6. Goals read a linked account balance, or the total of all accounts. Progress is never typed.
-7. Rounding is half up to whole rupiah. Percentages come from integers in basis points.
+7. Rounding is half away from zero to the minor unit. A foreign amount becomes rupiah as `amount × rate_e4 ÷ 10.000 ÷ minor_factor`, rounded once. Percentages come from integers in basis points.
 8. Fixed expenses are templates. They change no balance, net worth, budget or report until confirmed. Confirming creates one normal expense row plus one event row (unique per template and due date); skipping creates only an event row. Over budget is a warning, insufficient balance is a block.
 9. Guards: no balance below zero, no future dates, no transfer to the same account — in the domain layer and again as SQL CHECKs.
 
@@ -208,6 +226,9 @@ Confirm-first model: a fixed expense is a template, and the transaction is creat
 | Field | Rule | Message |
 |---|---|---|
 | Amount | > 0, whole rupiah | Enter an amount above Rp0. |
+| Pocket balance | not below zero | The SGD pocket has S$245,00. This expense is S$300,00. |
+| Exchange rate | needed for a foreign currency | Add an exchange rate for SGD first. |
+| Rate update | network or API failure | Couldn't update rates. MONO keeps using the rates from 28 Oct. |
 | Category | required for income/expense | Choose a category. |
 | Account balance | not below zero | Cash wallet has Rp450.000. This expense is Rp1.500.000. |
 | Transfer accounts | differ | Pick two different accounts. |
@@ -237,6 +258,9 @@ export const MonoColors = {
   textMeta:     '#8A8A8A', // small captions (AA 5.6:1)
   textDisabled: '#737373', // disabled and placeholder ONLY
   border:       '#2B2B2B', // 1px hairlines
+  accent:       '#E3C27A', // graphics ONLY: chart series, progress fill, selected bar
+  positive:     '#4ADE80', // + amounts, gain (always with the sign)
+  negative:     '#FF6B6B', // - amounts, over budget, errors (with icon/words)
 } as const;
 
 export const radius = { sm: 10, md: 12, lg: 16 } as const;
@@ -264,6 +288,25 @@ export function rp(v: number, sign = false): string {
   return sign && v > 0 ? `+Rp${n}` : `Rp${n}`;
 }
 
+// Foreign amounts. minor_factor comes from `currencies` (100 for USD, 1 for JPY and KRW).
+const SYMBOL: Record<string, string> = { USD: 'US$', SGD: 'S$', EUR: '€', GBP: '£', JPY: '¥', AUD: 'A$', HKD: 'HK$', CNY: 'CN¥', MYR: 'RM', KRW: '₩', THB: '฿', SAR: 'SAR ' };
+export function money(minor: number, code: string, minorFactor: number, sign = false): string {
+  const a = Math.abs(minor);
+  const digits = String(minorFactor).length - 1;                    // 100 -> 2, 1 -> 0
+  const whole = dots(Math.floor(a / minorFactor));
+  const frac = digits ? ',' + String(a % minorFactor).padStart(digits, '0') : '';
+  const body = `${SYMBOL[code] ?? code + ' '}${whole}${frac}`;
+  return minor < 0 ? `\u2212${body}` : sign && minor > 0 ? `+${body}` : body;
+}
+// amount (minor units) at rate_e4 -> whole rupiah, half away from zero, one rounding.
+// BigInt because minor * rateE4 passes 2^53 for amounts above about US$5.000.000.
+export function toIdr(minor: number, rateE4: number, minorFactor: number): number {
+  const n = BigInt(minor) * BigInt(rateE4), d = BigInt(10000 * minorFactor);
+  const a = n < 0n ? -n : n;
+  const r = (a * 2n + d) / (2n * d);
+  return Number(n < 0n ? -r : r);
+}
+
 // 6810 -> "68,10%". Integer maths only.
 export function pct(bp: number): string {
   const a = Math.abs(bp);
@@ -287,8 +330,8 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 | Bottom navigation | expo-router `Tabs` with a custom tab bar (72), 28×2 indicator |
 | Sheets, dialogs | transparentModal route + Reanimated slide, scrim black 64% (not `Alert`) |
 | Snackbar | `Toast` (Reanimated), polite live region, Undo |
-| Progress bar | `ProgressBar` (View, 8), striped overflow segment drawn with Skia |
-| Charts | `victory-native` `CartesianChart`, series differ by lightness and dash, value table beneath |
+| Progress bar | `ProgressBar` (View, 8), fill `accent`, striped overflow segment in `negative` drawn with Skia, plus alert icon and words (never amber) |
+| Charts | `victory-native` `CartesianChart`, main series `accent` (amber), others differ by lightness and dash, value table beneath |
 | Account cards | `BankCard` (View + Skia pattern), style from `accounts.type` |
 | Switch | `MonoSwitch` (Pressable, role switch) |
 
@@ -296,13 +339,15 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 
 The canonical, tested schema is `db/mono_schema_v1.sql`, described in `MONO-Finance-Database.md` and on the Database board. Summary:
 
-- 11 tables: `meta`, `settings`, `accounts`, `categories`, `transactions`, `monthly_limits`, `budgets`, `goals`, `recurring`, `recurring_events`, `backup_log`.
-- No stored balances. 13 views derive balances, net worth, period flow, savings rate, budget status, goal progress, due fixed expenses and an integrity audit.
-- 15 triggers enforce the rules that need other rows: no negative balance, no future date, no date before an account's opening date, category kind must match, budgets within the monthly limit.
-- Money is whole-rupiah INTEGER, ratios are basis points, dates are ISO text, foreign keys are RESTRICT.
-- Transactions carry `description`, `note` and `source` (manual, ai, recurring).
+- 14 tables: `meta`, `settings`, `currencies`, `fx_rates`, `accounts`, `account_currencies`, `categories`, `transactions`, `monthly_limits`, `budgets`, `goals`, `recurring`, `recurring_events`, `backup_log`.
+- No stored balances. 17 views derive pocket balances and values, account balances, net worth, period flow, savings rate, budget status, goal progress, due fixed expenses and an integrity audit.
+- 23 triggers (13 error codes) enforce the rules that need other rows, among them currency and pocket rules: no negative balance, no future date, no date before an account's opening date, category kind must match, budgets within the monthly limit.
+- Money is INTEGER in the currency's minor unit (rupiah for IDR), rates are `rate_e4` integers, ratios are basis points, dates are ISO text, foreign keys are RESTRICT.
+- Transactions carry `description`, `note` and `source` (manual, ai, recurring), plus `currency`, `to_currency`, `amount_to` and `amount_idr` (the rupiah value at recording time).
 
 ### Backup file
+
+The file lists eleven tables (the earlier nine plus `account_currencies` and `fx_rates`). `currencies` is a static seed and is not exported.
 
 ```json
 {
@@ -312,6 +357,8 @@ The canonical, tested schema is `db/mono_schema_v1.sql`, described in `MONO-Fina
   "currency": "IDR",
   "counts": {
     "accounts": 4,
+    "account_currencies": 0,
+    "fx_rates": 0,
     "categories": 14,
     "transactions": 63,
     "budgets": 6,
@@ -323,6 +370,8 @@ The canonical, tested schema is `db/mono_schema_v1.sql`, described in `MONO-Fina
   },
   "data": {
     "accounts": [],
+    "account_currencies": [],
+    "fx_rates": [],
     "categories": [],
     "transactions": [],
     "budgets": [],

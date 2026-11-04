@@ -12,7 +12,7 @@ Scope: type only. Colour appears here only where it decides legibility. Sample f
 | **IBM Plex Mono** | 400, 500 | File names, timestamps, technical strings |
 | **Newsreader** | 400 (variable, optical-size axis) | Screen titles and the large balance figures |
 
-Why this mix: the app is monochrome, so type carries all the personality. Newsreader gives the few big moments (net worth, screen titles) a financial-press editorial tone. IBM Plex Sans has an institutional, bank-document character: firm, slightly stiff, legible at small sizes, with tidy figures. IBM Plex Mono is reserved for strings that should look "technical". None of the three is a current default of startup apps.
+Why this mix: the app is monochrome (with one amber accent for graphics, and red and green for loss and gain), so type carries all the personality. Newsreader gives the few big moments (net worth, screen titles) a financial-press editorial tone. IBM Plex Sans has an institutional, bank-document character: firm, slightly stiff, legible at small sizes, with tidy figures. IBM Plex Mono is reserved for strings that should look "technical". None of the three is a current default of startup apps.
 
 Rules
 - Bundle all fonts in `assets/fonts`. The app is offline, so never fetch fonts at runtime.
@@ -79,7 +79,7 @@ All numerals, everywhere, use **tabular figures** (`FontFeature.tabularFigures()
 Line 1 `figureRow` (title, left; amount, right). Line 2 `caption` (category · account · date, left; type label right). Amounts are right-aligned and tabular.
 
 **Form field**
-`label` above the field. Value in `body`. Helper or error in `caption` (12/16). Error text is `text` colour, preceded by an icon, never red.
+`label` above the field. Value in `body`. Helper or error in `caption` (12/16). Error text is `negative` red, preceded by an icon, never colour alone.
 
 **Table (chart companion)**
 Header row `label`. Body rows `bodyS` with tabular figures, numbers right-aligned, totals in `bodyStrong` weight.
