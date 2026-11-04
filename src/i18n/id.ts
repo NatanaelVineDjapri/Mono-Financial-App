@@ -33,3 +33,20 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
   return guardMessages[code](ctx);
 }
+
+// ProgressBar (DESIGN.md section 8/16): the visible over-limit row, and the matching
+// fragment inside the full accessibility label. `nominal` is caller-formatted (rp() then
+// shown()) — this file only owns the connector words, never the number formatting.
+export function overBy(nominal: string): string {
+  return `Lebih ${nominal}`;
+}
+
+export function progressAccessibilityLabel(subject: string, usedPct: string, overNominal?: string): string {
+  return overNominal ? `${subject}, terpakai ${usedPct}, lebih ${overNominal}` : `${subject}, terpakai ${usedPct}`;
+}
+
+// ChartTable (DESIGN.md section 7/16): the collapse toggle's visible label and its
+// accessibilityState companion.
+export function chartTableToggleLabel(expanded: boolean): string {
+  return expanded ? 'Sembunyikan tabel' : 'Lihat tabel nilai';
+}
