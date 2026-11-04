@@ -4,7 +4,7 @@
 // Focus is a separate 2px light outline, 2px offset (section 5), drawn as an outer ring
 // so it never fights the box's own border.
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, TextInput, View, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { MonoColors, radius } from '@/theme/tokens';
@@ -16,10 +16,13 @@ export interface FieldProps extends Omit<TextInputProps, 'style' | 'testID' | 'e
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
+  // Escape hatch for a variant with the same chrome but different type (AmountField's
+  // Figure L), not for ad-hoc per-screen tweaks.
+  inputStyle?: TextStyle;
   testID?: string;
 }
 
-export function Field({ label, helperText, error, disabled = false, style, testID, onFocus, onBlur, ...rest }: FieldProps) {
+export function Field({ label, helperText, error, disabled = false, style, inputStyle, testID, onFocus, onBlur, ...rest }: FieldProps) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -33,7 +36,7 @@ export function Field({ label, helperText, error, disabled = false, style, testI
             editable={!disabled}
             placeholderTextColor={MonoColors.textDisabled}
             selectionColor={MonoColors.text}
-            style={styles.input}
+            style={[styles.input, inputStyle]}
             onFocus={e => {
               setFocused(true);
               onFocus?.(e);
