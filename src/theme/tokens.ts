@@ -1,6 +1,8 @@
 import { DarkTheme } from 'expo-router';
 
-// Strictly monochrome. Nine colour tokens only — no hue, ever. See DESIGN.md section 3.
+// Strictly monochrome base, plus amber/green/red for graphics and sign. Twelve colour
+// tokens total — colour is never the only signal (sign, icon and words always go with
+// it). See DESIGN.md section 3.
 export const MonoColors = {
   bg: '#0A0A0A', // app background
   surface: '#111111', // sunken areas, empty states
@@ -11,9 +13,27 @@ export const MonoColors = {
   textMeta: '#8A8A8A', // small captions (AA 5.6:1)
   textDisabled: '#737373', // disabled and placeholder ONLY
   border: '#2B2B2B', // 1px hairlines
+  accent: '#E3C27A', // graphics ONLY: chart's main series, progress fill, selected bar
+  positive: '#4ADE80', // plus-signed amounts: income, net worth up, spending down
+  negative: '#FF6B6B', // minus-signed amounts, spending up, over-budget, errors
 } as const;
 
 export const radius = { sm: 10, md: 12, lg: 16 } as const;
+
+export type AmountKind = 'income' | 'expense' | 'transfer';
+
+// Colour follows meaning, the sign follows arithmetic (DESIGN.md section 3 rule 2):
+// income is positive (green), expense is negative (red), a transfer is never coloured.
+export function amountColor(kind: AmountKind): string {
+  switch (kind) {
+    case 'income':
+      return MonoColors.positive;
+    case 'expense':
+      return MonoColors.negative;
+    case 'transfer':
+      return MonoColors.textSecond;
+  }
+}
 
 // expo-router uses React Navigation's theme: override it once. The app has one palette
 // (dark) only, so this is always applied regardless of system colour scheme.
