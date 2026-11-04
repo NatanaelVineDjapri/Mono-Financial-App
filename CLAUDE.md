@@ -42,10 +42,11 @@ Expo (development build, not Expo Go only), `expo-router`, `expo-sqlite`, `@tans
 
 ```
 src/app/      expo-router routes only, thin
-src/theme  core  data (db, repo, backup)  domain  features  components
+src/theme  core  data (db, repo, backup)  domain  features  components  i18n
 assets/       brand, mascot
-__tests__/    domain and SQL tests
 ```
+
+Tests are co-located in a `__tests__/` folder next to the code they cover (e.g. `src/domain/__tests__/transactions.test.ts`), not one root folder.
 
 Full tree in DESIGN.md section 16. The schema is loaded from a bundled `.sql` asset (add `sql` to Metro `assetExts`) and run with `db.execAsync`. Always `PRAGMA foreign_keys = ON`. Add `.sql` migrations from v2 onwards, each in one transaction, with a safety backup first.
 
@@ -68,7 +69,7 @@ The Valas boards use a **separate** sample: Valas holds US$250,00 and S$180,00 (
 ## Build order
 
 1. **Foundation:** Expo project, TypeScript, `tokens.ts`, `typography.ts`, `money.ts` with tests, fonts, theme.
-2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `tools/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above, the Valas section, and all 13 guard codes. (The schema and this Jest port are already done — `src/data/db/__tests__/schema.test.ts` — but `open.ts`, the repo layer and domain functions are not yet started.)
+2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `tools/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above, the Valas section, and all 13 guard codes. **Done.** `src/data/db/open.ts` (expo-sqlite) and `openTestDb.ts` (better-sqlite3, Jest) share one `Db` interface; `src/data/repo/*` is one file per aggregate plus `netWorth.ts`/`reports.ts` for the cross-account views; `src/domain/*` (accounts, transactions, balances, net-worth, budget, goals, recurring, reports, errors, fx) has every business rule, with friendly pre-checks in front of the SQL guards (`src/domain/errors.ts` + `src/i18n/id.ts` map the 13 codes); `src/data/backup/*` (export, validate, restore) implements the guards-off restore sequence. `src/domain/__tests__/sample-data.test.ts` reproduces every sample number — IDR and Valas — through these functions alone. Not done: no screen calls any of this yet (no UI this phase).
 3. **Components:** Button, Chip, Segmented, Field, AmountField, Sheet, Toast, ProgressBar, MonoSwitch, BankCard, ChartTable.
 4. **Tabs:** Overview, Transactions, Accounts, Budgets, More.
 5. **Entry:** Add/edit transaction (expense, income, transfer, errors), then account, budget and goal create/edit, categories.
@@ -76,7 +77,7 @@ The Valas boards use a **separate** sample: Valas holds US$250,00 and S$180,00 (
 7. **Data safety:** Backup, restore (with guards_off flow), Settings, app lock, hide amounts, screenshot block.
 8. **Fixed expenses:** list, edit, confirm sheet, reminders.
 9. **AI chat:** setup and consent, chat, draft edit sheet, error states.
-10. **Valas and exchange rates:** Valas account and pockets, exchange, rates screen and refresh (the schema and tests landed in step 2; `src/features/fx/fetchRates.ts` and `throttle.ts` are done, the UI is here).
+10. **Valas and exchange rates:** Valas account and pockets, exchange, rates screen and refresh. The schema, domain layer and fx wiring landed in step 2 (`src/features/fx/fetchRates.ts`, `throttle.ts`, `src/domain/fx.ts`'s `refreshRates`) — this step is the UI only.
 11. **Welcome** and polish (empty states, validation catalogue, 200% text scale pass).
 
 Definition of done per screen: matches its board (layout, copy, states), uses only token colours, passes the rules above, has no number computed outside SQL views or `src/domain`.
@@ -86,7 +87,7 @@ Definition of done per screen: matches its board (layout, copy, states), uses on
 - **UI language.** The boards mix English (most screens) and Indonesian (Welcome, AI chat, fixed-expense confirm). Decide whether to ship one language or both before writing strings; keep all copy in one module so it can change.
 - Token names in the DS-Foundations board (`MonoColors.bg2`, `elevated`, `text2`, `muted`) differ from `tokens.ts` (`surface`, `raised`, `textSecond`, `textDisabled`). Use the `tokens.ts` names; the colours are identical.
 - The schema was tested in plain SQLite only. Verify on a device that Android's SQLite supports window functions (3.25+), used by `v_account_activity`; otherwise bundle SQLite.
-- Error messages for the 13 guard codes in DATABASE.md are proposed wording, not yet in the design's message catalogue.
+- Error messages for the 13 guard codes in DATABASE.md are proposed wording; draft Indonesian ("kamu" style) versions now live in `src/i18n/id.ts`, but neither has been confirmed by the owner or folded into the design's message catalogue.
 
 ## Working agreements
 
