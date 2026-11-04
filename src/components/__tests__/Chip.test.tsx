@@ -3,14 +3,14 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { Chip } from '../Chip';
 
 describe('Chip', () => {
-  test('selected shows the check mark, not just a colour change', async () => {
+  test('selected shows the check icon, not just a colour change', async () => {
     const result = await render(<Chip label="Makanan" selected onPress={() => {}} />);
-    expect(result.getByText('✓')).toBeTruthy();
+    expect(result.getByTestId('chip-check', { includeHiddenElements: true })).toBeTruthy();
   });
 
-  test('unselected shows no check mark', async () => {
+  test('unselected shows no check icon', async () => {
     const result = await render(<Chip label="Makanan" selected={false} onPress={() => {}} />);
-    expect(result.queryByText('✓')).toBeNull();
+    expect(result.queryByTestId('chip-check', { includeHiddenElements: true })).toBeNull();
   });
 
   test('role and accessibilityState.selected are correct both ways', async () => {

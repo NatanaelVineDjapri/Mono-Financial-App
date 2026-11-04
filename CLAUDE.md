@@ -48,6 +48,8 @@ assets/       brand, mascot
 
 Tests are co-located in a `__tests__/` folder next to the code they cover (e.g. `src/domain/__tests__/transactions.test.ts`), not one root folder.
 
+Component tests (`@testing-library/react-native` v14): `render()` is async — always `await render(...)`. The `components` Jest project sets `resolver: react-native-reanimated/jest/resolver` (required for Reanimated v4); don't add per-test Reanimated mocks on top of it. A component whose accessibility role isn't individually queryable by RTL (e.g. a `radiogroup` container) should accept a `testID` prop so tests can reach it directly instead of reaching into style internals another way. Queries exclude elements hidden from accessibility by default (e.g. a decorative `Icon`, `accessibilityElementsHidden`) — pass `{ includeHiddenElements: true }` to reach them. This RTL version has no `UNSAFE_getByProps`/`UNSAFE_getByType`; match by `testID` instead.
+
 Full tree in DESIGN.md section 16. The schema is loaded from a bundled `.sql` asset (add `sql` to Metro `assetExts`) and run with `db.execAsync`. Always `PRAGMA foreign_keys = ON`. Add `.sql` migrations from v2 onwards, each in one transaction, with a safety backup first.
 
 Android manifest: Expo declares INTERNET by default. Keep it for the AI chat and the rate refresh only, strip unused permissions with `android.blockedPermissions`, read the merged manifest after prebuild, and check that `expo-notifications` does not require the exact-alarm permission.

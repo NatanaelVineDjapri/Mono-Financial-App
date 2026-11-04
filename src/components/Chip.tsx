@@ -1,8 +1,8 @@
 // DESIGN.md section 8/16: 40 tall, radius 10. Selected = light fill + a check mark, never
-// colour alone. No icon library is in CLAUDE.md's stack list, so the check is a plain
-// Text glyph (✓) rather than pulling in one for a single mark — flagged as a judgment call.
+// colour alone.
 import { Pressable, StyleSheet, Text, type PressableProps, type ViewStyle } from 'react-native';
 
+import { Icon } from '@/components/Icon';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -31,7 +31,7 @@ export function Chip({ label, selected, disabled = false, onPress, style, ...res
         style,
       ]}
     >
-      {selected && <Text style={styles.check}>{'✓'}</Text>}
+      {selected && <Icon name="check" size={16} color={MonoColors.bg} testID="chip-check" />}
       <Text style={[MonoText.bodyS, selected ? styles.selectedText : styles.unselectedText]}>{label}</Text>
     </Pressable>
   );
@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
   unselected: { backgroundColor: 'transparent', borderWidth: 1, borderColor: MonoColors.border },
   pressed: { backgroundColor: MonoColors.raised },
   disabled: { opacity: 0.4 },
-  check: { color: MonoColors.bg, fontSize: 14 },
   selectedText: { color: MonoColors.bg },
   unselectedText: { color: MonoColors.text },
 });
