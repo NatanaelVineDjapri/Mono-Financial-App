@@ -26,3 +26,18 @@ export async function getLatestRate(db: Db, currency: string): Promise<LatestFxR
 export async function listLatestRates(db: Db): Promise<LatestFxRow[]> {
   return db.getAllAsync<LatestFxRow>('select * from v_latest_fx order by currency');
 }
+
+// Every currency with a non-archived pocket somewhere — only these are worth fetching
+// a rate for.
+export async function listHeldCurrencies(db: Db): Promise<string[]> {
+  const rows = await db.getAllAsync<{ currency: string }>(
+    'select distinct currency from account_currencies where archived = 0 order by currency',
+  );
+  return rows.map(r => r.currency);
+}
+
+export async function saveFetchedRates(db: Db, rates: { currency: string; rateE4: number }[], fetchedAt: string): Promise<void> {
+  for (const rate of rates) {
+    await insertFxRate(db, rate.currency, rate.rateE4, fetchedAt, 'api');
+  }
+}
