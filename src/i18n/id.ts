@@ -2,14 +2,15 @@
 // second language stays possible later). This file currently only has the 13 guard-code
 // messages — the rest of the app's copy is written screen by screen, later phases.
 import type { GuardCode } from '../domain/errors';
-import { rp } from '../core/money';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
 // real shortfall) instead of generic. Filled in by the domain layer, never guessed from
 // the bare SQLite error — if a guard fires without a matching pre-check, the message
-// falls back to the code's generic form.
+// falls back to the code's generic form. shortfallFormatted arrives pre-formatted
+// (rp() for an IDR pocket, money() for a foreign one) since id.ts does not know which
+// pocket a shortfall belongs to.
 export interface GuardMessageContext {
-  shortfall?: number; // insufficient_balance, in rupiah
+  shortfallFormatted?: string; // insufficient_balance
   currency?: string; // currency_not_in_account, missing_fx_rate
 }
 
@@ -17,7 +18,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   future_date: () => 'Tanggalnya gak boleh di masa depan.',
   before_opening_date: () => 'Itu sebelum akunmu dibuka.',
   category_kind_mismatch: () => 'Pilih kategori yang sesuai jenis transaksinya.',
-  insufficient_balance: ctx => (ctx.shortfall ? `Kurang ${rp(ctx.shortfall)}.` : 'Saldonya gak cukup.'),
+  insufficient_balance: ctx => (ctx.shortfallFormatted ? `Kurang ${ctx.shortfallFormatted}.` : 'Saldonya gak cukup.'),
   budget_needs_expense_category: () => 'Anggaran cuma buat kategori pengeluaran.',
   over_monthly_limit: () => 'Naikkan batas bulanan dulu.',
   budgets_exist_for_month: () => 'Hapus anggarannya dulu.',

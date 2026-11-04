@@ -21,14 +21,20 @@ export const GUARD_CODES = [
 
 export type GuardCode = (typeof GUARD_CODES)[number];
 
+// `context` carries the real numbers a pre-check already computed (e.g. the rupiah
+// shortfall, the missing currency code) for src/i18n/id.ts's guardMessage to use.
+// `cause` is the original thrown error, if this came from mapping one — kept for
+// debugging, never used to build the user-facing message.
 export class DomainError extends Error {
   readonly code: GuardCode;
+  readonly context: Record<string, unknown>;
 
-  constructor(code: GuardCode, cause?: unknown) {
+  constructor(code: GuardCode, context: Record<string, unknown> = {}, options?: { cause?: unknown }) {
     super(code);
     this.name = 'DomainError';
     this.code = code;
-    this.cause = cause;
+    this.context = context;
+    if (options?.cause !== undefined) this.cause = options.cause;
   }
 }
 
@@ -51,6 +57,6 @@ function errorMessage(err: unknown): string {
 export function throwDomainError(err: unknown): never {
   const message = errorMessage(err);
   const code = GUARD_CODES.find(c => message.includes(c));
-  if (code) throw new DomainError(code, err);
+  if (code) throw new DomainError(code, {}, { cause: err });
   throw new UnexpectedDbError(err);
 }

@@ -100,6 +100,23 @@ export interface PocketValue {
   value_idr: number | null; // null when the pocket has no rate yet
 }
 
+// v_pocket: every (account, currency) pair that can hold money, with its opening
+// balance/date — one implicit IDR pocket per non-forex account, plus forex pockets.
+export interface PocketRecord {
+  account_id: number;
+  currency: string;
+  opening_balance: number;
+  opening_date: string;
+  archived: number;
+}
+
+export async function getPocket(db: Db, accountId: number, currency: string): Promise<PocketRecord | null> {
+  return db.getFirstAsync<PocketRecord>('select * from v_pocket where account_id = $accountId and currency = $currency', {
+    $accountId: accountId,
+    $currency: currency,
+  });
+}
+
 export async function addPocket(db: Db, accountId: number, currency: string, openingBalance: number, openingDate: string): Promise<void> {
   await db.runAsync(
     'insert into account_currencies (account_id, currency, opening_balance, opening_date) values ($accountId, $currency, $openingBalance, $openingDate)',
