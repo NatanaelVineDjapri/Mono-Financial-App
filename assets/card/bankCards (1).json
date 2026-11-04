@@ -1,0 +1,512 @@
+[
+ {
+  "slug": "bca",
+  "name": "BCA",
+  "brand": "#0060AF",
+  "end": "#00457E",
+  "fg": "#FFFFFF",
+  "pattern": "diagonal",
+  "contrast": 6.38,
+  "contrast_end": 9.76
+ },
+ {
+  "slug": "mandiri",
+  "name": "Mandiri",
+  "brand": "#003A70",
+  "end": "#002A51",
+  "fg": "#FFFFFF",
+  "pattern": "arcs",
+  "contrast": 11.42,
+  "contrast_end": 14.48
+ },
+ {
+  "slug": "bni",
+  "name": "BNI",
+  "brand": "#005E6A",
+  "end": "#00444C",
+  "fg": "#FFFFFF",
+  "pattern": "hex",
+  "contrast": 7.48,
+  "contrast_end": 10.87
+ },
+ {
+  "slug": "bri",
+  "name": "BRI",
+  "brand": "#0857C3",
+  "end": "#063F8C",
+  "fg": "#FFFFFF",
+  "pattern": "grid",
+  "contrast": 6.64,
+  "contrast_end": 10.01
+ },
+ {
+  "slug": "jago",
+  "name": "Jago",
+  "brand": "#FDAF27",
+  "end": "#FDBA45",
+  "fg": "#0A0A0A",
+  "pattern": "ring",
+  "contrast": 10.69,
+  "contrast_end": 11.58
+ },
+ {
+  "slug": "gopay",
+  "name": "GoPay",
+  "brand": "#00AED6",
+  "end": "#24B9DC",
+  "fg": "#0A0A0A",
+  "pattern": "dots",
+  "contrast": 7.57,
+  "contrast_end": 8.53
+ },
+ {
+  "slug": "ovo",
+  "name": "OVO",
+  "brand": "#5827D4",
+  "end": "#3F1C99",
+  "fg": "#FFFFFF",
+  "pattern": "contour",
+  "contrast": 7.91,
+  "contrast_end": 11.43
+ },
+ {
+  "slug": "dana",
+  "name": "DANA",
+  "brand": "#008CEB",
+  "end": "#249CEE",
+  "fg": "#0A0A0A",
+  "pattern": "waves",
+  "contrast": 5.61,
+  "contrast_end": 6.66
+ },
+ {
+  "slug": "shopee-pay",
+  "name": "ShopeePay",
+  "brand": "#E8451E",
+  "end": "#EB5F3E",
+  "fg": "#0A0A0A",
+  "pattern": "chevrons",
+  "contrast": 5.0,
+  "contrast_end": 5.88
+ },
+ {
+  "slug": "bsi",
+  "name": "BSI",
+  "brand": "#00A39D",
+  "end": "#24B0AB",
+  "fg": "#0A0A0A",
+  "pattern": "squares",
+  "contrast": 6.34,
+  "contrast_end": 7.42
+ },
+ {
+  "slug": "cimb-niaga",
+  "name": "CIMB Niaga",
+  "brand": "#790008",
+  "end": "#570006",
+  "fg": "#FFFFFF",
+  "pattern": "stripes",
+  "contrast": 11.56,
+  "contrast_end": 14.92
+ },
+ {
+  "slug": "seabank",
+  "name": "SeaBank",
+  "brand": "#EA5F00",
+  "end": "#ED7524",
+  "fg": "#0A0A0A",
+  "pattern": "arcs",
+  "contrast": 5.78,
+  "contrast_end": 6.76
+ },
+ {
+  "slug": "btn",
+  "name": "BTN",
+  "brand": "#015BFD",
+  "end": "#0142B6",
+  "fg": "#FFFFFF",
+  "pattern": "grid",
+  "contrast": 5.36,
+  "contrast_end": 8.55
+ },
+ {
+  "slug": "jenius",
+  "name": "Jenius",
+  "brand": "#00A4DE",
+  "end": "#24B1E3",
+  "fg": "#0A0A0A",
+  "pattern": "ring",
+  "contrast": 6.94,
+  "contrast_end": 7.99
+ },
+ {
+  "slug": "linkaja",
+  "name": "LinkAja",
+  "brand": "#C82023",
+  "end": "#901719",
+  "fg": "#FFFFFF",
+  "pattern": "dots",
+  "contrast": 5.7,
+  "contrast_end": 9.04
+ },
+ {
+  "slug": "permata",
+  "name": "Permata",
+  "brand": "#0064FF",
+  "end": "#0048B8",
+  "fg": "#FFFFFF",
+  "pattern": "diagonal",
+  "contrast": 4.92,
+  "contrast_end": 8.02
+ },
+ {
+  "slug": "danamon",
+  "name": "Danamon",
+  "brand": "#EF9826",
+  "end": "#F1A644",
+  "fg": "#0A0A0A",
+  "pattern": "waves",
+  "contrast": 8.66,
+  "contrast_end": 9.69
+ },
+ {
+  "slug": "ocbc-nisp",
+  "name": "OCBC NISP",
+  "brand": "#D10A10",
+  "end": "#96070C",
+  "fg": "#FFFFFF",
+  "pattern": "chevrons",
+  "contrast": 5.58,
+  "contrast_end": 9.0
+ },
+ {
+  "slug": "maybank",
+  "name": "Maybank",
+  "brand": "#FFC600",
+  "end": "#FFCE24",
+  "fg": "#0A0A0A",
+  "pattern": "stripes",
+  "contrast": 12.57,
+  "contrast_end": 13.3
+ },
+ {
+  "slug": "mega",
+  "name": "Bank Mega",
+  "brand": "#FA9D1C",
+  "end": "#FBAB3C",
+  "fg": "#0A0A0A",
+  "pattern": "dots",
+  "contrast": 9.34,
+  "contrast_end": 10.36
+ },
+ {
+  "slug": "muamalat",
+  "name": "Muamalat",
+  "brand": "#420655",
+  "end": "#30043D",
+  "fg": "#FFFFFF",
+  "pattern": "contour",
+  "contrast": 15.12,
+  "contrast_end": 17.35
+ },
+ {
+  "slug": "paninbank",
+  "name": "Panin",
+  "brand": "#006CA9",
+  "end": "#004E7A",
+  "fg": "#FFFFFF",
+  "pattern": "hex",
+  "contrast": 5.65,
+  "contrast_end": 8.86
+ },
+ {
+  "slug": "allo",
+  "name": "Allo Bank",
+  "brand": "#FFBC25",
+  "end": "#FFC544",
+  "fg": "#0A0A0A",
+  "pattern": "ring",
+  "contrast": 11.76,
+  "contrast_end": 12.56
+ },
+ {
+  "slug": "aladin",
+  "name": "Aladin",
+  "brand": "#1B21CC",
+  "end": "#131893",
+  "fg": "#FFFFFF",
+  "pattern": "grid",
+  "contrast": 9.83,
+  "contrast_end": 13.29
+ },
+ {
+  "slug": "blu-bca",
+  "name": "blu by BCA",
+  "brand": "#33CDCF",
+  "end": "#50D4D6",
+  "fg": "#0A0A0A",
+  "pattern": "arcs",
+  "contrast": 10.16,
+  "contrast_end": 11.06
+ },
+ {
+  "slug": "superbank",
+  "name": "Superbank",
+  "brand": "#AFEE01",
+  "end": "#BAF025",
+  "fg": "#0A0A0A",
+  "pattern": "squares",
+  "contrast": 14.19,
+  "contrast_end": 14.69
+ },
+ {
+  "slug": "uob",
+  "name": "UOB",
+  "brand": "#002469",
+  "end": "#001A4C",
+  "fg": "#FFFFFF",
+  "pattern": "diagonal",
+  "contrast": 14.42,
+  "contrast_end": 16.77
+ },
+ {
+  "slug": "dbs",
+  "name": "DBS",
+  "brand": "#CA171E",
+  "end": "#911116",
+  "fg": "#FFFFFF",
+  "pattern": "dots",
+  "contrast": 5.75,
+  "contrast_end": 9.15
+ },
+ {
+  "slug": "hsbc",
+  "name": "HSBC",
+  "brand": "#DB0011",
+  "end": "#9E000C",
+  "fg": "#FFFFFF",
+  "pattern": "hex",
+  "contrast": 5.22,
+  "contrast_end": 8.54
+ },
+ {
+  "slug": "standard-chartered",
+  "name": "Standard Chartered",
+  "brand": "#0473EA",
+  "end": "#0353A8",
+  "fg": "#FFFFFF",
+  "pattern": "waves",
+  "contrast": 4.52,
+  "contrast_end": 7.48
+ },
+ {
+  "slug": "sinarmas",
+  "name": "Sinarmas",
+  "brand": "#ED1D24",
+  "end": "#F03D43",
+  "fg": "#0A0A0A",
+  "pattern": "stripes",
+  "contrast": 4.53,
+  "contrast_end": 5.14
+ },
+ {
+  "slug": "kb-bukopin",
+  "name": "KB Bukopin",
+  "brand": "#FCAF16",
+  "end": "#FCBA37",
+  "fg": "#0A0A0A",
+  "pattern": "chevrons",
+  "contrast": 10.64,
+  "contrast_end": 11.52
+ },
+ {
+  "slug": "keb-hana-bank",
+  "name": "KEB Hana",
+  "brand": "#008A8B",
+  "end": "#249A9B",
+  "fg": "#0A0A0A",
+  "pattern": "grid",
+  "contrast": 4.72,
+  "contrast_end": 5.82
+ },
+ {
+  "slug": "btpn",
+  "name": "BTPN",
+  "brand": "#F58220",
+  "end": "#F6943F",
+  "fg": "#0A0A0A",
+  "pattern": "arcs",
+  "contrast": 7.63,
+  "contrast_end": 8.7
+ },
+ {
+  "slug": "neobank",
+  "name": "Neo Commerce",
+  "brand": "#FFBE00",
+  "end": "#FFC724",
+  "fg": "#0A0A0A",
+  "pattern": "ring",
+  "contrast": 11.9,
+  "contrast_end": 12.68
+ },
+ {
+  "slug": "citibank",
+  "name": "Citibank",
+  "brand": "#1C4882",
+  "end": "#14345E",
+  "fg": "#FFFFFF",
+  "pattern": "contour",
+  "contrast": 9.14,
+  "contrast_end": 12.48
+ },
+ {
+  "slug": "astra-pay",
+  "name": "AstraPay",
+  "brand": "#0045E5",
+  "end": "#0032A5",
+  "fg": "#FFFFFF",
+  "pattern": "diagonal",
+  "contrast": 7.04,
+  "contrast_end": 10.5
+ },
+ {
+  "slug": "doku",
+  "name": "DOKU",
+  "brand": "#E2261D",
+  "end": "#A31B15",
+  "fg": "#FFFFFF",
+  "pattern": "dots",
+  "contrast": 4.64,
+  "contrast_end": 7.71
+ },
+ {
+  "slug": "dutamoney",
+  "name": "Dutamoney",
+  "brand": "#009CFE",
+  "end": "#24AAFE",
+  "fg": "#0A0A0A",
+  "pattern": "waves",
+  "contrast": 6.78,
+  "contrast_end": 7.78
+ },
+ {
+  "slug": "i-saku",
+  "name": "i.saku",
+  "brand": "#3151B0",
+  "end": "#233A7F",
+  "fg": "#FFFFFF",
+  "pattern": "grid",
+  "contrast": 7.16,
+  "contrast_end": 10.59
+ },
+ {
+  "slug": "jakone-pay",
+  "name": "JakOne Pay",
+  "brand": "#D9672C",
+  "end": "#DE7C4A",
+  "fg": "#0A0A0A",
+  "pattern": "chevrons",
+  "contrast": 5.59,
+  "contrast_end": 6.68
+ },
+ {
+  "slug": "kaspro",
+  "name": "Kaspro",
+  "brand": "#961A8B",
+  "end": "#6C1364",
+  "fg": "#FFFFFF",
+  "pattern": "hex",
+  "contrast": 7.45,
+  "contrast_end": 10.97
+ },
+ {
+  "slug": "netzme",
+  "name": "Netzme",
+  "brand": "#009AD9",
+  "end": "#24A8DE",
+  "fg": "#0A0A0A",
+  "pattern": "ring",
+  "contrast": 6.25,
+  "contrast_end": 7.29
+ },
+ {
+  "slug": "otto-pay",
+  "name": "OttoPay",
+  "brand": "#0074BA",
+  "end": "#005486",
+  "fg": "#FFFFFF",
+  "pattern": "squares",
+  "contrast": 4.99,
+  "contrast_end": 8.04
+ },
+ {
+  "slug": "paytren",
+  "name": "PayTren",
+  "brand": "#2E4251",
+  "end": "#21303A",
+  "fg": "#FFFFFF",
+  "pattern": "stripes",
+  "contrast": 10.43,
+  "contrast_end": 13.56
+ },
+ {
+  "slug": "pospay",
+  "name": "Pospay",
+  "brand": "#ED6A1D",
+  "end": "#F07F3D",
+  "fg": "#0A0A0A",
+  "pattern": "arcs",
+  "contrast": 6.3,
+  "contrast_end": 7.36
+ },
+ {
+  "slug": "speedcash",
+  "name": "Speedcash",
+  "brand": "#007CC2",
+  "end": "#00598C",
+  "fg": "#FFFFFF",
+  "pattern": "contour",
+  "contrast": 4.5,
+  "contrast_end": 7.48
+ },
+ {
+  "slug": "truemoney",
+  "name": "TrueMoney",
+  "brand": "#F58220",
+  "end": "#F6943F",
+  "fg": "#0A0A0A",
+  "pattern": "diagonal",
+  "contrast": 7.63,
+  "contrast_end": 8.7
+ },
+ {
+  "slug": "uangku",
+  "name": "Uangku",
+  "brand": "#3BB8EA",
+  "end": "#56C2ED",
+  "fg": "#0A0A0A",
+  "pattern": "dots",
+  "contrast": 8.7,
+  "contrast_end": 9.74
+ },
+ {
+  "slug": "yukk",
+  "name": "YUKK",
+  "brand": "#5C2D91",
+  "end": "#422068",
+  "fg": "#FFFFFF",
+  "pattern": "waves",
+  "contrast": 9.38,
+  "contrast_end": 12.82
+ },
+ {
+  "slug": "stockbit",
+  "name": "Stockbit",
+  "brand": "#00AB6B",
+  "end": "#24B780",
+  "fg": "#0A0A0A",
+  "pattern": "grid",
+  "contrast": 6.63,
+  "contrast_end": 7.69
+ }
+]
