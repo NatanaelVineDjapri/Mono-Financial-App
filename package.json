@@ -59,7 +59,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "gen-card-assets": "node --experimental-strip-types tools/gen-card-assets.ts"
   },
   "jest": {
     "projects": [
@@ -82,13 +83,16 @@
         "preset": "jest-expo",
         "resolver": "react-native-reanimated/jest/resolver",
         "transformIgnorePatterns": [
-          "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|@shopify/react-native-skia))",
+          "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|@shopify/react-native-skia|idn-finlogos))",
           "/node_modules/react-native-reanimated/plugin/",
           "/node_modules/@react-native/babel-preset/"
         ],
         "setupFiles": [
           "@shopify/react-native-skia/jestSetup.js"
         ],
+        "moduleNameMapper": {
+          "^idn-finlogos/react-native$": "<rootDir>/node_modules/idn-finlogos/dist/react-native/index.js"
+        },
         "testMatch": [
           "<rootDir>/src/components/**/*.test.tsx",
           "<rootDir>/src/components/**/*.test.ts"

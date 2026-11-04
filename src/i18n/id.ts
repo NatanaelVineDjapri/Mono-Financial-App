@@ -1,6 +1,7 @@
 // Every user-facing string lives here (CLAUDE.md working agreement: one module, so a
 // second language stays possible later). This file currently only has the 13 guard-code
 // messages — the rest of the app's copy is written screen by screen, later phases.
+import type { AccountType } from '../data/repo/accounts';
 import type { GuardCode } from '../domain/errors';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
@@ -49,4 +50,41 @@ export function progressAccessibilityLabel(subject: string, usedPct: string, ove
 // accessibilityState companion.
 export function chartTableToggleLabel(expanded: boolean): string {
   return expanded ? 'Sembunyikan tabel' : 'Lihat tabel nilai';
+}
+
+// BankCard (docs/DESIGN.md's brand-colour-cards addendum, section 11/16): the pill
+// tag's short caps label and the longer phrase folded into the card's full
+// accessibility label. `balanceText` arrives pre-formatted (rp() then shown()) — this
+// file only owns the connector words, never the number formatting (same split as
+// ProgressBar's overBy above).
+const accountTypeTags: Record<AccountType, string> = {
+  bank: 'DEBIT',
+  savings: 'TABUNGAN',
+  ewallet: 'E-WALLET',
+  cash: 'TUNAI',
+  forex: 'VALAS',
+};
+
+export function accountTypeTag(type: AccountType): string {
+  return accountTypeTags[type];
+}
+
+export function valasCurrencyCountTag(count: number): string {
+  return `${count} MATA UANG`;
+}
+
+const accountTypeDescriptions: Record<AccountType, string> = {
+  bank: 'rekening bank',
+  savings: 'rekening tabungan',
+  ewallet: 'e-wallet',
+  cash: 'tunai',
+  forex: 'akun valas',
+};
+
+export function accountTypeDescription(type: AccountType): string {
+  return accountTypeDescriptions[type];
+}
+
+export function bankCardAccessibilityLabel(name: string, type: AccountType, balanceText: string): string {
+  return `${name}, ${accountTypeDescription(type)}, saldo ${balanceText}`;
 }
