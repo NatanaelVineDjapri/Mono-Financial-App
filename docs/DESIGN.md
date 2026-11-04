@@ -146,7 +146,7 @@ Segmented Income / Expense / Transfer. Expense form: amount with quick chips, ca
 **D. Accounts**
 Total balance (equals net worth), one full-width bank-style card per account grouped by type (see Account cards below), Transfer and Add account buttons, no-bank-login note. *Detail:* balance reconciliation (opening + in − out) and statement-style activity with running balances. *Edit:* type tiles (Bank, Cash, E-wallet, Savings, **Valas**), name, opening balance and date, icon. See section M for the Valas account.
 
-**Account cards** (Overview carousel 312×184, Accounts list full width, radius 16, monochrome only)
+**Account cards** (Overview carousel 312×184, Accounts list full width, radius 16)
 | Account | Treatment | Tag |
 |---|---|---|
 | BCA Tabungan | Dark #202020, fine diagonal lines, chip outline | DEBIT |
@@ -154,7 +154,7 @@ Total balance (equals net worth), one full-width bank-style card per account gro
 | GoPay | Grey #A3A3A3, dot pattern, dark text | E-WALLET |
 | Cash wallet | #111111, dashed outline | CASH |
 
-Layout: bank name as plain text wordmark (top left), tag pill (top right), account name, balance (24, tabular) and masked number "•••• 4821" (bottom). Real bank logos and brand colours are not used; the masked numbers are placeholders. Tapping a card opens Account detail. In hidden mode the balance shows Rp••••••••.
+Layout: bank/e-wallet logo mark (top left, where the plain text wordmark used to be), tag pill (top right), account name, balance (24, tabular) and masked number "•••• 4821" (bottom). **Revised from the original brief:** real bank and e-wallet logos are now used, via `idn-finlogos` + `react-native-svg` (assets in `assets/card/`), rather than the placeholder wordmark-only treatment — the one deliberate exception to the strictly-monochrome rule (CLAUDE.md rule 5), scoped to this logo mark only; everything else on the card (background, text, borders) stays on-token. Exact logo size/placement within the card is not yet specified here — follow `assets/card/bankCards.ts` / the owner's screenshot when building this screen. Tapping a card opens Account detail. In hidden mode the balance shows Rp••••••••.
 
 **F. Budgets**
 Month selector, summary, September comparison, six categories sorted by usage, over-limit row with striped overflow. *Create:* category chips, amount, repeat toggle, allocation check (over the monthly limit by Rp500.000), "Raise monthly limit", disabled Save. *Category review:* four-month bars against the limit and its expenses.
