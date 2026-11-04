@@ -42,7 +42,9 @@ const glyphFiles = readdirSync(GLYPH_DIR)
 
 const pngEntries = pngFiles.map(file => {
   const slug = file.replace(/@3x\.png$/, '');
-  return `  '${slug}': require('../../../assets/bank-cards/png/${file}'),`;
+  // Metro's asset density convention: require the UNDECORATED name and it discovers the
+  // "@3x" sibling on disk itself — requiring the literal "@3x" filename fails to resolve.
+  return `  '${slug}': require('../../../assets/bank-cards/png/${slug}.png'),`;
 });
 
 const glyphEntries = glyphFiles.map(file => {
