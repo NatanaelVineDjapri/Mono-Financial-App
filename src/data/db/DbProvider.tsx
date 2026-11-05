@@ -40,7 +40,11 @@ export function DbProvider({ children, openDb = defaultOpenDb }: DbProviderProps
       .then(db => {
         if (!cancelled) setState({ status: 'ready', db });
       })
-      .catch(() => {
+      .catch(err => {
+        // __DEV__-only: the user-facing error screen stays generic (no file paths or SQL
+        // content), but the real cause must be visible in the Metro/logcat console —
+        // openDb() failing silently is exactly what made this bug hard to diagnose.
+        if (__DEV__) console.error('DbProvider: openDb() failed:', err);
         if (!cancelled) setState({ status: 'error' });
       });
     return () => {
