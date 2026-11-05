@@ -21,7 +21,7 @@ import { MonoText } from '@/theme/typography';
 const SAMPLE_DATE_ISO = '2026-10-28T09:00:00+07:00';
 
 export default function DevTools() {
-  if (!__DEV__) return <Redirect href="/(tabs)/index" />;
+  if (!__DEV__) return <Redirect href="/" />;
   return <DevToolsContent />;
 }
 

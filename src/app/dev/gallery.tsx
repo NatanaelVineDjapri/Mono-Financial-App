@@ -48,7 +48,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export default function Gallery() {
-  if (!__DEV__) return <Redirect href="/(tabs)/index" />;
+  if (!__DEV__) return <Redirect href="/" />;
   return <GalleryContent />;
 }
 

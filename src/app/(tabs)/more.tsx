@@ -21,7 +21,7 @@ function DevToolsRow() {
   // row's text and icon slot never mounting at all. Confirmed by removing asChild alone.
   return (
     <Pressable
-      onPress={() => router.push('/dev/index')}
+      onPress={() => router.push('/dev')}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
       accessibilityLabel={label}
