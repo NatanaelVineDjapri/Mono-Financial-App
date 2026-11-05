@@ -14,6 +14,11 @@ const NAMES: IconName[] = [
   'chevron-right',
   'eye',
   'eye-off',
+  'overview',
+  'flow',
+  'bank',
+  'pie',
+  'dots',
 ];
 
 // Decorative icons (the default, no `label`) are hidden from accessibility, and RTL's

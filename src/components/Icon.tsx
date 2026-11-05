@@ -2,7 +2,7 @@
 // Sizes 16 (inline), 20 (default), 26 (empty states). Colour always comes in via the
 // `color` prop (a token from the caller) — never a literal hex in this file.
 import { Platform } from 'react-native';
-import { Path, Svg } from 'react-native-svg';
+import { Circle, Path, Rect, Svg } from 'react-native-svg';
 
 export type IconName =
   | 'check'
@@ -14,7 +14,14 @@ export type IconName =
   | 'chevron-down'
   | 'chevron-right'
   | 'eye'
-  | 'eye-off';
+  | 'eye-off'
+  // Tab bar (DESIGN.md section 9): Overview, Transactions (flow), Accounts (bank),
+  // Budgets (pie), More (dots).
+  | 'overview'
+  | 'flow'
+  | 'bank'
+  | 'pie'
+  | 'dots';
 
 export interface IconProps {
   name: IconName;
@@ -27,7 +34,9 @@ export interface IconProps {
   testID?: string;
 }
 
-const PATHS: Record<IconName, string> = {
+// Icons whose glyph is a single stroked path. The handful that need more than one
+// shape (overview, pie, dots) are drawn directly in `renderGlyph` below instead.
+const PATHS: Partial<Record<IconName, string>> = {
   check: 'M5 13 L10 18 L19 6',
   alert: 'M12 3 L22 20 L2 20 Z M12 9 L12 14 M12 17.5 L12 17.5',
   'alert-circle': 'M12 3 a9 9 0 1 0 0.001 0 Z M12 8 L12 13 M12 16.5 L12 16.5',
@@ -38,7 +47,44 @@ const PATHS: Record<IconName, string> = {
   'chevron-right': 'M9 6 L15 12 L9 18',
   eye: 'M1 12 C4 5 20 5 23 12 C20 19 4 19 1 12 Z M12 9 a3 3 0 1 0 0.001 0 Z',
   'eye-off': 'M1 12 C4 5 20 5 23 12 C20 19 4 19 1 12 Z M12 9 a3 3 0 1 0 0.001 0 Z M3 3 L21 21',
+  flow: 'M7 4v16M7 4L3.5 7.5M7 4l3.5 3.5M17 20V4M17 20l-3.5-3.5M17 20l3.5-3.5',
+  bank: 'M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18',
 };
+
+function renderGlyph(name: IconName, color: string) {
+  const d = PATHS[name];
+  if (d) {
+    return <Path d={d} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />;
+  }
+  switch (name) {
+    case 'overview':
+      return (
+        <>
+          <Rect x={4} y={4} width={7} height={9} rx={1.5} stroke={color} strokeWidth={1.5} />
+          <Rect x={13} y={4} width={7} height={5} rx={1.5} stroke={color} strokeWidth={1.5} />
+          <Rect x={13} y={11} width={7} height={9} rx={1.5} stroke={color} strokeWidth={1.5} />
+          <Rect x={4} y={15} width={7} height={5} rx={1.5} stroke={color} strokeWidth={1.5} />
+        </>
+      );
+    case 'pie':
+      return (
+        <>
+          <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={1.5} />
+          <Path d="M12 3v9h9" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      );
+    case 'dots':
+      return (
+        <>
+          <Circle cx={5} cy={12} r={1.2} fill={color} />
+          <Circle cx={12} cy={12} r={1.2} fill={color} />
+          <Circle cx={19} cy={12} r={1.2} fill={color} />
+        </>
+      );
+    default:
+      return null;
+  }
+}
 
 // react-native-svg's <Svg> doesn't translate RN-only accessibility props for web the
 // way react-native-web's own host components do — `accessible`, accessibilityElementsHidden
@@ -61,7 +107,7 @@ function accessibilityProps(label: string | undefined): Record<string, unknown> 
 export function Icon({ name, size = 20, color, label, testID }: IconProps) {
   return (
     <Svg testID={testID} width={size} height={size} viewBox="0 0 24 24" fill="none" {...accessibilityProps(label)}>
-      <Path d={PATHS[name]} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      {renderGlyph(name, color)}
     </Svg>
   );
 }
