@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mono-finance",
+    "name": "Mono Finance",
     "slug": "mono-finance",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,8 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0A0A0A",
-        "foregroundImage": "./assets/brand/mono-appicon.png",
-        "monochromeImage": "./assets/brand/mono-appicon.png"
+        "foregroundImage": "./assets/brand/mono-appicon-padded.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.monofinance"
