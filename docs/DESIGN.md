@@ -156,6 +156,8 @@ Total balance (equals net worth), one full-width bank-style card per account gro
 
 Layout: bank/e-wallet logo mark (top left, where the plain text wordmark used to be), tag pill (top right), account name, balance (24, tabular) and masked number "•••• 4821" (bottom). **Revised from the original brief:** real bank and e-wallet logos are now used, via `idn-finlogos` + `react-native-svg` (assets in `assets/card/`), rather than the placeholder wordmark-only treatment — the one deliberate exception to the strictly-monochrome rule (CLAUDE.md rule 5), scoped to this logo mark only; everything else on the card (background, text, borders) stays on-token. Exact logo size/placement within the card is not yet specified here — follow `assets/card/bankCards.ts` / the owner's screenshot when building this screen. Tapping a card opens Account detail. In hidden mode the balance shows Rp••••••••.
 
+**Superseded again, further than the paragraph above:** the card surface itself — not just the logo mark — now uses each bank's real brand colour (background gradient + fg text/logo colour), implemented in `src/components/BankCard/BankCard.tsx` and `src/components/BankCard/bankCards.ts` (assets at `assets/bank-cards/`, not the older `assets/card/` path above). The generic per-type treatment table above (flat greys, diagonal-line/ring/dot patterns) and the masked account number "•••• 4821" are both dropped — there is no masked-number row, since nothing in the schema backs one. CLAUDE.md rule 5's exception now reads "a `BankCard`'s own surface," not "this logo mark only." Nominal on a card still always uses the card's own `fg`, never `positive`/`negative` — colour-by-sign stays everywhere else in the app. See `bankCards.ts`'s own header comment for the contrast requirement (≥ 4.5:1, fg against both ends of the gradient) and `tools/gen-card-assets.ts`'s header comment for why each brand logo is pre-recoloured to a single flat fill rather than rendered through `idn-finlogos`'s own (here, no-op) recolouring.
+
 **F. Budgets**
 Month selector, summary, September comparison, six categories sorted by usage, over-limit row with striped overflow. *Create:* category chips, amount, repeat toggle, allocation check (over the monthly limit by Rp500.000), "Raise monthly limit", disabled Save. *Category review:* four-month bars against the limit and its expenses.
 
@@ -332,7 +334,7 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 | Snackbar | `Toast` (Reanimated), polite live region, Undo |
 | Progress bar | `ProgressBar` (View, 8), fill `accent`, striped overflow segment in `negative` drawn with Skia, plus alert icon and words (never amber) |
 | Charts | `victory-native` `CartesianChart`, main series `accent` (amber), others differ by lightness and dash, value table beneath |
-| Account cards | `BankCard` (View + Skia pattern), style from `accounts.type` |
+| Account cards | `BankCard` (`ImageBackground` + `idn-finlogos` `Logo`), style from `accounts.icon`, falling back to `accounts.type` when the icon is null or unrecognised |
 | Switch | `MonoSwitch` (Pressable, role switch) |
 
 ### SQLite schema v1
