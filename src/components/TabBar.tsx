@@ -1,8 +1,8 @@
 // DESIGN.md sections 8/9/16: bottom navigation, 72 tall plus the bottom safe-area inset,
-// 5 items, active = 28x2 bar above the icon. The bar is the design system's one other
-// allowed use of `accent` beyond chart series and progress fills (tokens.ts rule 5:
-// "selected bar") — the icon and label stay `text`/`textMeta`, never amber, so colour
-// never becomes the only signal (position + the bar + bold label all say the same thing).
+// 5 items, active = 28x2 bar above the icon in `text` (#F5F5F5). CLAUDE.md rule 5's
+// "selected bar" (one of accent's allowed graphics uses) is a bar chart's selected bar,
+// not this tab indicator — accent never appears here. Colour never becomes the only
+// signal either way: position, the bar and the bold label all say the same thing.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { IconName } from '@/components/Icon';
@@ -53,7 +53,7 @@ export function TabBar({ items, activeKey, onPress, bottomInset = 0, testID }: T
             style={({ pressed }) => [styles.item, pressed && styles.pressed]}
           >
             <View style={styles.iconSlot}>
-              {selected && <View style={styles.indicator} />}
+              {selected && <View style={styles.indicator} testID={testID && `${testID}-indicator`} />}
               <Icon name={item.icon} size={20} color={color} />
             </View>
             <Text style={[MonoText.label, { color }, selected && styles.selectedLabel]}>{item.label}</Text>
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     width: INDICATOR_WIDTH,
     height: INDICATOR_HEIGHT,
     borderRadius: INDICATOR_HEIGHT / 2,
-    backgroundColor: MonoColors.accent,
+    backgroundColor: MonoColors.text,
   },
   // "tebal" (DESIGN.md section 9): the active label steps up from medium to semi-bold.
   selectedLabel: { fontFamily: 'IBMPlexSans_600SemiBold' },

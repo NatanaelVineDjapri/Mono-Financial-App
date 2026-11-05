@@ -1,6 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { TabBar, type TabBarItem } from '../TabBar';
+import { MonoColors } from '@/theme/tokens';
 
 const ITEMS: TabBarItem[] = [
   { key: 'index', label: 'Ringkasan', icon: 'overview' },
@@ -39,6 +40,14 @@ describe('TabBar', () => {
     const flatStyle = Object.assign({}, ...[bar.props.style].flat());
     expect(flatStyle.height).toBe(92);
     expect(flatStyle.paddingBottom).toBe(20);
+  });
+
+  test('the active indicator is text, never accent', async () => {
+    const result = await render(<TabBar items={ITEMS} activeKey="index" onPress={() => {}} testID="tab-bar" />);
+    const indicator = result.getByTestId('tab-bar-indicator');
+    const flatStyle = Object.assign({}, ...[indicator.props.style].flat());
+    expect(flatStyle.backgroundColor).toBe(MonoColors.text);
+    expect(flatStyle.backgroundColor).not.toBe(MonoColors.accent);
   });
 
   test('onPress is called with the tapped item\'s key', async () => {
