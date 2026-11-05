@@ -13,8 +13,8 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { SplashBrand } from '@/components/SplashBrand';
 import { ToastHost } from '@/components/ToastHost';
 import { DbProvider, useDb } from '@/data/db/DbProvider';
 import { getSetting } from '@/data/repo/settings';
@@ -75,7 +75,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={navTheme}>
-            <AnimatedSplashOverlay />
+            <SplashBrand />
             <DbProvider>
               <HiddenAmountsInit />
               <Slot />

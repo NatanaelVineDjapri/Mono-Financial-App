@@ -15,10 +15,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#0A0A0A",
+        "foregroundImage": "./assets/brand/mono-appicon.png",
+        "monochromeImage": "./assets/brand/mono-appicon.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.monofinance"
@@ -32,9 +31,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#0A0A0A",
+          "image": "./assets/brand/mono-mark.png",
+          "imageWidth": 120
         }
       ],
       "expo-font",
