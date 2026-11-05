@@ -7,6 +7,7 @@
 // `fg`, never green or red: no `kind` is ever passed to <Amount> here.
 import { Logo } from 'idn-finlogos/react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
 import { Amount } from '@/components/Amount';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -17,7 +18,7 @@ import { radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 import { BANK_CARDS, NEUTRAL_CARDS, type BankCardStyle } from './bankCards';
-import { BRAND_LOGOS, CARD_ASSETS, NEUTRAL_GLYPHS } from './cardAssets';
+import { BRAND_LOGOS, CARD_ASSETS, NEUTRAL_GLYPHS, SVG_BACKGROUNDS } from './cardAssets';
 
 export interface BankCardProps {
   name: string;
@@ -50,6 +51,7 @@ export function BankCard({ name, type, icon, balance, currencyCount, subline, va
   const brand: BankCardStyle | undefined = BANK_CARDS[slug];
   const neutral = NEUTRAL_CARDS[slug as keyof typeof NEUTRAL_CARDS];
   const fg = (brand ?? neutral).fg;
+  const svgBackground = SVG_BACKGROUNDS[slug]; // overrides CARD_ASSETS when a PNG came out broken, see cardAssets.ts
   const image = CARD_ASSETS[slug];
 
   const tag = type === 'forex' && currencyCount != null ? valasCurrencyCountTag(currencyCount) : accountTypeTag(type);
@@ -65,7 +67,11 @@ export function BankCard({ name, type, icon, balance, currencyCount, subline, va
       style={variant === 'carousel' ? styles.carousel : styles.list}
     >
       <View style={styles.card}>
-        <Image testID={testID ? `${testID}-bg` : undefined} source={image} resizeMode="cover" style={StyleSheet.absoluteFill} />
+        {svgBackground ? (
+          <SvgXml testID={testID ? `${testID}-bg` : undefined} xml={svgBackground} width="100%" height="100%" style={StyleSheet.absoluteFill} />
+        ) : (
+          <Image testID={testID ? `${testID}-bg` : undefined} source={image} resizeMode="cover" style={StyleSheet.absoluteFill} />
+        )}
         <View style={styles.content}>
           <View style={styles.topRow}>
             {brand?.wordmark ? (

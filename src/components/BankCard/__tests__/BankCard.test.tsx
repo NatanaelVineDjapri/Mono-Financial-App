@@ -4,7 +4,7 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 
 import { BankCard } from '../BankCard';
 import { BANK_CARDS, NEUTRAL_CARDS } from '../bankCards';
-import { CARD_ASSETS } from '../cardAssets';
+import { CARD_ASSETS, SVG_BACKGROUNDS } from '../cardAssets';
 
 function luminance(hex: string): number {
   const c = hex.replace('#', '');
@@ -19,17 +19,17 @@ function contrast(hexA: string, hexB: string): number {
   return a > b ? a / b : b / a;
 }
 
-function backgroundSource(card: Awaited<ReturnType<typeof render>>, testID: string) {
-  return card.getByTestId(`${testID}-bg`).props.source;
+// A slug's background is either a PNG (CARD_ASSETS, rendered via <Image>) or, for the
+// rare slug with a broken PNG, a live SVG override (SVG_BACKGROUNDS, rendered via
+// <SvgXml>) — see cardAssets.ts. Either way the element carries testID `${testID}-bg`.
+function background(card: Awaited<ReturnType<typeof render>>, testID: string) {
+  return card.getByTestId(`${testID}-bg`);
 }
 
 describe('BankCard assets', () => {
-  test('every BANK_CARDS and NEUTRAL_CARDS slug has a PNG in CARD_ASSETS', () => {
-    for (const slug of Object.keys(BANK_CARDS)) {
-      expect(CARD_ASSETS[slug]).toBeDefined();
-    }
-    for (const slug of Object.keys(NEUTRAL_CARDS)) {
-      expect(CARD_ASSETS[slug]).toBeDefined();
+  test('every BANK_CARDS and NEUTRAL_CARDS slug has a working background, PNG or SVG', () => {
+    for (const slug of [...Object.keys(BANK_CARDS), ...Object.keys(NEUTRAL_CARDS)]) {
+      expect(CARD_ASSETS[slug] ?? SVG_BACKGROUNDS[slug]).toBeDefined();
     }
   });
 
@@ -57,18 +57,24 @@ describe('BankCard', () => {
 
   test('null icon falls back to a neutral card by account type', async () => {
     const cash = await render(<BankCard name="Cash wallet" type="cash" icon={null} balance={450000} onPress={() => {}} testID="card" />);
-    expect(backgroundSource(cash, 'card')).toBe(CARD_ASSETS.cash);
+    expect(background(cash, 'card').props.source).toBe(CARD_ASSETS.cash);
 
+    // valas has no PNG (broken source asset, see cardAssets.ts) — it renders the SVG override.
     const valas = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} testID="card" />);
-    expect(backgroundSource(valas, 'card')).toBe(CARD_ASSETS.valas);
+    expect(background(valas, 'card').props.xml).toBe(SVG_BACKGROUNDS.valas);
 
     const bank = await render(<BankCard name="Some Bank" type="bank" icon={null} balance={100000} onPress={() => {}} testID="card" />);
-    expect(backgroundSource(bank, 'card')).toBe(CARD_ASSETS.default);
+    expect(background(bank, 'card').props.source).toBe(CARD_ASSETS.default);
   });
 
   test('unrecognised icon slug also falls back to a neutral card', async () => {
     const result = await render(<BankCard name="Mystery" type="ewallet" icon="totally-unknown-bank" balance={1000} onPress={() => {}} testID="card" />);
-    expect(backgroundSource(result, 'card')).toBe(CARD_ASSETS.default);
+    expect(background(result, 'card').props.source).toBe(CARD_ASSETS.default);
+  });
+
+  test('Valas background renders as a live SVG without throwing (nested <svg>, <use xlink:href>, <marker>)', async () => {
+    const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} testID="card" />);
+    expect(background(result, 'card')).toBeTruthy();
   });
 
   test('stockbit renders the text wordmark, not a Logo', async () => {

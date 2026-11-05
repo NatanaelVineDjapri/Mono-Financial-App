@@ -54,8 +54,83 @@ export const CARD_ASSETS: Record<string, number> = {
   'truemoney': require('../../../assets/bank-cards/png/truemoney.png'),
   'uangku': require('../../../assets/bank-cards/png/uangku.png'),
   'uob': require('../../../assets/bank-cards/png/uob.png'),
-  'valas': require('../../../assets/bank-cards/png/valas.png'),
   'yukk': require('../../../assets/bank-cards/png/yukk.png'),
+};
+
+// Per-slug override: render this SVG live (react-native-svg) instead of looking the
+// slug up in CARD_ASSETS. See this script's header comment for why (a broken PNG).
+export const SVG_BACKGROUNDS: Record<string, string> = {
+  'valas': `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 358 184" width="358" height="184" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B2B2B"/><stop offset="1" stop-color="#141414"/></linearGradient></defs><rect width="358" height="184" fill="url(#g)"/><line x1="20" y1="0" x2="20" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="42" y1="0" x2="42" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="64" y1="0" x2="64" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="86" y1="0" x2="86" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="108" y1="0" x2="108" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="130" y1="0" x2="130" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="152" y1="0" x2="152" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="174" y1="0" x2="174" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="196" y1="0" x2="196" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="218" y1="0" x2="218" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="240" y1="0" x2="240" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="262" y1="0" x2="262" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="284" y1="0" x2="284" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="306" y1="0" x2="306" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="328" y1="0" x2="328" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="350" y1="0" x2="350" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><line x1="372" y1="0" x2="372" y2="184" stroke="#FFFFFF" stroke-opacity="0.10" fill="none" stroke-width="1"/><clipPath id="clip0"><circle cx="166.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip0)"><svg x="144" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <path fill="#bd3d44" d="M0 0h512v512H0"/>
+  <path stroke="#fff" stroke-width="40" d="M0 58h512M0 137h512M0 216h512M0 295h512M0 374h512M0 453h512"/>
+  <path fill="#192f5d" d="M0 0h390v275H0z"/>
+  <marker id="us_us-a" markerHeight="30" markerWidth="30">
+    <path fill="#fff" d="m15 0 9.3 28.6L0 11h30L5.7 28.6"/>
+  </marker>
+  <path fill="none" marker-mid="us_url(#us_us-a)" d="m0 0 18 11h65 65 65 65 66L51 39h65 65 65 65L18 66h65 65 65 65 66L51 94h65 65 65 65L18 121h65 65 65 65 66L51 149h65 65 65 65L18 177h65 65 65 65 66z"/>
+</svg></g><circle cx="166.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/><clipPath id="clip1"><circle cx="196.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip1)"><svg x="174" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <defs>
+    <g id="eu_eu-d">
+      <g id="eu_eu-b">
+        <path id="eu_eu-a" d="m0-1-.3 1 .5.1z"/>
+        <use xlink:href="#eu_eu-a" transform="scale(-1 1)"/>
+      </g>
+      <g id="eu_eu-c">
+        <use xlink:href="#eu_eu-b" transform="rotate(72)"/>
+        <use xlink:href="#eu_eu-b" transform="rotate(144)"/>
+      </g>
+      <use xlink:href="#eu_eu-c" transform="scale(-1 1)"/>
+    </g>
+  </defs>
+  <path fill="#039" d="M0 0h512v512H0z"/>
+  <g fill="#fc0" transform="translate(256 258.4)scale(25.28395)">
+    <use xlink:href="#eu_eu-d" width="100%" height="100%" y="-6"/>
+    <use xlink:href="#eu_eu-d" width="100%" height="100%" y="6"/>
+    <g id="eu_eu-e">
+      <use xlink:href="#eu_eu-d" width="100%" height="100%" x="-6"/>
+      <use xlink:href="#eu_eu-d" width="100%" height="100%" transform="rotate(-144 -2.3 -2.1)"/>
+      <use xlink:href="#eu_eu-d" width="100%" height="100%" transform="rotate(144 -2.1 -2.3)"/>
+      <use xlink:href="#eu_eu-d" width="100%" height="100%" transform="rotate(72 -4.7 -2)"/>
+      <use xlink:href="#eu_eu-d" width="100%" height="100%" transform="rotate(72 -5 .5)"/>
+    </g>
+    <use xlink:href="#eu_eu-e" width="100%" height="100%" transform="scale(-1 1)"/>
+  </g>
+</svg></g><circle cx="196.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/><clipPath id="clip2"><circle cx="226.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip2)"><svg x="204" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="sg_sg-a">
+      <path fill-opacity=".7" d="M27.7 0h708.6v708.7H27.7z"/>
+    </clipPath>
+  </defs>
+  <g fill-rule="evenodd" clip-path="url(#sg_sg-a)" transform="translate(-20)scale(.72249)">
+    <path fill="#fff" d="M0 0h1063v708.7H0z"/>
+    <path fill="#df0000" d="M0 0h1063v354.3H0z"/>
+    <path fill="#fff" d="M245.2 59.4a124.6 124.6 0 0 0 1.1 243.9 126.9 126.9 0 1 1-1.1-243.9"/>
+    <path fill="#fff" d="m202 162.4-18.9-13.8 23.5-.2 7.2-22.3 7.5 22.3h23.4l-18.8 14 7.2 22.3L214 171l-19 13.8zm26 76.9-19-13.8 23.5-.2 7.3-22.3 7.4 22.2h23.5l-19 14 7.3 22.3-19-13.6-19 13.8zm86.3-.6-19-13.8 23.4-.2 7.3-22.3 7.4 22.3H357l-18.9 14 7.3 22.3-19.1-13.7-19 13.8zm25.7-76.2-19-13.8 23.5-.2 7.2-22.3 7.5 22.2h23.4l-18.8 14 7.2 22.3-19.1-13.6-19 13.8zM271.7 112l-19-13.8 23.5-.2 7.3-22.3 7.4 22.3h23.5l-19 14 7.3 22.2-19-13.6-19 13.8z"/>
+  </g>
+</svg></g><circle cx="226.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/><clipPath id="clip3"><circle cx="256.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip3)"><svg x="234" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="jp_jp-a">
+      <path fill-opacity=".7" d="M177.2 0h708.6v708.7H177.2z"/>
+    </clipPath>
+  </defs>
+  <g fill-rule="evenodd" stroke-width="1pt" clip-path="url(#jp_jp-a)" transform="translate(-128)scale(.72249)">
+    <path fill="#fff" d="M0 0h1063v708.7H0z"/>
+    <circle cx="523.1" cy="344.1" r="194.9" fill="#bc002d" transform="translate(-59.7 -34.5)scale(1.1302)"/>
+  </g>
+</svg></g><circle cx="256.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/><clipPath id="clip4"><circle cx="286.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip4)"><svg x="264" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <path fill="#012169" d="M0 0h512v512H0z"/>
+  <path fill="#FFF" d="M512 0v64L322 256l190 187v69h-67L254 324 68 512H0v-68l186-187L0 74V0h62l192 188L440 0z"/>
+  <path fill="#C8102E" d="m184 324 11 34L42 512H0v-3zm124-12 54 8 150 147v45zM512 0 320 196l-4-44L466 0zM0 1l193 189-59-8L0 49z"/>
+  <path fill="#FFF" d="M176 0v512h160V0zM0 176v160h512V176z"/>
+  <path fill="#C8102E" d="M0 208v96h512v-96zM208 0v512h96V0z"/>
+</svg></g><circle cx="286.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/><clipPath id="clip5"><circle cx="316.0" cy="42.0" r="22.0"/></clipPath><g clip-path="url(#clip5)"><svg x="294" y="20" width="44" height="44" viewBox="0 0 512 512">
+  <path fill="#00008B" d="M0 0h512v512H0z"/>
+  <path fill="#fff" d="M256 0v32l-95 96 95 93.5V256h-33.5L127 162l-93 94H0v-34l93-93.5L0 37V0h31l96 94 93-94z"/>
+  <path fill="red" d="m92 162 5.5 17L21 256H0v-1.5zm62-6 27 4 75 73.5V256zM256 0l-96 98-2-22 75-76zM0 .5 96.5 95 67 91 0 24.5z"/>
+  <path fill="#fff" d="M88 0v256h80V0zM0 88v80h256V88z"/>
+  <path fill="red" d="M0 104v48h256v-48zM104 0v256h48V0z"/>
+  <path fill="#fff" d="m202 402.8-45.8 5.4 4.6 45.9-32.8-32.4-33 32.2 4.9-45.9-45.8-5.8L93 377.4 69 338l43.6 15 15.8-43.4 15.5 43.5 43.7-14.7-24.3 39.2 38.8 25.1Zm222.7 8-20.5 2.6 2.2 20.5-14.8-14.4-14.7 14.5 2-20.5-20.5-2.4 17.3-11.2-10.9-17.5 19.6 6.5 6.9-19.5 7.1 19.4 19.5-6.7-10.7 17.6zM415 293.6l2.7-13-9.8-9 13.2-1.5 5.5-12.1 5.5 12.1 13.2 1.5-9.8 9 2.7 13-11.6-6.6zm-84.1-60-20.3 2.2 1.8 20.3-14.4-14.5-14.8 14.1 2.4-20.3-20.2-2.7 17.3-10.8-10.5-17.5 19.3 6.8 7.2-19.1 6.7 19.3 19.4-6.3-10.9 17.3zm175.8-32.8-20.9 2.7 2.3 20.9-15.1-14.7-15 14.8 2.1-21-20.9-2.4 17.7-11.5-11.1-17.9 20 6.7 7-19.8 7.2 19.8 19.9-6.9-11 18zm-82.1-83.5-20.7 2.3 1.9 20.8-14.7-14.8L376 140l2.4-20.7-20.7-2.8 17.7-11-10.7-17.9 19.7 6.9 7.3-19.5 6.8 19.7 19.8-6.5-11.1 17.6z"/>
+</svg></g><circle cx="316.0" cy="42.0" r="22.0" fill="none" stroke="#1A1A1A" stroke-width="2.5"/></svg>`,
 };
 
 export const NEUTRAL_GLYPHS: Record<string, string> = {

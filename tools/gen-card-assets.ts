@@ -26,6 +26,13 @@ const { BANK_CARDS } = require('../src/components/BankCard/bankCards.ts') as typ
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PNG_DIR = join(ROOT, 'assets/bank-cards/png');
 const GLYPH_DIR = join(ROOT, 'assets/bank-cards/glyphs');
+// Per-slug override: an SVG rendered live instead of the PNG in CARD_ASSETS. Used when a
+// PNG came out corrupt (valas@3x.png fails to parse — traced to its source SVG's
+// xlink:href <use> references not surviving whatever rasterised the PNG) — rather than
+// re-rasterising it myself (no SVG-to-PNG tool is available in this environment),
+// react-native-svg (already a dependency, already rendering the brand logos) renders the
+// SVG directly, so a slug here never touches CARD_ASSETS at all.
+const SVG_BACKGROUND_DIR = join(ROOT, 'assets/bank-cards/svg-backgrounds');
 const OUT_FILE = join(ROOT, 'src/components/BankCard/cardAssets.ts');
 // Relative filesystem path, not a package-specifier require: idn-finlogos's "exports"
 // field does not publish icons-map.js, but a build script may still read the file
@@ -39,17 +46,30 @@ const pngFiles = readdirSync(PNG_DIR)
 const glyphFiles = readdirSync(GLYPH_DIR)
   .filter(f => f.endsWith('.svg'))
   .sort();
+const svgBackgroundFiles = readdirSync(SVG_BACKGROUND_DIR)
+  .filter(f => f.endsWith('.svg'))
+  .sort();
 
-const pngEntries = pngFiles.map(file => {
-  const slug = file.replace(/@3x\.png$/, '');
-  // Metro's asset density convention: require the UNDECORATED name and it discovers the
-  // "@3x" sibling on disk itself — requiring the literal "@3x" filename fails to resolve.
-  return `  '${slug}': require('../../../assets/bank-cards/png/${slug}.png'),`;
-});
+const svgBackgroundSlugs = new Set(svgBackgroundFiles.map(f => f.replace(/\.svg$/, '')));
+
+const pngEntries = pngFiles
+  .filter(file => !svgBackgroundSlugs.has(file.replace(/@3x\.png$/, ''))) // has a working SVG override instead
+  .map(file => {
+    const slug = file.replace(/@3x\.png$/, '');
+    // Metro's asset density convention: require the UNDECORATED name and it discovers the
+    // "@3x" sibling on disk itself — requiring the literal "@3x" filename fails to resolve.
+    return `  '${slug}': require('../../../assets/bank-cards/png/${slug}.png'),`;
+  });
 
 const glyphEntries = glyphFiles.map(file => {
   const slug = file.replace(/\.svg$/, '');
   const svg = readFileSync(join(GLYPH_DIR, file), 'utf8').trim().replace(/`/g, '\\`');
+  return `  '${slug}': \`${svg}\`,`;
+});
+
+const svgBackgroundEntries = svgBackgroundFiles.map(file => {
+  const slug = file.replace(/\.svg$/, '');
+  const svg = readFileSync(join(SVG_BACKGROUND_DIR, file), 'utf8').trim().replace(/`/g, '\\`');
   return `  '${slug}': \`${svg}\`,`;
 });
 
@@ -84,6 +104,12 @@ export const CARD_ASSETS: Record<string, number> = {
 ${pngEntries.join('\n')}
 };
 
+// Per-slug override: render this SVG live (react-native-svg) instead of looking the
+// slug up in CARD_ASSETS. See this script's header comment for why (a broken PNG).
+export const SVG_BACKGROUNDS: Record<string, string> = {
+${svgBackgroundEntries.join('\n')}
+};
+
 export const NEUTRAL_GLYPHS: Record<string, string> = {
 ${glyphEntries.join('\n')}
 };
@@ -96,4 +122,6 @@ ${logoEntries.join('\n')}
 `;
 
 writeFileSync(OUT_FILE, output);
-console.log(`Wrote ${pngFiles.length} card assets, ${glyphFiles.length} glyphs and ${logoEntries.length} brand logos to ${OUT_FILE}`);
+console.log(
+  `Wrote ${pngEntries.length} card assets, ${glyphFiles.length} glyphs, ${svgBackgroundFiles.length} SVG background override(s) and ${logoEntries.length} brand logos to ${OUT_FILE}`,
+);
