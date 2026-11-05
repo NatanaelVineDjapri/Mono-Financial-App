@@ -104,3 +104,13 @@ const tabLabels: Record<TabKey, string> = {
 export function tabLabel(key: TabKey): string {
   return tabLabels[key];
 }
+
+// Lainnya tab's __DEV__-only entry point into app/dev/index.tsx (never shown in a
+// release build).
+export function devToolsLabel(): string {
+  return 'Dev tools';
+}
+
+export function devToolsHint(): string {
+  return 'Data contoh, reset database, atur ulang tanggal.';
+}
