@@ -5,15 +5,49 @@ import {
   IBMPlexSans_600SemiBold,
 } from '@expo-google-fonts/ibm-plex-sans';
 import { Newsreader_400Regular } from '@expo-google-fonts/newsreader';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Slot, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { useHideAmounts } from '@/components/hide-amounts-store';
+import { ToastHost } from '@/components/ToastHost';
+import { DbProvider, useDb } from '@/data/db/DbProvider';
+import { getSetting } from '@/data/repo/settings';
 import { navTheme } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
+
+// SQLite reads never go stale behind our back — every write already calls
+// invalidateAfterWrite() (src/data/queryKeys.ts), so react-query only needs to refetch
+// when told to, not on a timer. A failed query is a real bug, not a flaky network call,
+// so it isn't worth retrying either.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: Infinity, retry: 0 } },
+});
+
+// Hidden-amounts mode (CLAUDE.md rule 12) starts from the existing `hide_on_launch`
+// setting — there is no UI to change it yet (that toggle is Phase 7), only this
+// initial read.
+function HiddenAmountsInit() {
+  const db = useDb();
+
+  useEffect(() => {
+    let cancelled = false;
+    getSetting(db, 'hide_on_launch').then(value => {
+      if (!cancelled) useHideAmounts.getState().setHidden(value === '1');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -37,9 +71,19 @@ export default function RootLayout() {
   // The design has one (dark) palette, so the app theme is forced rather than
   // following the system colour scheme.
   return (
-    <ThemeProvider value={navTheme}>
-      <AnimatedSplashOverlay />
-      <Slot />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={navTheme}>
+            <AnimatedSplashOverlay />
+            <DbProvider>
+              <HiddenAmountsInit />
+              <Slot />
+              <ToastHost />
+            </DbProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
