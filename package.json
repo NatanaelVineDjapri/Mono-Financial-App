@@ -76,6 +76,7 @@
           "<rootDir>/src/features/**/*.test.ts",
           "<rootDir>/src/i18n/**/*.test.ts",
           "<rootDir>/src/theme/**/*.test.ts",
+          "<rootDir>/src/dev/**/*.test.ts",
           "<rootDir>/src/__tests__/**/*.test.ts"
         ]
       },
