@@ -88,3 +88,19 @@ export function accountTypeDescription(type: AccountType): string {
 export function bankCardAccessibilityLabel(name: string, type: AccountType, balanceText: string): string {
   return `${name}, ${accountTypeDescription(type)}, saldo ${balanceText}`;
 }
+
+// TabBar / the five (tabs) routes (DESIGN.md section 9): the bottom nav's own labels,
+// reused as each tab's temporary app-bar title until its real content lands.
+export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets' | 'more';
+
+const tabLabels: Record<TabKey, string> = {
+  overview: 'Ringkasan',
+  transactions: 'Transaksi',
+  accounts: 'Akun',
+  budgets: 'Anggaran',
+  more: 'Lainnya',
+};
+
+export function tabLabel(key: TabKey): string {
+  return tabLabels[key];
+}
