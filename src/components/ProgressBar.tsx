@@ -21,7 +21,7 @@
 // across a generous fixed virtual width and left to the Canvas's own clip — whatever
 // the flex layout actually gives it crops the rest automatically, with no measurement
 // needed.
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { Canvas, Line } from '@shopify/react-native-skia';
 
 import { Icon } from '@/components/Icon';
@@ -86,7 +86,15 @@ export function ProgressBar({ valueBp, label, overAmount, style, testID }: Progr
         <View style={[styles.fill, { width: `${fillFraction * 100}%` }]} />
         {overFraction > 0 && (
           <View style={[styles.overflow, { width: `${overFraction * 100}%` }]}>
-            <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, HEIGHT)}</Canvas>
+            {Platform.OS === 'web' ? (
+              // react-native-skia needs an explicit CanvasKit/WASM bootstrap on web
+              // (LoadSkiaWeb) that this app — Android-only per CLAUDE.md — never sets
+              // up, so <Canvas> throws "CanvasKit is not defined" there. Degrade to a
+              // flat fill instead of crashing the screen; native keeps the real stripes.
+              <View style={styles.overflowFallback} />
+            ) : (
+              <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, HEIGHT)}</Canvas>
+            )}
           </View>
         )}
       </View>
@@ -110,6 +118,7 @@ const styles = StyleSheet.create({
   },
   fill: { backgroundColor: MonoColors.accent },
   overflow: { overflow: 'hidden' },
+  overflowFallback: { ...StyleSheet.absoluteFill, backgroundColor: MonoColors.negative },
   overRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   overText: { ...MonoText.bodyS, color: MonoColors.negative },
 });
