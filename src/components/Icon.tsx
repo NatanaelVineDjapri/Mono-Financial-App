@@ -1,6 +1,7 @@
 // DESIGN.md section 7: one line-icon set, 24 grid, 1.5 stroke, round caps/joins.
 // Sizes 16 (inline), 20 (default), 26 (empty states). Colour always comes in via the
 // `color` prop (a token from the caller) — never a literal hex in this file.
+import { Platform } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 export type IconName =
@@ -39,19 +40,27 @@ const PATHS: Record<IconName, string> = {
   'eye-off': 'M1 12 C4 5 20 5 23 12 C20 19 4 19 1 12 Z M12 9 a3 3 0 1 0 0.001 0 Z M3 3 L21 21',
 };
 
+// react-native-svg's <Svg> doesn't translate RN-only accessibility props for web the
+// way react-native-web's own host components do — `accessible`, accessibilityElementsHidden
+// (iOS) and importantForAccessibility (Android) all get forwarded to the DOM as literal
+// attributes there, and React warns on each one. So web gets only accessibilityLabel
+// (which does translate, to aria-label); every other prop here is native-only.
+function accessibilityProps(label: string | undefined): Record<string, unknown> {
+  if (Platform.OS === 'web') return { accessibilityLabel: label };
+  return {
+    accessible: !!label,
+    accessibilityLabel: label,
+    ...Platform.select<Record<string, unknown>>({
+      ios: { accessibilityElementsHidden: !label },
+      android: { importantForAccessibility: label ? 'yes' : 'no' },
+      default: {},
+    }),
+  };
+}
+
 export function Icon({ name, size = 20, color, label, testID }: IconProps) {
   return (
-    <Svg
-      testID={testID}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      accessible={!!label}
-      accessibilityLabel={label}
-      accessibilityElementsHidden={!label}
-      importantForAccessibility={label ? 'yes' : 'no'}
-    >
+    <Svg testID={testID} width={size} height={size} viewBox="0 0 24 24" fill="none" {...accessibilityProps(label)}>
       <Path d={PATHS[name]} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
