@@ -21,7 +21,11 @@ export type IconName =
   | 'flow'
   | 'bank'
   | 'pie'
-  | 'dots';
+  | 'dots'
+  // Accounts tab (DESIGN.md "D. Accounts"): Transfer between accounts, the no-bank-login
+  // footer note.
+  | 'transfer'
+  | 'lock';
 
 export interface IconProps {
   name: IconName;
@@ -49,6 +53,8 @@ const PATHS: Partial<Record<IconName, string>> = {
   'eye-off': 'M1 12 C4 5 20 5 23 12 C20 19 4 19 1 12 Z M12 9 a3 3 0 1 0 0.001 0 Z M3 3 L21 21',
   flow: 'M7 4v16M7 4L3.5 7.5M7 4l3.5 3.5M17 20V4M17 20l-3.5-3.5M17 20l3.5-3.5',
   bank: 'M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18',
+  transfer: 'M4 8 L17 8 M13 4 L17 8 L13 12 M20 16 L7 16 M11 12 L7 16 L11 20',
+  lock: 'M6 11 h12 v9 h-12 Z M8 11 V7 a4 4 0 0 1 8 0 v4',
 };
 
 function renderGlyph(name: IconName, color: string) {

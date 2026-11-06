@@ -19,6 +19,8 @@ const NAMES: IconName[] = [
   'bank',
   'pie',
   'dots',
+  'transfer',
+  'lock',
 ];
 
 // Decorative icons (the default, no `label`) are hidden from accessibility, and RTL's
