@@ -3,9 +3,9 @@
 // is the one exception: __DEV__-only, never shown in a release build.
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { devToolsHint, devToolsLabel, tabLabel } from '@/i18n/id';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -36,12 +36,9 @@ function DevToolsRow() {
 }
 
 export default function MoreScreen() {
-  const insets = useSafeAreaInsets();
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.title}>{tabLabel('more')}</Text>
-      </View>
+      <ScreenHeader title={tabLabel('more')} />
 
       {__DEV__ && <DevToolsRow />}
     </View>
@@ -50,8 +47,6 @@ export default function MoreScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
-  title: { ...MonoText.titleL, color: MonoColors.text },
   row: {
     minHeight: 48,
     paddingHorizontal: 20,
