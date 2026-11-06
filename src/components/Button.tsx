@@ -1,7 +1,8 @@
 // DESIGN.md section 8/16: primary (light fill), secondary (outlined #737373), disabled.
 // 48 tall, radius 12. No android_ripple (section 16: never set, no coloured ripples).
-import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type PressableProps, type ViewStyle } from 'react-native';
 
+import { Icon, type IconName } from '@/components/Icon';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -9,14 +10,16 @@ export type ButtonVariant = 'primary' | 'secondary';
 
 export interface ButtonProps extends Omit<PressableProps, 'style' | 'children' | 'disabled'> {
   label: string;
+  icon?: IconName; // optional, leading the label (e.g. Accounts tab's Transfer/Add)
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
 }
 
-export function Button({ label, variant = 'primary', disabled = false, loading = false, onPress, style, ...rest }: ButtonProps) {
+export function Button({ label, icon, variant = 'primary', disabled = false, loading = false, onPress, style, ...rest }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const textColor = isDisabled ? MonoColors.textDisabled : variant === 'primary' ? MonoColors.bg : MonoColors.text;
 
   return (
     <Pressable
@@ -41,9 +44,10 @@ export function Button({ label, variant = 'primary', disabled = false, loading =
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? MonoColors.bg : MonoColors.text} />
       ) : (
-        <Text style={[MonoText.bodyStrong, variant === 'primary' ? styles.primaryText : styles.secondaryText, isDisabled && styles.disabledText]}>
-          {label}
-        </Text>
+        <View style={styles.content}>
+          {icon && <Icon name={icon} size={16} color={textColor} testID="button-icon" />}
+          <Text style={[MonoText.bodyStrong, { color: textColor }]}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -62,7 +66,5 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: MonoColors.textDisabled },
   secondaryPressed: { backgroundColor: MonoColors.raised },
   disabled: { opacity: 0.4 },
-  primaryText: { color: MonoColors.bg },
-  secondaryText: { color: MonoColors.text },
-  disabledText: { color: MonoColors.textDisabled },
+  content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
