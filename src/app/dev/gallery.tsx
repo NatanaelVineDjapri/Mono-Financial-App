@@ -226,6 +226,19 @@ function GalleryContent() {
             </Row>
           </Section>
 
+          <Section title="BankCard — lebar (bug: latar lebih kecil dari wadah di layar lebar penuh)">
+            <View style={{ gap: 16 }}>
+              <Text style={styles.rowLabel}>Carousel (312, tetap)</Text>
+              <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="carousel" testID="card-312" />
+              <Text style={styles.rowLabel}>List, lebar penuh (width 100%)</Text>
+              <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="list" testID="card-full" />
+              <Text style={styles.rowLabel}>List, wadah sempit 360dp</Text>
+              <View style={{ width: 360 }}>
+                <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="list" testID="card-360" />
+              </View>
+            </View>
+          </Section>
+
           <Section title="BankCard — Valas">
             <BankCard
               name="Valas"
