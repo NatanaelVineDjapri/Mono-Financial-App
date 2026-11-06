@@ -114,3 +114,66 @@ export function devToolsLabel(): string {
 export function devToolsHint(): string {
   return 'Data contoh, reset database, atur ulang tanggal.';
 }
+
+// Accounts tab (DESIGN.md "D. Accounts"). Group labels are the "cap" style's own text
+// (uppercased by the style, not here) — distinct from accountTypeTag above, which is the
+// shorter word that sits on a BankCard itself (e.g. "DEBIT" vs this "Bank").
+const accountGroupLabels: Record<AccountType, string> = {
+  bank: 'Bank',
+  cash: 'Tunai',
+  ewallet: 'E-wallet',
+  savings: 'Tabungan',
+  forex: 'Mata uang asing',
+};
+
+export function accountGroupLabel(type: AccountType): string {
+  return accountGroupLabels[type];
+}
+
+export function accountsSummaryLabel(): string {
+  return 'Total saldo · kekayaan bersih';
+}
+
+export function accountsCountLabel(count: number): string {
+  return `${count} akun`;
+}
+
+export function accountsTransferNote(): string {
+  return 'Memindahkan uang antar akun tidak mengubah total.';
+}
+
+export function accountsIncompleteNote(): string {
+  return 'Belum lengkap: ada mata uang tanpa kurs.';
+}
+
+export function accountsNoLoginNote(): string {
+  return 'MONO tidak meminta login bank. Akun hanya label di ponselmu.';
+}
+
+export function transferAccountsLabel(): string {
+  return 'Transfer antar akun';
+}
+
+export function addAccountLabel(): string {
+  return 'Tambah akun';
+}
+
+export function notAvailableToast(): string {
+  return 'Belum tersedia.';
+}
+
+export function accountsEmptyTitle(): string {
+  return 'Belum ada akun';
+}
+
+export function accountsEmptyBody(): string {
+  return 'Tambahkan akun pertamamu buat mulai mencatat saldo.';
+}
+
+export function accountsErrorMessage(): string {
+  return 'Akun gagal dimuat.';
+}
+
+export function retryLabel(): string {
+  return 'Coba lagi';
+}
