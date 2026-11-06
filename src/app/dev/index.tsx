@@ -13,7 +13,7 @@ import { showToast } from '@/components/toast-store';
 import { setClockOverride } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
-import { loadSampleData } from '@/dev/loadSample';
+import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
 import { resetDatabase } from '@/dev/resetDatabase';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -50,6 +50,11 @@ function DevToolsContent() {
 
       <View style={styles.list}>
         <Button label="Muat data contoh" onPress={() => after(() => loadSampleData(db), 'Data contoh dimuat.')} />
+        <Button
+          label="Muat data contoh + Valas"
+          variant="secondary"
+          onPress={() => after(() => loadSampleDataWithValas(db), 'Data contoh + Valas dimuat.')}
+        />
 
         {confirmingReset ? (
           <View style={styles.confirmRow}>
