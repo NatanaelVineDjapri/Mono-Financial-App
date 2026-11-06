@@ -325,7 +325,7 @@ Papan: `Accounts` · 390 × 1400
 
 - Judul layar dan kartu ringkasan "Total balance · net worth" Rp8.880.000 untuk 4 akun, dengan catatan bahwa transfer tidak mengubah total.
 - Grup Bank, Cash, E-wallet, Savings. Tiap grup memiliki label dan subtotal, lalu satu kartu selebar layar. Bila ada akun Valas, lihat papan `Accounts-Valas` (bagian V).
-- Kartu: BCA Tabungan (gelap, garis diagonal, chip, tag DEBIT), Cash wallet (garis putus-putus, tag CASH), GoPay (abu-abu, pola titik, tag E-WALLET), Jago Pocket (putih, lingkaran, tag SAVINGS POCKET).
+- Kartu: papan ini masih menampilkan gaya monokrom lama (BCA gelap dengan garis diagonal, Cash dengan garis putus-putus, GoPay abu-abu, Jago putih). Keputusan terbaru menggantikannya: kartu berwarna brand bank dengan logo (BCA biru, GoPay cyan, Jago kuning, Cash grafit dengan rosette), lihat DESIGN.md Account cards. Tata letak dan urutan grup di papan tetap berlaku.
 - Tombol "Transfer between accounts" (utama) dan "Add account" (sekunder).
 - Catatan bahwa MONO tidak meminta login bank dan akun hanyalah label di perangkat.
 
@@ -335,7 +335,7 @@ Papan: `Accounts` · 390 × 1400
 
 **Catatan**
 
-- Tidak ada logo atau warna merek asli. Nama bank berupa teks biasa; nomor tersamar (•••• 4821) hanyalah contoh.
+- Kartu memakai warna dan logo bank (aturan baru). Tidak ada nomor rekening bertopeng; nomor •••• 4821 di papan hanyalah contoh lama.
 
 ### D2 · Detail akun
 
@@ -844,7 +844,7 @@ Papan: `Accounts-Valas` · 390 × 1800
 
 **Catatan**
 
-- Kartu Valas bergaya monokrom, berbingkai abu-abu terang dengan garis vertikal halus. Tidak ada warna baru.
+- Kartu Valas di papan ini masih bergaya monokrom. Keputusan terbaru: kartu Valas memakai kartu netral grafit dengan bendera bulat (USD, EUR, SGD, JPY, GBP, AUD) yang saling menumpuk dan ikon globe; lihat DESIGN.md bagian Account cards.
 
 ### V2 · Detail akun Valas
 
@@ -975,6 +975,115 @@ Papan: `Rates` · 390 × 860
 **Catatan**
 
 - Layanan: satu permintaan GET `https://open.er-api.com/v6/latest/USD` (semua kurs dalam satu respons), kurs rupiah per X = rates.IDR ÷ rates[X]. Simpan hasilnya sebagai `rate_e4` dengan `source = 'api'`. Respons di-cache minimal satu jam (disarankan sehari). Sudah dicek pada 4 Nov 2026: respons berisi `result: "success"`, IDR, dan ke-12 mata uang yang didukung; diperbarui sekali sehari (`time_next_update_utc`). Cek lagi saat membangun, dan perlakukan `result` selain `success` sebagai gagal.
+
+## N · Impor otomatis (opsional)
+
+Dua sumber opsional mengisi satu antrean tinjauan: notifikasi Android dari aplikasi bank dan e-wallet yang dipilih pengguna (di ponsel, tanpa internet, tanpa login) dan Gmail (login Google di ponsel, izin baca saja, tanpa server). Keduanya mati secara default dan berdiri sendiri. Tidak ada yang tersimpan sebagai transaksi sebelum pengguna menekan Simpan, dan yang disimpan hanya hasil bacanya, bukan isi pesan. Contoh di papan (Kopi Kenangan, Indomaret, nama@gmail.com) terpisah dari data contoh utama.
+
+### N1 · Impor otomatis, belum diatur
+
+Papan: `Import-Setup` · 390 × 1080
+
+**Tujuan.** Menjelaskan fitur dan apa yang dibaca sebelum pengguna memberi izin apa pun.
+
+**Tata letak dan komponen**
+
+- App bar "Impor otomatis" dan satu paragraf pengantar.
+- Kartu "Notifikasi Android" (tag "Belum aktif", penjelasan, tombol utama "Aktifkan akses notifikasi" yang membuka panduan izin) dan kartu "Gmail" (tag "Belum terhubung", tombol "Hubungkan Gmail", ditandai sebagai pilihan tambahan).
+- Daftar "Yang dibaca MONO" dan "Yang tidak dibaca atau disimpan", lalu catatan bahwa keduanya opsional dan transaksi yang sudah disimpan tetap ada bila diputus.
+
+**Keadaan**
+
+- Pengguna boleh memakai notifikasi saja, Gmail saja, atau keduanya.
+
+**Catatan**
+
+- Tidak ada login yang diwajibkan.
+
+### N2 · Impor otomatis, terhubung dan masalah
+
+Papan: `Import-Settings` · 390 × 1400
+
+**Tujuan.** Mengelola sumber yang aktif dan melihat apa yang bermasalah.
+
+**Tata letak dan komponen**
+
+- Tautan "4 transaksi menunggu tinjauan" ke antrean.
+- Bagian Notifikasi Android: status akses, waktu terakhir membaca, dan satu baris per aplikasi (BCA mobile, GoPay, Jago, DANA) dengan saklar dan akun MONO tujuannya. Aplikasi yang belum dipetakan ke akun tetap mati.
+- Bagian Gmail: akun Google, waktu sinkron terakhir, izin (hanya baca; token tersimpan di ponsel dan tidak ikut cadangan), tombol Sinkronkan dan Putuskan, catatan bahwa memutus tidak mengubah transaksi yang sudah disimpan.
+- Bagian "Kalau ada masalah": akses notifikasi mati (tautan ke panduan), "Perlu hubungkan ulang" (login Google kedaluwarsa atau dicabut), tidak ada internet, dan penghemat baterai yang menghentikan MONO.
+
+**Keadaan**
+
+- Pesan masalah memakai bingkai merah 1,5 px, ikon peringatan, dan kata-kata; bukan warna saja.
+
+**Catatan**
+
+- Hubungkan ulang harus cukup satu ketukan. Notifikasi tetap terbaca walau Gmail bermasalah, dan sebaliknya.
+
+### N3 · Tinjau transaksi hasil impor
+
+Papan: `Import-Review` · 390 × 1200
+
+**Tujuan.** Memeriksa transaksi yang terdeteksi sebelum disimpan.
+
+**Tata letak dan komponen**
+
+- Ringkasan "4 transaksi terdeteksi … Belum ada yang tersimpan", dikelompokkan per hari.
+- Tiap kartu: bank, merchant, nominal bertanda (pemasukan hijau dengan +, pengeluaran merah dengan −), waktu, tag akun, kategori yang disarankan atau "Pilih kategori" (putus-putus), dan sumber (Notifikasi, Gmail, atau Notifikasi + Gmail). Tombol Tolak, Ubah, Simpan.
+- Kartu yang sama-sama terdeteksi dari dua sumber digabung dan diberi catatan.
+- Kartu "Perlu dicek": jenis tidak jelas, pengguna harus memilih Pemasukan atau Pengeluaran dulu.
+- Bilah bawah "Simpan 2 yang lengkap" dengan jumlah yang masih perlu dilengkapi.
+
+**Keadaan**
+
+- Simpan nonaktif untuk kartu tanpa kategori atau yang jenisnya belum dipilih.
+- Mode "Sembunyikan nominal" menyembunyikan angka di antrean.
+
+**Catatan**
+
+- Yang ditolak tidak muncul lagi. Menyimpan memakai fungsi domain yang sama dengan transaksi manual, jadi semua penjaga (saldo cukup, tanggal masa depan, tanggal sebelum saldo awal) berlaku.
+
+### N4 · Ubah transaksi hasil impor
+
+Papan: `Import-Review-Edit` · 390 × 1000
+
+**Tujuan.** Melengkapi atau memperbaiki satu transaksi yang terdeteksi.
+
+**Tata letak dan komponen**
+
+- Catatan sumber ("Terbaca dari notifikasi GoPay, 5 Nov 2026, 07:12") dan penjelasan tag "Ditebak".
+- Form seperti Tambah transaksi: jenis, nominal, kategori (tag "Ditebak"), akun dengan "Saldo setelah", tanggal, deskripsi.
+- Saklar "Ingat kategori untuk \"Kopi Kenangan\"" supaya kategori terisi otomatis lain kali.
+- Bilah bawah: Tolak dan Simpan.
+
+**Keadaan**
+
+- Saldo tidak cukup dan kesalahan lain memakai pesan yang sama dengan form manual.
+
+**Catatan**
+
+- Isi pesan asli tidak disimpan; hanya field hasil bacanya.
+
+### N5 · Panduan izin akses notifikasi
+
+Papan: `Import-Permission` · 390 × 844 (lembar)
+
+**Tujuan.** Memandu pengguna melewati "setelan terbatas" Android 13+ untuk aplikasi di luar Play Store.
+
+**Tata letak dan komponen**
+
+- Lembar bawah "Aktifkan akses notifikasi" dengan empat langkah: Info aplikasi MONO, titik tiga lalu "Izinkan setelan terbatas", Akses notifikasi, nyalakan MONO.
+- Catatan bahwa izin bisa dicabut kapan saja dan hanya aplikasi yang dipilih yang dibaca.
+- Tombol "Buka pengaturan Android" dan "Nanti saja".
+
+**Keadaan**
+
+- Saat izin sudah aktif, panduan tidak tampil lagi.
+
+**Catatan**
+
+- MONO mendeteksi izin yang belum aktif dan menampilkan panduan ini dari bagian masalah di N2.
 
 ## Keadaan sistem
 

@@ -5,20 +5,25 @@
 // card surface is the one deliberate exception, on the same footing as the real logo
 // mark the rule already carves out. The nominal on a card always uses the card's own
 // `fg`, never green or red: no `kind` is ever passed to <Amount> here.
-import { Logo } from 'idn-finlogos/react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import { Logo } from "idn-finlogos/react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { SvgXml } from "react-native-svg";
 
-import { Amount } from '@/components/Amount';
-import { useHideAmounts } from '@/components/hide-amounts-store';
-import type { AccountType } from '@/data/repo/accounts';
-import { rp, shown } from '@/core/money';
-import { accountTypeTag, bankCardAccessibilityLabel } from '@/i18n/id';
-import { radius } from '@/theme/tokens';
-import { MonoText } from '@/theme/typography';
+import { Amount } from "@/components/Amount";
+import { useHideAmounts } from "@/components/hide-amounts-store";
+import type { AccountType } from "@/data/repo/accounts";
+import { rp, shown } from "@/core/money";
+import { accountTypeTag, bankCardAccessibilityLabel } from "@/i18n/id";
+import { radius } from "@/theme/tokens";
+import { MonoText } from "@/theme/typography";
 
-import { BANK_CARDS, NEUTRAL_CARDS, type BankCardStyle } from './bankCards';
-import { BRAND_LOGOS, CARD_ASSETS, NEUTRAL_GLYPHS, SVG_BACKGROUNDS } from './cardAssets';
+import { BANK_CARDS, NEUTRAL_CARDS, type BankCardStyle } from "./bankCards";
+import {
+  BRAND_LOGOS,
+  CARD_ASSETS,
+  NEUTRAL_GLYPHS,
+  SVG_BACKGROUNDS,
+} from "./cardAssets";
 
 export interface BankCardProps {
   name: string;
@@ -26,7 +31,7 @@ export interface BankCardProps {
   icon: string | null; // accounts.icon; null or an unrecognised slug falls back to a neutral card
   balance: number; // whole rupiah; for a Valas account, the total rupiah value
   subline?: string; // Valas only, e.g. "US$250,00 · S$180,00"
-  variant?: 'carousel' | 'list'; // carousel: fixed 312×184. list: full width, 358:184
+  variant?: "carousel" | "list"; // carousel: fixed 312×184. list: full width, 358:184
   onPress: () => void;
   testID?: string;
 }
@@ -39,13 +44,22 @@ const GLYPH_SIZE = 28;
 
 function resolveSlug(icon: string | null, type: AccountType): string {
   if (icon && icon in BANK_CARDS) return icon;
-  if (type === 'cash') return 'cash';
-  if (type === 'forex') return 'valas';
-  return 'default';
+  if (type === "cash") return "cash";
+  if (type === "forex") return "valas";
+  return "default";
 }
 
-export function BankCard({ name, type, icon, balance, subline, variant = 'list', onPress, testID }: BankCardProps) {
-  const hidden = useHideAmounts(s => s.hidden);
+export function BankCard({
+  name,
+  type,
+  icon,
+  balance,
+  subline,
+  variant = "list",
+  onPress,
+  testID,
+}: BankCardProps) {
+  const hidden = useHideAmounts((s) => s.hidden);
   const slug = resolveSlug(icon, type);
   const brand: BankCardStyle | undefined = BANK_CARDS[slug];
   const neutral = NEUTRAL_CARDS[slug as keyof typeof NEUTRAL_CARDS];
@@ -55,9 +69,13 @@ export function BankCard({ name, type, icon, balance, subline, variant = 'list',
 
   // The Valas card's own flag-circle row already says "this is multi-currency" — a
   // "N MATA UANG" pill on top of it only collided with the flags, so forex gets no tag.
-  const tag = type === 'forex' ? null : accountTypeTag(type);
+  const tag = type === "forex" ? null : accountTypeTag(type);
   const balanceText = shown(rp(balance), hidden);
-  const accessibilityLabel = bankCardAccessibilityLabel(name, type, balanceText);
+  const accessibilityLabel = bankCardAccessibilityLabel(
+    name,
+    type,
+    balanceText,
+  );
 
   return (
     <Pressable
@@ -65,22 +83,43 @@ export function BankCard({ name, type, icon, balance, subline, variant = 'list',
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       testID={testID}
-      style={variant === 'carousel' ? styles.carousel : styles.list}
+      style={variant === "carousel" ? styles.carousel : styles.list}
     >
       <View style={styles.card}>
         {svgBackground ? (
-          <SvgXml testID={testID ? `${testID}-bg` : undefined} xml={svgBackground} width="100%" height="100%" style={StyleSheet.absoluteFill} />
+          <SvgXml
+            testID={testID ? `${testID}-bg` : undefined}
+            xml={svgBackground}
+            width="100%"
+            height="100%"
+            style={StyleSheet.absoluteFill}
+          />
         ) : (
-          <Image testID={testID ? `${testID}-bg` : undefined} source={image} resizeMode="cover" style={styles.background} />
+          <Image
+            testID={testID ? `${testID}-bg` : undefined}
+            source={image}
+            resizeMode="cover"
+            style={styles.background}
+          />
         )}
         <View style={styles.content}>
           <View style={styles.topRow}>
             {brand?.wordmark ? (
               <Text style={[styles.wordmark, { color: fg }]}>{slug}</Text>
             ) : brand ? (
-              <Logo svg={BRAND_LOGOS[slug]} width={LOGO_WIDTH} height={LOGO_HEIGHT} preserveAspectRatio="xMinYMid meet" />
+              <Logo
+                svg={BRAND_LOGOS[slug]}
+                width={LOGO_WIDTH}
+                height={LOGO_HEIGHT}
+                preserveAspectRatio="xMinYMid meet"
+              />
             ) : (
-              <Logo svg={NEUTRAL_GLYPHS[slug]} width={GLYPH_SIZE} height={GLYPH_SIZE} color={fg} />
+              <Logo
+                svg={NEUTRAL_GLYPHS[slug]}
+                width={GLYPH_SIZE}
+                height={GLYPH_SIZE}
+                color={fg}
+              />
             )}
             {tag && (
               <View style={styles.tagWrap}>
@@ -89,12 +128,14 @@ export function BankCard({ name, type, icon, balance, subline, variant = 'list',
               </View>
             )}
           </View>
-          <View>
+          <View style={styles.accountDetails}>
             <Text style={[styles.name, { color: fg }]} numberOfLines={1}>
               {name}
             </Text>
             <View style={styles.balanceRow}>
-              {type === 'forex' && <Text style={[styles.approx, { color: fg }]}>{'≈ '}</Text>}
+              {type === "forex" && (
+                <Text style={[styles.approx, { color: fg }]}>{"≈ "}</Text>
+              )}
               <Amount value={balance} variant="figureM" style={{ color: fg }} />
             </View>
             {!!subline && (
@@ -111,8 +152,8 @@ export function BankCard({ name, type, icon, balance, subline, variant = 'list',
 
 const styles = StyleSheet.create({
   carousel: { width: 312, height: 184 },
-  list: { width: '100%', aspectRatio: 358 / 184 },
-  card: { flex: 1, borderRadius: radius.lg, overflow: 'hidden' },
+  list: { width: "100%", aspectRatio: 358 / 184 },
+  card: { flex: 1, borderRadius: radius.lg, overflow: "hidden" },
   // Explicit 100%/100% alongside StyleSheet.absoluteFill: on this RN/Fabric version, an
   // Image positioned only via absoluteFill's inset edges (no explicit size) sometimes
   // falls back to its asset's own registered intrinsic size — here, the exact 358×184
@@ -120,15 +161,27 @@ const styles = StyleSheet.create({
   // (aspectRatio-sized, not literally 358×184) parent. Confirmed via a real device's
   // measured layout, not just Jest: the gap only shows up against the parent's actual
   // resolved width, which a fixed-width Jest render can't reproduce.
-  background: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
-  content: { flex: 1, padding: 16, justifyContent: 'space-between' },
-  topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  background: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
+  content: { flex: 1, padding: 16, justifyContent: "space-between" },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
   tagWrap: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  tagBorder: { ...StyleSheet.absoluteFill, borderWidth: 1, borderRadius: 12, opacity: 0.4 },
-  tagText: { ...MonoText.label, textTransform: 'uppercase' },
-  wordmark: { ...MonoText.titleM, textTransform: 'lowercase' },
+  tagBorder: {
+    ...StyleSheet.absoluteFill,
+    borderWidth: 1,
+    borderRadius: 12,
+    opacity: 0.4,
+  },
+  tagText: { ...MonoText.label, textTransform: "uppercase" },
+  wordmark: { ...MonoText.titleM, textTransform: "lowercase" },
   name: { ...MonoText.bodyStrong, marginBottom: 2 },
-  balanceRow: { flexDirection: 'row', alignItems: 'baseline' },
+  balanceRow: { flexDirection: "row", alignItems: "baseline" },
   approx: { ...MonoText.figureM },
   subline: { ...MonoText.bodyS, opacity: 0.8, marginTop: 2 },
+  accountDetails: {
+    marginBottom: 5,
+  },
 });

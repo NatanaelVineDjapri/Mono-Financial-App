@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
   groupSubtotal: { color: MonoColors.textSecond },
   cardsList: { gap: 16 },
 
-  buttonRow: { flexDirection: 'row', gap: 12 },
-  buttonFlex: { flex: 1 },
+  buttonRow: { flexDirection: 'columm', gap: 12 },
+  buttonFlex: {   alignSelf: 'stretch' },
   footerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
 });
