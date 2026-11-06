@@ -16,19 +16,19 @@ export interface GuardMessageContext {
 }
 
 const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
-  future_date: () => 'Tanggalnya gak boleh di masa depan.',
-  before_opening_date: () => 'Itu sebelum akunmu dibuka.',
-  category_kind_mismatch: () => 'Pilih kategori yang sesuai jenis transaksinya.',
-  insufficient_balance: ctx => (ctx.shortfallFormatted ? `Kurang ${ctx.shortfallFormatted}.` : 'Saldonya gak cukup.'),
-  budget_needs_expense_category: () => 'Anggaran cuma buat kategori pengeluaran.',
-  over_monthly_limit: () => 'Naikkan batas bulanan dulu.',
-  budgets_exist_for_month: () => 'Hapus anggarannya dulu.',
-  currency_not_in_account: ctx => (ctx.currency ? `Akun ini gak punya kantong ${ctx.currency}.` : 'Akun ini gak punya kantong mata uang itu.'),
-  missing_fx_rate: ctx => (ctx.currency ? `Tambahkan kurs ${ctx.currency} dulu.` : 'Tambahkan kursnya dulu.'),
-  pocket_needs_forex_account: () => 'Cuma akun Valas yang punya kantong.',
-  pocket_not_empty: () => 'Kosongkan kantongnya dulu.',
-  account_type_locked: () => 'Tipe akun ini udah gak bisa diubah.',
-  recurring_needs_idr_account: () => 'Pengeluaran tetap cuma buat akun rupiah.',
+  future_date: () => 'Date cannot be in the future.',
+  before_opening_date: () => 'This date is before the account was opened.',
+  category_kind_mismatch: () => 'Choose a category that matches the transaction type.',
+  insufficient_balance: ctx => (ctx.shortfallFormatted ? `Short by ${ctx.shortfallFormatted}.` : 'Insufficient balance.'),
+  budget_needs_expense_category: () => 'Budgets can only be assigned to expense categories.',
+  over_monthly_limit: () => 'Increase the monthly limit first.',
+  budgets_exist_for_month: () => 'Delete the budget first.',
+  currency_not_in_account: ctx => (ctx.currency ? `This account does not have a ${ctx.currency} pocket.` : 'This account does not have a pocket for that currency.'),
+  missing_fx_rate: ctx => (ctx.currency ? `Add the ${ctx.currency} exchange rate first.` : 'Add the exchange rate first.'),
+  pocket_needs_forex_account: () => 'Only Forex accounts support currency pockets.',
+  pocket_not_empty: () => 'Empty the pocket first.',
+  account_type_locked: () => 'This account type can no longer be changed.',
+  recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -39,17 +39,17 @@ export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): st
 // fragment inside the full accessibility label. `nominal` is caller-formatted (rp() then
 // shown()) — this file only owns the connector words, never the number formatting.
 export function overBy(nominal: string): string {
-  return `Lebih ${nominal}`;
+  return `Over ${nominal}`;
 }
 
 export function progressAccessibilityLabel(subject: string, usedPct: string, overNominal?: string): string {
-  return overNominal ? `${subject}, terpakai ${usedPct}, lebih ${overNominal}` : `${subject}, terpakai ${usedPct}`;
+  return overNominal ? `${subject}, ${usedPct} used, over by ${overNominal}` : `${subject}, ${usedPct} used`;
 }
 
 // ChartTable (DESIGN.md section 7/16): the collapse toggle's visible label and its
 // accessibilityState companion.
 export function chartTableToggleLabel(expanded: boolean): string {
-  return expanded ? 'Sembunyikan tabel' : 'Lihat tabel nilai';
+  return expanded ? 'Hide table' : 'View values table';
 }
 
 // BankCard (docs/DESIGN.md's brand-colour-cards addendum, section 11/16): the pill
@@ -59,10 +59,10 @@ export function chartTableToggleLabel(expanded: boolean): string {
 // ProgressBar's overBy above).
 const accountTypeTags: Record<AccountType, string> = {
   bank: 'DEBIT',
-  savings: 'TABUNGAN',
+  savings: 'SAVINGS',
   ewallet: 'E-WALLET',
-  cash: 'TUNAI',
-  forex: 'VALAS',
+  cash: 'CASH',
+  forex: 'FOREX',
 };
 
 export function accountTypeTag(type: AccountType): string {
@@ -70,11 +70,11 @@ export function accountTypeTag(type: AccountType): string {
 }
 
 const accountTypeDescriptions: Record<AccountType, string> = {
-  bank: 'rekening bank',
-  savings: 'rekening tabungan',
+  bank: 'bank account',
+  savings: 'savings account',
   ewallet: 'e-wallet',
-  cash: 'tunai',
-  forex: 'akun valas',
+  cash: 'cash',
+  forex: 'foreign currency account',
 };
 
 export function accountTypeDescription(type: AccountType): string {
@@ -82,7 +82,7 @@ export function accountTypeDescription(type: AccountType): string {
 }
 
 export function bankCardAccessibilityLabel(name: string, type: AccountType, balanceText: string): string {
-  return `${name}, ${accountTypeDescription(type)}, saldo ${balanceText}`;
+  return `${name}, ${accountTypeDescription(type)}, balance ${balanceText}`;
 }
 
 // TabBar / the five (tabs) routes (DESIGN.md section 9): the bottom nav's own labels,
@@ -90,11 +90,11 @@ export function bankCardAccessibilityLabel(name: string, type: AccountType, bala
 export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets' | 'more';
 
 const tabLabels: Record<TabKey, string> = {
-  overview: 'Ringkasan',
-  transactions: 'Transaksi',
-  accounts: 'Akun',
-  budgets: 'Anggaran',
-  more: 'Lainnya',
+  overview: 'Overview',
+  transactions: 'Transactions',
+  accounts: 'Accounts',
+  budgets: 'Budgets',
+  more: 'More',
 };
 
 export function tabLabel(key: TabKey): string {
@@ -108,7 +108,7 @@ export function devToolsLabel(): string {
 }
 
 export function devToolsHint(): string {
-  return 'Data contoh, reset database, atur ulang tanggal.';
+  return 'Sample data, reset database, adjust date.';
 }
 
 // Accounts tab (DESIGN.md "D. Accounts"). Group labels are the "cap" style's own text
@@ -116,10 +116,10 @@ export function devToolsHint(): string {
 // shorter word that sits on a BankCard itself (e.g. "DEBIT" vs this "Bank").
 const accountGroupLabels: Record<AccountType, string> = {
   bank: 'Bank',
-  cash: 'Tunai',
+  cash: 'Cash',
   ewallet: 'E-wallet',
-  savings: 'Tabungan',
-  forex: 'Mata uang asing',
+  savings: 'Savings',
+  forex: 'Foreign currency',
 };
 
 export function accountGroupLabel(type: AccountType): string {
@@ -127,49 +127,49 @@ export function accountGroupLabel(type: AccountType): string {
 }
 
 export function accountsSummaryLabel(): string {
-  return 'Total saldo · kekayaan bersih';
+  return 'Total balance · net worth';
 }
 
 export function accountsCountLabel(count: number): string {
-  return `${count} akun`;
+  return `${count} accounts`;
 }
 
 export function accountsTransferNote(): string {
-  return 'Memindahkan uang antar akun tidak mengubah total.';
+  return 'Every account added together. Moving money between accounts never changes this total.';
 }
 
 export function accountsIncompleteNote(): string {
-  return 'Belum lengkap: ada mata uang tanpa kurs.';
+  return 'Incomplete: some currencies are missing exchange rates.';
 }
 
 export function accountsNoLoginNote(): string {
-  return 'MONO tidak meminta login bank. Akun hanya label di ponselmu.';
+  return 'A balance is the opening balance plus every recorded movement. Accounts are labels you keep on this device. MONO never asks for bank logins or links to a bank.';
 }
 
 export function transferAccountsLabel(): string {
-  return 'Transfer antar akun';
+  return 'Transfer between accounts';
 }
 
 export function addAccountLabel(): string {
-  return 'Tambah akun';
+  return 'Add account';
 }
 
 export function notAvailableToast(): string {
-  return 'Belum tersedia.';
+  return 'Not available yet.';
 }
 
 export function accountsEmptyTitle(): string {
-  return 'Belum ada akun';
+  return 'No accounts yet';
 }
 
 export function accountsEmptyBody(): string {
-  return 'Tambahkan akun pertamamu buat mulai mencatat saldo.';
+  return 'Add your first account to start tracking your balances.';
 }
 
 export function accountsErrorMessage(): string {
-  return 'Akun gagal dimuat.';
+  return 'Failed to load accounts.';
 }
 
 export function retryLabel(): string {
-  return 'Coba lagi';
+  return 'Try again';
 }
