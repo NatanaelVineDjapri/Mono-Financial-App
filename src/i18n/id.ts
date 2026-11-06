@@ -69,6 +69,12 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
+// The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
+// account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
+export function currencyCountTag(count: number): string {
+  return `${count} ${count === 1 ? 'CURRENCY' : 'CURRENCIES'}`;
+}
+
 const accountTypeDescriptions: Record<AccountType, string> = {
   bank: 'bank account',
   savings: 'savings account',
@@ -146,6 +152,32 @@ export function accountsNoLoginNote(): string {
   return 'A balance is the opening balance plus every recorded movement. Accounts are labels you keep on this device. MONO never asks for bank logins or links to a bank.';
 }
 
+// The card stack's total card (Fase 4.2c), when a forex account has a rate (so the total
+// is an estimate, not a warning) — distinct from accountsIncompleteNote above, which is
+// for when a pocket has NO rate at all and the total is genuinely missing data.
+export function accountsForexEstimateNote(dateTimeFormatted: string): string {
+  return `Foreign currency uses your latest rates (${dateTimeFormatted}), so the total is an estimate.`;
+}
+
+export function exchangeRatesLabel(): string {
+  return 'Exchange rates';
+}
+
+export function exchangeRatesUpdatedLabel(dateTimeFormatted: string): string {
+  return `updated ${dateTimeFormatted}`;
+}
+
+// The Accounts card stack's own strip/open accessibility labels (Fase 4.2c step 3) —
+// distinct wording from bankCardAccessibilityLabel above, which BankCard still falls
+// back to everywhere else it's used.
+export function cardStackAdvanceLabel(name: string, balanceFormatted: string): string {
+  return `${name}, ${balanceFormatted}. Bring card forward.`;
+}
+
+export function cardStackOpenLabel(name: string, balanceFormatted: string): string {
+  return `${name}, ${balanceFormatted}. Open account.`;
+}
+
 export function transferAccountsLabel(): string {
   return 'Transfer between accounts';
 }
@@ -172,4 +204,104 @@ export function accountsErrorMessage(): string {
 
 export function retryLabel(): string {
   return 'Try again';
+}
+
+// Transactions tab (DESIGN.md "B. Transactions", PAGES.md B1).
+export function transactionsCountLabel(count: number, rangeLabel: string): string {
+  return `${count} ${count === 1 ? 'transaction' : 'transactions'} · ${rangeLabel}`;
+}
+
+export function filtersButtonLabel(): string {
+  return 'Filters';
+}
+
+export function searchPlaceholder(): string {
+  return 'Search transactions';
+}
+
+export type TxTypeFilter = 'all' | 'income' | 'expense' | 'transfer';
+
+const txTypeChipLabels: Record<TxTypeFilter, string> = {
+  all: 'All',
+  income: 'Income',
+  expense: 'Expenses',
+  transfer: 'Transfers',
+};
+
+export function txTypeChipLabel(type: TxTypeFilter): string {
+  return txTypeChipLabels[type];
+}
+
+// The row's own type label (singular, next to its amount) — distinct wording from the
+// chip above it (e.g. "Expense" here vs "Expenses" as the chip's label).
+const txKindLabels: Record<'income' | 'expense' | 'transfer', string> = {
+  income: 'Income',
+  expense: 'Expense',
+  transfer: 'Transfer',
+};
+
+export function txKindLabel(kind: 'income' | 'expense' | 'transfer'): string {
+  return txKindLabels[kind];
+}
+
+export function transactionsNotCountedNote(count: number, amountFormatted: string): string {
+  return `Not counted: ${count} ${count === 1 ? 'transfer' : 'transfers'} between accounts (${amountFormatted})`;
+}
+
+export function monthExpenseLabel(amountFormatted: string): string {
+  return `Expense ${amountFormatted}`;
+}
+
+export function transactionsEmptyTitle(): string {
+  return 'No matches';
+}
+
+export function transactionsEmptyBody(): string {
+  return 'Try a different search or filter.';
+}
+
+export function resetSearchLabel(): string {
+  return 'Reset search';
+}
+
+export function recordViaChatLabel(): string {
+  return 'Record via chat';
+}
+
+export function filtersSheetTitle(): string {
+  return 'Filters';
+}
+
+export function filtersComingSoonMessage(): string {
+  return 'Filters are coming soon.';
+}
+
+export function transactionDetailTitle(): string {
+  return 'Transaction';
+}
+
+export function accountDetailTitle(): string {
+  return 'Account';
+}
+
+export function aiChatTitle(): string {
+  return 'AI chat';
+}
+
+export function comingSoonMessage(): string {
+  return 'Not built yet.';
+}
+
+export function txRowAccessibilityLabel(title: string, subtitle: string, kindLabel: string, amountFormatted: string): string {
+  return `${title}, ${kindLabel}, ${subtitle}, ${amountFormatted}`;
+}
+
+export function netLabel(): string {
+  return 'Net';
+}
+
+// Generic sheet-scrim dismiss label (DESIGN.md section 8/16 "bottom sheet"), reused by
+// every sheet built on top of src/components/Sheet.tsx.
+export function closeLabel(): string {
+  return 'Close';
 }

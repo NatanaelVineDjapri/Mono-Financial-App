@@ -1,7 +1,18 @@
 import { createAccount } from '../accounts';
 import { listCategories } from '../categories';
 import { openTestDb } from '../../db/openTestDb';
-import { deleteTransaction, getTransaction, insertTransaction, listAccountActivity, listTransactions, updateTransaction } from '../transactions';
+import {
+  deleteTransaction,
+  getEarliestPeriod,
+  getPeriodSummary,
+  getTransaction,
+  insertTransaction,
+  listAccountActivity,
+  listDailyTotals,
+  listTransactions,
+  listTransactionsForPeriod,
+  updateTransaction,
+} from '../transactions';
 
 const NOW = '2026-01-01T00:00:00+07:00';
 
@@ -61,5 +72,76 @@ describe('transactions repo', () => {
     await insertTransaction(db, { kind: 'expense', accountId, currency: 'IDR', categoryId, amount: 100000, amountIdr: 100000, occurredOn: '2026-01-05' }, NOW);
     const activity = await listAccountActivity(db, accountId, 'IDR');
     expect(activity[0].balance_after).toBe(900000);
+  });
+});
+
+describe('transactions repo: Transactions tab queries', () => {
+  async function setupMonth() {
+    const db = openTestDb();
+    const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
+    const jago = await createAccount(db, { name: 'Jago Pocket', type: 'savings', openingBalance: 275000, openingDate: '2026-01-01' }, NOW);
+    const categories = await listCategories(db);
+    const cat = (name: string) => categories.find(c => c.name === name)!.id;
+
+    await insertTransaction(db, { kind: 'income', accountId: bca, currency: 'IDR', categoryId: cat('Salary'), amount: 7000000, amountIdr: 7000000, occurredOn: '2026-10-25', description: 'October pay' }, NOW);
+    await insertTransaction(db, { kind: 'income', accountId: bca, currency: 'IDR', categoryId: cat('Freelance'), amount: 500000, amountIdr: 500000, occurredOn: '2026-10-26' }, NOW);
+    await insertTransaction(db, { kind: 'expense', accountId: bca, currency: 'IDR', categoryId: cat('Shopping'), amount: 812000, amountIdr: 812000, occurredOn: '2026-10-20', note: 'New shoes' }, NOW);
+    await insertTransaction(db, { kind: 'expense', accountId: bca, currency: 'IDR', categoryId: cat('Bills'), amount: 1150000, amountIdr: 1150000, occurredOn: '2026-10-20' }, NOW);
+    await insertTransaction(db, { kind: 'transfer', accountId: bca, currency: 'IDR', toAccountId: jago, toCurrency: 'IDR', amount: 1000000, amountTo: 1000000, amountIdr: 1000000, occurredOn: '2026-10-27' }, NOW);
+    // A different month, to prove period filtering actually scopes the queries.
+    await insertTransaction(db, { kind: 'expense', accountId: bca, currency: 'IDR', categoryId: cat('Bills'), amount: 4100500, amountIdr: 4100500, occurredOn: '2026-08-10' }, NOW);
+
+    return { db, bca, jago };
+  }
+
+  test('listTransactionsForPeriod scopes to the period and joins category/account names', async () => {
+    const { db } = await setupMonth();
+    const rows = await listTransactionsForPeriod(db, '2026-10');
+    expect(rows).toHaveLength(5);
+    const salary = rows.find(r => r.description === 'October pay');
+    expect(salary).toMatchObject({ category_name: 'Salary', account_name: 'BCA Tabungan' });
+    const transfer = rows.find(r => r.kind === 'transfer');
+    expect(transfer).toMatchObject({ account_name: 'BCA Tabungan', to_account_name: 'Jago Pocket', category_name: null });
+  });
+
+  test('listTransactionsForPeriod filters by kind', async () => {
+    const { db } = await setupMonth();
+    expect(await listTransactionsForPeriod(db, '2026-10', { kind: 'income' })).toHaveLength(2);
+    expect(await listTransactionsForPeriod(db, '2026-10', { kind: 'transfer' })).toHaveLength(1);
+  });
+
+  test('listTransactionsForPeriod search matches description, note, category name and account name', async () => {
+    const { db } = await setupMonth();
+    expect((await listTransactionsForPeriod(db, '2026-10', { search: 'october pay' }))).toHaveLength(1);
+    expect((await listTransactionsForPeriod(db, '2026-10', { search: 'new shoes' }))).toHaveLength(1);
+    expect((await listTransactionsForPeriod(db, '2026-10', { search: 'shopping' }))).toHaveLength(1);
+    expect((await listTransactionsForPeriod(db, '2026-10', { search: 'jago' }))).toHaveLength(1); // the transfer's destination account
+    expect((await listTransactionsForPeriod(db, '2026-10', { search: 'nonexistent' }))).toHaveLength(0);
+  });
+
+  test('getPeriodSummary reproduces the October sample totals, excluding the transfer', async () => {
+    const { db } = await setupMonth();
+    const summary = await getPeriodSummary(db, '2026-10');
+    expect(summary).toEqual({ income: 7500000, expense: 1962000, net: 5538000, transfer_count: 1, transfer_total: 1000000 });
+  });
+
+  test('getPeriodSummary follows the same filter as the list (kind + search)', async () => {
+    const { db } = await setupMonth();
+    const incomeOnly = await getPeriodSummary(db, '2026-10', { kind: 'income' });
+    expect(incomeOnly).toEqual({ income: 7500000, expense: 0, net: 7500000, transfer_count: 0, transfer_total: 0 });
+  });
+
+  test('listDailyTotals groups by day and excludes transfers from the net', async () => {
+    const { db } = await setupMonth();
+    const daily = await listDailyTotals(db, '2026-10');
+    const oct20 = daily.find(d => d.occurred_on === '2026-10-20');
+    expect(oct20).toEqual({ occurred_on: '2026-10-20', income: 0, expense: 1962000, net: -1962000 });
+    const oct27 = daily.find(d => d.occurred_on === '2026-10-27');
+    expect(oct27).toEqual({ occurred_on: '2026-10-27', income: 0, expense: 0, net: 0 });
+  });
+
+  test('getEarliestPeriod finds the oldest period regardless of any filter', async () => {
+    const { db } = await setupMonth();
+    expect(await getEarliestPeriod(db)).toBe('2026-08');
   });
 });

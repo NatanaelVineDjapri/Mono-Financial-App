@@ -13,6 +13,6 @@ describe('MoreScreen', () => {
   test('shows the Dev tools row in __DEV__', async () => {
     const result = await renderMore();
     expect(result.getByText('Dev tools')).toBeTruthy();
-    expect(result.getByText('Data contoh, reset database, atur ulang tanggal.')).toBeTruthy();
+    expect(result.getByText('Sample data, reset database, adjust date.')).toBeTruthy();
   });
 });

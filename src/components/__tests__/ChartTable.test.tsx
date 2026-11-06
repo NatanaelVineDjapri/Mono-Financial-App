@@ -25,11 +25,11 @@ describe('ChartTable', () => {
     expect(result.getByText('Mei')).toBeTruthy();
     const toggle = result.getByRole('button');
     expect(toggle.props.accessibilityState).toMatchObject({ expanded: true });
-    expect(result.getByText('Sembunyikan tabel')).toBeTruthy();
+    expect(result.getByText('Hide table')).toBeTruthy();
 
     await fireEvent.press(toggle);
     expect(result.queryByText('Mei')).toBeNull();
-    expect(result.getByText('Lihat tabel nilai')).toBeTruthy();
+    expect(result.getByText('View values table')).toBeTruthy();
     expect(result.getByRole('button').props.accessibilityState).toMatchObject({ expanded: false });
 
     await fireEvent.press(result.getByRole('button'));

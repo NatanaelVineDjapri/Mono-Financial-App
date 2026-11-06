@@ -29,18 +29,11 @@ describe('ScreenHeader', () => {
     expect(result.getByText('Aksi')).toBeTruthy();
   });
 
-  test('defaults to the serif titleL style', async () => {
+  test('always uses the serif titleL style (CLAUDE.md rule 6: screen titles are serif)', async () => {
     const result = await renderHeader({ title: 'Akun' });
     const flatStyle = Object.assign({}, ...[result.getByText('Akun').props.style].flat());
     expect(flatStyle.fontFamily).toBe(MonoText.titleL.fontFamily);
-  });
-
-  test('serif={false} uses the plain titleLSans style instead (CLAUDE.md rule 6: one serif moment per screen)', async () => {
-    const result = await renderHeader({ title: 'Akun', serif: false });
-    const flatStyle = Object.assign({}, ...[result.getByText('Akun').props.style].flat());
-    expect(flatStyle.fontFamily).toBe(MonoText.titleLSans.fontFamily);
     expect(flatStyle.fontSize).toBe(MonoText.titleL.fontSize);
     expect(flatStyle.lineHeight).toBe(MonoText.titleL.lineHeight);
-    expect(flatStyle.letterSpacing).toBeUndefined();
   });
 });

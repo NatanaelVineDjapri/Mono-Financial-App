@@ -9,26 +9,26 @@ describe('guardMessage', () => {
   });
 
   test('insufficient_balance uses the pre-formatted shortfall when given one', () => {
-    expect(guardMessage('insufficient_balance', { shortfallFormatted: 'Rp1.050.000' })).toBe('Kurang Rp1.050.000.');
+    expect(guardMessage('insufficient_balance', { shortfallFormatted: 'Rp1.050.000' })).toBe('Short by Rp1.050.000.');
   });
 
   test('insufficient_balance works with a foreign-currency shortfall too', () => {
-    expect(guardMessage('insufficient_balance', { shortfallFormatted: 'US$50,00' })).toBe('Kurang US$50,00.');
+    expect(guardMessage('insufficient_balance', { shortfallFormatted: 'US$50,00' })).toBe('Short by US$50,00.');
   });
 
   test('insufficient_balance falls back to a generic message without a shortfall', () => {
-    expect(guardMessage('insufficient_balance')).toBe('Saldonya gak cukup.');
+    expect(guardMessage('insufficient_balance')).toBe('Insufficient balance.');
   });
 
   test('currency_not_in_account names the currency when given one', () => {
-    expect(guardMessage('currency_not_in_account', { currency: 'SGD' })).toBe('Akun ini gak punya kantong SGD.');
+    expect(guardMessage('currency_not_in_account', { currency: 'SGD' })).toBe('This account does not have a SGD pocket.');
   });
 
   test('missing_fx_rate names the currency when given one', () => {
-    expect(guardMessage('missing_fx_rate', { currency: 'SGD' })).toBe('Tambahkan kurs SGD dulu.');
+    expect(guardMessage('missing_fx_rate', { currency: 'SGD' })).toBe('Add the SGD exchange rate first.');
   });
 
   test('codes that need no extra context ignore it if given anyway', () => {
-    expect(guardMessage('future_date', { shortfallFormatted: 'Rp1' })).toBe('Tanggalnya gak boleh di masa depan.');
+    expect(guardMessage('future_date', { shortfallFormatted: 'Rp1' })).toBe('Date cannot be in the future.');
   });
 });
