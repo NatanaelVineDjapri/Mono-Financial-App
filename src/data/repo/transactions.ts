@@ -136,3 +136,126 @@ export async function listAccountActivity(db: Db, accountId: number, currency: s
     { $accountId: accountId, $currency: currency },
   );
 }
+
+// Transactions tab (DESIGN.md "B. Transactions" / PAGES.md B1): one month's rows, daily
+// totals and period summary, all filtered the same way (type chip + search), so the
+// summary card never shows a number the list below it doesn't back up. v_tx already
+// carries `period`; the joins here only add the display fields a view wouldn't (CLAUDE.md
+// rule 2: a view derives balances, not plain names) — category/account names for the
+// row's own text and for search to match against.
+export interface TxListFilter {
+  kind?: TxKind;
+  search?: string; // matched against description, note, category name, account name(s)
+}
+
+const TX_JOIN = `
+  from v_tx t
+  join accounts a on a.id = t.account_id
+  left join accounts ta on ta.id = t.to_account_id
+  left join categories c on c.id = t.category_id
+  join currencies cur on cur.code = t.currency
+`;
+
+function txFilterSql(period: string, filter: TxListFilter, params: Record<string, string>): string {
+  const clauses = ['t.period = $period'];
+  params.$period = period;
+  if (filter.kind) {
+    clauses.push('t.kind = $kind');
+    params.$kind = filter.kind;
+  }
+  if (filter.search) {
+    clauses.push('(t.description LIKE $search OR t.note LIKE $search OR c.name LIKE $search OR a.name LIKE $search OR ta.name LIKE $search)');
+    params.$search = `%${filter.search}%`;
+  }
+  return clauses.join(' and ');
+}
+
+export interface TxListRow {
+  id: number;
+  kind: TxKind;
+  occurred_on: string;
+  description: string;
+  note: string | null;
+  amount: number; // minor units of `currency`
+  amount_idr: number;
+  currency: string;
+  minor_factor: number;
+  amount_to: number | null; // minor units of `to_currency`, transfers only
+  to_currency: string | null;
+  category_id: number | null;
+  category_name: string | null;
+  account_id: number;
+  account_name: string;
+  to_account_id: number | null;
+  to_account_name: string | null;
+}
+
+export async function listTransactionsForPeriod(db: Db, period: string, filter: TxListFilter = {}): Promise<TxListRow[]> {
+  const params: Record<string, string> = {};
+  const where = txFilterSql(period, filter, params);
+  return db.getAllAsync<TxListRow>(
+    `select t.id, t.kind, t.occurred_on, t.description, t.note, t.amount, t.amount_idr, t.currency,
+            cur.minor_factor, t.amount_to, t.to_currency, t.category_id, c.name as category_name,
+            t.account_id, a.name as account_name, t.to_account_id, ta.name as to_account_name
+     ${TX_JOIN}
+     where ${where}
+     order by t.occurred_on desc, t.id desc`,
+    params,
+  );
+}
+
+export interface PeriodSummary {
+  income: number;
+  expense: number;
+  net: number;
+  transfer_count: number;
+  transfer_total: number;
+}
+
+export async function getPeriodSummary(db: Db, period: string, filter: TxListFilter = {}): Promise<PeriodSummary> {
+  const params: Record<string, string> = {};
+  const where = txFilterSql(period, filter, params);
+  const row = await db.getFirstAsync<PeriodSummary>(
+    `select
+       coalesce(sum(case when t.kind = 'income' then t.amount_idr end), 0) as income,
+       coalesce(sum(case when t.kind = 'expense' then t.amount_idr end), 0) as expense,
+       coalesce(sum(case when t.kind = 'income' then t.amount_idr when t.kind = 'expense' then -t.amount_idr end), 0) as net,
+       coalesce(sum(t.kind = 'transfer'), 0) as transfer_count,
+       coalesce(sum(case when t.kind = 'transfer' then t.amount_idr end), 0) as transfer_total
+     ${TX_JOIN}
+     where ${where}`,
+    params,
+  );
+  return row ?? { income: 0, expense: 0, net: 0, transfer_count: 0, transfer_total: 0 };
+}
+
+export interface DailyTotalRow {
+  occurred_on: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
+export async function listDailyTotals(db: Db, period: string, filter: TxListFilter = {}): Promise<DailyTotalRow[]> {
+  const params: Record<string, string> = {};
+  const where = txFilterSql(period, filter, params);
+  return db.getAllAsync<DailyTotalRow>(
+    `select t.occurred_on,
+            coalesce(sum(case when t.kind = 'income' then t.amount_idr end), 0) as income,
+            coalesce(sum(case when t.kind = 'expense' then t.amount_idr end), 0) as expense,
+            coalesce(sum(case when t.kind = 'income' then t.amount_idr when t.kind = 'expense' then -t.amount_idr end), 0) as net
+     ${TX_JOIN}
+     where ${where}
+     group by t.occurred_on
+     order by t.occurred_on desc`,
+    params,
+  );
+}
+
+// The earliest month with any record at all — where infinite-scroll paging into the
+// past should stop. Unfiltered on purpose: a search/chip filter narrowing the visible
+// rows should never also narrow how far back "load more" is willing to look.
+export async function getEarliestPeriod(db: Db): Promise<string | null> {
+  const row = await db.getFirstAsync<{ period: string | null }>('select min(period) as period from v_tx');
+  return row?.period ?? null;
+}

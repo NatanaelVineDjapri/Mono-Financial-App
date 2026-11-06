@@ -43,7 +43,7 @@ Sizes are in dp (React Native density-independent px). Line height shown as size
 | `bodyS` | IBM Plex Sans 400 | 13/18 | 0 | textSecond | Helper text, banners, key–value rows |
 | `caption` | IBM Plex Sans 400 | 12/16 | 0 | textMeta | "Sample data", dates under titles |
 | `label` | IBM Plex Sans 500 | 11/14 | +0.08em, UPPERCASE | textMeta | Section captions, table headers |
-| `navLabel` | IBM Plex Sans 400 / 600 active | 11/14 | 0 | textMeta / text | Bottom navigation |
+| `navLabel` | IBM Plex Sans 600 | 13/16 | 0 | bg (on the active pill's own `text`-coloured fill) | Bottom navigation's active tab only — an inactive tab is icon-only, no label |
 | `mono` | IBM Plex Mono 500 | 13/18 | 0 | text | Backup file names, timestamps |
 
 Consolidation note for engineering: the canvas shows three serif display sizes (48, 44, 40) because each screen was tuned by eye. In the app, keep **two** (`displayL` 48 for Overview, `displayS` 40 for everything else) and drop `displayM`.
@@ -108,7 +108,7 @@ Header row `label`. Body rows `bodyS` with tabular figures, numbers right-aligne
 - Truncate with ellipsis only for names (account, merchant). Amounts, dates and labels that carry a number never truncate: the row grows instead.
 - Support system text scale up to 200%. Rows have min-height, not fixed height. At large scale, key–value rows may wrap onto two lines (label above, value below).
 - Don't centre-align amounts. Align to the right edge of the row, or to the start for hero figures.
-- One serif moment per screen at most (title or hero balance, not both large).
+- One serif moment per screen at most (title or hero balance, not both large), except Accounts and Overview, which pair a serif title with a serif hero number (per the design board).
 
 ## 7. React Native
 

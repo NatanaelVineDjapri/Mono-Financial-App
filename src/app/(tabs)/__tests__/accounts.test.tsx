@@ -7,14 +7,27 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { showToast } from '@/components/toast-store';
 import type { AccountsOverview } from '@/domain/balances';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
+import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
 
 jest.mock('@/features/accounts/useAccountsOverview');
+jest.mock('@/features/fx/useLatestFxUpdate');
 jest.mock('@/components/toast-store', () => ({ showToast: jest.fn() }));
 
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({
+  ...jest.requireActual('expo-router'),
+  useRouter: () => ({ push: mockPush, back: jest.fn() }),
+}));
+
 const mockUseAccountsOverview = useAccountsOverview as jest.MockedFunction<typeof useAccountsOverview>;
+const mockUseLatestFxUpdate = useLatestFxUpdate as jest.MockedFunction<typeof useLatestFxUpdate>;
 
 function mockResult(partial: Partial<UseQueryResult<AccountsOverview>>) {
   mockUseAccountsOverview.mockReturnValue(partial as UseQueryResult<AccountsOverview>);
+}
+
+function mockFxUpdate(fetchedAt: string | null) {
+  mockUseLatestFxUpdate.mockReturnValue({ data: fetchedAt } as never);
 }
 
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 0 }, frame: { x: 0, y: 0, width: 400, height: 800 } };
@@ -66,53 +79,75 @@ describe('AccountsScreen', () => {
   beforeEach(() => {
     useHideAmounts.getState().setHidden(false);
     jest.clearAllMocks();
+    mockFxUpdate(null);
   });
 
-  test('groups render in order (Bank, Tunai, E-wallet, Tabungan) with the sample subtotals', async () => {
+  test('accounts render in order (Bank, Cash, E-wallet, Savings) as a card stack, last one open by default', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
 
-    expect(result.getByText('Bank')).toBeTruthy();
-    expect(result.getByText('Tunai')).toBeTruthy();
-    expect(result.getByText('E-wallet')).toBeTruthy();
-    expect(result.getByText('Tabungan')).toBeTruthy();
-    // Each group's subtotal equals its one account's balance in this fixture, so each
-    // formatted figure appears twice: once as the group subtotal, once on its card.
-    expect(result.getAllByText('Rp6.842.500').length).toBe(2);
-    expect(result.getAllByText('Rp450.000').length).toBe(2);
-    expect(result.getAllByText('Rp312.500').length).toBe(2);
-    expect(result.getAllByText('Rp1.275.000').length).toBe(2);
-    expect(result.getByText('4 akun')).toBeTruthy();
+    const order = [1, 2, 3, 4].map(id => result.getByTestId(`card-stack-card-${id}`));
+    expect(order).toHaveLength(4);
+    // Exactly the last card (Jago Pocket) is open by default — its label says "Open
+    // account"; every other card says "Bring card forward" (Fase 4.2c step 3).
+    expect(order[3].props.accessibilityLabel).toContain('Open account.');
+    for (const strip of order.slice(0, 3)) {
+      expect(strip.props.accessibilityLabel).toContain('Bring card forward.');
+    }
   });
 
-  test('a forex group appears last with "Mata uang asing", the ≈ prefix, and its pockets', async () => {
+  test('a forex account appears last, with its own card open showing the ≈ total and its pockets', async () => {
     mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
     const result = await renderScreen();
 
-    expect(result.getByText('Mata uang asing')).toBeTruthy();
-    expect(result.getAllByText('≈ ').length).toBeGreaterThan(0); // the summary card's own prefix, plus BankCard's
+    const valasCard = result.getByTestId('card-stack-card-5');
+    expect(valasCard.props.accessibilityLabel).toContain('Open account.');
+    expect(result.getByText('≈ ')).toBeTruthy();
     expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
+    expect(result.getByText('2 CURRENCIES')).toBeTruthy();
   });
 
-  test('incomplete shows the warning note', async () => {
+  test('the Exchange rates row only appears with a forex account, and shows when it was last updated', async () => {
+    mockFxUpdate('2026-10-28T09:00:00+07:00');
+    mockResult({ data: SAMPLE, isLoading: false, isError: false });
+    const noForex = await renderScreen();
+    expect(noForex.queryByText('Exchange rates')).toBeNull();
+
+    mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
+    const withForex = await renderScreen();
+    expect(withForex.getByText('Exchange rates')).toBeTruthy();
+    expect(withForex.getByText('updated 28 Oct 2026, 09:00')).toBeTruthy();
+  });
+
+  test('incomplete shows the warning note on the total card', async () => {
     mockResult({ data: { ...SAMPLE, incomplete: true }, isLoading: false, isError: false });
     const result = await renderScreen();
-    expect(result.getByText('Belum lengkap: ada mata uang tanpa kurs.')).toBeTruthy();
+    expect(result.getByText('Incomplete: some currencies are missing exchange rates.')).toBeTruthy();
   });
 
-  test('hidden mode masks the summary, subtotals and every card balance', async () => {
+  test('a forex account with no warning shows the "estimate" note instead, once rates exist', async () => {
+    mockFxUpdate('2026-10-28T09:00:00+07:00');
+    mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
+    const result = await renderScreen();
+    expect(result.getByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeTruthy();
+  });
+
+  test('hidden mode masks the total card and every card balance', async () => {
     useHideAmounts.getState().setHidden(true);
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
 
-    expect(result.queryByText('Rp6.842.500')).toBeNull();
+    expect(result.queryByText('Rp8.880.000')).toBeNull();
     expect(result.queryAllByText('Rp••••••••').length).toBeGreaterThan(0);
+    for (const id of [1, 2, 3, 4]) {
+      expect(result.getByTestId(`card-stack-card-${id}`).props.accessibilityLabel).toContain('Rp••••••••');
+    }
   });
 
   test('loading: an empty background, no content yet', async () => {
     mockResult({ data: undefined, isLoading: true, isError: false });
     const result = await renderScreen();
-    expect(result.queryByText('4 akun')).toBeNull();
+    expect(result.queryByTestId('accounts-card-stack')).toBeNull();
   });
 
   test('error: a short message and a retry button that calls refetch', async () => {
@@ -120,42 +155,42 @@ describe('AccountsScreen', () => {
     mockResult({ data: undefined, isLoading: false, isError: true, refetch });
     const result = await renderScreen();
 
-    expect(result.getByText('Akun gagal dimuat.')).toBeTruthy();
-    fireEvent.press(result.getByRole('button', { name: 'Coba lagi' }));
+    expect(result.getByText('Failed to load accounts.')).toBeTruthy();
+    fireEvent.press(result.getByRole('button', { name: 'Try again' }));
     expect(refetch).toHaveBeenCalled();
   });
 
-  test('empty: icon, one sentence, and "Tambah akun" shows the not-available toast', async () => {
+  test('empty: icon, one sentence, and "Add account" shows the not-available toast', async () => {
     mockResult({ data: { netWorth: 0, incomplete: false, accountCount: 0, groups: [] }, isLoading: false, isError: false });
     const result = await renderScreen();
 
-    expect(result.getByText('Belum ada akun')).toBeTruthy();
-    // Two "Tambah akun" buttons exist now: the header's icon-only action and this
-    // empty state's own — either one shows the same toast, so both are pressed here.
-    for (const button of result.getAllByRole('button', { name: 'Tambah akun' })) {
+    expect(result.getByText('No accounts yet')).toBeTruthy();
+    for (const button of result.getAllByRole('button', { name: 'Add account' })) {
       await fireEvent.press(button);
     }
-    expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
+    expect(showToast).toHaveBeenCalledWith('Not available yet.');
   });
 
-  test('the header\'s "Tambah akun" action shows the not-available toast', async () => {
+  test('tapping the already-open card navigates to /account/[id]', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
-    fireEvent.press(result.getAllByRole('button', { name: 'Tambah akun' })[0]);
-    expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
+    // Jago Pocket (id 4) is open by default.
+    await fireEvent.press(result.getByTestId('card-stack-card-4'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/account/[id]', params: { id: '4' } });
   });
 
-  test('Transfer antar akun shows the not-available toast', async () => {
+  test('tapping a closed strip brings it forward instead of navigating', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
-    fireEvent.press(result.getByRole('button', { name: 'Transfer antar akun' }));
-    expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
+    await fireEvent.press(result.getByTestId('card-stack-card-1'));
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(result.getByTestId('card-stack-card-1').props.accessibilityLabel).toContain('Open account.');
   });
 
-  test('tapping an account card shows the not-available toast', async () => {
+  test('Transfer between accounts shows the not-available toast', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
-    fireEvent.press(result.getByTestId('account-card-1'));
-    expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
+    fireEvent.press(result.getByRole('button', { name: 'Transfer between accounts' }));
+    expect(showToast).toHaveBeenCalledWith('Not available yet.');
   });
 });

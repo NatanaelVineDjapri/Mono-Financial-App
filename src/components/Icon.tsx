@@ -1,5 +1,5 @@
 // DESIGN.md section 7: one line-icon set, 24 grid, 1.5 stroke, round caps/joins.
-// Sizes 16 (inline), 20 (default), 26 (empty states). Colour always comes in via the
+// Sizes 16 (inline), 20 (default), 22 (bottom nav), 26 (empty states). Colour always comes in via the
 // `color` prop (a token from the caller) — never a literal hex in this file.
 import { Platform } from 'react-native';
 import { Circle, Path, Rect, Svg } from 'react-native-svg';
@@ -25,11 +25,20 @@ export type IconName =
   // Accounts tab (DESIGN.md "D. Accounts"): Transfer between accounts, the no-bank-login
   // footer note.
   | 'transfer'
-  | 'lock';
+  | 'lock'
+  // Transactions tab (DESIGN.md "B. Transactions"): the search field and the Filters button.
+  | 'search'
+  | 'filter'
+  // Transactions tab: a row's own leading icon. Generic by kind (income/expense), not yet
+  // per-category — see transactions.tsx's txIcon() for why.
+  | 'receipt'
+  | 'wallet'
+  // Accounts tab (Fase 4.2c): the "Exchange rates" row.
+  | 'refresh';
 
 export interface IconProps {
   name: IconName;
-  size?: 16 | 20 | 26;
+  size?: 16 | 20 | 22 | 26;
   color: string;
   // When the icon is the only signal (no adjacent label), pass a label and it is exposed
   // to screen readers. Omitted = decorative: hidden, since the icon sits next to text that
@@ -55,6 +64,10 @@ const PATHS: Partial<Record<IconName, string>> = {
   bank: 'M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18',
   transfer: 'M4 8 L17 8 M13 4 L17 8 L13 12 M20 16 L7 16 M11 12 L7 16 L11 20',
   lock: 'M6 11 h12 v9 h-12 Z M8 11 V7 a4 4 0 0 1 8 0 v4',
+  filter: 'M4 5 H20 L14 13 V19 L10 21 V13 Z',
+  receipt: 'M5 3 H19 V21 L16 19.5 L13 21 L10 19.5 L7 21 L5 19.5 Z M8 8 H16 M8 12 H16 M8 16 H13',
+  wallet: 'M3 7 H21 V18 H3 Z M3 7 L5.5 4 H16 M16 11.5 H19.5 V14.5 H16 Z',
+  refresh: 'M3 12 a9 9 0 0 1 15 -6.7 L21 8 M21 3 V8 H16 M21 12 a9 9 0 0 1 -15 6.7 L3 16 M3 21 V16 H8',
 };
 
 function renderGlyph(name: IconName, color: string) {
@@ -85,6 +98,13 @@ function renderGlyph(name: IconName, color: string) {
           <Circle cx={5} cy={12} r={1.2} fill={color} />
           <Circle cx={12} cy={12} r={1.2} fill={color} />
           <Circle cx={19} cy={12} r={1.2} fill={color} />
+        </>
+      );
+    case 'search':
+      return (
+        <>
+          <Circle cx={11} cy={11} r={7} stroke={color} strokeWidth={1.5} />
+          <Path d="M21 21 L16.3 16.3" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
         </>
       );
     default:

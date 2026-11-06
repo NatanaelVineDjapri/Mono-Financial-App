@@ -45,7 +45,7 @@ describe('BankCard', () => {
   test('is one accessible button with the full label', async () => {
     const result = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} />);
     const card = result.getByRole('button');
-    expect(card.props.accessibilityLabel).toBe('BCA Tabungan, rekening bank, saldo Rp6.842.500');
+    expect(card.props.accessibilityLabel).toBe('BCA Tabungan, bank account, balance Rp6.842.500');
   });
 
   test('calls onPress when tapped', async () => {
@@ -102,7 +102,7 @@ describe('BankCard', () => {
     const result = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} />);
     const label = result.getByRole('button').props.accessibilityLabel;
     expect(label).not.toContain('6.842.500');
-    expect(label).toBe('BCA Tabungan, rekening bank, saldo Rp••••••••');
+    expect(label).toBe('BCA Tabungan, bank account, balance Rp••••••••');
   });
 
   // Regression: the background Image, positioned only via StyleSheet.absoluteFill's inset
@@ -123,5 +123,59 @@ describe('BankCard', () => {
 
     const list = await render(<BankCard name="BCA" type="bank" icon="bca" balance={1} onPress={() => {}} variant="list" testID="l" />);
     expect(list.getByTestId('l').props.style).toMatchObject({ width: '100%', aspectRatio: 358 / 184 });
+  });
+
+  describe('strip variant (Fase 4.2c: the Accounts card stack’s closed card)', () => {
+    test('is full width with a minHeight (not a hard height) of 68, so text scale can grow it', async () => {
+      const result = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={1} onPress={() => {}} variant="strip" testID="s" />);
+      const flatStyle = Object.assign({}, ...[result.getByTestId('s').props.style].flat());
+      expect(flatStyle.width).toBe('100%');
+      expect(flatStyle.minHeight).toBe(68);
+      expect(flatStyle.height).toBeUndefined();
+    });
+
+    test('renders the same full-height (184) art, top-aligned, cropped by the strip’s own overflow:hidden', async () => {
+      const result = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={1} onPress={() => {}} variant="strip" testID="s" />);
+      const wrapper = result.getByTestId('s-bg').parent;
+      const flatStyle = Object.assign({}, ...[wrapper?.props.style].flat());
+      expect(flatStyle.position).toBe('absolute');
+      expect(flatStyle.top).toBe(0);
+      expect(flatStyle.aspectRatio).toBe(358 / 184);
+    });
+
+    test('shows name and balance on one row, no category tag, no subline', async () => {
+      const result = await render(
+        <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} subline="should not show" onPress={() => {}} variant="strip" />,
+      );
+      expect(result.getByText('BCA Tabungan')).toBeTruthy();
+      expect(result.getByText('Rp6.842.500')).toBeTruthy();
+      expect(result.queryByText('DEBIT')).toBeNull();
+      expect(result.queryByText('should not show')).toBeNull();
+    });
+
+    test('a forex strip keeps the ≈ prefix', async () => {
+      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} variant="strip" />);
+      expect(result.getByText('≈ ')).toBeTruthy();
+      expect(result.getByText('Rp6.312.500')).toBeTruthy();
+    });
+  });
+
+  describe('currencyCount tag (Fase 4.2c: the card stack’s open Valas card)', () => {
+    test('with currencyCount given, forex shows "N CURRENCIES"', async () => {
+      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} currencyCount={2} onPress={() => {}} />);
+      expect(result.getByText('2 CURRENCIES')).toBeTruthy();
+    });
+
+    test('without currencyCount, forex still shows no tag (unchanged default)', async () => {
+      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} />);
+      expect(result.queryByText(/CURRENC/)).toBeNull();
+    });
+  });
+
+  test('accessibilityLabel prop overrides the default computed label', async () => {
+    const result = await render(
+      <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} accessibilityLabel="Custom label" />,
+    );
+    expect(result.getByRole('button').props.accessibilityLabel).toBe('Custom label');
   });
 });

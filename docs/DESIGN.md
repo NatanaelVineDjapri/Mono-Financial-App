@@ -86,7 +86,7 @@ Locale `id_ID`: dot thousands, comma decimals, no decimals for IDR, percentages 
 
 ## 8. Components
 
-Buttons (primary light fill, secondary outlined with `#737373`, disabled), icon button, FAB (56, Transactions only), chips (selected = light fill plus check icon), segmented control, month selector, tabs, text field (default, focus, error, disabled), amount field with quick-add chips, pickers, transaction row, account row, budget row (normal and over-limit with striped overflow), goal row, progress bar (8 px), chart style, bottom navigation (72 px, 5 items, active = 28×2 bar above icon), app bars, bottom sheet, dialog, snackbar (with Undo), banners, empty state.
+Buttons (primary light fill, secondary outlined with `#737373`, disabled), icon button, FAB (56, Transactions only), chips (selected = light fill plus check icon), segmented control, month selector, tabs, text field (default, focus, error, disabled), amount field with quick-add chips, pickers, transaction row, account row, budget row (normal and over-limit with striped overflow), goal row, progress bar (8 px), chart style, bottom navigation (72 px zone, 5 items, active = a floating pill, not a bar above the icon), app bars, bottom sheet, dialog, snackbar (with Undo), banners, empty state.
 
 ## 9. Navigation
 
@@ -329,7 +329,7 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 | Segmented control | `Segmented` (row of Pressable, role radio) |
 | Text field | `Field` (TextInput in a View), error = 1.5px light border + icon + helper text |
 | Amount field | `AmountField` (TextInput, number-pad), strips non-digits, stores int |
-| Bottom navigation | expo-router `Tabs` with a custom tab bar (72), 28×2 indicator |
+| Bottom navigation | expo-router `Tabs` with a custom floating-pill tab bar: a 72-tall zone (plus the bottom safe-area inset) holding one 56-tall, radius-28 bar; the active tab is a 44-tall, radius-22 pill filled `text`, icon+label on `bg`; inactive tabs are icon-only |
 | Sheets, dialogs | transparentModal route + Reanimated slide, scrim black 64% (not `Alert`) |
 | Snackbar | `Toast` (Reanimated), polite live region, Undo |
 | Progress bar | `ProgressBar` (View, 8), fill `accent`, striped overflow segment in `negative` drawn with Skia, plus alert icon and words (never amber) |
