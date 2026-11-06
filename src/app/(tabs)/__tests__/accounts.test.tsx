@@ -130,7 +130,18 @@ describe('AccountsScreen', () => {
     const result = await renderScreen();
 
     expect(result.getByText('Belum ada akun')).toBeTruthy();
-    fireEvent.press(result.getByRole('button', { name: 'Tambah akun' }));
+    // Two "Tambah akun" buttons exist now: the header's icon-only action and this
+    // empty state's own — either one shows the same toast, so both are pressed here.
+    for (const button of result.getAllByRole('button', { name: 'Tambah akun' })) {
+      await fireEvent.press(button);
+    }
+    expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
+  });
+
+  test('the header\'s "Tambah akun" action shows the not-available toast', async () => {
+    mockResult({ data: SAMPLE, isLoading: false, isError: false });
+    const result = await renderScreen();
+    fireEvent.press(result.getAllByRole('button', { name: 'Tambah akun' })[0]);
     expect(showToast).toHaveBeenCalledWith('Belum tersedia.');
   });
 
