@@ -47,12 +47,14 @@ function SummaryCard({ overview }: { overview: AccountsOverview }) {
   const hasForex = overview.groups.some(g => g.type === 'forex');
   return (
     <View style={styles.summaryCard}>
-      <Text style={styles.summaryLabel}>{accountsSummaryLabel()}</Text>
+      <View style={styles.summaryTopRow}>
+        <Text style={styles.summaryLabel}>{accountsSummaryLabel()}</Text>
+        <Text style={styles.summaryCount}>{accountsCountLabel(overview.accountCount)}</Text>
+      </View>
       <View style={styles.summaryAmountRow}>
         {hasForex && <Text style={styles.approx}>{'≈ '}</Text>}
         <Amount value={overview.netWorth} variant="displayS" style={styles.summaryAmount} />
       </View>
-      <Text style={styles.summaryCount}>{accountsCountLabel(overview.accountCount)}</Text>
       {overview.incomplete && (
         <View style={styles.incompleteRow}>
           <Icon name="alert-circle" size={16} color={MonoColors.negative} />
@@ -81,7 +83,6 @@ function AccountGroupSection({ group }: { group: AccountsOverviewGroup }) {
             type={account.type}
             icon={account.icon}
             balance={account.balance}
-            currencyCount={account.pockets?.length}
             subline={forexSubline(account)}
             variant="list"
             onPress={notAvailable}
@@ -127,7 +128,7 @@ export default function AccountsScreen() {
           <Icon name="bank" size={26} color={MonoColors.textDisabled} />
           <Text style={styles.emptyTitle}>{accountsEmptyTitle()}</Text>
           <Text style={styles.emptyBody}>{accountsEmptyBody()}</Text>
-          <Button label={addAccountLabel()} onPress={notAvailable} />
+          <Button label={addAccountLabel()} icon="plus" onPress={notAvailable} />
         </View>
       </View>
     );
@@ -142,10 +143,13 @@ export default function AccountsScreen() {
           <AccountGroupSection key={group.type} group={group} />
         ))}
         <View style={styles.buttonRow}>
-          <Button label={transferAccountsLabel()} onPress={notAvailable} style={styles.buttonFlex} />
-          <Button label={addAccountLabel()} variant="secondary" onPress={notAvailable} style={styles.buttonFlex} />
+          <Button label={transferAccountsLabel()} icon="transfer" onPress={notAvailable} style={styles.buttonFlex} />
+          <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={notAvailable} style={styles.buttonFlex} />
         </View>
-        <Text style={styles.footerNote}>{accountsNoLoginNote()}</Text>
+        <View style={styles.footerRow}>
+          <Icon name="lock" size={16} color={MonoColors.textMeta} />
+          <Text style={styles.footerNote}>{accountsNoLoginNote()}</Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -160,6 +164,7 @@ const styles = StyleSheet.create({
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
   summaryCard: { backgroundColor: MonoColors.card, borderRadius: 16, padding: 20, gap: 4 },
+  summaryTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   summaryLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   summaryAmountRow: { flexDirection: 'row', alignItems: 'baseline' },
   approx: { ...MonoText.displayS, color: MonoColors.text },
@@ -177,5 +182,6 @@ const styles = StyleSheet.create({
 
   buttonRow: { flexDirection: 'row', gap: 12 },
   buttonFlex: { flex: 1 },
-  footerNote: { ...MonoText.caption, color: MonoColors.textMeta, textAlign: 'center' },
+  footerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
 });

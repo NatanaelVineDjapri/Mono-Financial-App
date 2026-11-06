@@ -245,7 +245,6 @@ function GalleryContent() {
               type="forex"
               icon={null}
               balance={6312500}
-              currencyCount={2}
               subline="US$250,00 · S$180,00"
               onPress={() => {}}
             />
