@@ -16,6 +16,10 @@ export const MonoText = {
   displayL: { fontFamily: SERIF, fontSize: 48, lineHeight: 52, letterSpacing: -0.48, ...tab },
   displayS: { fontFamily: SERIF, fontSize: 40, lineHeight: 44, letterSpacing: -0.4, ...tab },
   titleL: { fontFamily: SERIF, fontSize: 32, lineHeight: 36 },
+  // Same size as titleL, Plex Sans 600 instead of serif — for a screen that spends its
+  // one serif moment (CLAUDE.md rule 6) on its own hero balance instead of the title
+  // (ScreenHeader's serif={false}), not a replacement for titleL itself.
+  titleLSans: { fontFamily: UI.semi, fontSize: 32, lineHeight: 36 },
   figureXL: { fontFamily: UI.medium, fontSize: 44, lineHeight: 52, letterSpacing: -0.44, ...tab },
   figureL: { fontFamily: UI.medium, fontSize: 32, lineHeight: 40, ...tab },
   figureM: { fontFamily: UI.medium, fontSize: 22, lineHeight: 28, ...tab },

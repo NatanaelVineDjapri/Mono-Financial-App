@@ -2,7 +2,7 @@
 // account, transfer and account detail are later phases — every action here just shows
 // a "Belum tersedia" toast until those screens exist.
 import { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
 import { BankCard } from '@/components/BankCard';
@@ -29,13 +29,29 @@ import {
   tabLabel,
   transferAccountsLabel,
 } from '@/i18n/id';
-import { MonoColors } from '@/theme/tokens';
+import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 // TODO(Phase 5/6): Add account, Transfer between accounts and Account detail don't exist
 // yet — every entry point here shows this toast instead of navigating.
 function notAvailable() {
   showToast(notAvailableToast());
+}
+
+// ScreenHeader's right slot: Add account doesn't exist yet (Phase 5), so this matches
+// the screen's own "Tambah akun" buttons below and just shows the same toast.
+function AccountsHeaderAction() {
+  return (
+    <Pressable
+      onPress={notAvailable}
+      accessibilityRole="button"
+      accessibilityLabel={addAccountLabel()}
+      hitSlop={4}
+      style={styles.headerAction}
+    >
+      <Icon name="plus" color={MonoColors.text} />
+    </Pressable>
+  );
 }
 
 function forexSubline(account: AccountsOverviewAccount): string | undefined {
@@ -103,7 +119,7 @@ export default function AccountsScreen() {
   if (isLoading) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} serif={false} />
+        <ScreenHeader title={tabLabel('accounts')} serif={false} right={<AccountsHeaderAction />} />
       </View>
     );
   }
@@ -111,7 +127,7 @@ export default function AccountsScreen() {
   if (isError || !data) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} serif={false} />
+        <ScreenHeader title={tabLabel('accounts')} serif={false} right={<AccountsHeaderAction />} />
         <View style={styles.centerFill}>
           <Text style={styles.errorText}>{accountsErrorMessage()}</Text>
           <Button label={retryLabel()} onPress={onRetry} />
@@ -123,7 +139,7 @@ export default function AccountsScreen() {
   if (data.accountCount === 0) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} serif={false} />
+        <ScreenHeader title={tabLabel('accounts')} serif={false} right={<AccountsHeaderAction />} />
         <View style={styles.centerFill}>
           <Icon name="bank" size={26} color={MonoColors.textDisabled} />
           <Text style={styles.emptyTitle}>{accountsEmptyTitle()}</Text>
@@ -136,7 +152,7 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('accounts')} serif={false} />
+      <ScreenHeader title={tabLabel('accounts')} serif={false} right={<AccountsHeaderAction />} />
       <ScrollView contentContainerStyle={styles.content}>
         <SummaryCard overview={data} />
         {data.groups.map(group => (
@@ -157,6 +173,16 @@ export default function AccountsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
+  headerAction: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    backgroundColor: MonoColors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: { paddingHorizontal: 16, paddingBottom: 32, gap: 28 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },

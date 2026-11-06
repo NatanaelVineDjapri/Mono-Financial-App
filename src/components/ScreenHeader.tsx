@@ -3,8 +3,9 @@
 //
 // CLAUDE.md rule 6 allows at most one serif moment per screen. A screen with its own
 // hero balance (Accounts now, Overview in a later phase) spends that moment on the
-// balance (displayS/displayL) and sets `serif={false}` here, falling back to titleM
-// (Plex Sans 600). Every other screen keeps the default serif titleL title.
+// balance (displayS/displayL) and sets `serif={false}` here, falling back to titleLSans
+// (Plex Sans 600, same 32/36 size as the serif titleL). Every other screen keeps the
+// default serif titleL title.
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,5 +40,5 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   titleSerif: { ...MonoText.titleL, color: MonoColors.text },
-  titlePlain: { ...MonoText.titleM, color: MonoColors.text },
+  titlePlain: { ...MonoText.titleLSans, color: MonoColors.text },
 });
