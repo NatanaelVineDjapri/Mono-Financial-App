@@ -70,7 +70,7 @@ export function BankCard({ name, type, icon, balance, currencyCount, subline, va
         {svgBackground ? (
           <SvgXml testID={testID ? `${testID}-bg` : undefined} xml={svgBackground} width="100%" height="100%" style={StyleSheet.absoluteFill} />
         ) : (
-          <Image testID={testID ? `${testID}-bg` : undefined} source={image} resizeMode="cover" style={StyleSheet.absoluteFill} />
+          <Image testID={testID ? `${testID}-bg` : undefined} source={image} resizeMode="cover" style={styles.background} />
         )}
         <View style={styles.content}>
           <View style={styles.topRow}>
@@ -110,6 +110,14 @@ const styles = StyleSheet.create({
   carousel: { width: 312, height: 184 },
   list: { width: '100%', aspectRatio: 358 / 184 },
   card: { flex: 1, borderRadius: radius.lg, overflow: 'hidden' },
+  // Explicit 100%/100% alongside StyleSheet.absoluteFill: on this RN/Fabric version, an
+  // Image positioned only via absoluteFill's inset edges (no explicit size) sometimes
+  // falls back to its asset's own registered intrinsic size — here, the exact 358×184
+  // logical dp the @3x PNG's physical pixels resolve to — instead of stretching to this
+  // (aspectRatio-sized, not literally 358×184) parent. Confirmed via a real device's
+  // measured layout, not just Jest: the gap only shows up against the parent's actual
+  // resolved width, which a fixed-width Jest render can't reproduce.
+  background: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
   content: { flex: 1, padding: 16, justifyContent: 'space-between' },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   tagWrap: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },

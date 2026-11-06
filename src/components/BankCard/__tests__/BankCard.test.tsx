@@ -103,6 +103,18 @@ describe('BankCard', () => {
     expect(label).toBe('BCA Tabungan, rekening bank, saldo Rp••••••••');
   });
 
+  // Regression: the background Image, positioned only via StyleSheet.absoluteFill's inset
+  // edges (no explicit size), fell back to its PNG's own intrinsic 358x184 logical size
+  // instead of stretching to this (aspectRatio-sized, not literally 358x184) container —
+  // invisible in Jest's fixed-width render, only visible against a real device's actual
+  // resolved width. Explicit width/height: '100%' alongside absoluteFill is the fix.
+  test('the background fills its container: explicit 100%/100% size, not just absoluteFill', async () => {
+    const result = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={1} onPress={() => {}} testID="card" />);
+    const flatStyle = Object.assign({}, ...[background(result, 'card').props.style].flat());
+    expect(flatStyle.width).toBe('100%');
+    expect(flatStyle.height).toBe('100%');
+  });
+
   test('carousel variant is 312x184; list variant is full width at 358:184', async () => {
     const carousel = await render(<BankCard name="BCA" type="bank" icon="bca" balance={1} onPress={() => {}} variant="carousel" testID="c" />);
     expect(carousel.getByTestId('c').props.style).toMatchObject({ width: 312, height: 184 });
