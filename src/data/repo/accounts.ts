@@ -80,6 +80,40 @@ export async function listAccounts(db: Db, opts: { includeArchived?: boolean } =
   );
 }
 
+// v_account_balance doesn't carry icon or sort_order (CLAUDE.md rule 2: a view only
+// derives balances — these are plain stored columns on `accounts`), so the Accounts tab's
+// overview joins them in here rather than reaching into `accounts` directly from a screen.
+export interface AccountOverviewRow extends AccountBalance {
+  icon: string | null;
+  sort_order: number;
+}
+
+export async function listAccountsForOverview(db: Db): Promise<AccountOverviewRow[]> {
+  return db.getAllAsync<AccountOverviewRow>(
+    `select vb.*, a.icon, a.sort_order
+     from v_account_balance vb
+     join accounts a on a.id = vb.id
+     where vb.archived = 0
+     order by a.sort_order, vb.id`,
+  );
+}
+
+// Per-type subtotal (CLAUDE.md rule 2: summed in SQL from v_account_balance, not in JS).
+export interface AccountGroupSubtotal {
+  type: AccountType;
+  count: number;
+  subtotal: number; // rupiah
+}
+
+export async function listAccountGroupSubtotals(db: Db): Promise<AccountGroupSubtotal[]> {
+  return db.getAllAsync<AccountGroupSubtotal>(
+    `select type, count(*) as count, sum(balance) as subtotal
+     from v_account_balance
+     where archived = 0
+     group by type`,
+  );
+}
+
 // v_pocket_balance: the pocket's own balance, not valued in rupiah.
 export interface PocketBalance {
   account_id: number;
