@@ -13,7 +13,7 @@ import { Amount } from '@/components/Amount';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import type { AccountType } from '@/data/repo/accounts';
 import { rp, shown } from '@/core/money';
-import { accountTypeTag, bankCardAccessibilityLabel, valasCurrencyCountTag } from '@/i18n/id';
+import { accountTypeTag, bankCardAccessibilityLabel } from '@/i18n/id';
 import { radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -25,7 +25,6 @@ export interface BankCardProps {
   type: AccountType;
   icon: string | null; // accounts.icon; null or an unrecognised slug falls back to a neutral card
   balance: number; // whole rupiah; for a Valas account, the total rupiah value
-  currencyCount?: number; // Valas only: drives the "N MATA UANG" tag instead of "VALAS"
   subline?: string; // Valas only, e.g. "US$250,00 · S$180,00"
   variant?: 'carousel' | 'list'; // carousel: fixed 312×184. list: full width, 358:184
   onPress: () => void;
@@ -45,7 +44,7 @@ function resolveSlug(icon: string | null, type: AccountType): string {
   return 'default';
 }
 
-export function BankCard({ name, type, icon, balance, currencyCount, subline, variant = 'list', onPress, testID }: BankCardProps) {
+export function BankCard({ name, type, icon, balance, subline, variant = 'list', onPress, testID }: BankCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const slug = resolveSlug(icon, type);
   const brand: BankCardStyle | undefined = BANK_CARDS[slug];
@@ -54,7 +53,9 @@ export function BankCard({ name, type, icon, balance, currencyCount, subline, va
   const svgBackground = SVG_BACKGROUNDS[slug]; // overrides CARD_ASSETS when a PNG came out broken, see cardAssets.ts
   const image = CARD_ASSETS[slug];
 
-  const tag = type === 'forex' && currencyCount != null ? valasCurrencyCountTag(currencyCount) : accountTypeTag(type);
+  // The Valas card's own flag-circle row already says "this is multi-currency" — a
+  // "N MATA UANG" pill on top of it only collided with the flags, so forex gets no tag.
+  const tag = type === 'forex' ? null : accountTypeTag(type);
   const balanceText = shown(rp(balance), hidden);
   const accessibilityLabel = bankCardAccessibilityLabel(name, type, balanceText);
 
@@ -81,10 +82,12 @@ export function BankCard({ name, type, icon, balance, currencyCount, subline, va
             ) : (
               <Logo svg={NEUTRAL_GLYPHS[slug]} width={GLYPH_SIZE} height={GLYPH_SIZE} color={fg} />
             )}
-            <View style={styles.tagWrap}>
-              <View style={[styles.tagBorder, { borderColor: fg }]} />
-              <Text style={[styles.tagText, { color: fg }]}>{tag}</Text>
-            </View>
+            {tag && (
+              <View style={styles.tagWrap}>
+                <View style={[styles.tagBorder, { borderColor: fg }]} />
+                <Text style={[styles.tagText, { color: fg }]}>{tag}</Text>
+              </View>
+            )}
           </View>
           <View>
             <Text style={[styles.name, { color: fg }]} numberOfLines={1}>

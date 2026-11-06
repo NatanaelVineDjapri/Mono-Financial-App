@@ -82,15 +82,17 @@ describe('BankCard', () => {
     expect(result.getByText('stockbit')).toBeTruthy();
   });
 
-  test('Valas with a currencyCount shows the "N MATA UANG" tag', async () => {
-    const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} currencyCount={2} onPress={() => {}} />);
-    expect(result.getByText('2 MATA UANG')).toBeTruthy();
+  // The flag-circle row already says "multi-currency" on its own — a "N MATA UANG" pill
+  // on top of it only collided with the flags, so forex never shows a tag at all.
+  test('Valas shows no tag pill, just the ≈ prefix', async () => {
+    const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} />);
+    expect(result.queryByText('VALAS')).toBeNull();
     expect(result.getByText('≈ ')).toBeTruthy();
   });
 
   test('a Valas subline renders when given', async () => {
     const result = await render(
-      <BankCard name="Valas" type="forex" icon={null} balance={6312500} currencyCount={2} subline="US$250,00 · S$180,00" onPress={() => {}} />,
+      <BankCard name="Valas" type="forex" icon={null} balance={6312500} subline="US$250,00 · S$180,00" onPress={() => {}} />,
     );
     expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
   });

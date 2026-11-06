@@ -69,10 +69,6 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
-export function valasCurrencyCountTag(count: number): string {
-  return `${count} MATA UANG`;
-}
-
 const accountTypeDescriptions: Record<AccountType, string> = {
   bank: 'rekening bank',
   savings: 'rekening tabungan',
