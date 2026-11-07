@@ -50,6 +50,15 @@ export function previousPeriod(period: string, monthStartDay: number): string {
   return periodOfDate(addDays(periodStart(period, monthStartDay), -1), monthStartDay);
 }
 
+export function nextPeriod(period: string, monthStartDay: number): string {
+  return periodOfDate(addDays(periodEnd(period, monthStartDay), 1), monthStartDay);
+}
+
+// Whole days from `from` to `to` (both 'YYYY-MM-DD'); negative when `to` is earlier.
+export function daysBetween(from: string, to: string): number {
+  return Math.round((toUtcDate(to).getTime() - toUtcDate(from).getTime()) / 86400000);
+}
+
 export function formatShortDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   return `${d} ${MONTHS_SHORT[m - 1]} ${y}`;
@@ -72,6 +81,18 @@ export function formatDayHeader(dateStr: string): string {
 export function monthLabel(period: string): string {
   const [y, m] = period.split('-').map(Number);
   return `${MONTHS_FULL[m - 1]} ${y}`;
+}
+
+// "Oct 2026" — the Budgets header's month chip.
+export function monthShortLabel(period: string): string {
+  const [y, m] = period.split('-').map(Number);
+  return `${MONTHS_SHORT[m - 1]} ${y}`;
+}
+
+// "October" — the month name alone (Budgets: "Days left in October").
+export function monthName(period: string): string {
+  const m = Number(period.split('-')[1]);
+  return MONTHS_FULL[m - 1];
 }
 
 // "28 Oct 2026, 09:00" — an fx_rates.fetched_at (or any full ISO instant) for the
