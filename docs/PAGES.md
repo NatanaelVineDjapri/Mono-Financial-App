@@ -208,10 +208,10 @@ Papan: `Transactions` · 390 × 1600
 
 - Judul, jumlah transaksi dalam rentang (34 transaksi, 1–28 Okt 2026) dan tombol Filters.
 - Pencarian, chip tipe (All, Income, Expenses, Transfers), chip kategori dan akun.
-- Ringkasan: pemasukan +Rp7.500.000, pengeluaran −Rp4.257.000, bersih +Rp3.243.000, dan catatan "Tidak dihitung: 3 transfer antar akun (Rp2.200.000)".
-- Daftar Oktober dikelompokkan per hari dengan total harian. Tiap baris: judul dan nominal, lalu kategori · akun · tanggal dan label tipe.
+- Ringkasan = tiga baris bertumpuk (pemasukan +Rp7.500.000, pengeluaran −Rp4.257.000, bersih +Rp3.243.000), bukan tiga kolom — label kiri, nominal kanan, garis tipis antar baris, baris bersih tebal; dan catatan "Tidak dihitung: 3 transfer antar akun (Rp2.200.000)".
+- Daftar Oktober dikelompokkan per hari dengan total harian (pemasukan − pengeluaran hari itu; hari yang hanya berisi transfer tidak menampilkan total harian). Tiap baris: judul dan nominal, lalu kategori · akun dan label tipe (tanggal tidak diulang karena ada di header hari).
 - September ditampilkan tertutup (Pengeluaran Rp3.940.000); bulan lama dimuat saat menggulir.
-- Tombol aksi mengambang + (56) membuka layar chat AI langsung. Hanya layar ini yang memilikinya.
+- Tombol aksi mengambang + (56) membuka layar chat AI langsung. Hanya layar ini yang memilikinya; mengecil/hilang saat menggulir turun dan muncul lagi saat menggulir naik.
 
 **Keadaan**
 
@@ -221,6 +221,7 @@ Papan: `Transactions` · 390 × 1600
 **Catatan**
 
 - Pemasukan tebal dengan +, pengeluaran dengan − sejati (U+2212), transfer tanpa tanda dan berwarna abu-abu.
+- Nominal ringkasan tidak pernah terpotong di text scale besar — boleh melipat ke baris baru.
 
 ### B2 · Lembar filter transaksi
 
@@ -321,17 +322,16 @@ Papan: `Accounts` · 390 × 1400
 
 **Tujuan.** Melihat semua akun dan saldonya sebagai kartu bergaya bank.
 
-**Tata letak dan komponen**
+**Tata letak dan komponen (Fase 4.2c: tumpukan kartu gaya dompet, menggantikan deskripsi grup di bawah)**
 
-- Judul layar dan kartu ringkasan "Total balance · net worth" Rp8.880.000 untuk 4 akun, dengan catatan bahwa transfer tidak mengubah total.
-- Grup Bank, Cash, E-wallet, Savings. Tiap grup memiliki label dan subtotal, lalu satu kartu selebar layar. Bila ada akun Valas, lihat papan `Accounts-Valas` (bagian V).
-- Kartu: papan ini masih menampilkan gaya monokrom lama (BCA gelap dengan garis diagonal, Cash dengan garis putus-putus, GoPay abu-abu, Jago putih). Keputusan terbaru menggantikannya: kartu berwarna brand bank dengan logo (BCA biru, GoPay cyan, Jago kuning, Cash grafit dengan rosette), lihat DESIGN.md Account cards. Tata letak dan urutan grup di papan tetap berlaku.
-- Tombol "Transfer between accounts" (utama) dan "Add account" (sekunder).
+- Judul layar, lalu tumpukan kartu: kartu total teratas ("Total balance · net worth" Rp8.880.000 untuk 4 akun, gradien terang, catatan bahwa transfer tidak mengubah total), lalu satu kartu per akun yang saling menimpa 12px. Tepat satu kartu terbuka (184 tinggi) sekaligus — bawaannya kartu terakhir; sisanya tampil sebagai potongan 68 tinggi (56 terlihat): logo/wordmark dan nama akun di kiri, saldo di kanan. Diurutkan per tipe (Bank, Cash, E-wallet, Savings), lalu urutan tersimpan — tanpa label grup atau subtotal grup.
+- Kartu: berwarna brand bank dengan logo (BCA biru, GoPay cyan, Jago kuning, Cash grafit dengan rosette), lihat DESIGN.md Account cards. Bila ada akun Valas, lihat papan `Accounts-Valas` (bagian V).
+- Tombol "Transfer" (utama) dan "Add account" (sekunder), berdampingan, label satu baris.
 - Catatan bahwa MONO tidak meminta login bank dan akun hanyalah label di perangkat.
 
 **Keadaan**
 
-- Ketuk kartu untuk membuka Detail Akun. Pada mode sembunyi, saldo tampil Rp••••••••.
+- Ketuk potongan memajukan kartu itu (kartu yang tadinya terbuka menutup jadi potongan). Ketuk kartu yang sudah terbuka membuka Detail Akun. Pada mode sembunyi, saldo tampil Rp••••••••.
 
 **Catatan**
 
@@ -833,18 +833,14 @@ Papan: `Accounts-Valas` · 390 × 1800
 
 **Tata letak dan komponen**
 
-- Sama seperti D1, tetapi kartu total menampilkan "≈ Rp15.192.500" untuk 5 akun dan catatan bahwa uang asing dinilai dengan kurs terbaru (28 Okt 2026, 09:00) sehingga totalnya perkiraan.
-- Grup "Foreign currency" dengan subtotal ≈ Rp6.312.500 dan satu kartu Valas: tag "2 CURRENCIES", dua koin mata uang yang saling menumpuk (US$, S$), nilai ≈ Rp6.312.500, dan jumlah asli di bawahnya (US$250,00 · S$180,00).
-- Baris "Exchange rates · updated 28 Oct, 09:00" yang membuka papan Rates.
-- Catatan di bawah menyebut bahwa akun Valas menyimpan tiap mata uang di kantongnya sendiri.
+- Sama seperti D1 (tumpukan kartu gaya dompet), tetapi kartu total menampilkan "≈ Rp15.192.500" untuk 5 akun dan catatan bahwa uang asing dinilai dengan kurs terbaru (28 Okt 2026, 09:00) sehingga totalnya perkiraan.
+- Kartu Valas ada terakhir di tumpukan (tipe Forex, urutan terakhir): tanpa tag pill, enam bendera bulat yang saling menumpuk (USD, EUR, SGD, JPY, GBP, AUD) dan ikon globe, nama "Valas", nilai ≈ Rp6.312.500, dan jumlah asli di bawahnya (US$250,00 · S$180,00).
+- Baris "Exchange rates · updated 28 Oct, 09:00" di bawah tumpukan yang membuka papan Rates.
+- Catatan di dalam kartu total menyebut bahwa akun Valas menyimpan tiap mata uang di kantongnya sendiri.
 
 **Keadaan**
 
 - Bila kurs sebuah mata uang belum ada, total ditandai tidak lengkap dan Valas menampilkan jumlah aslinya tanpa nilai rupiah.
-
-**Catatan**
-
-- Kartu Valas di papan ini masih bergaya monokrom. Keputusan terbaru: kartu Valas memakai kartu netral grafit dengan bendera bulat (USD, EUR, SGD, JPY, GBP, AUD) yang saling menumpuk dan ikon globe; lihat DESIGN.md bagian Account cards.
 
 ### V2 · Detail akun Valas
 

@@ -146,6 +146,7 @@ export async function listAccountActivity(db: Db, accountId: number, currency: s
 export interface TxListFilter {
   kind?: TxKind;
   search?: string; // matched against description, note, category name, account name(s)
+  categoryId?: number; // Fase 4.3c: tapping a ring slice or category row filters the list to it
 }
 
 const TX_JOIN = `
@@ -156,12 +157,16 @@ const TX_JOIN = `
   join currencies cur on cur.code = t.currency
 `;
 
-function txFilterSql(period: string, filter: TxListFilter, params: Record<string, string>): string {
+function txFilterSql(period: string, filter: TxListFilter, params: Record<string, string | number>): string {
   const clauses = ['t.period = $period'];
   params.$period = period;
   if (filter.kind) {
     clauses.push('t.kind = $kind');
     params.$kind = filter.kind;
+  }
+  if (filter.categoryId != null) {
+    clauses.push('t.category_id = $categoryId');
+    params.$categoryId = filter.categoryId;
   }
   if (filter.search) {
     clauses.push('(t.description LIKE $search OR t.note LIKE $search OR c.name LIKE $search OR a.name LIKE $search OR ta.name LIKE $search)');
@@ -191,7 +196,7 @@ export interface TxListRow {
 }
 
 export async function listTransactionsForPeriod(db: Db, period: string, filter: TxListFilter = {}): Promise<TxListRow[]> {
-  const params: Record<string, string> = {};
+  const params: Record<string, string | number> = {};
   const where = txFilterSql(period, filter, params);
   return db.getAllAsync<TxListRow>(
     `select t.id, t.kind, t.occurred_on, t.description, t.note, t.amount, t.amount_idr, t.currency,
@@ -213,7 +218,7 @@ export interface PeriodSummary {
 }
 
 export async function getPeriodSummary(db: Db, period: string, filter: TxListFilter = {}): Promise<PeriodSummary> {
-  const params: Record<string, string> = {};
+  const params: Record<string, string | number> = {};
   const where = txFilterSql(period, filter, params);
   const row = await db.getFirstAsync<PeriodSummary>(
     `select
@@ -237,7 +242,7 @@ export interface DailyTotalRow {
 }
 
 export async function listDailyTotals(db: Db, period: string, filter: TxListFilter = {}): Promise<DailyTotalRow[]> {
-  const params: Record<string, string> = {};
+  const params: Record<string, string | number> = {};
   const where = txFilterSql(period, filter, params);
   return db.getAllAsync<DailyTotalRow>(
     `select t.occurred_on,
@@ -258,4 +263,28 @@ export async function listDailyTotals(db: Db, period: string, filter: TxListFilt
 export async function getEarliestPeriod(db: Db): Promise<string | null> {
   const row = await db.getFirstAsync<{ period: string | null }>('select min(period) as period from v_tx');
   return row?.period ?? null;
+}
+
+// Fase 4.3c's ring chart / category list: the same SUM(amount_idr) grouped by category
+// that v_category_spend already computes for Reports (src/data/repo/reports.ts's
+// listCategorySpend) — reimplemented here, not reused, only because that view is
+// expense-only and bakes in no category name/icon, and this needs both income and
+// expense plus the name/icon to render a row.
+export interface CategoryTotalRow {
+  category_id: number;
+  category_name: string;
+  category_icon: string | null;
+  amount_idr: number;
+}
+
+export async function listCategoryTotals(db: Db, period: string, kind: 'income' | 'expense'): Promise<CategoryTotalRow[]> {
+  return db.getAllAsync<CategoryTotalRow>(
+    `select t.category_id, c.name as category_name, c.icon as category_icon, sum(t.amount_idr) as amount_idr
+     from v_tx t
+     join categories c on c.id = t.category_id
+     where t.period = $period and t.kind = $kind
+     group by t.category_id
+     order by amount_idr desc`,
+    { $period: period, $kind: kind },
+  );
 }

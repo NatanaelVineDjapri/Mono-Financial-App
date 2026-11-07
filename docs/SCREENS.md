@@ -9,7 +9,7 @@
 | 1 | Welcome (first launch, mascot video) | `/welcome` | Welcome | Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup |
 | 2 | Overview (tab) | `/(tabs)/index` | Main | Empty state: Overview-Empty. Account card carousel, fixed-expenses card, greeting "Selamat datang, Nael" |
 | 3 | Transactions (tab) | `/(tabs)/transactions` | Transactions | + FAB opens the AI chat; filters sheet (see sheets) |
-| 4 | Accounts (tab) | `/(tabs)/accounts` | Accounts | Full-width bank-style cards. With a Valas account: Accounts-Valas (total shows ≈, Valas card with currency coins, Exchange rates row) |
+| 4 | Accounts (tab) | `/(tabs)/accounts` | Accounts | Wallet-style card stack (total as top card, one card open). Variants: Accounts-Open, Accounts-Valas |
 | 5 | Budgets (tab) | `/(tabs)/budgets` | Budgets | Monthly limit, per-category bars, over-limit state |
 | 6 | More (tab) | `/(tabs)/more` | More | Entry to Goals, Categories, Reports, Backup, Settings, Fixed expenses |
 | 7 | Add / edit transaction | `/tx/add`, `/tx/[id]` | Tx-Add | Variants: Tx-Add-Errors (validation), Tx-Add-Transfer, Tx-Add-Valas (pocket chips, rupiah value line), Tx-Exchange (two amounts, rate summary). One form, three kinds |

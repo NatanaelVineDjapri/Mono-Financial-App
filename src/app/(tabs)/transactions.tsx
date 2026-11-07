@@ -3,7 +3,9 @@
 // /tx/[id] and /ai-chat are stub routes until the detail and chat screens exist.
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
@@ -13,9 +15,11 @@ import { Icon, type IconName } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
 import { Sheet } from '@/components/Sheet';
-import { formatDayHeader, formatDayMonth, formatShortDate } from '@/core/date';
+import { TAB_BAR_ZONE_HEIGHT } from '@/components/TabBar';
+import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
 import type { DailyTotalRow, TransactionsPage, TxListRow } from '@/domain/transactionsList';
+import { StatsSection } from '@/features/transactions/StatsSection';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
 import {
   closeLabel,
@@ -32,7 +36,6 @@ import {
   transactionsCountLabel,
   transactionsEmptyBody,
   transactionsEmptyTitle,
-  transactionsNotCountedNote,
   txKindLabel,
   txRowAccessibilityLabel,
   txTypeChipLabel,
@@ -46,6 +49,11 @@ const TYPE_OPTIONS: SegmentedOption[] = (['all', 'income', 'expense', 'transfer'
   label: txTypeChipLabel(value),
 }));
 
+const FAB_SIZE = 56; // matches Fab.tsx's own (unexported) SIZE constant
+const FAB_GAP = 16; // Fase 4.3a fix: the FAB's own clearance above the tab bar's zone
+const FAB_TRANSITION_MS = 150;
+const SCROLL_DIRECTION_THRESHOLD = 10; // px of travel before committing to a direction, avoids jitter
+
 function useDebouncedValue(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -53,6 +61,36 @@ function useDebouncedValue(value: string, delayMs: number): string {
     return () => clearTimeout(id);
   }, [value, delayMs]);
   return debounced;
+}
+
+// Fase 4.3a fix: the FAB shrinks away on scroll-down and comes back on scroll-up, so it
+// doesn't sit over content while reading a long list — 150ms, skipped under reduce-motion.
+// A worklet scroll handler (not a plain onScroll callback) is the correct Reanimated tool
+// for a shared-value mutation driven by scroll events — both `lastOffset` and `visible`
+// need to be shared values themselves so the UI-thread worklet can read and write them.
+function useFabVisibility() {
+  const reducedMotion = useReducedMotion();
+  const visible = useSharedValue(1);
+  const lastOffset = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: event => {
+      const y = event.contentOffset.y;
+      const delta = y - lastOffset.value;
+      if (Math.abs(delta) < SCROLL_DIRECTION_THRESHOLD) return;
+      const shouldShow = delta < 0 || y <= 0;
+      const target = shouldShow ? 1 : 0;
+      visible.value = reducedMotion ? target : withTiming(target, { duration: FAB_TRANSITION_MS });
+      lastOffset.value = y;
+    },
+  });
+
+  const style = useAnimatedStyle(() => ({
+    opacity: visible.value,
+    transform: [{ scale: visible.value }],
+  }));
+
+  return { onScroll, style };
 }
 
 function FilterButton({ onPress }: { onPress: () => void }) {
@@ -85,31 +123,6 @@ function SearchField({ value, onChangeText }: { value: string; onChangeText: (te
   );
 }
 
-function SummaryCard({ page, hidden }: { page: TransactionsPage; hidden: boolean }) {
-  const { income, expense, net, transfer_count: transferCount, transfer_total: transferTotal } = page.summary;
-  return (
-    <View style={styles.summaryCard}>
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryItemLabel}>{txKindLabel('income')}</Text>
-          <Amount value={income} sign kind="income" variant="figureM" />
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryItemLabel}>{txKindLabel('expense')}</Text>
-          <Amount value={-expense} sign kind="expense" variant="figureM" />
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryItemLabel}>{netLabel()}</Text>
-          <Amount value={net} sign kind={net < 0 ? 'expense' : 'income'} variant="figureM" />
-        </View>
-      </View>
-      {transferCount > 0 && (
-        <Text style={styles.transferNote}>{transactionsNotCountedNote(transferCount, shown(rp(transferTotal), hidden))}</Text>
-      )}
-    </View>
-  );
-}
-
 function txTitle(row: TxListRow): string {
   const description = row.description.trim();
   if (description) return description;
@@ -117,10 +130,12 @@ function txTitle(row: TxListRow): string {
   return row.category_name ?? txKindLabel(row.kind);
 }
 
+// No date here (Fase 4.3a fix): every row already sits under a day header that states
+// it. A view that ever lists rows without a day header (e.g. a future ungrouped search
+// view) would need its own date back in the subtitle — this one is always grouped.
 function txSubtitle(row: TxListRow): string {
-  const date = formatDayMonth(row.occurred_on);
-  if (row.kind === 'transfer') return `${row.account_name} → ${row.to_account_name ?? ''} · ${date}`;
-  return `${row.category_name ?? ''} · ${row.account_name} · ${date}`;
+  if (row.kind === 'transfer') return `${row.account_name} → ${row.to_account_name ?? ''}`;
+  return `${row.category_name ?? ''} · ${row.account_name}`;
 }
 
 // Generic by kind, not yet per-category (no icon library reference for the 14 category
@@ -148,7 +163,7 @@ function TxRow({ row, hidden, onPress }: { row: TxListRow; hidden: boolean; onPr
         <Text style={styles.rowTitle} numberOfLines={1}>
           {title}
         </Text>
-        <Text style={styles.rowSubtitle} numberOfLines={1}>
+        <Text style={styles.rowSubtitle} numberOfLines={2}>
           {subtitle}
         </Text>
       </View>
@@ -193,8 +208,13 @@ function DaySection({
         <Text style={styles.dayDate}>{formatDayHeader(date)}</Text>
         {/* Neutral grey, not coloured by sign — only the month's own Net and each row's
             own amount carry income/expense colour (DESIGN.md: colour marks a figure the
-            reader acts on, not every running subtotal). */}
-        {!!daily && <Text style={styles.dayTotal}>{shown(rp(daily.net, true), hidden)}</Text>}
+            reader acts on, not every running subtotal). A day with only transfers has
+            income=expense=0 (a `daily` row only exists for a day with at least one
+            transaction, so this can't also mean "no transactions") — showing "Rp0" there
+            would misread as an actual zero day rather than "nothing counted today". */}
+        {!!daily && (daily.income !== 0 || daily.expense !== 0) && (
+          <Text style={styles.dayTotal}>{shown(rp(daily.net, true), hidden)}</Text>
+        )}
       </View>
       {rows.map(row => (
         <TxRow key={row.id} row={row} hidden={hidden} onPress={() => onPressRow(row.id)} />
@@ -246,16 +266,23 @@ function MonthSection({
 
 export default function TransactionsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
   const [typeFilter, setTypeFilter] = useState<TxTypeFilter>('all');
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 250);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [expandedPeriods, setExpandedPeriods] = useState<Set<string>>(() => new Set());
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
+  const fab = useFabVisibility();
 
+  // The synthetic "Others" bucket (id -1, Fase 4.3c) has no single matching category row
+  // in the database — it still dims the ring/marks its own row, but it never reaches the
+  // list query, since there is no `category_id = -1` to filter by.
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransactionsList({
     type: typeFilter,
     search: debouncedSearch,
+    categoryId: selectedCategoryId != null && selectedCategoryId > 0 ? selectedCategoryId : undefined,
   });
 
   const pages = data?.pages ?? [];
@@ -275,6 +302,13 @@ export default function TransactionsScreen() {
     setSearchInput('');
     setTypeFilter('all');
   }, []);
+  const onSelectCategory = useCallback((id: number) => {
+    setSelectedCategoryId(prev => (prev === id ? undefined : id));
+  }, []);
+  const onChangeTypeFilter = useCallback((value: TxTypeFilter) => {
+    setTypeFilter(value);
+    setSelectedCategoryId(undefined);
+  }, []);
 
   if (isLoading || !firstPage) {
     return (
@@ -287,20 +321,19 @@ export default function TransactionsScreen() {
 
   const filtered = typeFilter !== 'all' || debouncedSearch.trim() !== '';
   const noResults = filtered && pages.every(p => p.isEmpty);
+  const rangeLabel = `${formatShortDate(firstPage.rangeStart)}–${formatShortDate(firstPage.rangeEnd)}`;
 
   return (
     <View style={styles.screen}>
       <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={() => setFilterSheetOpen(true)} />} />
       <View style={styles.toolbar}>
-        <Text style={styles.subtitle}>
-          {transactionsCountLabel(firstPage.rows.length, `${formatShortDate(firstPage.rangeStart)}–${formatShortDate(firstPage.rangeEnd)}`)}
-        </Text>
+        <Text style={styles.subtitle}>{transactionsCountLabel(firstPage.rows.length, rangeLabel)}</Text>
         <SearchField value={searchInput} onChangeText={setSearchInput} />
         <Segmented
           testID="tx-type-segmented"
           options={TYPE_OPTIONS}
           value={typeFilter}
-          onChange={value => setTypeFilter(value as TxTypeFilter)}
+          onChange={value => onChangeTypeFilter(value as TxTypeFilter)}
         />
       </View>
 
@@ -312,10 +345,20 @@ export default function TransactionsScreen() {
           <Button label={resetSearchLabel()} variant="secondary" onPress={resetFilters} />
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList
+          testID="transactions-list"
           data={pages}
           keyExtractor={item => item.period}
-          ListHeaderComponent={<SummaryCard page={firstPage} hidden={hidden} />}
+          ListHeaderComponent={
+            <StatsSection
+              page={firstPage}
+              hidden={hidden}
+              typeFilter={typeFilter}
+              rangeLabel={rangeLabel}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={onSelectCategory}
+            />
+          }
           renderItem={({ item, index }) => (
             <MonthSection
               page={item}
@@ -329,13 +372,17 @@ export default function TransactionsScreen() {
             if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
           }}
           onEndReachedThreshold={0.4}
-          contentContainerStyle={styles.listContent}
+          onScroll={fab.onScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={[styles.listContent, { paddingBottom: FAB_SIZE + FAB_GAP + TAB_BAR_ZONE_HEIGHT + insets.bottom }]}
         />
       )}
 
-      <Fab label={recordViaChatLabel()} style={styles.fab} onPress={() => router.push('/ai-chat')}>
-        <Icon name="plus" size={20} color={MonoColors.bg} />
-      </Fab>
+      <Animated.View style={[styles.fab, fab.style, { bottom: FAB_GAP + TAB_BAR_ZONE_HEIGHT + insets.bottom }]}>
+        <Fab label={recordViaChatLabel()} onPress={() => router.push('/ai-chat')}>
+          <Icon name="plus" size={20} color={MonoColors.bg} />
+        </Fab>
+      </Animated.View>
 
       <Sheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} closeLabel={closeLabel()}>
         <View style={styles.filterSheet}>
@@ -381,11 +428,17 @@ const styles = StyleSheet.create({
 
   listContent: { paddingHorizontal: 20, paddingBottom: 96, gap: 20 },
 
-  summaryCard: { backgroundColor: MonoColors.card, borderRadius: 16, padding: 20, gap: 12, marginBottom: 20 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  summaryItem: { gap: 4 },
-  summaryItemLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
-  transferNote: { ...MonoText.caption, color: MonoColors.textMeta },
+  summaryCard: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, marginBottom: 20 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, gap: 12 },
+  summaryRowBorder: { borderTopWidth: 1, borderTopColor: MonoColors.border },
+  summaryLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
+  // 600 weight — borrows bodyStrong's font family (CLAUDE.md: one font family per
+  // weight on Android, so this can't be a plain fontWeight override) while keeping
+  // label's own size/tracking/case.
+  summaryLabelNet: { fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text },
+  summaryValueWrap: { flex: 1, alignItems: 'flex-end' },
+  summaryValueNet: { fontFamily: MonoText.bodyStrong.fontFamily },
+  transferNote: { ...MonoText.caption, color: MonoColors.textMeta, paddingTop: 12 },
 
   monthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
   monthLabel: { ...MonoText.titleM, color: MonoColors.text },
@@ -429,7 +482,9 @@ const styles = StyleSheet.create({
   approxIdr: { ...MonoText.caption, color: MonoColors.textMeta },
   rowKindLabel: { ...MonoText.caption, color: MonoColors.textMeta },
 
-  fab: { position: 'absolute', right: 20, bottom: 24 },
+  // `bottom` is set inline per-render (Fase 4.3a fix: 16 above the tab bar's own zone,
+  // plus the safe-area inset) — this only owns the fixed `right` and positioning mode.
+  fab: { position: 'absolute', right: 20 },
 
   filterSheet: { gap: 8, paddingBottom: 8 },
   filterTitle: { ...MonoText.titleM, color: MonoColors.text },

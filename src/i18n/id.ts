@@ -69,6 +69,7 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
+
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
 export function currencyCountTag(count: number): string {
@@ -179,7 +180,7 @@ export function cardStackOpenLabel(name: string, balanceFormatted: string): stri
 }
 
 export function transferAccountsLabel(): string {
-  return 'Transfer between accounts';
+  return 'Transfer';
 }
 
 export function addAccountLabel(): string {
@@ -304,4 +305,41 @@ export function netLabel(): string {
 // every sheet built on top of src/components/Sheet.tsx.
 export function closeLabel(): string {
   return 'Close';
+}
+
+// Transactions tab's statistics area (Fase 4.3c).
+export function statsCardTitle(rangeLabel: string): string {
+  return `Summary · ${rangeLabel}`;
+}
+
+export function hideStatsLabel(): string {
+  return 'Hide statistics';
+}
+
+export function showStatsLabel(): string {
+  return 'Show statistics';
+}
+
+export function spentLabel(): string {
+  return 'Spent';
+}
+
+export function ofLimitLabel(limitFormatted: string): string {
+  return `of ${limitFormatted} limit`;
+}
+
+export function overLimitLabel(): string {
+  return 'Over';
+}
+
+export function othersLabel(): string {
+  return 'Others';
+}
+
+export function categoryRowAccessibilityLabel(name: string, percentFormatted: string, amountFormatted: string): string {
+  return `${name}, ${percentFormatted}, ${amountFormatted}`;
+}
+
+export function ringAccessibilityLabel(kindLabel: string, totalFormatted: string, limitNote?: string): string {
+  return limitNote ? `${kindLabel} breakdown, ${totalFormatted}, ${limitNote}` : `${kindLabel} breakdown, ${totalFormatted}`;
 }

@@ -15,12 +15,14 @@ import { getCurrentPeriod, getEarliestPeriod, getTransactionsPage, type Transact
 export interface TransactionsListFilter {
   type: TxTypeFilter; // 'all' | 'income' | 'expense' | 'transfer'
   search: string; // '' = no search
+  categoryId?: number; // Fase 4.3c: tapping a ring slice or category row
 }
 
-function toRepoFilter(filter: TransactionsListFilter): { kind?: 'income' | 'expense' | 'transfer'; search?: string } {
+function toRepoFilter(filter: TransactionsListFilter): { kind?: 'income' | 'expense' | 'transfer'; search?: string; categoryId?: number } {
   return {
     kind: filter.type === 'all' ? undefined : filter.type,
     search: filter.search.trim() || undefined,
+    categoryId: filter.categoryId,
   };
 }
 

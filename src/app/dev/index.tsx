@@ -2,17 +2,18 @@
 // clock to the design's reference date, so Ringkasan/Anggaran have something to show
 // before real entry screens exist. Unreachable in a production build (same Redirect
 // pattern as app/dev/gallery.tsx).
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, Redirect } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/Button';
 import { showToast } from '@/components/toast-store';
 import { setClockOverride } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
+import { loadNovemberData } from '@/dev/loadNovemberData';
 import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
 import { resetDatabase } from '@/dev/resetDatabase';
 import { MonoColors } from '@/theme/tokens';
@@ -54,6 +55,11 @@ function DevToolsContent() {
           label="Muat data contoh + Valas"
           variant="secondary"
           onPress={() => after(() => loadSampleDataWithValas(db), 'Data contoh + Valas dimuat.')}
+        />
+        <Button
+          label="+ Tambah transaksi November"
+          variant="secondary"
+          onPress={() => after(() => loadNovemberData(db), 'Transaksi November ditambahkan.')}
         />
 
         {confirmingReset ? (

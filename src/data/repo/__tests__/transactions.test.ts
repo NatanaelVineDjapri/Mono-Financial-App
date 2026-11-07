@@ -8,6 +8,7 @@ import {
   getTransaction,
   insertTransaction,
   listAccountActivity,
+  listCategoryTotals,
   listDailyTotals,
   listTransactions,
   listTransactionsForPeriod,
@@ -143,5 +144,20 @@ describe('transactions repo: Transactions tab queries', () => {
   test('getEarliestPeriod finds the oldest period regardless of any filter', async () => {
     const { db } = await setupMonth();
     expect(await getEarliestPeriod(db)).toBe('2026-08');
+  });
+
+  test('listCategoryTotals sums amount_idr per category for one kind, with the category\'s own name and icon', async () => {
+    const { db } = await setupMonth();
+    const expense = await listCategoryTotals(db, '2026-10', 'expense');
+    expect(expense).toEqual([
+      { category_id: expect.any(Number), category_name: 'Bills', category_icon: null, amount_idr: 1150000 },
+      { category_id: expect.any(Number), category_name: 'Shopping', category_icon: null, amount_idr: 812000 },
+    ]);
+
+    const income = await listCategoryTotals(db, '2026-10', 'income');
+    expect(income).toEqual([
+      { category_id: expect.any(Number), category_name: 'Salary', category_icon: null, amount_idr: 7000000 },
+      { category_id: expect.any(Number), category_name: 'Freelance', category_icon: null, amount_idr: 500000 },
+    ]);
   });
 });
