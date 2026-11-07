@@ -39,7 +39,7 @@ export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): st
 // fragment inside the full accessibility label. `nominal` is caller-formatted (rp() then
 // shown()) — this file only owns the connector words, never the number formatting.
 export function overBy(nominal: string): string {
-  return `Over ${nominal}`;
+  return `Over by ${nominal}`;
 }
 
 export function progressAccessibilityLabel(subject: string, usedPct: string, overNominal?: string): string {
@@ -441,4 +441,280 @@ export function unknownFilterOptionLabel(id: number): string {
 
 export function filtersBadgeValue(activeCount: number): string {
   return activeCount > 99 ? '99+' : String(activeCount);
+}
+
+// Budgets tab, Budget-Create and Budget-Category (Fase 4.4; DESIGN.md "F. Budgets",
+// PAGES.md F1–F3). Every nominal arrives pre-formatted (rp() then shown()).
+export function budgetsTotalSpentLabel(): string {
+  return 'Total spent';
+}
+
+export function budgetLimitLabel(limitFormatted: string): string {
+  return `Limit ${limitFormatted}`;
+}
+
+export function usedPctLabel(pctFormatted: string): string {
+  return `${pctFormatted} used`;
+}
+
+export function budgetRemainingLabel(amountFormatted: string): string {
+  return `${amountFormatted} remaining`;
+}
+
+export function budgetLeftLabel(amountFormatted: string): string {
+  return `${amountFormatted} left`;
+}
+
+export function daysLeftInLabel(monthNameText: string): string {
+  return `Days left in ${monthNameText}`;
+}
+
+export function availablePerDayLabel(): string {
+  return 'Available per day';
+}
+
+export function byCategoryLabel(): string {
+  return 'By category';
+}
+
+export function mostUsedFirstLabel(): string {
+  return 'Most used first';
+}
+
+export function budgetsFootnote(): string {
+  return 'Only consumption expenses count here. Transfers between your accounts are excluded. Total remaining = total limit − total spent, so an overspent category reduces it.';
+}
+
+export function addCategoryBudgetLabel(): string {
+  return 'Add category budget';
+}
+
+export function reviewSpendingByCategoryLabel(): string {
+  return 'Review spending by category';
+}
+
+export function editMonthlyLimitLabel(): string {
+  return 'Edit monthly limit';
+}
+
+// Budgets header month chip and the month sheet it opens.
+export function monthChipAccessibilityLabel(monthLabelText: string): string {
+  return `Month: ${monthLabelText}. Change month`;
+}
+
+export function chooseMonthTitle(): string {
+  return 'Choose month';
+}
+
+export function budgetsEmptyTitle(monthLabelText: string): string {
+  return `No budget for ${monthLabelText}`;
+}
+
+export function budgetsEmptyBody(): string {
+  return 'Set a monthly limit, then give each category its share.';
+}
+
+export function addBudgetLabel(): string {
+  return 'Add budget';
+}
+
+export function noCategoryBudgetsYet(): string {
+  return 'No category budgets this month yet.';
+}
+
+export function budgetsErrorMessage(): string {
+  return 'Failed to load budgets.';
+}
+
+// Every budget bar's accessibility label carries the exact figures, never only a share.
+export type BudgetBarState = { kind: 'left'; amountFormatted: string } | { kind: 'remaining'; amountFormatted: string } | { kind: 'over'; amountFormatted: string };
+
+export function budgetBarAccessibilityLabel(
+  subject: string,
+  spentFormatted: string,
+  limitFormatted: string,
+  usedPct: string,
+  state: BudgetBarState,
+): string {
+  const tail =
+    state.kind === 'over'
+      ? `over by ${state.amountFormatted}`
+      : state.kind === 'remaining'
+        ? `${state.amountFormatted} remaining`
+        : `${state.amountFormatted} left`;
+  return `${subject}: ${spentFormatted} spent of ${limitFormatted} limit, ${usedPct} used, ${tail}`;
+}
+
+export function budgetRowAccessibilityLabel(barLabel: string): string {
+  return `${barLabel}. Review spending.`;
+}
+
+export function monthTotalSubject(monthLabelText: string): string {
+  return `${monthLabelText} total`;
+}
+
+// Budget-Create (create/edit budget and the monthly limit, one form).
+export function editCategoryBudgetTitle(): string {
+  return 'Edit category budget';
+}
+
+export function monthlyLimitTitle(): string {
+  return 'Monthly limit';
+}
+
+export function stepLabel(step: number, text: string): string {
+  return `${step} · ${text}`;
+}
+
+export function categoryWithoutBudgetLabel(): string {
+  return 'Category without a budget';
+}
+
+export function categoryLabel(): string {
+  return 'Category';
+}
+
+export function budgetCategoryHelper(): string {
+  return 'Only expense categories can have a budget. Transfers never do.';
+}
+
+export function noCategoriesLeftMessage(): string {
+  return 'Every expense category already has a budget this month.';
+}
+
+export function monthlyLimitForLabel(categoryName: string | null): string {
+  return categoryName ? `Monthly limit for ${categoryName}` : 'Monthly limit for this category';
+}
+
+export function totalMonthlyLimitLabel(monthLabelText: string): string {
+  return `Total monthly limit · ${monthLabelText}`;
+}
+
+export function repeatEveryMonthLabel(): string {
+  return 'Repeat every month';
+}
+
+export function repeatEveryMonthHelper(monthLabelText: string): string {
+  return `Starts ${monthLabelText}. You can change a single month later.`;
+}
+
+export function allocationCheckLabel(): string {
+  return 'Allocation check';
+}
+
+export function raisedFromLabel(amountFormatted: string): string {
+  return `Raised from ${amountFormatted}`;
+}
+
+export function alreadyAllocatedLabel(count: number): string {
+  return `Already allocated, ${count} ${count === 1 ? 'category' : 'categories'}`;
+}
+
+export function allocatedLabel(count: number): string {
+  return `Allocated, ${count} ${count === 1 ? 'category' : 'categories'}`;
+}
+
+export function thisBudgetLabel(): string {
+  return 'This budget';
+}
+
+export function totalAllocatedLabel(): string {
+  return 'Total allocated';
+}
+
+// The message catalogue's Budget row (DESIGN.md section 14, States-Validation).
+export function overMonthlyLimitBy(amountFormatted: string): string {
+  return `Over the monthly limit by ${amountFormatted}.`;
+}
+
+export function overMonthlyLimitHint(): string {
+  return 'Raise the limit or lower this budget to save.';
+}
+
+export function overMonthlyLimitHintForLimit(): string {
+  return 'Raise the limit or lower category budgets first.';
+}
+
+export function unallocatedMessage(amountFormatted: string): string {
+  return `${amountFormatted} of the monthly limit is not allocated yet.`;
+}
+
+export function fullyAllocatedMessage(): string {
+  return 'The whole monthly limit is allocated.';
+}
+
+export function raiseMonthlyLimitToLabel(amountFormatted: string): string {
+  return `Raise monthly limit to ${amountFormatted}`;
+}
+
+export function saveBudgetLabel(): string {
+  return 'Save budget';
+}
+
+export function saveLimitLabel(): string {
+  return 'Save limit';
+}
+
+// Message catalogue (DESIGN.md section 14): Amount and Category rows.
+export function amountAboveZeroMessage(): string {
+  return 'Enter an amount above Rp0.';
+}
+
+export function chooseCategoryMessage(): string {
+  return 'Choose a category.';
+}
+
+export function budgetSavedToast(categoryName: string, amountFormatted: string): string {
+  return `${categoryName} budget saved: ${amountFormatted}.`;
+}
+
+export function monthlyLimitSavedToast(amountFormatted: string): string {
+  return `Monthly limit saved: ${amountFormatted}.`;
+}
+
+export function budgetSaveFailedMessage(): string {
+  return 'Could not save. Nothing was changed.';
+}
+
+// Budget-Category (category spending review).
+export function categoryReviewTitle(categoryName: string, monthLabelText: string): string {
+  return `${categoryName} · ${monthLabelText}`;
+}
+
+export function expensesInCategoryLabel(): string {
+  return 'Expenses in this category';
+}
+
+export function itemsCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'item' : 'items'}`;
+}
+
+export function noExpensesInCategoryMessage(monthLabelText: string): string {
+  return `No expenses in this category in ${monthLabelText}.`;
+}
+
+export function editNamedBudgetLabel(categoryName: string): string {
+  return `Edit ${categoryName} budget`;
+}
+
+export function addNamedBudgetLabel(categoryName: string): string {
+  return `Add ${categoryName} budget`;
+}
+
+export function noBudgetForCategoryMessage(categoryName: string, monthLabelText: string): string {
+  return `${categoryName} has no budget in ${monthLabelText}.`;
+}
+
+export function raiseBudgetNote(categoryName: string, byFormatted: string, totalFormatted: string, limitFormatted: string, exceedsLimit: boolean): string {
+  return exceedsLimit
+    ? `Raising ${categoryName} by ${byFormatted} would bring total allocation to ${totalFormatted}, above the ${limitFormatted} monthly limit. MONO will ask you to raise the limit as well.`
+    : `Raising ${categoryName} by ${byFormatted} would bring total allocation to ${totalFormatted}, within the ${limitFormatted} monthly limit.`;
+}
+
+export function backLabel(): string {
+  return 'Back';
+}
+
+export function categoryNotFoundMessage(): string {
+  return 'This category no longer exists.';
 }
