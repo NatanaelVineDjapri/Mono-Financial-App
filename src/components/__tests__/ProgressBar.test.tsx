@@ -34,7 +34,14 @@ describe('ProgressBar', () => {
     const bar = result.getByRole('progressbar');
     expect(bar.props.accessibilityValue).toMatchObject({ min: 0, max: 100, now: 116 });
     expect(bar.props.accessibilityLabel).toBe('Belanja, 116,00% used, over by Rp112.000');
-    expect(result.getByText('Over Rp112.000')).toBeTruthy();
+    expect(result.getByText('Over by Rp112.000')).toBeTruthy();
+  });
+
+  test('accessibilityLabel replaces the generated label', async () => {
+    const result = await render(
+      <ProgressBar valueBp={9583} label="Bills" accessibilityLabel="Bills: Rp1.150.000 spent of Rp1.200.000 limit, 95,83% used, Rp50.000 left" />,
+    );
+    expect(result.getByRole('progressbar').props.accessibilityLabel).toBe('Bills: Rp1.150.000 spent of Rp1.200.000 limit, 95,83% used, Rp50.000 left');
   });
 
   test('over limit but no overAmount given: no over row (documented caller responsibility)', async () => {
@@ -45,8 +52,8 @@ describe('ProgressBar', () => {
   test('hidden mode: the over row never leaks the nominal', async () => {
     await act(() => useHideAmounts.getState().setHidden(true));
     const result = await render(<ProgressBar valueBp={11600} label="Belanja" overAmount={112000} testID="bar" />);
-    expect(result.queryByText('Over Rp112.000')).toBeNull();
-    expect(result.getByText('Over Rp••••••••')).toBeTruthy();
+    expect(result.queryByText('Over by Rp112.000')).toBeNull();
+    expect(result.getByText('Over by Rp••••••••')).toBeTruthy();
     const bar = result.getByRole('progressbar');
     expect(bar.props.accessibilityLabel).toBe('Belanja, 116,00% used, over by Rp••••••••');
   });

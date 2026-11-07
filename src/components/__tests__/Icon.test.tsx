@@ -21,6 +21,8 @@ const NAMES: IconName[] = [
   'dots',
   'transfer',
   'lock',
+  'chevron-left',
+  'pencil',
 ];
 
 // Decorative icons (the default, no `label`) are hidden from accessibility, and RTL's

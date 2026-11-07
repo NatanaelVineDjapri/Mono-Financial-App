@@ -21,8 +21,8 @@
 // across a generous fixed virtual width and left to the Canvas's own clip — whatever
 // the flex layout actually gives it crops the rest automatically, with no measurement
 // needed.
-import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { Canvas, Line } from '@shopify/react-native-skia';
+import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -45,6 +45,10 @@ export interface ProgressBarProps {
   // the type level since TS can't make a prop conditionally required on another prop's
   // runtime value; omitting it while over limit just skips the row silently.
   overAmount?: number;
+  // Replaces the generated label when a screen has more exact figures to say (e.g.
+  // Budgets: spent, limit and what is left). The caller passes every nominal through
+  // shown() itself.
+  accessibilityLabel?: string;
   style?: ViewStyle;
   testID?: string;
 }
@@ -59,7 +63,7 @@ function stripes(width: number, height: number) {
   return lines;
 }
 
-export function ProgressBar({ valueBp, label, overAmount, style, testID }: ProgressBarProps) {
+export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: labelOverride, style, testID }: ProgressBarProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const bp = Math.max(0, valueBp);
   const overBp = Math.max(0, bp - 10000);
@@ -72,7 +76,7 @@ export function ProgressBar({ valueBp, label, overAmount, style, testID }: Progr
   const usedPct = pct(bp);
   const showOverRow = isOver && overAmount != null;
   const overNominalText = showOverRow ? shown(rp(overAmount!, false), hidden) : undefined;
-  const accessibilityLabel = progressAccessibilityLabel(label, usedPct, showOverRow ? overNominalText : undefined);
+  const accessibilityLabel = labelOverride ?? progressAccessibilityLabel(label, usedPct, showOverRow ? overNominalText : undefined);
 
   return (
     <View style={style} testID={testID}>
