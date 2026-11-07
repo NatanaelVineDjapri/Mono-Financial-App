@@ -9,12 +9,13 @@ import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
 import { Fab } from '@/components/Fab';
 import { FilterSheet } from '@/components/FilterSheet';
+import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon, type IconName } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
-import { TAB_BAR_ZONE_PADDING_TOP } from '@/components/TabBar';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
+import { TAB_BAR_ZONE_PADDING_TOP } from '@/components/TabBar';
 import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
 import { activeTransactionFilterCount } from '@/domain/transactionFilters';
@@ -85,20 +86,13 @@ function useDebouncedValue(value: string, delayMs: number): string {
 
 function FilterButton({ onPress, activeCount }: { onPress: () => void; activeCount: number }) {
   return (
-    <Pressable
+    <HeaderButton
+      icon="filter"
+      label={filtersButtonAccessibilityLabel(activeCount)}
+      badge={activeCount > 0 ? filtersBadgeValue(activeCount) : undefined}
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={filtersButtonAccessibilityLabel(activeCount)}
-      hitSlop={4}
-      style={styles.headerAction}
-    >
-      <Icon name="filter" color={MonoColors.text} />
-      {activeCount > 0 && (
-        <View accessible={false} style={styles.filterBadge}>
-          <Text style={styles.filterBadgeText}>{filtersBadgeValue(activeCount)}</Text>
-        </View>
-      )}
-    </Pressable>
+      testID="transactions-filters-button"
+    />
   );
 }
 
@@ -518,29 +512,6 @@ export default function TransactionsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: MonoColors.border,
-    backgroundColor: MonoColors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    paddingHorizontal: 4,
-    backgroundColor: MonoColors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadgeText: { ...MonoText.caption, color: MonoColors.bg, fontSize: 10, lineHeight: 12 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center', marginTop: 24 },
   toolbar: { paddingHorizontal: 20, gap: 12, paddingBottom: 12 },
   activeFilters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
