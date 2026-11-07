@@ -15,7 +15,10 @@ import { Icon } from '@/components/Icon';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-const ZONE_HEIGHT = 72;
+// Exported so other screens (e.g. the Transactions tab's FAB) can size themselves
+// against the real navbar zone instead of a duplicated magic number.
+export const TAB_BAR_ZONE_HEIGHT = 72;
+const ZONE_HEIGHT = TAB_BAR_ZONE_HEIGHT;
 const ZONE_PADDING_TOP = 8;
 const ZONE_PADDING_BOTTOM = 8;
 const ZONE_PADDING_HORIZONTAL = 10;

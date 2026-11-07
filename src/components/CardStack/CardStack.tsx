@@ -36,19 +36,24 @@ export interface CardStackAccount {
   icon: string | null;
   balance: number; // rupiah; for forex, the account's total rupiah value
   subline?: string; // forex only
-  currencyCount?: number; // forex only — drives the open card's "N CURRENCIES" tag
 }
 
 export interface CardStackProps {
   netWorth: number;
   accountCount: number;
-  note?: string; // the total card's own note line — caller composes it (incomplete warning, forex estimate, or nothing)
+  // The total card's note line. `note` is the everyday one (or an incomplete-data
+  // warning) and always applies; `forexNote` — the "foreign currency uses your latest
+  // rates" line — only replaces it while the forex account is the one *open* (this
+  // component owns that open/closed state, not the caller), since it's only relevant
+  // detail about whichever card is actually in view.
+  note: string;
+  forexNote?: string;
   accounts: CardStackAccount[]; // already in display order (Bank, Cash, E-wallet, Savings, Valas, then stored order)
   onOpenAccount: (id: number) => void;
   testID?: string;
 }
 
-function TotalCard({ netWorth, accountCount, note }: { netWorth: number; accountCount: number; note?: string }) {
+function TotalCard({ netWorth, accountCount, note }: { netWorth: number; accountCount: number; note: string }) {
   return (
     <View style={styles.totalCard}>
       <Svg style={StyleSheet.absoluteFill}>
@@ -75,13 +80,14 @@ function TotalCard({ netWorth, accountCount, note }: { netWorth: number; account
 interface StackedCardProps {
   account: CardStackAccount;
   isOpen: boolean;
+  isLast: boolean;
   zIndex: number;
   hidden: boolean;
   onToggle: (id: number) => void;
   onOpen: (id: number) => void;
 }
 
-function StackedCard({ account, isOpen, zIndex, hidden, onToggle, onOpen }: StackedCardProps) {
+function StackedCard({ account, isOpen, isLast, zIndex, hidden, onToggle, onOpen }: StackedCardProps) {
   const reducedMotion = useReducedMotion();
   const height = useSharedValue(isOpen ? OPEN_HEIGHT : STRIP_HEIGHT);
 
@@ -112,7 +118,7 @@ function StackedCard({ account, isOpen, zIndex, hidden, onToggle, onOpen }: Stac
           icon={account.icon}
           balance={account.balance}
           subline={isOpen ? account.subline : undefined}
-          currencyCount={isOpen ? account.currencyCount : undefined}
+          liftContent={isOpen && !isLast}
           accessibilityLabel={accessibilityLabel}
           onPress={() => (isOpen ? onOpen(account.id) : onToggle(account.id))}
           testID={`card-stack-card-${account.id}`}
@@ -122,18 +128,32 @@ function StackedCard({ account, isOpen, zIndex, hidden, onToggle, onOpen }: Stac
   );
 }
 
-export function CardStack({ netWorth, accountCount, note, accounts, onOpenAccount, testID }: CardStackProps) {
+// Default-open is "the last card" — except Valas, which still sorts last in the stack
+// but shouldn't be the first thing the screen opens with on its own; this picks the
+// last *non-forex* account instead, falling back to the true last account only if
+// every account happens to be forex.
+function defaultOpenId(accounts: CardStackAccount[]): number | undefined {
+  for (let i = accounts.length - 1; i >= 0; i--) {
+    if (accounts[i].type !== 'forex') return accounts[i].id;
+  }
+  return accounts[accounts.length - 1]?.id;
+}
+
+export function CardStack({ netWorth, accountCount, note, forexNote, accounts, onOpenAccount, testID }: CardStackProps) {
   const hidden = useHideAmounts(s => s.hidden);
-  const [openId, setOpenId] = useState<number | undefined>(() => accounts[accounts.length - 1]?.id);
+  const [openId, setOpenId] = useState<number | undefined>(() => defaultOpenId(accounts));
+  const openAccount = accounts.find(a => a.id === openId);
+  const displayedNote = forexNote && openAccount?.type === 'forex' ? forexNote : note;
 
   return (
     <View testID={testID}>
-      <TotalCard netWorth={netWorth} accountCount={accountCount} note={note} />
+      <TotalCard netWorth={netWorth} accountCount={accountCount} note={displayedNote} />
       {accounts.map((account, index) => (
         <StackedCard
           key={account.id}
           account={account}
           isOpen={account.id === openId}
+          isLast={index === accounts.length - 1}
           zIndex={index + 1}
           hidden={hidden}
           onToggle={setOpenId}

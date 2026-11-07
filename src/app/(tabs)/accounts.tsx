@@ -18,20 +18,20 @@ import type { AccountsOverview, AccountsOverviewAccount } from '@/domain/balance
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
 import {
-  accountsEmptyBody,
-  accountsEmptyTitle,
-  accountsErrorMessage,
-  accountsForexEstimateNote,
-  accountsIncompleteNote,
-  accountsNoLoginNote,
-  accountsTransferNote,
-  addAccountLabel,
-  exchangeRatesLabel,
-  exchangeRatesUpdatedLabel,
-  notAvailableToast,
-  retryLabel,
-  tabLabel,
-  transferAccountsLabel,
+    accountsEmptyBody,
+    accountsEmptyTitle,
+    accountsErrorMessage,
+    accountsForexEstimateNote,
+    accountsIncompleteNote,
+    accountsNoLoginNote,
+    accountsTransferNote,
+    addAccountLabel,
+    exchangeRatesLabel,
+    exchangeRatesUpdatedLabel,
+    notAvailableToast,
+    retryLabel,
+    tabLabel,
+    transferAccountsLabel,
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -71,17 +71,22 @@ function toCardStackAccount(account: AccountsOverviewAccount): CardStackAccount 
     icon: account.icon,
     balance: account.balance,
     subline: forexSubline(account),
-    currencyCount: account.pockets?.length,
   };
 }
 
-// The total card's one note line (Fase 4.2c step 2): a genuine data gap (incomplete)
-// outranks the plain "this is an estimate" note, and either can be absent.
-function totalCardNote(overview: AccountsOverview, latestFxUpdate: string | null | undefined): string | undefined {
-  if (overview.incomplete) return accountsIncompleteNote();
+// The total card's note (Fase 4.2c step 3: the stack's old standalone note below it is
+// gone — this is now the only place it lives). `note` is the everyday one, or a genuine
+// data-gap warning that always applies regardless of what's open; `forexNote` is only
+// shown by CardStack while the Valas card itself is the one open, so it never overrides
+// the warning (accounts.tsx never hands out both at once).
+function defaultNote(overview: AccountsOverview): string {
+  return overview.incomplete ? accountsIncompleteNote() : accountsTransferNote();
+}
+
+function forexOpenNote(overview: AccountsOverview, latestFxUpdate: string | null | undefined): string | undefined {
+  if (overview.incomplete) return undefined;
   const hasForex = overview.groups.some(g => g.type === 'forex');
-  if (hasForex && latestFxUpdate) return accountsForexEstimateNote(formatDateTime(latestFxUpdate));
-  return undefined;
+  return hasForex && latestFxUpdate ? accountsForexEstimateNote(formatDateTime(latestFxUpdate)) : undefined;
 }
 
 function ExchangeRatesRow({ latestFxUpdate }: { latestFxUpdate: string | null | undefined }) {
@@ -159,12 +164,12 @@ export default function AccountsScreen() {
         <CardStack
           netWorth={data.netWorth}
           accountCount={data.accountCount}
-          note={totalCardNote(data, latestFxUpdate)}
+          note={defaultNote(data)}
+          forexNote={forexOpenNote(data, latestFxUpdate)}
           accounts={accounts}
           onOpenAccount={onOpenAccount}
           testID="accounts-card-stack"
         />
-        <Text style={styles.transferNote}>{accountsTransferNote()}</Text>
         {hasForex && <ExchangeRatesRow latestFxUpdate={latestFxUpdate} />}
         <View style={styles.buttonRow}>
           <Button label={transferAccountsLabel()} icon="transfer" onPress={notAvailable} style={styles.buttonFlex} />
@@ -196,8 +201,6 @@ const styles = StyleSheet.create({
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
-
-  transferNote: { ...MonoText.caption, color: MonoColors.textMeta },
 
   ratesRow: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import TransactionsScreen from '../transactions';
@@ -202,5 +202,60 @@ describe('TransactionsScreen', () => {
     const result = await renderScreen();
     await fireEvent.press(result.getByRole('button', { name: 'Filters' }));
     expect(result.getByText('Filters are coming soon.')).toBeTruthy();
+  });
+
+  describe('Fase 4.3a fixes', () => {
+    test('the summary card stacks three rows (label left, nominal right), not three columns', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+
+      const incomeRow = result.getByTestId('summary-row-income');
+      const expenseRow = result.getByTestId('summary-row-expense');
+      const netRow = result.getByTestId('summary-row-net');
+      // Each row holds exactly its own label and its own value — a column layout would
+      // instead put all three labels in one row and all three values in another.
+      expect(within(incomeRow).getByText('Income')).toBeTruthy();
+      expect(within(incomeRow).getByText('+Rp7.500.000')).toBeTruthy();
+      expect(within(expenseRow).getByText('Expense')).toBeTruthy();
+      expect(within(expenseRow).getAllByText('−Rp4.257.000').length).toBeGreaterThan(0);
+      expect(within(netRow).getByText('Net')).toBeTruthy();
+      expect(within(netRow).getAllByText('+Rp3.243.000').length).toBeGreaterThan(0);
+    });
+
+    test('the summary card\'s figures never truncate (no numberOfLines) so they can wrap at a large text scale', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+      const value = within(result.getByTestId('summary-row-income')).getByText('+Rp7.500.000');
+      expect(value.props.numberOfLines).toBeUndefined();
+    });
+
+    test('a day with only transfers shows no daily total (not "Rp0")', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+      expect(result.getByText('Tue, 27 Oct')).toBeTruthy(); // the day header itself still shows
+      expect(result.queryByText('Rp0')).toBeNull();
+      expect(result.queryByText('+Rp0')).toBeNull();
+    });
+
+    test('the list\'s bottom padding clears the FAB, its gap and the tab bar\'s zone', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+      const list = result.getByTestId('transactions-list');
+      const flatStyle = Object.assign({}, ...[list.props.contentContainerStyle].flat());
+      expect(flatStyle.paddingBottom).toBe(56 + 16 + 72); // + insets.bottom (0 in this fixture)
+    });
+
+    test('a row\'s subtitle has no date (the day header above it already states it)', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+      expect(result.getByText('Shopping · BCA Tabungan')).toBeTruthy();
+      expect(result.queryByText(/Shopping · BCA Tabungan ·/)).toBeNull();
+    });
+
+    test('a transfer row\'s subtitle has no date either', async () => {
+      mockResult(baseResult([OCT_PAGE]));
+      const result = await renderScreen();
+      expect(result.getByText('BCA Tabungan → Jago Pocket')).toBeTruthy();
+    });
   });
 });

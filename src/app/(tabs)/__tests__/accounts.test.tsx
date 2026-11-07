@@ -96,15 +96,53 @@ describe('AccountsScreen', () => {
     }
   });
 
-  test('a forex account appears last, with its own card open showing the ≈ total and its pockets', async () => {
+  // Fase 4.2c step 3: the stack's own standalone note below it is gone — the total
+  // card's note is the only place it lives, and it's never empty.
+  test('with no Valas and no data gap, the total card falls back to the everyday transfer note', async () => {
+    mockResult({ data: SAMPLE, isLoading: false, isError: false });
+    const result = await renderScreen();
+    expect(result.getByText('Every account added together. Moving money between accounts never changes this total.')).toBeTruthy();
+  });
+
+  test('a forex account appears last, but is not open by default (the last non-forex account is)', async () => {
     mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
     const result = await renderScreen();
 
-    const valasCard = result.getByTestId('card-stack-card-5');
-    expect(valasCard.props.accessibilityLabel).toContain('Open account.');
+    // Jago Pocket (id 4), the last non-forex account, opens instead of Valas (id 5).
+    expect(result.getByTestId('card-stack-card-4').props.accessibilityLabel).toContain('Open account.');
+    expect(result.getByTestId('card-stack-card-5').props.accessibilityLabel).toContain('Bring card forward.');
+  });
+
+  test('bringing the Valas card forward shows its ≈ total, pockets and no tag pill', async () => {
+    mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
+    const result = await renderScreen();
+
+    await fireEvent.press(result.getByTestId('card-stack-card-5'));
+    expect(result.getByTestId('card-stack-card-5').props.accessibilityLabel).toContain('Open account.');
     expect(result.getByText('≈ ')).toBeTruthy();
     expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
-    expect(result.getByText('2 CURRENCIES')).toBeTruthy();
+    // No tag pill (Fase 4.2c step 4: "hapus tag pill 'N MATA UANG'").
+    expect(result.queryByText(/CURRENC/)).toBeNull();
+  });
+
+  test('the forex estimate note only shows while the Valas card is open; closing it brings back the everyday note', async () => {
+    mockFxUpdate('2026-10-28T09:00:00+07:00');
+    mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
+    const result = await renderScreen();
+
+    // Valas isn't open by default — the plain everyday note shows, not the estimate.
+    expect(result.getByText('Every account added together. Moving money between accounts never changes this total.')).toBeTruthy();
+    expect(result.queryByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeNull();
+
+    // Bring Valas forward — the estimate note takes over.
+    await fireEvent.press(result.getByTestId('card-stack-card-5'));
+    expect(result.getByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeTruthy();
+    expect(result.queryByText('Every account added together. Moving money between accounts never changes this total.')).toBeNull();
+
+    // Bring BCA forward instead — Valas collapses, and the note reverts.
+    await fireEvent.press(result.getByTestId('card-stack-card-1'));
+    expect(result.getByText('Every account added together. Moving money between accounts never changes this total.')).toBeTruthy();
+    expect(result.queryByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeNull();
   });
 
   test('the Exchange rates row only appears with a forex account, and shows when it was last updated', async () => {
@@ -125,10 +163,11 @@ describe('AccountsScreen', () => {
     expect(result.getByText('Incomplete: some currencies are missing exchange rates.')).toBeTruthy();
   });
 
-  test('a forex account with no warning shows the "estimate" note instead, once rates exist', async () => {
+  test('a forex account with no warning shows the "estimate" note instead, once rates exist and Valas is open', async () => {
     mockFxUpdate('2026-10-28T09:00:00+07:00');
     mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
     const result = await renderScreen();
+    await fireEvent.press(result.getByTestId('card-stack-card-5'));
     expect(result.getByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeTruthy();
   });
 
@@ -187,10 +226,10 @@ describe('AccountsScreen', () => {
     expect(result.getByTestId('card-stack-card-1').props.accessibilityLabel).toContain('Open account.');
   });
 
-  test('Transfer between accounts shows the not-available toast', async () => {
+  test('Transfer shows the not-available toast', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
-    fireEvent.press(result.getByRole('button', { name: 'Transfer between accounts' }));
+    fireEvent.press(result.getByRole('button', { name: 'Transfer' }));
     expect(showToast).toHaveBeenCalledWith('Not available yet.');
   });
 });

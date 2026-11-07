@@ -13,7 +13,7 @@ import { Amount } from "@/components/Amount";
 import { useHideAmounts } from "@/components/hide-amounts-store";
 import type { AccountType } from "@/data/repo/accounts";
 import { rp, shown } from "@/core/money";
-import { accountTypeTag, bankCardAccessibilityLabel, currencyCountTag } from "@/i18n/id";
+import { accountTypeTag, bankCardAccessibilityLabel } from "@/i18n/id";
 import { radius } from "@/theme/tokens";
 import { MonoText } from "@/theme/typography";
 
@@ -25,20 +25,21 @@ import {
   SVG_BACKGROUNDS,
 } from "./cardAssets";
 
+
 export interface BankCardProps {
   name: string;
   type: AccountType;
   icon: string | null; // accounts.icon; null or an unrecognised slug falls back to a neutral card
   balance: number; // whole rupiah; for a Valas account, the total rupiah value
   subline?: string; // Valas only, e.g. "US$250,00 · S$180,00"
-  // forex only: pocket count, shown as the "N CURRENCIES" tag (DESIGN.md "Accounts with a
-  // Valas account": "two overlapping currency coins, '2 CURRENCIES' tag"). Omitted (the
-  // default everywhere except the Accounts card stack's open Valas card) means no tag.
-  currencyCount?: number;
   // carousel: fixed 312×184. list: full width, 358:184 (the "open" card in the Accounts
   // card stack — CLAUDE.md/Fase 4.2c: "don't change the full look"). strip: full width,
   // 68 tall (the card stack's own *closed* card — Fase 4.2c's "potongan").
   variant?: "carousel" | "list" | "strip";
+  // list only: this open card isn't the stack's last one, so a strip overlaps its bottom
+  // edge by 12 (Fase 4.2c step 2) — lift the balance block an extra 12 so the strip never
+  // covers it.
+  liftContent?: boolean;
   // Overrides the default "<name>, <type>, balance <amount>" label — the Accounts card
   // stack uses its own "advance"/"open account" wording instead (Fase 4.2c).
   accessibilityLabel?: string;
@@ -59,6 +60,7 @@ const STRIP_GLYPH_SIZE = 20;
 // top edge, cropped, rather than a squished whole image (Fase 4.2c step 1).
 const ART_ASPECT = 358 / 184;
 const STRIP_HEIGHT = 68;
+const LIFT_EXTRA = 12; // Fase 4.2c step 2: the overlapping strip below needs this much clearance
 
 function resolveSlug(icon: string | null, type: AccountType): string {
   if (icon && icon in BANK_CARDS) return icon;
@@ -73,8 +75,8 @@ export function BankCard({
   icon,
   balance,
   subline,
-  currencyCount,
   variant = "list",
+  liftContent = false,
   accessibilityLabel,
   onPress,
   testID,
@@ -88,16 +90,10 @@ export function BankCard({
   const image = CARD_ASSETS[slug];
   const isStrip = variant === "strip";
 
-  // The Valas card's own flag-circle row already said "this is multi-currency" on its
-  // own, so a plain forex card never shows a tag — but the Accounts card stack's own
-  // *open* Valas card wants the "N CURRENCIES" pill back (DESIGN.md "Accounts with a
-  // Valas account"), so this only fires when the caller passes currencyCount.
-  const tag =
-    type === "forex"
-      ? currencyCount != null
-        ? currencyCountTag(currencyCount)
-        : null
-      : accountTypeTag(type);
+  // The Valas card's own flag-circle row already says "this is multi-currency" on its
+  // own — a "N CURRENCIES" pill on top of it only collided with the flags, so forex
+  // never shows a tag at all (Fase 4.2c step 4).
+  const tag = type === "forex" ? null : accountTypeTag(type);
   const balanceText = shown(rp(balance), hidden);
   const defaultLabel = bankCardAccessibilityLabel(name, type, balanceText);
 
@@ -160,7 +156,20 @@ export function BankCard({
       }
     >
       <View style={isStrip ? styles.stripCard : styles.card}>
-        {isStrip ? <View style={styles.artWrapper}>{art}</View> : art}
+        {isStrip ? (
+          // Valas's art is a row of coloured flag circles sitting near the top of the
+          // full 184-tall art — any strip crop that includes them collides with the
+          // balance text sitting right on top (confirmed on-device). A plain fill in
+          // the card's own dark tone reads cleanly instead; every other card still
+          // shows its real (quieter) art, top-anchored and cropped.
+          slug === "valas" ? (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: neutral.bg }]} />
+          ) : (
+            <View style={styles.artWrapper}>{art}</View>
+          )
+        ) : (
+          art
+        )}
         {isStrip ? (
           <View style={styles.stripContent}>
             <View style={styles.stripLeft}>
@@ -189,26 +198,14 @@ export function BankCard({
           <View style={styles.content}>
             <View style={styles.topRow}>
               {logo}
-              {/* Every other card's tag sits here, top-right of the logo — but Valas's
-                  own background art draws its flag row across exactly this area (see
-                  assets/bank-cards/svg-backgrounds/valas.svg), so its tag moves down to
-                  sit above the name instead, clear of the flags. */}
-              {tag && type !== "forex" && (
+              {tag && (
                 <View style={styles.tagWrap}>
                   <View style={[styles.tagBorder, { borderColor: fg }]} />
                   <Text style={[styles.tagText, { color: fg }]}>{tag}</Text>
                 </View>
               )}
             </View>
-            <View style={styles.accountDetails}>
-              {tag && type === "forex" && (
-                <View style={styles.forexTagRow}>
-                  <View style={styles.tagWrap}>
-                    <View style={[styles.tagBorder, { borderColor: fg }]} />
-                    <Text style={[styles.tagText, { color: fg }]}>{tag}</Text>
-                  </View>
-                </View>
-              )}
+            <View style={[styles.accountDetails, liftContent && styles.accountDetailsLifted]}>
               <Text style={[styles.name, { color: fg }]} numberOfLines={1}>
                 {name}
               </Text>
@@ -266,12 +263,17 @@ const styles = StyleSheet.create({
   tagText: { ...MonoText.label, textTransform: "uppercase" },
   wordmark: { ...MonoText.titleM, textTransform: "lowercase" },
   name: { ...MonoText.bodyStrong, marginBottom: 2 },
-  forexTagRow: { flexDirection: "row", justifyContent: "flex-end", marginBottom: 6 },
   balanceRow: { flexDirection: "row", alignItems: "baseline" },
   approx: { ...MonoText.figureM },
   subline: { ...MonoText.bodyS, opacity: 0.8, marginTop: 2 },
   accountDetails: {
-    marginBottom: 5,
+    marginBottom: 18,
+  },
+  // Fase 4.2c step 2: an open card that isn't the stack's last one has a strip
+  // overlapping its own bottom edge by 12 — lift the balance block that same 12 so the
+  // strip's top edge never sits over it (18 -> 30).
+  accountDetailsLifted: {
+    marginBottom: 18 + LIFT_EXTRA,
   },
 
   // Fase 4.2c "strip" variant (the Accounts card stack's closed card): a fixed-height

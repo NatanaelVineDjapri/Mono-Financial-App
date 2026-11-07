@@ -13,7 +13,7 @@ const ACCOUNTS: CardStackAccount[] = [
 async function renderStack(overrides: Partial<Parameters<typeof CardStack>[0]> = {}) {
   const onOpenAccount = jest.fn();
   const result = await render(
-    <CardStack netWorth={8567500} accountCount={3} accounts={ACCOUNTS} onOpenAccount={onOpenAccount} testID="stack" {...overrides} />,
+    <CardStack netWorth={8567500} accountCount={3} note="A note" accounts={ACCOUNTS} onOpenAccount={onOpenAccount} testID="stack" {...overrides} />,
   );
   return { ...result, onOpenAccount };
 }
@@ -53,21 +53,64 @@ describe('CardStack', () => {
     expect(getByTestId('card-stack-card-3').props.accessibilityLabel).toContain('Open account.');
   });
 
-  test('the open card shows its own detail (e.g. a forex tag/subline); a closed strip does not', async () => {
+  test('default-open skips Valas even though it sorts last: the last non-forex account opens instead', async () => {
     const withValas: CardStackAccount[] = [
       ...ACCOUNTS,
-      { id: 4, name: 'Valas', type: 'forex', icon: null, balance: 6312500, subline: 'US$250,00 · S$180,00', currencyCount: 2 },
+      { id: 4, name: 'Valas', type: 'forex', icon: null, balance: 6312500, subline: 'US$250,00 · S$180,00' },
     ];
     const result = await renderStack({ accounts: withValas });
 
-    // Valas is last, so it's open by default.
-    expect(result.getByText('2 CURRENCIES')).toBeTruthy();
+    expect(result.getByTestId('card-stack-card-3').props.accessibilityLabel).toContain('Open account.'); // Jago Pocket
+    expect(result.getByTestId('card-stack-card-4').props.accessibilityLabel).toContain('Bring card forward.'); // Valas
+  });
+
+  test('the open card shows its own detail (e.g. a forex subline); a closed strip does not', async () => {
+    const withValas: CardStackAccount[] = [
+      ...ACCOUNTS,
+      { id: 4, name: 'Valas', type: 'forex', icon: null, balance: 6312500, subline: 'US$250,00 · S$180,00' },
+    ];
+    const result = await renderStack({ accounts: withValas });
+
+    // Bring Valas forward (it isn't open by default — see the test above).
+    await fireEvent.press(result.getByTestId('card-stack-card-4'));
     expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
+    expect(result.queryByText(/CURRENC/)).toBeNull(); // no tag pill either way (Fase 4.2c step 4)
 
     // Bring BCA (a strip) forward instead — Valas closes and loses its open-only detail.
     await fireEvent.press(result.getByTestId('card-stack-card-1'));
-    expect(result.queryByText('2 CURRENCIES')).toBeNull();
     expect(result.queryByText('US$250,00 · S$180,00')).toBeNull();
+  });
+
+  test('forexNote only replaces the total card\'s note while the forex account is the one open', async () => {
+    const withValas: CardStackAccount[] = [
+      ...ACCOUNTS,
+      { id: 4, name: 'Valas', type: 'forex', icon: null, balance: 6312500 },
+    ];
+    const result = await renderStack({ accounts: withValas, note: 'Everyday note', forexNote: 'Forex estimate note' });
+
+    // Not open by default — the everyday note shows.
+    expect(result.getByText('Everyday note')).toBeTruthy();
+    expect(result.queryByText('Forex estimate note')).toBeNull();
+
+    // Bring Valas forward — forexNote wins.
+    await fireEvent.press(result.getByTestId('card-stack-card-4'));
+    expect(result.queryByText('Everyday note')).toBeNull();
+    expect(result.getByText('Forex estimate note')).toBeTruthy();
+
+    // Bring BCA forward (closes Valas) — back to the everyday note.
+    await fireEvent.press(result.getByTestId('card-stack-card-1'));
+    expect(result.getByText('Everyday note')).toBeTruthy();
+    expect(result.queryByText('Forex estimate note')).toBeNull();
+  });
+
+  test('every open card except the stack\'s last one lifts its balance clear of the strip below (Fase 4.2c step 2)', async () => {
+    const result = await renderStack();
+    // Bring the middle account (Cash wallet, id 2) forward — it is open but not last.
+    await fireEvent.press(result.getByTestId('card-stack-card-2'));
+
+    const openText = result.getByText('Cash wallet');
+    const openDetails = openText.parent;
+    expect(Object.assign({}, ...[openDetails?.props.style].flat()).marginBottom).toBe(30);
   });
 
   test('hidden mode masks the total card and every card’s own accessibility label', async () => {

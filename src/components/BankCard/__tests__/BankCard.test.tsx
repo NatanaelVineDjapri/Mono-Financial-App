@@ -158,17 +158,36 @@ describe('BankCard', () => {
       expect(result.getByText('≈ ')).toBeTruthy();
       expect(result.getByText('Rp6.312.500')).toBeTruthy();
     });
+
+    // Regression: Valas's art is a row of coloured flag circles near the top of the
+    // full 184-tall art, which collided with the balance text once cropped down to the
+    // strip's 68 (confirmed on-device) — a plain fill in the card's own dark tone reads
+    // cleanly there instead, unlike every other card's strip (which keeps its real art).
+    test('a Valas strip shows a plain fill, not the flag art (avoids overlapping the balance)', async () => {
+      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} variant="strip" testID="s" />);
+      expect(result.queryByTestId('s-bg')).toBeNull();
+    });
   });
 
-  describe('currencyCount tag (Fase 4.2c: the card stack’s open Valas card)', () => {
-    test('with currencyCount given, forex shows "N CURRENCIES"', async () => {
-      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} currencyCount={2} onPress={() => {}} />);
-      expect(result.getByText('2 CURRENCIES')).toBeTruthy();
-    });
+  test('forex never shows a category tag, open or closed (the flag row already says "multi-currency")', async () => {
+    const open = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} />);
+    expect(open.queryByText(/CURRENC/)).toBeNull();
 
-    test('without currencyCount, forex still shows no tag (unchanged default)', async () => {
-      const result = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} />);
-      expect(result.queryByText(/CURRENC/)).toBeNull();
+    const strip = await render(<BankCard name="Valas" type="forex" icon={null} balance={6312500} onPress={() => {}} variant="strip" />);
+    expect(strip.queryByText(/CURRENC/)).toBeNull();
+  });
+
+  describe('liftContent (Fase 4.2c step 2: an open card that isn\'t last)', () => {
+    test('raises the balance block\'s bottom margin from 18 to 30 so the next strip (overlap 12) never covers it', async () => {
+      const normal = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={1} onPress={() => {}} />);
+      const normalText = normal.getByText('BCA Tabungan');
+      const normalDetails = normalText.parent;
+      expect(Object.assign({}, ...[normalDetails?.props.style].flat()).marginBottom).toBe(18);
+
+      const lifted = await render(<BankCard name="BCA Tabungan" type="bank" icon="bca" balance={1} onPress={() => {}} liftContent />);
+      const liftedText = lifted.getByText('BCA Tabungan');
+      const liftedDetails = liftedText.parent;
+      expect(Object.assign({}, ...[liftedDetails?.props.style].flat()).marginBottom).toBe(30);
     });
   });
 
