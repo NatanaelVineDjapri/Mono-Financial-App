@@ -124,8 +124,8 @@ describe('BudgetsScreen', () => {
     expect(flat(chip.parent!.props.style)).toMatchObject({ flexDirection: 'row', gap: 8 });
     expect(chip.parent).toBe(edit.parent);
     const shared = { borderRadius: 10, borderWidth: 1, borderColor: '#2B2B2B', backgroundColor: '#171717' };
-    expect(flat(chip.props.style)).toMatchObject({ ...shared, minHeight: 48, paddingHorizontal: 14, gap: 8 });
-    expect(flat(edit.props.style)).toMatchObject({ ...shared, width: 48, height: 48 });
+    expect(flat(chip.props.style)).toMatchObject({ ...shared, minHeight: 40, paddingHorizontal: 14, gap: 8 });
+    expect(flat(edit.props.style)).toMatchObject({ ...shared, width: 40, height: 40 });
 
     const chipText = within(chip).getByText('Oct 2026');
     expect(flat(chipText.props.style)).toMatchObject({ fontSize: 14, fontFamily: 'IBMPlexSans_400Regular', color: '#F5F5F5' });

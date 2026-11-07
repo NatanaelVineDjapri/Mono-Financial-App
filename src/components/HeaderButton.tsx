@@ -1,6 +1,7 @@
 // Header action button (DESIGN.md section 8): the one style every screen header's right-
 // side actions share — Transactions' Filters, Budgets' month chip and edit button.
-// 48 high, radius 10, fill `card`, 1px `border`. Icon-only it is a 48×48 square; with
+// 40 high (the size of the Accounts tab's "+"), radius 10, fill `card`, 1px `border`.
+// hitSlop 4 brings the touch target to 48. Icon-only it is a 40×40 square; with
 // `text` it becomes a chip (padding 14, text 14/400, icon 8 after the text) that grows
 // with the text and never truncates it (CLAUDE.md rule 7: at 200% the chip widens, the
 // screen title is what wraps). Pressed = raised fill, no ripple (section 16).
@@ -10,7 +11,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-export const HEADER_BUTTON_SIZE = 48;
+export const HEADER_BUTTON_SIZE = 40;
 
 export interface HeaderButtonProps extends Omit<PressableProps, 'style' | 'children' | 'disabled'> {
   label: string; // accessibilityLabel — required, an icon-only button has no visible text

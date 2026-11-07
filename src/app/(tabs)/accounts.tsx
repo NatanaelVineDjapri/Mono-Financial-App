@@ -9,6 +9,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { CardStack, type CardStackAccount } from '@/components/CardStack';
+import { HeaderButton } from '@/components/HeaderButton';
 import { Icon } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { showToast } from '@/components/toast-store';
@@ -45,17 +46,7 @@ function notAvailable() {
 // ScreenHeader's right slot: Add account doesn't exist yet (Phase 5), so this matches
 // the screen's own "Add account" button below and just shows the same toast.
 function AccountsHeaderAction() {
-  return (
-    <Pressable
-      onPress={notAvailable}
-      accessibilityRole="button"
-      accessibilityLabel={addAccountLabel()}
-      hitSlop={4}
-      style={styles.headerAction}
-    >
-      <Icon name="plus" color={MonoColors.text} />
-    </Pressable>
-  );
+  return <HeaderButton icon="plus" label={addAccountLabel()} onPress={notAvailable} testID="accounts-add-button" />;
 }
 
 function forexSubline(account: AccountsOverviewAccount): string | undefined {
@@ -186,16 +177,6 @@ export default function AccountsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  headerAction: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: MonoColors.border,
-    backgroundColor: MonoColors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   content: { paddingHorizontal: 16, paddingBottom: 32, gap: 20 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
