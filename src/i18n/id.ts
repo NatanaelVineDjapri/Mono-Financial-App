@@ -343,3 +343,102 @@ export function categoryRowAccessibilityLabel(name: string, percentFormatted: st
 export function ringAccessibilityLabel(kindLabel: string, totalFormatted: string, limitNote?: string): string {
   return limitNote ? `${kindLabel} breakdown, ${totalFormatted}, ${limitNote}` : `${kindLabel} breakdown, ${totalFormatted}`;
 }
+
+// Transaction filters sheet (Tx-Filters).
+export function filtersButtonAccessibilityLabel(activeCount: number): string {
+  return activeCount === 0 ? filtersButtonLabel() : `${filtersButtonLabel()}, ${activeCount} active`;
+}
+
+export function filtersActiveBadgeLabel(activeCount: number): string {
+  return `${activeCount} active ${activeCount === 1 ? 'filter' : 'filters'}`;
+}
+
+export function resetAllFiltersLabel(): string {
+  return 'Reset all';
+}
+
+export function cancelLabel(): string {
+  return 'Cancel';
+}
+
+export function filtersApplyLabel(count: number): string {
+  return `Show ${count} ${count === 1 ? 'transaction' : 'transactions'}`;
+}
+
+export function filtersTypeLabel(): string {
+  return 'Type';
+}
+
+export function filtersDateRangeLabel(): string {
+  return 'Date range';
+}
+
+export function filtersCategoriesLabel(): string {
+  return 'Categories';
+}
+
+export function filtersAccountsLabel(): string {
+  return 'Accounts';
+}
+
+export type TxDatePresetLabel = 'this-month' | 'last-month' | 'three-months' | 'this-year' | 'custom';
+
+const txDatePresetLabels: Record<TxDatePresetLabel, string> = {
+  'this-month': 'This month',
+  'last-month': 'Last month',
+  'three-months': '3 months',
+  'this-year': 'This year',
+  custom: 'Custom',
+};
+
+export function txDatePresetLabel(preset: TxDatePresetLabel): string {
+  return txDatePresetLabels[preset];
+}
+
+export function filtersCustomStartLabel(): string {
+  return 'From';
+}
+
+export function filtersCustomEndLabel(): string {
+  return 'To';
+}
+
+export function filtersDateFormatHint(): string {
+  return 'YYYY-MM-DD';
+}
+
+export function filtersActiveTypeLabel(type: TxTypeFilter): string {
+  return `${filtersTypeLabel()}: ${txTypeChipLabel(type)}`;
+}
+
+export function filtersActiveDateLabel(rangeLabel: string): string {
+  return `${filtersDateRangeLabel()}: ${rangeLabel}`;
+}
+
+export function filtersActiveAccountLabel(name: string): string {
+  return `Account: ${name}`;
+}
+
+export function filtersActiveCategoryLabel(name: string): string {
+  return `Category: ${name}`;
+}
+
+export function filtersActiveMinAmountLabel(amount: string): string {
+  return `Minimum: ${amount}`;
+}
+
+export function filtersActiveMaxAmountLabel(amount: string): string {
+  return `Maximum: ${amount}`;
+}
+
+export function removeFilterAccessibilityLabel(label: string): string {
+  return `Remove filter ${label}`;
+}
+
+export function unknownFilterOptionLabel(id: number): string {
+  return `#${id}`;
+}
+
+export function filtersBadgeValue(activeCount: number): string {
+  return activeCount > 99 ? '99+' : String(activeCount);
+}
