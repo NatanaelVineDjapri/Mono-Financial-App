@@ -9,26 +9,26 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
-import { Segmented } from '@/components/Segmented';
 import { Icon, type IconName } from '@/components/Icon';
 import { RingChart } from '@/components/RingChart';
-import type { CategoryStat } from '@/domain/categoryStats';
+import { Segmented } from '@/components/Segmented';
 import { pct, rp, shown } from '@/core/money';
+import type { CategoryStat } from '@/domain/categoryStats';
 import type { TransactionsPage } from '@/domain/transactionsList';
 import {
-  categoryRowAccessibilityLabel,
-  hideStatsLabel,
-  netLabel,
-  ofLimitLabel,
-  othersLabel,
-  overLimitLabel,
-  ringAccessibilityLabel,
-  showStatsLabel,
-  spentLabel,
-  statsCardTitle,
-  transactionsNotCountedNote,
-  txKindLabel,
-  type TxTypeFilter,
+    categoryRowAccessibilityLabel,
+    hideStatsLabel,
+    netLabel,
+    ofLimitLabel,
+    othersLabel,
+    overLimitLabel,
+    ringAccessibilityLabel,
+    showStatsLabel,
+    spentLabel,
+    statsCardTitle,
+    transactionsNotCountedNote,
+    txKindLabel,
+    type TxTypeFilter,
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -214,7 +214,9 @@ export function StatsSection({ page, hidden, typeFilter, rangeLabel, selectedCat
 const styles = StyleSheet.create({
   card: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, marginBottom: 12 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  cardTitle: { ...MonoText.bodyStrong, color: MonoColors.text },
+  // Same type and colour as an unselected type chip's label (Segmented's bodyStrong +
+  // textSecond), so the card title reads at the chips' own level, not above them.
+  cardTitle: { ...MonoText.bodyStrong, color: MonoColors.textSecond },
   toggle: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 
   ringWrap: { alignItems: 'center', paddingVertical: 12 },

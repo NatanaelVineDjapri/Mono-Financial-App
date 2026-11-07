@@ -7,7 +7,7 @@
 // signal regardless — position (flex width, the pill itself) and accessibilityState
 // both say the same thing colour does. Amber never appears here.
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { Easing, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 
 import type { IconName } from '@/components/Icon';
@@ -18,8 +18,12 @@ import { MonoText } from '@/theme/typography';
 // Exported so other screens (e.g. the Transactions tab's FAB) can size themselves
 // against the real navbar zone instead of a duplicated magic number.
 export const TAB_BAR_ZONE_HEIGHT = 72;
+// The empty strip between the zone's top edge and the visible bar's top edge. The zone's
+// edge itself can't be seen (same colour as the screen), so a screen that floats something
+// above the bar measures its gap from the bar's visible edge, i.e. net of this strip.
+export const TAB_BAR_ZONE_PADDING_TOP = 8;
 const ZONE_HEIGHT = TAB_BAR_ZONE_HEIGHT;
-const ZONE_PADDING_TOP = 8;
+const ZONE_PADDING_TOP = TAB_BAR_ZONE_PADDING_TOP;
 const ZONE_PADDING_BOTTOM = 8;
 const ZONE_PADDING_HORIZONTAL = 10;
 const BAR_HEIGHT = 56;

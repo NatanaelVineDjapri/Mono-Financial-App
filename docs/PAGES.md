@@ -211,7 +211,7 @@ Papan: `Transactions` · 390 × 1600
 - Ringkasan = tiga baris bertumpuk (pemasukan +Rp7.500.000, pengeluaran −Rp4.257.000, bersih +Rp3.243.000), bukan tiga kolom — label kiri, nominal kanan, garis tipis antar baris, baris bersih tebal; dan catatan "Tidak dihitung: 3 transfer antar akun (Rp2.200.000)".
 - Daftar Oktober dikelompokkan per hari dengan total harian (pemasukan − pengeluaran hari itu; hari yang hanya berisi transfer tidak menampilkan total harian). Tiap baris: judul dan nominal, lalu kategori · akun dan label tipe (tanggal tidak diulang karena ada di header hari).
 - September ditampilkan tertutup (Pengeluaran Rp3.940.000); bulan lama dimuat saat menggulir.
-- Tombol aksi mengambang + (56) membuka layar chat AI langsung. Hanya layar ini yang memilikinya; mengecil/hilang saat menggulir turun dan muncul lagi saat menggulir naik.
+- Tombol aksi mengambang + (56) membuka layar chat AI langsung. Hanya layar ini yang memilikinya; tetap di tempat dan selalu terlihat dengan ukuran penuh saat menggulir, 16 di atas tepi atas navigasi bawah.
 
 **Keadaan**
 

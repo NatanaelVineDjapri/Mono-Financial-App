@@ -1,12 +1,18 @@
 import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import TransactionsScreen from '../transactions';
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { largestRemainderSharesBp, type CategoryStatsResult } from '@/domain/categoryStats';
 import type { TransactionsPage, TxListRow } from '@/domain/transactionsList';
+import { useCategoryStats } from '@/features/transactions/useCategoryStats';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { CHART_CATEGORY_COLORS } from '@/theme/tokens';
+import TransactionsScreen from '../transactions';
 
 jest.mock('@/features/transactions/useTransactionsList');
+// The stats area (ring + category list) runs its own query, which needs a DbProvider;
+// this file tests the screen around it, so it gets a canned result per kind (see below).
+jest.mock('@/features/transactions/useCategoryStats');
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -95,6 +101,34 @@ const SEPT_PAGE: TransactionsPage = {
   isEmpty: true,
 };
 
+const mockUseCategoryStats = useCategoryStats as jest.MockedFunction<typeof useCategoryStats>;
+
+function statsFixture(entries: [id: number, label: string, amountIdr: number][]): CategoryStatsResult {
+  const total = entries.reduce((sum, [, , amountIdr]) => sum + amountIdr, 0);
+  const shares = largestRemainderSharesBp(
+    entries.map(([, , amountIdr]) => amountIdr),
+    total,
+  );
+  return {
+    total,
+    categories: entries.map(([id, label, amountIdr], i) => ({ id, label, icon: null, amountIdr, shareBp: shares[i], color: CHART_CATEGORY_COLORS[i] })),
+  };
+}
+
+// The same October as OCT_ROWS: expenses are the top four categories plus an "Others"
+// bucket (id -1, empty label) for Leisure + Health, the way getCategoryStats builds it.
+const OCT_EXPENSE_STATS = statsFixture([
+  [1, 'Food & drink', 1425000],
+  [4, 'Bills', 1150000],
+  [3, 'Shopping', 812000],
+  [2, 'Transport', 540000],
+  [-1, '', 330000],
+]);
+const OCT_INCOME_STATS = statsFixture([
+  [11, 'Salary', 7000000],
+  [12, 'Freelance', 500000],
+]);
+
 function baseResult(pages: TransactionsPage[]): Partial<InfiniteResult> {
   return {
     data: { pages, pageParams: pages.map(p => p.period) } as never,
@@ -110,6 +144,7 @@ describe('TransactionsScreen', () => {
   beforeEach(() => {
     useHideAmounts.getState().setHidden(false);
     jest.clearAllMocks();
+    mockUseCategoryStats.mockImplementation((_period, kind) => ({ data: kind === 'income' ? OCT_INCOME_STATS : OCT_EXPENSE_STATS }) as never);
   });
 
   test('shows the count and range, the summary card and every October row grouped by day', async () => {
@@ -149,7 +184,8 @@ describe('TransactionsScreen', () => {
   test('switching the type chip to Income is passed through to the hook', async () => {
     mockResult(baseResult([OCT_PAGE]));
     const result = await renderScreen();
-    await fireEvent.press(result.getByRole('radio', { name: 'Income' }));
+    // Scoped to the type chips: the stats area has its own Income/Expense switch too.
+    await fireEvent.press(within(result.getByTestId('tx-type-segmented')).getByRole('radio', { name: 'Income' }));
     expect(mockUseTransactionsList).toHaveBeenLastCalledWith({ type: 'income', search: '' });
   });
 
@@ -169,7 +205,8 @@ describe('TransactionsScreen', () => {
   test('no matches: empty state with a reset button once filtered', async () => {
     mockResult(baseResult([{ ...OCT_PAGE, rows: [], daily: [], isEmpty: true }]));
     const result = await renderScreen();
-    await fireEvent.press(result.getByRole('radio', { name: 'Income' }));
+    // Scoped to the type chips: the stats area has its own Income/Expense switch too.
+    await fireEvent.press(within(result.getByTestId('tx-type-segmented')).getByRole('radio', { name: 'Income' }));
 
     expect(result.getByText('No matches')).toBeTruthy();
     expect(result.getByRole('button', { name: 'Reset search' })).toBeTruthy();
@@ -237,12 +274,15 @@ describe('TransactionsScreen', () => {
       expect(result.queryByText('+Rp0')).toBeNull();
     });
 
-    test('the list\'s bottom padding clears the FAB, its gap and the tab bar\'s zone', async () => {
+    test('the list\'s bottom padding clears the FAB and its offset above the tab bar', async () => {
       mockResult(baseResult([OCT_PAGE]));
       const result = await renderScreen();
       const list = result.getByTestId('transactions-list');
       const flatStyle = Object.assign({}, ...[list.props.contentContainerStyle].flat());
-      expect(flatStyle.paddingBottom).toBe(56 + 16 + 72); // + insets.bottom (0 in this fixture)
+      // FAB 56 + its bottom offset: 16 above the bar's visible edge, less the 8 of empty
+      // strip the bar's box already has above it. The bar's height and the safe-area
+      // inset are outside this screen, so neither is part of the padding.
+      expect(flatStyle.paddingBottom).toBe(56 + (16 - 8));
     });
 
     test('a row\'s subtitle has no date (the day header above it already states it)', async () => {

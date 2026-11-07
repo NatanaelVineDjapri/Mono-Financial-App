@@ -3,9 +3,7 @@
 // /tx/[id] and /ai-chat are stub routes until the detail and chat screens exist.
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
@@ -15,7 +13,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
 import { Sheet } from '@/components/Sheet';
-import { TAB_BAR_ZONE_HEIGHT } from '@/components/TabBar';
+import { TAB_BAR_ZONE_PADDING_TOP } from '@/components/TabBar';
 import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
 import type { DailyTotalRow, TransactionsPage, TxListRow } from '@/domain/transactionsList';
@@ -50,9 +48,20 @@ const TYPE_OPTIONS: SegmentedOption[] = (['all', 'income', 'expense', 'transfer'
 }));
 
 const FAB_SIZE = 56; // matches Fab.tsx's own (unexported) SIZE constant
-const FAB_GAP = 16; // Fase 4.3a fix: the FAB's own clearance above the tab bar's zone
-const FAB_TRANSITION_MS = 150;
-const SCROLL_DIRECTION_THRESHOLD = 10; // px of travel before committing to a direction, avoids jitter
+const FAB_GAP = -35; // clearance between the FAB and the tab bar's visible top edge
+// The FAB floats inside this screen, and the screen ends where the tab bar begins: the tab
+// navigator lays the bar out below its screens instead of over them. The bar's own height
+// and the bottom safe-area inset are therefore already outside this view and must not be
+// added to `bottom`. What remains is the empty strip at the top of the bar's box, above its
+// visible edge; it counts toward FAB_GAP. The list's end padding follows the FAB's top edge
+// (FAB_SIZE + FAB_BOTTOM) so the last row can always scroll clear of the button.
+
+const FAB_LIFT = 56;
+
+const FAB_BOTTOM = Math.max(
+  0,
+  FAB_GAP + FAB_LIFT - TAB_BAR_ZONE_PADDING_TOP
+);
 
 function useDebouncedValue(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value);
@@ -61,36 +70,6 @@ function useDebouncedValue(value: string, delayMs: number): string {
     return () => clearTimeout(id);
   }, [value, delayMs]);
   return debounced;
-}
-
-// Fase 4.3a fix: the FAB shrinks away on scroll-down and comes back on scroll-up, so it
-// doesn't sit over content while reading a long list — 150ms, skipped under reduce-motion.
-// A worklet scroll handler (not a plain onScroll callback) is the correct Reanimated tool
-// for a shared-value mutation driven by scroll events — both `lastOffset` and `visible`
-// need to be shared values themselves so the UI-thread worklet can read and write them.
-function useFabVisibility() {
-  const reducedMotion = useReducedMotion();
-  const visible = useSharedValue(1);
-  const lastOffset = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: event => {
-      const y = event.contentOffset.y;
-      const delta = y - lastOffset.value;
-      if (Math.abs(delta) < SCROLL_DIRECTION_THRESHOLD) return;
-      const shouldShow = delta < 0 || y <= 0;
-      const target = shouldShow ? 1 : 0;
-      visible.value = reducedMotion ? target : withTiming(target, { duration: FAB_TRANSITION_MS });
-      lastOffset.value = y;
-    },
-  });
-
-  const style = useAnimatedStyle(() => ({
-    opacity: visible.value,
-    transform: [{ scale: visible.value }],
-  }));
-
-  return { onScroll, style };
 }
 
 function FilterButton({ onPress }: { onPress: () => void }) {
@@ -216,9 +195,14 @@ function DaySection({
           <Text style={styles.dayTotal}>{shown(rp(daily.net, true), hidden)}</Text>
         )}
       </View>
-      {rows.map(row => (
-        <TxRow key={row.id} row={row} hidden={hidden} onPress={() => onPressRow(row.id)} />
-      ))}
+      <View style={styles.dayCard}>
+        {rows.map((row, index) => (
+          <View key={row.id}>
+            <TxRow row={row} hidden={hidden} onPress={() => onPressRow(row.id)} />
+            {index < rows.length - 1 && <View style={styles.rowDivider} />}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -254,7 +238,7 @@ function MonthSection({
         <Text style={styles.monthLabel}>{page.monthLabel}</Text>
         <View style={styles.monthNet}>
           <Text style={styles.monthNetLabel}>{netLabel()} </Text>
-          <Amount value={page.summary.net} sign kind={page.summary.net < 0 ? 'expense' : 'income'} variant="figureS" />
+          <Amount value={page.summary.net} sign kind={page.summary.net < 0 ? 'expense' : 'income'} variant="figureRow" style={styles.monthNetValue} />
         </View>
       </Pressable>
       {days.map(day => (
@@ -266,7 +250,6 @@ function MonthSection({
 
 export default function TransactionsScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
   const [typeFilter, setTypeFilter] = useState<TxTypeFilter>('all');
   const [searchInput, setSearchInput] = useState('');
@@ -274,7 +257,6 @@ export default function TransactionsScreen() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [expandedPeriods, setExpandedPeriods] = useState<Set<string>>(() => new Set());
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
-  const fab = useFabVisibility();
 
   // The synthetic "Others" bucket (id -1, Fase 4.3c) has no single matching category row
   // in the database — it still dims the ring/marks its own row, but it never reaches the
@@ -345,7 +327,7 @@ export default function TransactionsScreen() {
           <Button label={resetSearchLabel()} variant="secondary" onPress={resetFilters} />
         </View>
       ) : (
-        <Animated.FlatList
+        <FlatList
           testID="transactions-list"
           data={pages}
           keyExtractor={item => item.period}
@@ -372,17 +354,15 @@ export default function TransactionsScreen() {
             if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
           }}
           onEndReachedThreshold={0.4}
-          onScroll={fab.onScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={[styles.listContent, { paddingBottom: FAB_SIZE + FAB_GAP + TAB_BAR_ZONE_HEIGHT + insets.bottom }]}
+          contentContainerStyle={[styles.listContent, { paddingBottom: FAB_SIZE + FAB_BOTTOM }]}
         />
       )}
 
-      <Animated.View style={[styles.fab, fab.style, { bottom: FAB_GAP + TAB_BAR_ZONE_HEIGHT + insets.bottom }]}>
+      <View style={styles.fab}>
         <Fab label={recordViaChatLabel()} onPress={() => router.push('/ai-chat')}>
           <Icon name="plus" size={20} color={MonoColors.bg} />
         </Fab>
-      </Animated.View>
+      </View>
 
       <Sheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} closeLabel={closeLabel()}>
         <View style={styles.filterSheet}>
@@ -444,6 +424,9 @@ const styles = StyleSheet.create({
   monthLabel: { ...MonoText.titleM, color: MonoColors.text },
   monthNet: { flexDirection: 'row', alignItems: 'baseline' },
   monthNetLabel: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  // Same size as a row's own amount (figureRow, 14). Pinned here because Amount shrinks
+  // long figureRow text for the narrow row column, and this header has room to spare.
+  monthNetValue: { fontSize: MonoText.figureRow.fontSize },
   collapsedMonth: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -458,14 +441,25 @@ const styles = StyleSheet.create({
   dayHeader: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   dayDate: { ...MonoText.bodyS, color: MonoColors.textMeta },
   dayTotal: { ...MonoText.bodyS, color: MonoColors.textMeta },
+  dayCard: {
+    backgroundColor: MonoColors.card,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+  },
 
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingVertical: 10,
+    paddingHorizontal: 12,
     gap: 12,
     minHeight: 48,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: MonoColors.border,
+    marginLeft: 64, // offset by icon + gap (40 + 12 + 12)
   },
   rowIcon: {
     width: 40,
@@ -482,9 +476,9 @@ const styles = StyleSheet.create({
   approxIdr: { ...MonoText.caption, color: MonoColors.textMeta },
   rowKindLabel: { ...MonoText.caption, color: MonoColors.textMeta },
 
-  // `bottom` is set inline per-render (Fase 4.3a fix: 16 above the tab bar's own zone,
-  // plus the safe-area inset) — this only owns the fixed `right` and positioning mode.
-  fab: { position: 'absolute', right: 20 },
+  // Pinned to the screen, not inside the list: it never scrolls with the content and is
+  // always shown at full size. FAB_BOTTOM is where it sits above the tab bar.
+  fab: { position: 'absolute', right: 20, bottom: FAB_BOTTOM },
 
   filterSheet: { gap: 8, paddingBottom: 8 },
   filterTitle: { ...MonoText.titleM, color: MonoColors.text },
