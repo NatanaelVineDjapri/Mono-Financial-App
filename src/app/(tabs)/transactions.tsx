@@ -321,15 +321,16 @@ export default function TransactionsScreen() {
 
   // The open Filter sheet (a modal overlay drawn inside this screen, not a separate
   // route) sits above this screen's own content but not above the tab bar, which the
-  // navigator renders independently — so it must be hidden explicitly, both while the
-  // sheet itself is open and once a filter is actually applied. The effect's cleanup
-  // always restores it, so leaving this tab (or closing the sheet, or clearing the
-  // filter) never leaves the bar permanently hidden on another tab.
+  // navigator renders independently — so it must be hidden explicitly while picking
+  // filters, and restored the moment the sheet closes and the (possibly filtered)
+  // results show again, whether or not any filter is still applied. The effect's
+  // cleanup always restores it too, so leaving this tab never leaves the bar hidden
+  // on another one.
   const setTabBarHidden = useTabBarVisibility(state => state.setHidden);
   useEffect(() => {
-    setTabBarHidden(filterSheetOpen || activeFilterCount > 0);
+    setTabBarHidden(filterSheetOpen);
     return () => setTabBarHidden(false);
-  }, [filterSheetOpen, activeFilterCount, setTabBarHidden]);
+  }, [filterSheetOpen, setTabBarHidden]);
 
   const accountsById = useMemo(() => new Map(filterOptions.accounts.map(account => [account.id, account.name])), [filterOptions.accounts]);
   const categoriesById = useMemo(() => new Map(filterOptions.categories.map(category => [category.id, category.name])), [filterOptions.categories]);
