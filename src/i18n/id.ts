@@ -273,6 +273,10 @@ export function filtersSheetTitle(): string {
   return 'Filters';
 }
 
+export function filtersSheetSubtitle(): string {
+  return 'Narrow down your transactions';
+}
+
 export function filtersComingSoonMessage(): string {
   return 'Filters are coming soon.';
 }
