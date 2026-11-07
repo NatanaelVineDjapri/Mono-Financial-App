@@ -88,6 +88,8 @@ Locale `id_ID`: dot thousands, comma decimals, no decimals for IDR, percentages 
 
 Buttons (primary light fill, secondary outlined with `#737373`, disabled), icon button, FAB (56, Transactions only), chips (selected = light fill plus check icon), segmented control, month selector, tabs, text field (default, focus, error, disabled), amount field with quick-add chips, pickers, transaction row, account row, budget row (normal and over-limit with striped overflow), goal row, progress bar (8 px), chart style, bottom navigation (72 px zone, 5 items, active = a floating pill, not a bar above the icon), app bars, bottom sheet, dialog, snackbar (with Undo), banners, empty state.
 
+Header action buttons (Filters, month chip, edit) share one style: 48 high, radius 10, fill #171717, 1px #2B2B2B border.
+
 ## 9. Navigation
 
 Bottom tabs: **Overview · Transactions · Accounts · Budgets · More**.

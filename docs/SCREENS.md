@@ -55,3 +55,4 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 ## Build status
 
 - 4.3b Transaction filters sheet: built. Filter state lives in the Transactions zustand store; the same SQL params feed the list and the stats ring. Ring limit mode only when the range is the current full month and no account/category/amount filter is active.
+- 4.4 Budgets tab, Budget-Create, Budget-Category: built. Spent and remaining are always derived; allocation check blocks saving when the sum of category allocations exceeds the monthly limit.

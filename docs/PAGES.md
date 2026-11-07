@@ -392,7 +392,7 @@ Papan: `Budgets` · 390 × 1400
 
 **Tata letak dan komponen**
 
-- Judul, penyeleksi bulan (Oktober 2026).
+- Judul, penyeleksi bulan (Oktober 2026). Month chip and edit button use the same style as the Filters button on Transactions.
 - Ringkasan: terpakai Rp4.257.000 dari batas Rp5.000.000 (85,14%), sisa Rp743.000, 3 hari tersisa, tersedia per hari Rp247.667.
 - Perbandingan dengan September: Rp3.940.000 (78,80%); Oktober +Rp317.000 (+8,05%).
 - Per kategori, yang paling terpakai di atas: Shopping (melebihi Rp112.000, 116,00%), Bills, Transport, Food & drink, Leisure, Health. Bar progres 8 px dan label sisa.
@@ -406,6 +406,7 @@ Papan: `Budgets` · 390 × 1400
 **Catatan**
 
 - Sisa total = batas total − total terpakai, sehingga kategori yang jebol mengurangi sisa.
+- Over-limit is shown with the bar full and the text 'Over by Rp…'; red is used only for the amount over.
 
 ### F2 · Buat / ubah anggaran
 
