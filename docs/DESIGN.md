@@ -140,7 +140,7 @@ Header with logo and date, greeting "Selamat datang, Nael", net worth with hide/
 **B. Transactions**
 Search, date range, type chips, category and account chips, summary (income, expenses, net, "not counted: 3 transfers Rp2.200.000"), October grouped by day with daily totals, September collapsed, FAB. *Filters sheet:* type, date range, category, account, "Show 11 transactions".
 
-**Revised (Fase 4.3a):** Summary rows are stacked (income, expenses, net), never in columns, so figures never truncate. Rows show "category · account" without the date because they sit under a day header. A day with only transfers shows no total. The FAB shrinks away on scroll-down and returns on scroll-up.
+**Revised (Fase 4.3a):** Summary rows are stacked (income, expenses, net), never in columns, so figures never truncate. Rows show "category · account" without the date because they sit under a day header. A day with only transfers shows no total. The FAB stays fixed to the screen at full size while scrolling, 16 above the bottom navigation's visible edge.
 
 **C. Add transaction**
 Segmented Income / Expense / Transfer. Expense form: amount with quick chips, category chips, account with "Balance after", date, description, notes. Transfer form: from/to with swap, info banner that net worth is unchanged. *Validation variant:* missing category, insufficient funds (Rp450.000 vs Rp1.500.000), "2 fields need attention".

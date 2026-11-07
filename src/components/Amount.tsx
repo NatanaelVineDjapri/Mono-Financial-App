@@ -7,9 +7,9 @@
 import { Text, type TextProps, type TextStyle } from 'react-native';
 
 import { money, rp, shown } from '@/core/money';
-import { useHideAmounts } from './hide-amounts-store';
 import { MonoColors, amountColor, type AmountKind } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
+import { useHideAmounts } from './hide-amounts-store';
 
 export interface AmountProps extends Omit<TextProps, 'children' | 'style'> {
   // Minor units: whole rupiah for IDR (the default), or the pocket's own minor unit
@@ -38,11 +38,28 @@ export function Amount({
   const display = shown(formatted, hidden);
   const color = kind ? amountColor(kind) : MonoColors.text;
 
+  // Responsive font sizing for transaction list amounts: scale down when text is too long.
+  // Only applies to figureRow (transaction list), other variants keep their base size.
+  const getResponsiveFontSize = (): number | undefined => {
+    if (variant !== 'figureRow') return undefined; // keep base size for other variants
+    
+    const len = display.length;
+    // Base figureRow is 14px
+    if (len <= 10) return undefined; // Rp999.999 or less → use base 14px
+    if (len <= 12) return 13; // Rp9.999.999 (jutaan)
+    if (len <= 14) return 12; // Rp99.999.999 (puluhan juta)
+    if (len <= 16) return 11; // Rp999.999.999 (ratusan juta)
+    return 10; // miliaran+
+  };
+
+  const responsiveFontSize = getResponsiveFontSize();
+  const fontSizeStyle = responsiveFontSize ? { fontSize: responsiveFontSize } : undefined;
+
   return (
     <Text
       {...rest}
       accessibilityLabel={rest.accessibilityLabel ?? display}
-      style={[MonoText[variant], { color }, style]}
+      style={[MonoText[variant], { color }, fontSizeStyle, style]}
     >
       {display}
     </Text>
