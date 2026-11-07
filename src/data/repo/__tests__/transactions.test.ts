@@ -1,7 +1,8 @@
+import { openTestDb } from '../../db/openTestDb';
 import { createAccount } from '../accounts';
 import { listCategories } from '../categories';
-import { openTestDb } from '../../db/openTestDb';
 import {
+  buildTxFilterSql,
   deleteTransaction,
   getEarliestPeriod,
   getPeriodSummary,
@@ -12,7 +13,7 @@ import {
   listDailyTotals,
   listTransactions,
   listTransactionsForPeriod,
-  updateTransaction,
+  updateTransaction
 } from '../transactions';
 
 const NOW = '2026-01-01T00:00:00+07:00';
@@ -159,5 +160,41 @@ describe('transactions repo: Transactions tab queries', () => {
       { category_id: expect.any(Number), category_name: 'Salary', category_icon: null, amount_idr: 7000000 },
       { category_id: expect.any(Number), category_name: 'Freelance', category_icon: null, amount_idr: 500000 },
     ]);
+  });
+});
+
+
+describe('Transactions filter query builder', () => {
+  test('binds a combined date, account, category, and rupiah-amount filter', () => {
+    const params: Record<string, string | number> = {};
+    const where = buildTxFilterSql({
+      startDate: '2026-09-01',
+      endDate: '2026-10-28',
+      accountIds: [2, 7],
+      categoryIds: [3, 5],
+      minAmount: 100000,
+      maxAmount: 900000,
+    }, params);
+
+    expect(where).toContain('t.occurred_on >= $startDate');
+    expect(where).toContain('t.occurred_on <= $endDate');
+    expect(where).toContain('(t.account_id in ($accountId0, $accountId1) or t.to_account_id in ($accountId0, $accountId1))');
+    expect(where).toContain('t.category_id in ($categoryId0, $categoryId1)');
+    expect(where).toContain('t.amount_idr >= $minAmount');
+    expect(where).toContain('t.amount_idr <= $maxAmount');
+    expect(params).toEqual({
+      $startDate: '2026-09-01',
+      $endDate: '2026-10-28',
+      $accountId0: 2,
+      $accountId1: 7,
+      $categoryId0: 3,
+      $categoryId1: 5,
+      $minAmount: 100000,
+      $maxAmount: 900000,
+    });
+  });
+
+  test('rejects an amount range whose minimum exceeds its maximum', () => {
+    expect(() => buildTxFilterSql({ minAmount: 900000, maxAmount: 100000 }, {})).toThrow(RangeError);
   });
 });

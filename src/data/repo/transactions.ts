@@ -137,16 +137,20 @@ export async function listAccountActivity(db: Db, accountId: number, currency: s
   );
 }
 
-// Transactions tab (DESIGN.md "B. Transactions" / PAGES.md B1): one month's rows, daily
-// totals and period summary, all filtered the same way (type chip + search), so the
-// summary card never shows a number the list below it doesn't back up. v_tx already
-// carries `period`; the joins here only add the display fields a view wouldn't (CLAUDE.md
-// rule 2: a view derives balances, not plain names) — category/account names for the
-// row's own text and for search to match against.
+// Transactions tab (DESIGN.md "B. Transactions" / PAGES.md B1): every list, daily
+// total, summary, count, and category-ring aggregation shares this builder. Filter values
+// are always bound parameters; arrays expand to individually named bound parameters.
 export interface TxListFilter {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
   kind?: TxKind;
   search?: string; // matched against description, note, category name, account name(s)
-  categoryId?: number; // Fase 4.3c: tapping a ring slice or category row filters the list to it
+  categoryId?: number; // legacy single-category caller
+  categoryIds?: number[];
+  accountIds?: number[];
+  minAmount?: number; // whole rupiah, compared with immutable amount_idr
+  maxAmount?: number; // whole rupiah, compared with immutable amount_idr
 }
 
 const TX_JOIN = `
@@ -157,22 +161,75 @@ const TX_JOIN = `
   join currencies cur on cur.code = t.currency
 `;
 
-function txFilterSql(period: string, filter: TxListFilter, params: Record<string, string | number>): string {
-  const clauses = ['t.period = $period'];
-  params.$period = period;
+function validIds(ids: number[] | undefined, legacyId?: number): number[] {
+  const raw = ids ?? (legacyId == null ? [] : [legacyId]);
+  return [...new Set(raw)].filter(id => Number.isInteger(id) && id > 0);
+}
+
+function addInClause(
+  column: string,
+  parameterPrefix: string,
+  ids: number[],
+  params: Record<string, string | number>,
+  clauses: string[],
+): void {
+  if (ids.length === 0) return;
+  const placeholders = ids.map((id, index) => {
+    const key = `$${parameterPrefix}${index}`;
+    params[key] = id;
+    return key;
+  });
+  clauses.push(`${column} in (${placeholders.join(', ')})`);
+}
+
+/** Builds the parameterised WHERE clause used by every Transactions filter query. */
+export function buildTxFilterSql(filter: TxListFilter, params: Record<string, string | number>): string {
+  if (filter.minAmount != null && filter.maxAmount != null && filter.minAmount > filter.maxAmount) {
+    throw new RangeError('The minimum transaction amount cannot exceed the maximum amount.');
+  }
+
+  const clauses: string[] = [];
+  if (filter.period) {
+    clauses.push('t.period = $period');
+    params.$period = filter.period;
+  }
+  if (filter.startDate) {
+    clauses.push('t.occurred_on >= $startDate');
+    params.$startDate = filter.startDate;
+  }
+  if (filter.endDate) {
+    clauses.push('t.occurred_on <= $endDate');
+    params.$endDate = filter.endDate;
+  }
   if (filter.kind) {
     clauses.push('t.kind = $kind');
     params.$kind = filter.kind;
   }
-  if (filter.categoryId != null) {
-    clauses.push('t.category_id = $categoryId');
-    params.$categoryId = filter.categoryId;
+
+  addInClause('t.category_id', 'categoryId', validIds(filter.categoryIds, filter.categoryId), params, clauses);
+
+  const accountIds = validIds(filter.accountIds);
+  if (accountIds.length > 0) {
+    const placeholders = accountIds.map((id, index) => {
+      const key = `$accountId${index}`;
+      params[key] = id;
+      return key;
+    });
+    clauses.push(`(t.account_id in (${placeholders.join(', ')}) or t.to_account_id in (${placeholders.join(', ')}))`);
+  }
+  if (filter.minAmount != null) {
+    clauses.push('t.amount_idr >= $minAmount');
+    params.$minAmount = filter.minAmount;
+  }
+  if (filter.maxAmount != null) {
+    clauses.push('t.amount_idr <= $maxAmount');
+    params.$maxAmount = filter.maxAmount;
   }
   if (filter.search) {
     clauses.push('(t.description LIKE $search OR t.note LIKE $search OR c.name LIKE $search OR a.name LIKE $search OR ta.name LIKE $search)');
     params.$search = `%${filter.search}%`;
   }
-  return clauses.join(' and ');
+  return clauses.length ? clauses.join(' and ') : '1 = 1';
 }
 
 export interface TxListRow {
@@ -195,9 +252,9 @@ export interface TxListRow {
   to_account_name: string | null;
 }
 
-export async function listTransactionsForPeriod(db: Db, period: string, filter: TxListFilter = {}): Promise<TxListRow[]> {
+async function listTransactionsWithFilter(db: Db, filter: TxListFilter): Promise<TxListRow[]> {
   const params: Record<string, string | number> = {};
-  const where = txFilterSql(period, filter, params);
+  const where = buildTxFilterSql(filter, params);
   return db.getAllAsync<TxListRow>(
     `select t.id, t.kind, t.occurred_on, t.description, t.note, t.amount, t.amount_idr, t.currency,
             cur.minor_factor, t.amount_to, t.to_currency, t.category_id, c.name as category_name,
@@ -209,6 +266,14 @@ export async function listTransactionsForPeriod(db: Db, period: string, filter: 
   );
 }
 
+export function listTransactionsForFilter(db: Db, filter: TxListFilter = {}): Promise<TxListRow[]> {
+  return listTransactionsWithFilter(db, filter);
+}
+
+export function listTransactionsForPeriod(db: Db, period: string, filter: TxListFilter = {}): Promise<TxListRow[]> {
+  return listTransactionsWithFilter(db, { ...filter, period });
+}
+
 export interface PeriodSummary {
   income: number;
   expense: number;
@@ -217,9 +282,9 @@ export interface PeriodSummary {
   transfer_total: number;
 }
 
-export async function getPeriodSummary(db: Db, period: string, filter: TxListFilter = {}): Promise<PeriodSummary> {
+async function summaryWithFilter(db: Db, filter: TxListFilter): Promise<PeriodSummary> {
   const params: Record<string, string | number> = {};
-  const where = txFilterSql(period, filter, params);
+  const where = buildTxFilterSql(filter, params);
   const row = await db.getFirstAsync<PeriodSummary>(
     `select
        coalesce(sum(case when t.kind = 'income' then t.amount_idr end), 0) as income,
@@ -234,6 +299,14 @@ export async function getPeriodSummary(db: Db, period: string, filter: TxListFil
   return row ?? { income: 0, expense: 0, net: 0, transfer_count: 0, transfer_total: 0 };
 }
 
+export function getTransactionSummary(db: Db, filter: TxListFilter = {}): Promise<PeriodSummary> {
+  return summaryWithFilter(db, filter);
+}
+
+export function getPeriodSummary(db: Db, period: string, filter: TxListFilter = {}): Promise<PeriodSummary> {
+  return summaryWithFilter(db, { ...filter, period });
+}
+
 export interface DailyTotalRow {
   occurred_on: string;
   income: number;
@@ -241,9 +314,9 @@ export interface DailyTotalRow {
   net: number;
 }
 
-export async function listDailyTotals(db: Db, period: string, filter: TxListFilter = {}): Promise<DailyTotalRow[]> {
+async function dailyTotalsWithFilter(db: Db, filter: TxListFilter): Promise<DailyTotalRow[]> {
   const params: Record<string, string | number> = {};
-  const where = txFilterSql(period, filter, params);
+  const where = buildTxFilterSql(filter, params);
   return db.getAllAsync<DailyTotalRow>(
     `select t.occurred_on,
             coalesce(sum(case when t.kind = 'income' then t.amount_idr end), 0) as income,
@@ -257,6 +330,21 @@ export async function listDailyTotals(db: Db, period: string, filter: TxListFilt
   );
 }
 
+export function listDailyTotalsForFilter(db: Db, filter: TxListFilter = {}): Promise<DailyTotalRow[]> {
+  return dailyTotalsWithFilter(db, filter);
+}
+
+export function listDailyTotals(db: Db, period: string, filter: TxListFilter = {}): Promise<DailyTotalRow[]> {
+  return dailyTotalsWithFilter(db, { ...filter, period });
+}
+
+export async function countTransactionsForFilter(db: Db, filter: TxListFilter = {}): Promise<number> {
+  const params: Record<string, string | number> = {};
+  const where = buildTxFilterSql(filter, params);
+  const row = await db.getFirstAsync<{ count: number }>(`select count(*) as count ${TX_JOIN} where ${where}`, params);
+  return row?.count ?? 0;
+}
+
 // The earliest month with any record at all — where infinite-scroll paging into the
 // past should stop. Unfiltered on purpose: a search/chip filter narrowing the visible
 // rows should never also narrow how far back "load more" is willing to look.
@@ -265,11 +353,8 @@ export async function getEarliestPeriod(db: Db): Promise<string | null> {
   return row?.period ?? null;
 }
 
-// Fase 4.3c's ring chart / category list: the same SUM(amount_idr) grouped by category
-// that v_category_spend already computes for Reports (src/data/repo/reports.ts's
-// listCategorySpend) — reimplemented here, not reused, only because that view is
-// expense-only and bakes in no category name/icon, and this needs both income and
-// expense plus the name/icon to render a row.
+// Fase 4.3c's ring chart / category list: aggregate from the exact same filter builder
+// as rows and summaries, then group by category for the ring's portions.
 export interface CategoryTotalRow {
   category_id: number;
   category_name: string;
@@ -277,14 +362,23 @@ export interface CategoryTotalRow {
   amount_idr: number;
 }
 
-export async function listCategoryTotals(db: Db, period: string, kind: 'income' | 'expense'): Promise<CategoryTotalRow[]> {
+export async function listCategoryTotalsForFilter(
+  db: Db,
+  kind: 'income' | 'expense',
+  filter: TxListFilter = {},
+): Promise<CategoryTotalRow[]> {
+  const params: Record<string, string | number> = {};
+  const where = buildTxFilterSql({ ...filter, kind }, params);
   return db.getAllAsync<CategoryTotalRow>(
     `select t.category_id, c.name as category_name, c.icon as category_icon, sum(t.amount_idr) as amount_idr
-     from v_tx t
-     join categories c on c.id = t.category_id
-     where t.period = $period and t.kind = $kind
+     ${TX_JOIN}
+     where ${where}
      group by t.category_id
      order by amount_idr desc`,
-    { $period: period, $kind: kind },
+    params,
   );
+}
+
+export function listCategoryTotals(db: Db, period: string, kind: 'income' | 'expense'): Promise<CategoryTotalRow[]> {
+  return listCategoryTotalsForFilter(db, kind, { period });
 }
