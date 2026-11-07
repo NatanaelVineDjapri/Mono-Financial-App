@@ -205,18 +205,43 @@ describe('BudgetsScreen', () => {
     expect(within(result.getByTestId('budget-category-3-bar')).getByRole('progressbar').props.accessibilityLabel).not.toMatch(/\d{3}\.\d{3}/);
   });
 
-  test('month chip opens the month list; picking September asks for that month and closes it', async () => {
+  test('month chip opens the month list; picking September only asks for that month after Confirm', async () => {
     mockData(OCTOBER);
     const result = await renderScreen();
     expect(result.queryByTestId('budget-month-sheet')).toBeNull();
 
     await fireEvent.press(result.getByTestId('budget-month-chip'));
     expect(result.getByText('Choose month')).toBeTruthy();
+    expect(result.getByText('Select a month from 2026')).toBeTruthy();
     expect(result.getByTestId('budget-month-option-2026-10').props.accessibilityState).toMatchObject({ selected: true });
     expect(result.getByTestId('budget-month-option-2026-06')).toBeTruthy();
 
+    // A tap only moves the draft: the check follows it, the screen's month does not.
     await fireEvent.press(result.getByTestId('budget-month-option-2026-09'));
+    expect(result.getByTestId('budget-month-option-2026-09').props.accessibilityState).toMatchObject({ selected: true });
+    expect(result.getByTestId('budget-month-option-2026-10').props.accessibilityState).toMatchObject({ selected: false });
+    expect(mockUseBudgetOverview).not.toHaveBeenLastCalledWith('2026-09');
+
+    await fireEvent.press(result.getByTestId('budget-month-confirm'));
     expect(mockUseBudgetOverview).toHaveBeenLastCalledWith('2026-09');
+  });
+
+  test('Cancel and the close button discard the draft; reopening starts from the screen\'s month', async () => {
+    mockData(OCTOBER);
+    const result = await renderScreen();
+
+    await fireEvent.press(result.getByTestId('budget-month-chip'));
+    await fireEvent.press(result.getByTestId('budget-month-option-2026-08'));
+    await fireEvent.press(result.getByTestId('budget-month-cancel'));
+    expect(mockUseBudgetOverview).not.toHaveBeenLastCalledWith('2026-08');
+
+    await fireEvent.press(result.getByTestId('budget-month-chip'));
+    expect(result.getByTestId('budget-month-option-2026-10').props.accessibilityState).toMatchObject({ selected: true });
+    expect(result.getByTestId('budget-month-option-2026-08').props.accessibilityState).toMatchObject({ selected: false });
+
+    await fireEvent.press(result.getByTestId('budget-month-option-2026-07'));
+    await fireEvent.press(result.getByTestId('budget-month-close'));
+    expect(mockUseBudgetOverview).not.toHaveBeenLastCalledWith('2026-07');
   });
 
   test('the month list hides the tab bar while open and restores it on close', async () => {

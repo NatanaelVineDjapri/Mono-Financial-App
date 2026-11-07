@@ -510,6 +510,24 @@ export function chooseMonthTitle(): string {
   return 'Choose month';
 }
 
+// Under the month sheet's title: the year of the months listed, or the span when the
+// list crosses years.
+export function chooseMonthSubtitle(newestYear: string, oldestYear: string): string {
+  return newestYear === oldestYear ? `Select a month from ${newestYear}` : `Select a month from ${oldestYear} to ${newestYear}`;
+}
+
+export function confirmLabel(): string {
+  return 'Confirm';
+}
+
+export function previousYearLabel(): string {
+  return 'Previous year';
+}
+
+export function nextYearLabel(): string {
+  return 'Next year';
+}
+
 export function budgetsEmptyTitle(monthLabelText: string): string {
   return `No budget for ${monthLabelText}`;
 }
