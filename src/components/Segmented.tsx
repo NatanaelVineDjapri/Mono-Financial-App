@@ -75,10 +75,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal:0
   },
   segmentText: {
   textAlign: "center",
-  width: "100%",
+  // width: "100%",
 },
   selected: { backgroundColor: MonoColors.raised },
   pressed: { backgroundColor: MonoColors.surface },
