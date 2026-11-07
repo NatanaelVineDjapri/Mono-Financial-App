@@ -222,6 +222,7 @@ Papan: `Transactions` · 390 × 1600
 
 - Pemasukan tebal dengan +, pengeluaran dengan − sejati (U+2212), transfer tanpa tanda dan berwarna abu-abu.
 - Nominal ringkasan tidak pernah terpotong di text scale besar — boleh melipat ke baris baru.
+- The filter icon shows a badge with the number of active filters; active filters also show as removable chips above the list.
 
 ### B2 · Lembar filter transaksi
 

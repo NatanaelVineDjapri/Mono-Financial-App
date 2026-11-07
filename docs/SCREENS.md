@@ -51,3 +51,7 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 - The **+ FAB on Transactions opens the AI chat**, not the form. The Overview has no chat bar (removed on purpose).
 - The chat has "Catat manual" to reach the form. The form has a "Chat" button back.
 - Add transaction is also reached from Account detail and the empty states.
+
+## Build status
+
+- 4.3b Transaction filters sheet: built. Filter state lives in the Transactions zustand store; the same SQL params feed the list and the stats ring. Ring limit mode only when the range is the current full month and no account/category/amount filter is active.
