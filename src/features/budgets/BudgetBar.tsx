@@ -54,6 +54,7 @@ export function BudgetBar({ subject, figures, layout, hidden, testID }: BudgetBa
         valueBp={figures.usedBp}
         label={subject}
         accessibilityLabel={budgetBarLabel(subject, figures, layout, hidden)}
+        wavy
         testID={testID ? `${testID}-bar` : undefined}
       />
       <View style={styles.footer}>

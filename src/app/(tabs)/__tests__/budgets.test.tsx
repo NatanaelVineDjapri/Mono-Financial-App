@@ -187,10 +187,11 @@ describe('BudgetsScreen', () => {
     const result = await renderScreen();
     const bar = within(result.getByTestId('budget-category-3-bar')).getByRole('progressbar');
     expect(bar.props.accessibilityValue).toMatchObject({ now: 116 });
-    const [fill, overflow] = bar.children as unknown as { props: { style: object[] } }[];
+    // The wavy fill is drawn in amber by Skia, so only its width is a style here.
+    const fill = result.getByTestId('budget-category-3-bar-fill');
+    const overflow = result.getByTestId('budget-category-3-bar-overflow');
     const fillStyle = Object.assign({}, ...[fill.props.style].flat());
     const overflowStyle = Object.assign({}, ...[overflow.props.style].flat());
-    expect(fillStyle.backgroundColor).toBe('#E3C27A');
     expect(overflowStyle.backgroundColor).toBeUndefined(); // striped, never a flat red fill
     expect(parseFloat(fillStyle.width) + parseFloat(overflowStyle.width)).toBeCloseTo(100);
   });
