@@ -1,7 +1,18 @@
-import * as repo from '../data/repo/budgets';
-import type { BudgetStatusRow, MonthBudgetRow, MonthlyLimitRow } from '../data/repo/budgets';
+import { daysBetween, nextPeriod, periodEnd, periodOfDate, previousPeriod } from '../core/date';
 import type { Db } from '../data/db/types';
+import type {
+  BudgetOverviewData,
+  BudgetStatusRow,
+  BudgetWithCategoryRow,
+  CategoryBudgetDetailData,
+  MonthBudgetRow,
+  MonthlyLimitRow,
+} from '../data/repo/budgets';
+import * as repo from '../data/repo/budgets';
 import { DomainError, throwDomainError } from './errors';
+import { getMonthStartDay } from './transactionsList';
+
+export type { BudgetCategoryRow, BudgetMonthRow, BudgetWithCategoryRow } from '../data/repo/budgets';
 
 export function getBudgetStatus(db: Db, month: string): Promise<BudgetStatusRow[]> {
   return repo.listBudgetStatus(db, month);
@@ -11,7 +22,14 @@ export function getMonthBudget(db: Db, month: string): Promise<MonthBudgetRow | 
   return repo.getMonthBudget(db, month);
 }
 
+// Friendly pre-check before SQL (trg_limit_upd stays the real guard): a limit may not
+// drop below what the month's category budgets already allocate.
 export async function setMonthlyLimit(db: Db, month: string, amount: number, repeat = true): Promise<void> {
+  const allocated = (await repo.listBudgets(db, month)).reduce((sum, b) => sum + b.limit_amount, 0);
+  const check = checkAllocation(amount, allocated, 0);
+  if (check.status === 'over') {
+    throw new DomainError('over_monthly_limit', { overBy: check.overBy });
+  }
   try {
     await repo.setMonthlyLimit(db, month, amount, repeat);
   } catch (err) {
@@ -75,14 +93,15 @@ function previousMonth(month: string): string {
 // Idempotent: call whenever a month is first opened in the UI. If `month` already has a
 // monthly limit, this is a no-op. Otherwise, if the previous month's limit has
 // repeat = 1, copies the limit and every repeat = 1 budget forward. No scheduled task —
-// this is the only mechanism "repeat" has.
-export async function ensureMonth(db: Db, month: string): Promise<void> {
+// this is the only mechanism "repeat" has. Resolves true when it copied something, so a
+// caller can refresh other cached reads that depend on the month's limit.
+export async function ensureMonth(db: Db, month: string): Promise<boolean> {
   const existing: MonthlyLimitRow | null = await repo.getMonthlyLimit(db, month);
-  if (existing) return;
+  if (existing) return false;
 
   const prevMonth = previousMonth(month);
   const prevLimit = await repo.getMonthlyLimit(db, prevMonth);
-  if (!prevLimit || !prevLimit.repeat) return;
+  if (!prevLimit || !prevLimit.repeat) return false;
 
   await repo.setMonthlyLimit(db, month, prevLimit.amount, true);
 
@@ -90,4 +109,179 @@ export async function ensureMonth(db: Db, month: string): Promise<void> {
   for (const budget of prevBudgets.filter(b => b.repeat)) {
     await repo.createBudget(db, { categoryId: budget.category_id, month, limitAmount: budget.limit_amount, repeat: true });
   }
+  return true;
+}
+
+// ---------------------------------------------------------------- Budgets screens (Fase 4.4)
+
+export type AllocationStatus = 'under' | 'exact' | 'over';
+
+export interface AllocationCheck {
+  monthlyLimit: number;
+  allocated: number; // what other category budgets already take
+  adding: number; // this budget (0 when only the limit is edited)
+  total: number;
+  status: AllocationStatus;
+  unallocated: number; // >= 0
+  overBy: number; // >= 0
+}
+
+// DESIGN.md section 12 rule 5: the monthly limit must cover the sum of category budgets.
+// Pure integer arithmetic; the SQL triggers enforce the same rule on write.
+export function checkAllocation(monthlyLimit: number, allocated: number, adding: number): AllocationCheck {
+  const total = allocated + adding;
+  const diff = monthlyLimit - total;
+  return {
+    monthlyLimit,
+    allocated,
+    adding,
+    total,
+    status: diff > 0 ? 'under' : diff === 0 ? 'exact' : 'over',
+    unallocated: Math.max(diff, 0),
+    overBy: Math.max(-diff, 0),
+  };
+}
+
+// Remaining spread over the days after today, rounded half away from zero (remaining is
+// never negative here). Null when no day is left; 0 when nothing is left to spend.
+export function availablePerDay(remaining: number, daysLeft: number): number | null {
+  if (daysLeft <= 0) return null;
+  if (remaining <= 0) return 0;
+  return Math.floor((2 * remaining + daysLeft) / (2 * daysLeft));
+}
+
+export interface BudgetOverview extends BudgetOverviewData {
+  currentMonth: string;
+  isCurrent: boolean;
+  previousMonth: string | null; // null: nothing older to show
+  nextMonth: string | null; // null: already at the current month
+  months: string[]; // every month the picker offers, current first, back to the oldest data
+  daysLeft: number | null; // current month only: days after today until the period ends
+  availablePerDay: number | null;
+  isEmpty: boolean; // no monthly limit and no category budget
+  monthCreated: boolean; // ensureMonth copied a repeating limit into the current month
+}
+
+// Newest first, from `newest` back to `oldest` inclusive. 'YYYY-MM' strings compare in
+// calendar order, so the walk stops exactly at `oldest`.
+function monthsBetween(oldest: string, newest: string, startDay: number): string[] {
+  const months: string[] = [];
+  for (let m = newest; m >= oldest; m = previousPeriod(m, startDay)) months.push(m);
+  return months;
+}
+
+// Budgets tab. `month` null = the current period. Opening the current period runs
+// ensureMonth first (the documented "repeat" mechanism); older months are only read.
+export async function getBudgetOverview(db: Db, month: string | null, todayIso: string): Promise<BudgetOverview> {
+  const startDay = await getMonthStartDay(db);
+  const today = todayIso.slice(0, 10);
+  const currentMonth = periodOfDate(today, startDay);
+  const target = month ?? currentMonth;
+  const isCurrent = target === currentMonth;
+  const monthCreated = isCurrent ? await ensureMonth(db, target) : false;
+
+  const [data, earliest] = await Promise.all([repo.getBudgetOverview(db, target), repo.getEarliestBudgetMonth(db)]);
+  const floor = earliest !== null && earliest < currentMonth ? earliest : currentMonth;
+  const daysLeft = isCurrent ? Math.max(daysBetween(today, periodEnd(target, startDay)), 0) : null;
+
+  return {
+    ...data,
+    currentMonth,
+    isCurrent,
+    previousMonth: target > floor ? previousPeriod(target, startDay) : null,
+    nextMonth: target < currentMonth ? nextPeriod(target, startDay) : null,
+    months: monthsBetween(floor, currentMonth, startDay),
+    daysLeft,
+    availablePerDay: daysLeft !== null && data.limit ? availablePerDay(data.limit.remaining, daysLeft) : null,
+    isEmpty: data.limit === null && data.categories.length === 0,
+    monthCreated,
+  };
+}
+
+export interface CategoryBudgetDetail extends CategoryBudgetDetailData {
+  // Only when the budget is over: raising it by the overage would bring the month's
+  // allocation to `total`; `exceedsLimit` says whether the monthly limit must rise too.
+  raise: { by: number; total: number; monthlyLimit: number; exceedsLimit: boolean } | null;
+}
+
+export async function getCategoryBudgetDetail(db: Db, categoryId: number, month: string): Promise<CategoryBudgetDetail> {
+  const data = await repo.getCategoryBudgetDetail(db, categoryId, month);
+  let raise: CategoryBudgetDetail['raise'] = null;
+  if (data.budget && data.budget.over_by > 0 && data.monthlyLimit !== null) {
+    const check = checkAllocation(data.monthlyLimit, data.allocated, data.budget.over_by);
+    raise = { by: data.budget.over_by, total: check.total, monthlyLimit: data.monthlyLimit, exceedsLimit: check.status === 'over' };
+  }
+  return { ...data, raise };
+}
+
+export interface BudgetFormContext {
+  month: string;
+  monthlyLimit: { amount: number; repeat: boolean } | null;
+  budgets: BudgetWithCategoryRow[];
+  availableCategories: { id: number; name: string }[];
+  editing: BudgetWithCategoryRow | null; // the category's budget this month, when it exists
+}
+
+export async function getBudgetFormContext(db: Db, month: string, categoryId?: number): Promise<BudgetFormContext> {
+  const [limit, budgets, availableCategories] = await Promise.all([
+    repo.getMonthlyLimit(db, month),
+    repo.listBudgetsWithCategory(db, month),
+    repo.listCategoriesWithoutBudget(db, month),
+  ]);
+  return {
+    month,
+    monthlyLimit: limit ? { amount: limit.amount, repeat: limit.repeat === 1 } : null,
+    budgets,
+    availableCategories,
+    editing: categoryId === undefined ? null : budgets.find(b => b.category_id === categoryId) ?? null,
+  };
+}
+
+export interface SaveBudgetInput {
+  month: string;
+  categoryId: number;
+  limitAmount: number;
+  repeat: boolean;
+  // Set (or raise) the month's limit in the same transaction, e.g. after "Raise monthly
+  // limit to …" or for the month's first budget. Omit to keep the stored limit.
+  monthlyLimit?: number;
+}
+
+// Creates or updates one category budget, plus the month's limit when given, in one
+// exclusive transaction. The pre-check names the overage; the triggers stay the guard.
+export async function saveBudget(db: Db, input: SaveBudgetInput): Promise<number> {
+  if (!Number.isInteger(input.limitAmount) || input.limitAmount <= 0) {
+    throw new RangeError('A budget needs an amount above 0.');
+  }
+  let budgetId = 0;
+  try {
+    await db.withExclusiveTransactionAsync(async txn => {
+      const [current, budgets] = await Promise.all([repo.getMonthlyLimit(txn, input.month), repo.listBudgets(txn, input.month)]);
+      const existing = budgets.find(b => b.category_id === input.categoryId) ?? null;
+      const allocatedOthers = budgets.filter(b => b !== existing).reduce((sum, b) => sum + b.limit_amount, 0);
+      const limit = input.monthlyLimit ?? current?.amount ?? 0;
+      const check = checkAllocation(limit, allocatedOthers, input.limitAmount);
+      if (check.status === 'over') {
+        throw new DomainError('over_monthly_limit', { overBy: check.overBy });
+      }
+
+      const limitChanges = input.monthlyLimit !== undefined && (current === null || current.amount !== input.monthlyLimit);
+      const raising = limitChanges && (current === null || input.monthlyLimit! > current.amount);
+      const writeLimit = () => repo.setMonthlyLimit(txn, input.month, input.monthlyLimit!, current ? current.repeat === 1 : true);
+      // Order matters for the AFTER triggers: raise the limit before the budget grows,
+      // lower it only after the budget has shrunk.
+      if (raising) await writeLimit();
+      if (existing) {
+        await repo.updateBudget(txn, existing.id, { limitAmount: input.limitAmount, repeat: input.repeat });
+        budgetId = existing.id;
+      } else {
+        budgetId = await repo.createBudget(txn, { categoryId: input.categoryId, month: input.month, limitAmount: input.limitAmount, repeat: input.repeat });
+      }
+      if (limitChanges && !raising) await writeLimit();
+    });
+  } catch (err) {
+    if (err instanceof DomainError) throw err;
+    throwDomainError(err);
+  }
+  return budgetId;
 }

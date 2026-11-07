@@ -14,7 +14,7 @@ import {
 
 export type { DailyTotalRow, PeriodSummary, TxListFilter, TxListRow };
 
-async function getMonthStartDay(db: Db): Promise<number> {
+export async function getMonthStartDay(db: Db): Promise<number> {
   const raw = await getSetting(db, 'month_start_day');
   const parsed = raw ? Number(raw) : 1;
   return Number.isFinite(parsed) && parsed >= 1 && parsed <= 31 ? parsed : 1;
