@@ -34,7 +34,9 @@ export type IconName =
   | 'receipt'
   | 'wallet'
   // Accounts tab (Fase 4.2c): the "Exchange rates" row.
-  | 'refresh';
+  | 'refresh'
+  // Transactions tab (Tx-Filters, B2): the date range's own two date fields.
+  | 'calendar';
 
 export interface IconProps {
   name: IconName;
@@ -68,6 +70,7 @@ const PATHS: Partial<Record<IconName, string>> = {
   receipt: 'M5 3 H19 V21 L16 19.5 L13 21 L10 19.5 L7 21 L5 19.5 Z M8 8 H16 M8 12 H16 M8 16 H13',
   wallet: 'M3 7 H21 V18 H3 Z M3 7 L5.5 4 H16 M16 11.5 H19.5 V14.5 H16 Z',
   refresh: 'M3 12 a9 9 0 0 1 15 -6.7 L21 8 M21 3 V8 H16 M21 12 a9 9 0 0 1 -15 6.7 L3 16 M3 21 V16 H8',
+  calendar: 'M4 5 H20 V20 H4 Z M4 9 H20 M8 3 V7 M16 3 V7',
 };
 
 function renderGlyph(name: IconName, color: string) {

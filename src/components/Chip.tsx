@@ -47,7 +47,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   selected: { backgroundColor: MonoColors.text },
-  unselected: { backgroundColor: 'transparent', borderWidth: 1, borderColor: MonoColors.border },
+  // A real fill (not transparent): an unselected chip sitting on a sheet whose own
+  // background is `raised` needs its own distinct, slightly darker box, not just an
+  // outline that reads as a hole showing the sheet through it.
+  unselected: { backgroundColor: MonoColors.card, borderWidth: 1, borderColor: MonoColors.border },
   pressed: { backgroundColor: MonoColors.raised },
   disabled: { opacity: 0.4 },
   selectedText: { color: MonoColors.bg },
