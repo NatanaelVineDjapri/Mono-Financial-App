@@ -1,5 +1,5 @@
-// Transaksi (Transactions) tab (DESIGN.md "B. Transactions", PAGES.md B1). The Filters
-// sheet (Tx-Filters) is Phase 4.3b — the "Filters" button here only opens an empty stub.
+// Transactions tab (DESIGN.md "B. Transactions", PAGES.md B1). Tx-Filters applies a
+// draft stored beside the Transactions statistics UI state.
 // /tx/[id] and /ai-chat are stub routes until the detail and chat screens exist.
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,26 +8,36 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
 import { Fab } from '@/components/Fab';
+import { FilterSheet } from '@/components/FilterSheet';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon, type IconName } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
-import { Sheet } from '@/components/Sheet';
 import { TAB_BAR_ZONE_PADDING_TOP } from '@/components/TabBar';
+import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
 import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
+import { activeTransactionFilterCount } from '@/domain/transactionFilters';
 import type { DailyTotalRow, TransactionsPage, TxListRow } from '@/domain/transactionsList';
 import { StatsSection } from '@/features/transactions/StatsSection';
-import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { useStatsCollapsed } from '@/features/transactions/statsStore';
+import { useTransactionFilterOptions } from '@/features/transactions/useTransactionFilterOptions';
+import { useTransactionsFilterSummary, useTransactionsList } from '@/features/transactions/useTransactionsList';
 import {
-  closeLabel,
   comingSoonMessage,
-  filtersButtonLabel,
-  filtersComingSoonMessage,
-  filtersSheetTitle,
+  filtersActiveAccountLabel,
+  filtersActiveBadgeLabel,
+  filtersActiveCategoryLabel,
+  filtersActiveDateLabel,
+  filtersActiveMaxAmountLabel,
+  filtersActiveMinAmountLabel,
+  filtersActiveTypeLabel,
+  filtersBadgeValue,
+  filtersButtonAccessibilityLabel,
   monthExpenseLabel,
   netLabel,
   recordViaChatLabel,
+  removeFilterAccessibilityLabel,
   resetSearchLabel,
   searchPlaceholder,
   tabLabel,
@@ -37,6 +47,7 @@ import {
   txKindLabel,
   txRowAccessibilityLabel,
   txTypeChipLabel,
+  unknownFilterOptionLabel,
   type TxTypeFilter,
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
@@ -48,7 +59,7 @@ const TYPE_OPTIONS: SegmentedOption[] = (['all', 'income', 'expense', 'transfer'
 }));
 
 const FAB_SIZE = 56; // matches Fab.tsx's own (unexported) SIZE constant
-const FAB_GAP = -35; // clearance between the FAB and the tab bar's visible top edge
+const FAB_GAP = -40; // clearance between the FAB and the tab bar's visible top edge
 // The FAB floats inside this screen, and the screen ends where the tab bar begins: the tab
 // navigator lays the bar out below its screens instead of over them. The bar's own height
 // and the bottom safe-area inset are therefore already outside this view and must not be
@@ -72,10 +83,37 @@ function useDebouncedValue(value: string, delayMs: number): string {
   return debounced;
 }
 
-function FilterButton({ onPress }: { onPress: () => void }) {
+function FilterButton({ onPress, activeCount }: { onPress: () => void; activeCount: number }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={filtersButtonLabel()} hitSlop={4} style={styles.headerAction}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={filtersButtonAccessibilityLabel(activeCount)}
+      hitSlop={4}
+      style={styles.headerAction}
+    >
       <Icon name="filter" color={MonoColors.text} />
+      {activeCount > 0 && (
+        <View accessible={false} style={styles.filterBadge}>
+          <Text style={styles.filterBadgeText}>{filtersBadgeValue(activeCount)}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function ActiveFilterChip({ label, onRemove, testID }: { label: string; onRemove: () => void; testID: string }) {
+  return (
+    <Pressable
+      onPress={onRemove}
+      accessibilityRole="button"
+      accessibilityState={{ selected: true }}
+      accessibilityLabel={removeFilterAccessibilityLabel(label)}
+      style={styles.activeFilterChip}
+      testID={testID}
+    >
+      <Text style={styles.activeFilterText}>{label}</Text>
+      <Icon name="close" size={16} color={MonoColors.bg} />
     </Pressable>
   );
 }
@@ -250,66 +288,105 @@ function MonthSection({
 
 export default function TransactionsScreen() {
   const router = useRouter();
-  const hidden = useHideAmounts(s => s.hidden);
-  const [typeFilter, setTypeFilter] = useState<TxTypeFilter>('all');
+  const hidden = useHideAmounts(state => state.hidden);
+  const filters = useStatsCollapsed(state => state.filters);
+  const draftFilters = useStatsCollapsed(state => state.draftFilters);
+  const startFilterEdit = useStatsCollapsed(state => state.startFilterEdit);
+  const updateDraftFilters = useStatsCollapsed(state => state.updateDraftFilters);
+  const resetDraftFilters = useStatsCollapsed(state => state.resetDraftFilters);
+  const applyDraftFilters = useStatsCollapsed(state => state.applyDraftFilters);
+  const discardDraftFilters = useStatsCollapsed(state => state.discardDraftFilters);
+  const resetAppliedFilters = useStatsCollapsed(state => state.resetFilters);
+  const updateFilters = useStatsCollapsed(state => state.updateFilters);
+  const toggleCategoryFilter = useStatsCollapsed(state => state.toggleCategoryFilter);
+  const removeAccountFilter = useStatsCollapsed(state => state.removeAccountFilter);
+  const removeCategoryFilter = useStatsCollapsed(state => state.removeCategoryFilter);
+  const removeMinAmountFilter = useStatsCollapsed(state => state.removeMinAmountFilter);
+  const removeMaxAmountFilter = useStatsCollapsed(state => state.removeMaxAmountFilter);
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 250);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [expandedPeriods, setExpandedPeriods] = useState<Set<string>>(() => new Set());
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
+  const filterOptions = useTransactionFilterOptions();
 
-  // The synthetic "Others" bucket (id -1, Fase 4.3c) has no single matching category row
-  // in the database — it still dims the ring/marks its own row, but it never reaches the
-  // list query, since there is no `category_id = -1` to filter by.
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransactionsList({
-    type: typeFilter,
-    search: debouncedSearch,
-    categoryId: selectedCategoryId != null && selectedCategoryId > 0 ? selectedCategoryId : undefined,
-  });
-
+  const listFilter = useMemo(() => ({ ...filters, search: debouncedSearch }), [filters, debouncedSearch]);
+  const previewFilter = useMemo(() => ({ ...draftFilters, search: debouncedSearch }), [draftFilters, debouncedSearch]);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransactionsList(listFilter);
+  const summary = useTransactionsFilterSummary(listFilter);
+  const preview = useTransactionsFilterSummary(previewFilter);
   const pages = data?.pages ?? [];
   const firstPage = pages[0];
+  const activeFilterCount = activeTransactionFilterCount(filters);
+  const typeFilter = filters.type;
+
+  // The open Filter sheet (a modal overlay drawn inside this screen, not a separate
+  // route) sits above this screen's own content but not above the tab bar, which the
+  // navigator renders independently — so it must be hidden explicitly, both while the
+  // sheet itself is open and once a filter is actually applied. The effect's cleanup
+  // always restores it, so leaving this tab (or closing the sheet, or clearing the
+  // filter) never leaves the bar permanently hidden on another tab.
+  const setTabBarHidden = useTabBarVisibility(state => state.setHidden);
+  useEffect(() => {
+    setTabBarHidden(filterSheetOpen || activeFilterCount > 0);
+    return () => setTabBarHidden(false);
+  }, [filterSheetOpen, activeFilterCount, setTabBarHidden]);
+
+  const accountsById = useMemo(() => new Map(filterOptions.accounts.map(account => [account.id, account.name])), [filterOptions.accounts]);
+  const categoriesById = useMemo(() => new Map(filterOptions.categories.map(category => [category.id, category.name])), [filterOptions.categories]);
 
   const togglePeriod = useCallback((period: string) => {
-    setExpandedPeriods(prev => {
-      const next = new Set(prev);
+    setExpandedPeriods(previous => {
+      const next = new Set(previous);
       if (next.has(period)) next.delete(period);
       else next.add(period);
       return next;
     });
   }, []);
 
+  const openFilterSheet = useCallback(() => {
+    startFilterEdit();
+    setFilterSheetOpen(true);
+  }, [startFilterEdit]);
+  const closeFilterSheet = useCallback(() => {
+    discardDraftFilters();
+    setFilterSheetOpen(false);
+  }, [discardDraftFilters]);
+  const applyFilters = useCallback(() => {
+    applyDraftFilters();
+    setFilterSheetOpen(false);
+  }, [applyDraftFilters]);
   const onPressRow = useCallback((id: number) => router.push({ pathname: '/tx/[id]', params: { id: String(id) } }), [router]);
   const resetFilters = useCallback(() => {
     setSearchInput('');
-    setTypeFilter('all');
-  }, []);
+    resetAppliedFilters();
+  }, [resetAppliedFilters]);
   const onSelectCategory = useCallback((id: number) => {
-    setSelectedCategoryId(prev => (prev === id ? undefined : id));
-  }, []);
+    // "Others" is synthetic and cannot map to a transaction category_id.
+    if (id > 0) toggleCategoryFilter(id);
+  }, [toggleCategoryFilter]);
   const onChangeTypeFilter = useCallback((value: TxTypeFilter) => {
-    setTypeFilter(value);
-    setSelectedCategoryId(undefined);
-  }, []);
+    updateFilters({ type: value });
+  }, [updateFilters]);
 
-  if (isLoading || !firstPage) {
+  if (isLoading || summary.isLoading || !firstPage || !summary.data) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={() => setFilterSheetOpen(true)} />} />
-        {isError && <Text style={styles.errorText}>{comingSoonMessage()}</Text>}
+        <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
+        {(isError || summary.isError) && <Text style={styles.errorText}>{comingSoonMessage()}</Text>}
       </View>
     );
   }
 
-  const filtered = typeFilter !== 'all' || debouncedSearch.trim() !== '';
-  const noResults = filtered && pages.every(p => p.isEmpty);
-  const rangeLabel = `${formatShortDate(firstPage.rangeStart)}–${formatShortDate(firstPage.rangeEnd)}`;
+  const filtered = activeFilterCount > 0 || debouncedSearch.trim() !== '';
+  const noResults = filtered && summary.data.count === 0;
+  const rangeLabel = `${formatShortDate(summary.data.range.startDate)}–${formatShortDate(summary.data.range.endDate)}`;
+  const selectedCategoryId = filters.categoryIds.length === 1 ? filters.categoryIds[0] : undefined;
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={() => setFilterSheetOpen(true)} />} />
+      <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
       <View style={styles.toolbar}>
-        <Text style={styles.subtitle}>{transactionsCountLabel(firstPage.rows.length, rangeLabel)}</Text>
+        <Text style={styles.subtitle}>{transactionsCountLabel(summary.data.count, rangeLabel)}</Text>
         <SearchField value={searchInput} onChangeText={setSearchInput} />
         <Segmented
           testID="tx-type-segmented"
@@ -318,6 +395,61 @@ export default function TransactionsScreen() {
           onChange={value => onChangeTypeFilter(value as TxTypeFilter)}
         />
       </View>
+
+      {activeFilterCount > 0 && (
+        <View style={styles.activeFilters} accessibilityLabel={filtersActiveBadgeLabel(activeFilterCount)}>
+          {filters.datePreset !== 'this-month' && (
+            <ActiveFilterChip
+              label={filtersActiveDateLabel(rangeLabel)}
+              onRemove={() => updateFilters({ datePreset: 'this-month', customStart: undefined, customEnd: undefined })}
+              testID="active-filter-date"
+            />
+          )}
+          {filters.type !== 'all' && (
+            <ActiveFilterChip
+              label={filtersActiveTypeLabel(filters.type)}
+              onRemove={() => updateFilters({ type: 'all' })}
+              testID="active-filter-type"
+            />
+          )}
+          {filters.accountIds.map(accountId => {
+            const name = accountsById.get(accountId) ?? unknownFilterOptionLabel(accountId);
+            return (
+              <ActiveFilterChip
+                key={`account-${accountId}`}
+                label={filtersActiveAccountLabel(name)}
+                onRemove={() => removeAccountFilter(accountId)}
+                testID={`active-filter-account-${accountId}`}
+              />
+            );
+          })}
+          {filters.categoryIds.map(categoryId => {
+            const name = categoriesById.get(categoryId) ?? unknownFilterOptionLabel(categoryId);
+            return (
+              <ActiveFilterChip
+                key={`category-${categoryId}`}
+                label={filtersActiveCategoryLabel(name)}
+                onRemove={() => removeCategoryFilter(categoryId)}
+                testID={`active-filter-category-${categoryId}`}
+              />
+            );
+          })}
+          {filters.minAmount != null && (
+            <ActiveFilterChip
+              label={filtersActiveMinAmountLabel(rp(filters.minAmount))}
+              onRemove={removeMinAmountFilter}
+              testID="active-filter-min-amount"
+            />
+          )}
+          {filters.maxAmount != null && (
+            <ActiveFilterChip
+              label={filtersActiveMaxAmountLabel(rp(filters.maxAmount))}
+              onRemove={removeMaxAmountFilter}
+              testID="active-filter-max-amount"
+            />
+          )}
+        </View>
+      )}
 
       {noResults ? (
         <View style={styles.centerFill}>
@@ -333,7 +465,9 @@ export default function TransactionsScreen() {
           keyExtractor={item => item.period}
           ListHeaderComponent={
             <StatsSection
-              page={firstPage}
+              summary={summary.data.summary}
+              filter={summary.data.repoFilter}
+              limitPeriod={summary.data.isLimitMode ? summary.data.currentPeriod : undefined}
               hidden={hidden}
               typeFilter={typeFilter}
               rangeLabel={rangeLabel}
@@ -364,12 +498,19 @@ export default function TransactionsScreen() {
         </Fab>
       </View>
 
-      <Sheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} closeLabel={closeLabel()}>
-        <View style={styles.filterSheet}>
-          <Text style={styles.filterTitle}>{filtersSheetTitle()}</Text>
-          <Text style={styles.filterBody}>{filtersComingSoonMessage()}</Text>
-        </View>
-      </Sheet>
+      <FilterSheet
+        visible={filterSheetOpen}
+        filters={draftFilters}
+        range={preview.data?.range ?? summary.data.range}
+        accounts={filterOptions.accounts.map(account => ({ id: account.id, name: account.name }))}
+        categories={filterOptions.categories.map(category => ({ id: category.id, name: category.name }))}
+        resultCount={preview.data?.count ?? summary.data.count}
+        resultCountLoading={preview.isLoading}
+        onChange={updateDraftFilters}
+        onReset={resetDraftFilters}
+        onClose={closeFilterSheet}
+        onApply={applyFilters}
+      />
     </View>
   );
 }
@@ -377,8 +518,8 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
   headerAction: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: MonoColors.border,
@@ -386,8 +527,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  filterBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: MonoColors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBadgeText: { ...MonoText.caption, color: MonoColors.bg, fontSize: 10, lineHeight: 12 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center', marginTop: 24 },
   toolbar: { paddingHorizontal: 20, gap: 12, paddingBottom: 12 },
+  activeFilters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
+  activeFilterChip: {
+    minHeight: 40,
+    borderRadius: radius.sm,
+    backgroundColor: MonoColors.text,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+  },
+  activeFilterText: { ...MonoText.bodyS, color: MonoColors.bg, flexShrink: 1 },
   subtitle: { ...MonoText.bodyS, color: MonoColors.textSecond },
   searchBox: {
     height: 48,
@@ -479,8 +644,4 @@ const styles = StyleSheet.create({
   // Pinned to the screen, not inside the list: it never scrolls with the content and is
   // always shown at full size. FAB_BOTTOM is where it sits above the tab bar.
   fab: { position: 'absolute', right: 20, bottom: FAB_BOTTOM },
-
-  filterSheet: { gap: 8, paddingBottom: 8 },
-  filterTitle: { ...MonoText.titleM, color: MonoColors.text },
-  filterBody: { ...MonoText.body, color: MonoColors.textSecond },
 });

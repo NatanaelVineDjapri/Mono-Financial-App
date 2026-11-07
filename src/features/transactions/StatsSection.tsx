@@ -1,10 +1,5 @@
-// Transactions tab, Fase 4.3c: the statistics area above the row list, below the type
-// chips. Card 1 — a collapsible header, the ring chart and the same three Income/
-// Expense/Net rows the old standalone summary card showed (now absorbed here) — and
-// Card 2, a per-category breakdown switched between Income and Expense. Hidden entirely
-// when the type chip is "Transfer" (there is nothing to break down). CLAUDE.md rule 2:
-// every number here comes from page.summary (already SQL-derived) or useCategoryStats
-// (src/domain/categoryStats.ts) — nothing is computed in this component.
+// Transactions tab's SQL-backed statistics area. It receives the same prepared filter as
+// the row list, including dates, accounts, categories, amounts, and search.
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -14,21 +9,21 @@ import { RingChart } from '@/components/RingChart';
 import { Segmented } from '@/components/Segmented';
 import { pct, rp, shown } from '@/core/money';
 import type { CategoryStat } from '@/domain/categoryStats';
-import type { TransactionsPage } from '@/domain/transactionsList';
+import type { PeriodSummary, TxListFilter } from '@/domain/transactionsList';
 import {
-    categoryRowAccessibilityLabel,
-    hideStatsLabel,
-    netLabel,
-    ofLimitLabel,
-    othersLabel,
-    overLimitLabel,
-    ringAccessibilityLabel,
-    showStatsLabel,
-    spentLabel,
-    statsCardTitle,
-    transactionsNotCountedNote,
-    txKindLabel,
-    type TxTypeFilter,
+  categoryRowAccessibilityLabel,
+  hideStatsLabel,
+  netLabel,
+  ofLimitLabel,
+  othersLabel,
+  overLimitLabel,
+  ringAccessibilityLabel,
+  showStatsLabel,
+  spentLabel,
+  statsCardTitle,
+  transactionsNotCountedNote,
+  txKindLabel,
+  type TxTypeFilter,
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -37,7 +32,9 @@ import { useStatsCollapsed } from './statsStore';
 import { useCategoryStats } from './useCategoryStats';
 
 export interface StatsSectionProps {
-  page: TransactionsPage;
+  summary: PeriodSummary;
+  filter: TxListFilter;
+  limitPeriod?: string;
   hidden: boolean;
   typeFilter: TxTypeFilter;
   rangeLabel: string;
@@ -70,8 +67,6 @@ function SummaryRow({
   );
 }
 
-// Generic by kind, not yet per-category — category_icon is null in every category row
-// today (same known gap as transactions.tsx's own txIcon()).
 function categoryIcon(kind: 'income' | 'expense'): IconName {
   return kind === 'income' ? 'wallet' : 'receipt';
 }
@@ -116,25 +111,30 @@ function CategoryRow({
   );
 }
 
-export function StatsSection({ page, hidden, typeFilter, rangeLabel, selectedCategoryId, onSelectCategory }: StatsSectionProps) {
-  const collapsed = useStatsCollapsed(s => s.collapsed);
-  const toggle = useStatsCollapsed(s => s.toggle);
-  // "Saklar mengikuti chip tipe": the outer type chip drives the switch whenever it names
-  // a kind; only "All" leaves the switch free to toggle on its own (defaulting to expense).
+export function StatsSection({
+  summary,
+  filter,
+  limitPeriod,
+  hidden,
+  typeFilter,
+  rangeLabel,
+  selectedCategoryId,
+  onSelectCategory,
+}: StatsSectionProps) {
+  const collapsed = useStatsCollapsed(state => state.collapsed);
+  const toggle = useStatsCollapsed(state => state.toggle);
   const [ownKind, setOwnKind] = useState<'income' | 'expense'>('expense');
   const forcedKind = typeFilter === 'income' || typeFilter === 'expense' ? typeFilter : undefined;
   const effectiveKind = forcedKind ?? ownKind;
-
-  const stats = useCategoryStats(page.period, effectiveKind, page.isCurrent);
+  const stats = useCategoryStats(filter, effectiveKind, limitPeriod);
 
   if (typeFilter === 'transfer') return null;
 
-  const { income, expense, net, transfer_count: transferCount, transfer_total: transferTotal } = page.summary;
+  const { income, expense, net, transfer_count: transferCount, transfer_total: transferTotal } = summary;
   const categories = stats.data?.categories ?? [];
   const total = stats.data?.total ?? 0;
   const limitIdr = stats.data?.limitIdr;
   const isOverLimit = limitIdr != null && total > limitIdr;
-
   const centerLabel = effectiveKind === 'expense' ? spentLabel() : txKindLabel('income');
   const centerSub = limitIdr != null ? `${ofLimitLabel(shown(rp(limitIdr), hidden))}${isOverLimit ? ` · ${overLimitLabel()}` : ''}` : undefined;
   const accessibilityLabel = ringAccessibilityLabel(txKindLabel(effectiveKind), shown(rp(total), hidden), centerSub);
@@ -160,7 +160,7 @@ export function StatsSection({ page, hidden, typeFilter, rangeLabel, selectedCat
           <>
             <View style={styles.ringWrap}>
               <RingChart
-                segments={categories.map(c => ({ id: c.id, label: c.label || othersLabel(), valueIdr: c.amountIdr, color: c.color }))}
+                segments={categories.map(category => ({ id: category.id, label: category.label || othersLabel(), valueIdr: category.amountIdr, color: category.color }))}
                 limitIdr={limitIdr}
                 centerLabel={centerLabel}
                 centerValue={shown(rp(total), hidden)}
@@ -214,13 +214,9 @@ export function StatsSection({ page, hidden, typeFilter, rangeLabel, selectedCat
 const styles = StyleSheet.create({
   card: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, marginBottom: 12 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  // Same type and colour as an unselected type chip's label (Segmented's bodyStrong +
-  // textSecond), so the card title reads at the chips' own level, not above them.
   cardTitle: { ...MonoText.bodyStrong, color: MonoColors.textSecond },
   toggle: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-
   ringWrap: { alignItems: 'center', paddingVertical: 12 },
-
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, gap: 12 },
   summaryRowBorder: { borderTopWidth: 1, borderTopColor: MonoColors.border },
   summaryLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
@@ -228,7 +224,6 @@ const styles = StyleSheet.create({
   summaryValueWrap: { flex: 1, alignItems: 'flex-end' },
   summaryValueNet: { fontFamily: MonoText.bodyStrong.fontFamily },
   transferNote: { ...MonoText.caption, color: MonoColors.textMeta, paddingTop: 12 },
-
   card2: { backgroundColor: MonoColors.card, borderRadius: 16, padding: 16, marginBottom: 20, gap: 16 },
   categoryList: { gap: 4 },
   categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 44, borderRadius: radius.md },

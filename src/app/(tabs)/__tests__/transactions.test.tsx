@@ -4,12 +4,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { largestRemainderSharesBp, type CategoryStatsResult } from '@/domain/categoryStats';
 import type { TransactionsPage, TxListRow } from '@/domain/transactionsList';
+import { useStatsCollapsed } from '@/features/transactions/statsStore';
 import { useCategoryStats } from '@/features/transactions/useCategoryStats';
-import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { useTransactionFilterOptions } from '@/features/transactions/useTransactionFilterOptions';
+import { useTransactionsFilterSummary, useTransactionsList } from '@/features/transactions/useTransactionsList';
 import { CHART_CATEGORY_COLORS } from '@/theme/tokens';
 import TransactionsScreen from '../transactions';
 
 jest.mock('@/features/transactions/useTransactionsList');
+jest.mock('@/features/transactions/useTransactionFilterOptions');
 // The stats area (ring + category list) runs its own query, which needs a DbProvider;
 // this file tests the screen around it, so it gets a canned result per kind (see below).
 jest.mock('@/features/transactions/useCategoryStats');
@@ -22,6 +25,8 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockUseTransactionsList = useTransactionsList as jest.MockedFunction<typeof useTransactionsList>;
+const mockUseTransactionsFilterSummary = useTransactionsFilterSummary as jest.MockedFunction<typeof useTransactionsFilterSummary>;
+const mockUseTransactionFilterOptions = useTransactionFilterOptions as jest.MockedFunction<typeof useTransactionFilterOptions>;
 
 type InfiniteResult = ReturnType<typeof useTransactionsList>;
 
@@ -88,6 +93,17 @@ const OCT_PAGE: TransactionsPage = {
   isEmpty: false,
 };
 
+const FILTER_SUMMARY = {
+  range: { startDate: '2026-10-01', endDate: '2026-10-28' },
+  repoFilter: { startDate: '2026-10-01', endDate: '2026-10-28' },
+  currentPeriod: '2026-10',
+  firstPeriod: '2026-10',
+  lastPeriod: '2026-10',
+  isLimitMode: true,
+  count: 9,
+  summary: OCT_PAGE.summary,
+};
+
 const SEPT_PAGE: TransactionsPage = {
   period: '2026-09',
   monthLabel: 'September',
@@ -143,8 +159,16 @@ function baseResult(pages: TransactionsPage[]): Partial<InfiniteResult> {
 describe('TransactionsScreen', () => {
   beforeEach(() => {
     useHideAmounts.getState().setHidden(false);
+    useStatsCollapsed.getState().resetFilters();
+    useStatsCollapsed.setState({ collapsed: false });
     jest.clearAllMocks();
-    mockUseCategoryStats.mockImplementation((_period, kind) => ({ data: kind === 'income' ? OCT_INCOME_STATS : OCT_EXPENSE_STATS }) as never);
+    mockUseTransactionFilterOptions.mockReturnValue({
+      accounts: [{ id: 1, name: 'BCA Tabungan' }, { id: 2, name: 'Jago Pocket' }],
+      categories: [{ id: 1, name: 'Food & drink' }, { id: 3, name: 'Shopping' }],
+      isLoading: false,
+    } as never);
+    mockUseTransactionsFilterSummary.mockReturnValue({ data: FILTER_SUMMARY, isLoading: false, isError: false } as never);
+    mockUseCategoryStats.mockImplementation((_filter, kind) => ({ data: kind === 'income' ? OCT_INCOME_STATS : OCT_EXPENSE_STATS }) as never);
   });
 
   test('shows the count and range, the summary card and every October row grouped by day', async () => {
@@ -186,7 +210,13 @@ describe('TransactionsScreen', () => {
     const result = await renderScreen();
     // Scoped to the type chips: the stats area has its own Income/Expense switch too.
     await fireEvent.press(within(result.getByTestId('tx-type-segmented')).getByRole('radio', { name: 'Income' }));
-    expect(mockUseTransactionsList).toHaveBeenLastCalledWith({ type: 'income', search: '' });
+    expect(mockUseTransactionsList).toHaveBeenLastCalledWith({
+      datePreset: 'this-month',
+      type: 'income',
+      accountIds: [],
+      categoryIds: [],
+      search: '',
+    });
   });
 
   test('typing in search debounces 250ms before reaching the hook', async () => {
@@ -194,16 +224,29 @@ describe('TransactionsScreen', () => {
     mockResult(baseResult([OCT_PAGE]));
     const result = await renderScreen();
     await fireEvent.changeText(result.getByTestId('transactions-search'), 'shoes');
-    expect(mockUseTransactionsList).not.toHaveBeenLastCalledWith({ type: 'all', search: 'shoes' });
+    expect(mockUseTransactionsList).not.toHaveBeenLastCalledWith({
+      datePreset: 'this-month', type: 'all', accountIds: [], categoryIds: [], search: 'shoes',
+    });
     await act(async () => {
       jest.advanceTimersByTime(250);
     });
-    expect(mockUseTransactionsList).toHaveBeenLastCalledWith({ type: 'all', search: 'shoes' });
+    expect(mockUseTransactionsList).toHaveBeenLastCalledWith({
+      datePreset: 'this-month',
+      type: 'all',
+      accountIds: [],
+      categoryIds: [],
+      search: 'shoes',
+    });
     jest.useRealTimers();
   });
 
   test('no matches: empty state with a reset button once filtered', async () => {
     mockResult(baseResult([{ ...OCT_PAGE, rows: [], daily: [], isEmpty: true }]));
+    mockUseTransactionsFilterSummary.mockReturnValue({
+      data: { ...FILTER_SUMMARY, count: 0 },
+      isLoading: false,
+      isError: false,
+    } as never);
     const result = await renderScreen();
     // Scoped to the type chips: the stats area has its own Income/Expense switch too.
     await fireEvent.press(within(result.getByTestId('tx-type-segmented')).getByRole('radio', { name: 'Income' }));
@@ -234,11 +277,12 @@ describe('TransactionsScreen', () => {
     expect(mockPush).toHaveBeenCalledWith('/ai-chat');
   });
 
-  test('the Filters button opens the stub sheet', async () => {
+  test('the Filters button opens the Transaction filters sheet', async () => {
     mockResult(baseResult([OCT_PAGE]));
     const result = await renderScreen();
     await fireEvent.press(result.getByRole('button', { name: 'Filters' }));
-    expect(result.getByText('Filters are coming soon.')).toBeTruthy();
+    expect(result.getByRole('button', { name: 'Reset all' })).toBeTruthy();
+    expect(result.getByRole('button', { name: 'Show 9 transactions' })).toBeTruthy();
   });
 
   describe('Fase 4.3a fixes', () => {
