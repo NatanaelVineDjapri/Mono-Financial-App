@@ -1,13 +1,16 @@
-// Read-only: the Transactions tab's list, daily totals and period summary, all through
-// src/data/repo/transactions.ts's views/joins (CLAUDE.md rule 2 — nothing computed here
-// that SQL hasn't already summed). This file only adds the period/date bookkeeping
-// (current period, its calendar bounds, paging to the previous one) that the repo layer
-// doesn't own.
+// Read-only Transactions tab data. SQL supplies every displayed row, aggregate and count;
+// this domain module resolves the user-selected date preset and period paging metadata.
 import { monthLabel as formatMonthLabel, periodEnd, periodOfDate, periodStart, previousPeriod as prevPeriod } from '../core/date';
 import type { Db } from '../data/db/types';
 import { getSetting } from '../data/repo/settings';
-import * as repo from '../data/repo/transactions';
 import type { DailyTotalRow, PeriodSummary, TxListFilter, TxListRow } from '../data/repo/transactions';
+import * as repo from '../data/repo/transactions';
+import {
+    isCurrentFullMonthRange,
+    resolveTransactionDateRange,
+    type TransactionDateRange,
+    type TransactionFilters,
+} from './transactionFilters';
 
 export type { DailyTotalRow, PeriodSummary, TxListFilter, TxListRow };
 
@@ -20,6 +23,54 @@ async function getMonthStartDay(db: Db): Promise<number> {
 export async function getCurrentPeriod(db: Db, todayIso: string): Promise<string> {
   const startDay = await getMonthStartDay(db);
   return periodOfDate(todayIso.slice(0, 10), startDay);
+}
+
+export interface TransactionsQueryFilter extends TransactionFilters {
+  search: string;
+}
+
+export interface TransactionFilterContext {
+  range: TransactionDateRange;
+  repoFilter: TxListFilter;
+  currentPeriod: string;
+  firstPeriod: string;
+  lastPeriod: string;
+  isLimitMode: boolean;
+}
+
+// This is the single translation from persisted UI state into the parameters used by
+// the list, summary, count, daily totals, and category ring. SQL never sees a filter
+// reconstructed independently by an individual screen component.
+export async function getTransactionFilterContext(
+  db: Db,
+  filters: TransactionsQueryFilter,
+  todayIso: string,
+): Promise<TransactionFilterContext> {
+  const monthStartDay = await getMonthStartDay(db);
+  const range = resolveTransactionDateRange(filters, todayIso, monthStartDay);
+  const currentPeriod = periodOfDate(todayIso.slice(0, 10), monthStartDay);
+  const repoFilter: TxListFilter = {
+    kind: filters.type === 'all' ? undefined : filters.type,
+    search: filters.search.trim() || undefined,
+    categoryIds: filters.categoryIds,
+    accountIds: filters.accountIds,
+    minAmount: filters.minAmount,
+    maxAmount: filters.maxAmount,
+    startDate: range.startDate,
+    endDate: range.endDate,
+  };
+  return {
+    range,
+    repoFilter,
+    currentPeriod,
+    firstPeriod: periodOfDate(range.startDate, monthStartDay),
+    lastPeriod: periodOfDate(range.endDate, monthStartDay),
+    isLimitMode: isCurrentFullMonthRange(range, todayIso, monthStartDay) &&
+      filters.accountIds.length === 0 &&
+      filters.categoryIds.length === 0 &&
+      filters.minAmount == null &&
+      filters.maxAmount == null,
+  };
 }
 
 export interface TransactionsPage {
@@ -60,6 +111,24 @@ export async function getTransactionsPage(db: Db, period: string, filter: TxList
     isCurrent,
     isEmpty: rows.length === 0,
   };
+}
+
+export interface TransactionsFilterSummary extends TransactionFilterContext {
+  count: number;
+  summary: PeriodSummary;
+}
+
+export async function getTransactionsFilterSummary(
+  db: Db,
+  filters: TransactionsQueryFilter,
+  todayIso: string,
+): Promise<TransactionsFilterSummary> {
+  const context = await getTransactionFilterContext(db, filters, todayIso);
+  const [count, summary] = await Promise.all([
+    repo.countTransactionsForFilter(db, context.repoFilter),
+    repo.getTransactionSummary(db, context.repoFilter),
+  ]);
+  return { ...context, count, summary };
 }
 
 export function getEarliestPeriod(db: Db): Promise<string | null> {

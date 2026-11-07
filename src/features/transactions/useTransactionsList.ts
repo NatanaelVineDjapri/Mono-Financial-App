@@ -1,48 +1,57 @@
-// Transactions tab data: wraps src/domain/transactionsList.ts in react-query so the
-// screen only reads (CLAUDE.md: "no number computed outside SQL views or src/domain").
-// One page per calendar period (month), newest first — the current (open) period loads
-// first, and fetchNextPage() loads the period before it, stopping once there is no
-// record any older (getEarliestPeriod).
+// Transactions tab reads. Date presets resolve once into a shared parameterised SQL
+// filter; the list pages through only the selected range while summary/count queries use
+// the same filter across that whole range.
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { today } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
-import type { Db } from '@/data/db/types';
 import { queryKeys } from '@/data/queryKeys';
-import { getCurrentPeriod, getEarliestPeriod, getTransactionsPage, type TransactionsPage } from '@/domain/transactionsList';
-import type { TxTypeFilter } from '@/i18n/id';
+import {
+    getTransactionFilterContext,
+    getTransactionsFilterSummary,
+    getTransactionsPage,
+    type TransactionsQueryFilter,
+} from '@/domain/transactionsList';
 
-export interface TransactionsListFilter {
-  type: TxTypeFilter; // 'all' | 'income' | 'expense' | 'transfer'
-  search: string; // '' = no search
-  categoryId?: number; // Fase 4.3c: tapping a ring slice or category row
-}
+export type TransactionsListFilter = TransactionsQueryFilter;
 
-function toRepoFilter(filter: TransactionsListFilter): { kind?: 'income' | 'expense' | 'transfer'; search?: string; categoryId?: number } {
-  return {
-    kind: filter.type === 'all' ? undefined : filter.type,
-    search: filter.search.trim() || undefined,
-    categoryId: filter.categoryId,
-  };
-}
-
-async function loadPage(db: Db, period: string | null, filter: TransactionsListFilter): Promise<TransactionsPage> {
-  // Only show current month, no historical data
-  const resolvedPeriod = await getCurrentPeriod(db, today());
-  return getTransactionsPage(db, resolvedPeriod, toRepoFilter(filter), today());
+function useTransactionFilterContext(filter: TransactionsListFilter) {
+  const db = useDb();
+  return useQuery({
+    queryKey: [...queryKeys.transactions, 'filter-context', filter],
+    queryFn: () => getTransactionFilterContext(db, filter, today()),
+  });
 }
 
 export function useTransactionsList(filter: TransactionsListFilter) {
   const db = useDb();
-  const earliest = useQuery({
-    queryKey: [...queryKeys.transactions, 'earliest-period'],
-    queryFn: () => getEarliestPeriod(db),
+  const context = useTransactionFilterContext(filter);
+  const pages = useInfiniteQuery({
+    queryKey: [...queryKeys.transactions, 'list', filter],
+    enabled: context.isSuccess,
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam }) => getTransactionsPage(
+      db,
+      pageParam ?? context.data!.lastPeriod,
+      context.data!.repoFilter,
+      today(),
+    ),
+    getNextPageParam: lastPage => (
+      lastPage.previousPeriod >= context.data!.firstPeriod ? lastPage.previousPeriod : undefined
+    ),
   });
 
-  return useInfiniteQuery({
-    queryKey: [...queryKeys.transactions, 'list', filter],
-    initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => loadPage(db, pageParam, filter),
-    getNextPageParam: () => undefined, // Hardcoded: only show November 2026, no pagination
+  return {
+    ...pages,
+    isLoading: context.isLoading || pages.isLoading,
+    isError: context.isError || pages.isError,
+  };
+}
+
+export function useTransactionsFilterSummary(filter: TransactionsListFilter) {
+  const db = useDb();
+  return useQuery({
+    queryKey: [...queryKeys.transactions, 'filter-summary', filter],
+    queryFn: () => getTransactionsFilterSummary(db, filter, today()),
   });
 }
