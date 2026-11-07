@@ -258,8 +258,9 @@ export default function BudgetsScreen() {
 // grouped rows) so the two tabs read as one app.
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  // Right padding 16 for the two header buttons; 12 from the header to the Total spent card.
-  header: { paddingRight: 16, paddingBottom: 12 },
+  // Right padding 16 for the two header buttons. The gap from the header to the Total spent
+  // card is ScreenHeader's own 16, the same as Accounts' card.
+  header: { paddingRight: 16 },
   content: { paddingHorizontal: 20, paddingBottom: 32, gap: 16 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },

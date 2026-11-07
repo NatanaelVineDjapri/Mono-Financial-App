@@ -366,7 +366,7 @@ export default function TransactionsScreen() {
   if (isLoading || summary.isLoading || !firstPage || !summary.data) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
+        <ScreenHeader title={tabLabel('transactions')} style={styles.header} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
         {(isError || summary.isError) && <Text style={styles.errorText}>{comingSoonMessage()}</Text>}
       </View>
     );
@@ -379,7 +379,7 @@ export default function TransactionsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('transactions')} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
+      <ScreenHeader title={tabLabel('transactions')} style={styles.header} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
       <View style={styles.toolbar}>
         <Text style={styles.subtitle}>{transactionsCountLabel(summary.data.count, rangeLabel)}</Text>
         <SearchField value={searchInput} onChangeText={setSearchInput} />
@@ -512,6 +512,10 @@ export default function TransactionsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
+  // The first thing under this header is the count line, not a card. Its 13/18 text leaves
+  // ~4dp of empty line above the letters, so 12 here (not the default 16) puts the visible
+  // text 16 below the header: the same distance Accounts' card sits at.
+  header: { paddingBottom: 12 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center', marginTop: 24 },
   toolbar: { paddingHorizontal: 20, gap: 12, paddingBottom: 12 },
   activeFilters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
