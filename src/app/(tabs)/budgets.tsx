@@ -48,7 +48,6 @@ import {
   noCategoryBudgetsYet,
   ofLimitLabel,
   retryLabel,
-  reviewSpendingByCategoryLabel,
   tabLabel
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
@@ -215,8 +214,6 @@ export default function BudgetsScreen() {
     );
   }
 
-  const topCategory = data.categories[0];
-
   return (
     <View style={styles.screen}>
       {header}
@@ -243,9 +240,6 @@ export default function BudgetsScreen() {
         <Text style={styles.footnote}>{budgetsFootnote()}</Text>
         <View style={styles.buttons}>
           <Button label={addCategoryBudgetLabel()} icon="plus" onPress={openAdd} />
-          {topCategory && (
-            <Button label={reviewSpendingByCategoryLabel()} variant="secondary" onPress={() => openCategory(topCategory.category_id)} />
-          )}
         </View>
       </ScrollView>
       {monthSheet}

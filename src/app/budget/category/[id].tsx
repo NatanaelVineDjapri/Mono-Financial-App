@@ -122,11 +122,6 @@ export default function CategoryReviewScreen() {
       <Text style={styles.title} accessibilityRole="header">
         {name ? categoryReviewTitle(name, monthLabel(month)) : monthLabel(month)}
       </Text>
-      {data?.budget && name && (
-        <IconButton label={editNamedBudgetLabel(name)} onPress={openEdit} testID="category-edit">
-          <Icon name="pencil" color={MonoColors.text} />
-        </IconButton>
-      )}
     </View>
   );
 
@@ -267,7 +262,9 @@ const styles = StyleSheet.create({
     borderTopColor: MonoColors.border,
   },
   changeValue: { ...MonoText.bodyStrong },
-  buttons: { gap: 12 },
+  // Extra room above the two action buttons (24 total, the content gap's 16 plus this):
+  // right after a dense transaction list, the plain 16 gap read as too tight against it.
+  buttons: { gap: 12, marginTop: 8 },
 
   sectionHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', columnGap: 12, paddingTop: 8 },
   sectionTitle: { ...MonoText.titleM, color: MonoColors.text },

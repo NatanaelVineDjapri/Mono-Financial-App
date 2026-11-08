@@ -58,6 +58,16 @@ const SHOPPING: CategoryBudgetDetail = {
     },
   ],
   raise: { by: 112000, total: 5112000, monthlyLimit: 5000000, exceedsLimit: true },
+  history: [
+    { period: '2026-07', spent: 640000 },
+    { period: '2026-08', spent: 505000 },
+    { period: '2026-09', spent: 590000 },
+    { period: '2026-10', spent: 812000 },
+  ],
+  range: { startDate: '2026-10-01', endDate: '2026-10-31' },
+  priorPeriod: '2026-09',
+  priorSpent: 590000,
+  changeBp: 3763,
 };
 
 async function renderScreen(data: CategoryBudgetDetail) {
