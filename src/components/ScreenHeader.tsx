@@ -18,8 +18,9 @@ import { MonoText } from '@/theme/typography';
 export interface ScreenHeaderProps {
   title: string;
   right?: ReactNode;
-  // Per-screen spacing overrides (e.g. Budgets' 16 right padding, Transactions' 12 below).
-  // The default 16 below the header is the gap Accounts' card sits at.
+  // Per-screen spacing overrides (e.g. Transactions' 12 below). The default 20 at the sides
+  // lines the right-hand buttons up with the cards' edge, and the default 16 below the
+  // header is the gap Accounts' card sits at.
   style?: ViewStyle;
   testID?: string;
 }

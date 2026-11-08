@@ -229,6 +229,29 @@ export async function getCategoryBudgetDetail(db: Db, categoryId: number, month:
   };
 }
 
+// Budget-Category's four-month bar chart: one v_category_spend read for every period at
+// once. Returns 0 for a period with no expense rows in the category (a missing row, not
+// a real zero, but the two read the same to every caller here — same convention as
+// getCategoryBudgetDetail's own `spendRow?.spent ?? 0` below).
+export async function getCategorySpendForPeriods(db: Db, categoryId: number, periods: string[]): Promise<Record<string, number>> {
+  const byPeriod: Record<string, number> = {};
+  for (const period of periods) byPeriod[period] = 0;
+  if (periods.length === 0) return byPeriod;
+
+  const params: Record<string, string | number> = { $categoryId: categoryId };
+  const placeholders = periods.map((period, index) => {
+    const key = `$period${index}`;
+    params[key] = period;
+    return key;
+  });
+  const rows = await db.getAllAsync<{ period: string; spent: number }>(
+    `select period, spent from v_category_spend where category_id = $categoryId and period in (${placeholders.join(', ')})`,
+    params,
+  );
+  for (const row of rows) byPeriod[row.period] = row.spent;
+  return byPeriod;
+}
+
 // Create/edit budget form.
 export interface BudgetWithCategoryRow {
   id: number;

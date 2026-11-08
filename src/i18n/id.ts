@@ -715,6 +715,34 @@ export function noExpensesInCategoryMessage(monthLabelText: string): string {
   return `No expenses in this category in ${monthLabelText}.`;
 }
 
+export function monthSpentLabel(monthName: string): string {
+  return `${monthName} spent`;
+}
+
+export function changeVsMonthLabel(monthName: string): string {
+  return `Change vs ${monthName}`;
+}
+
+export function lastFourMonthsLabel(): string {
+  return 'Last four months';
+}
+
+export function dashedEqualsLimitLabel(): string {
+  return 'Dashed = limit';
+}
+
+// The four-month chart's own accessibility label (DESIGN.md "every chart has an
+// exact-value table and a text label") — the visible table beneath it already states
+// every figure, but a screen reader hitting the chart View itself needs the same facts
+// in one sentence before it reaches that table.
+export function categoryHistoryAccessibilityLabel(monthsFormatted: string, limitFormatted: string): string {
+  return `${monthsFormatted}. Dashed line marks the ${limitFormatted} limit.`;
+}
+
+export function openInTransactionsLabel(): string {
+  return 'Open in Transactions';
+}
+
 export function editNamedBudgetLabel(categoryName: string): string {
   return `Edit ${categoryName} budget`;
 }

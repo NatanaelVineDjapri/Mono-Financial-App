@@ -1,13 +1,13 @@
 import { IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
 import {
-  IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
+    IBMPlexSans_400Regular,
+    IBMPlexSans_500Medium,
+    IBMPlexSans_600SemiBold,
 } from '@expo-google-fonts/ibm-plex-sans';
 import { Newsreader_400Regular } from '@expo-google-fonts/newsreader';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Slot, ThemeProvider } from 'expo-router';
+import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -78,7 +78,14 @@ export default function RootLayout() {
             <SplashBrand />
             <DbProvider>
               <HiddenAmountsInit />
-              <Slot />
+              {/* A real Stack (not Slot) so the (tabs) navigator stays mounted underneath
+                  every sibling route (account/[id], budget/*, tx/[id], ai-chat, dev) — pushed
+                  with an absolute path from inside a tab. Without this, popping back off one
+                  of those screens re-created the tabs navigator from scratch and always landed
+                  back on its first tab (Overview) instead of the tab the user actually came
+                  from. Every screen below already draws its own header, so the native one is
+                  off everywhere. */}
+              <Stack screenOptions={{ headerShown: false }} />
               <ToastHost />
             </DbProvider>
           </ThemeProvider>

@@ -9,11 +9,22 @@ export function rp(v: number, sign = false): string {
   return sign && v > 0 ? `+Rp${n}` : `Rp${n}`;
 }
 
-// 6810 -> "68,10%". Integer maths only.
-export function pct(bp: number): string {
+// 6810 -> "68,10%". Integer maths only. `sign` mirrors rp()'s own flag: a leading "+" on
+// a positive value, e.g. for a month-over-month change ("+37,63%").
+export function pct(bp: number, sign = false): string {
   const a = Math.abs(bp);
   const s = `${Math.floor(a / 100)},${String(a % 100).padStart(2, '0')}%`;
-  return bp < 0 ? `−${s}` : s; // true minus sign (U+2212)
+  if (bp < 0) return `−${s}`; // true minus sign (U+2212)
+  return sign && bp > 0 ? `+${s}` : s;
+}
+
+// Whole rupiah, compact for tight spaces (a bar chart's own value label): 640000 ->
+// "640k", 812000 -> "812k". Rounds to the nearest thousand, half away from zero — a chart
+// label, never the exact figure a screen states elsewhere (that's rp(), always).
+export function rpCompact(v: number): string {
+  const a = Math.abs(v);
+  const k = Math.floor((a + 500) / 1000);
+  return `${v < 0 ? '−' : ''}${k}k`;
 }
 
 // Foreign amounts. minorFactor comes from the `currencies` table (100 for USD, 1 for JPY and KRW).

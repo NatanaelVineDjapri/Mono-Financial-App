@@ -45,7 +45,7 @@ import { MonoText } from '@/theme/typography';
 const HEIGHT = 8;
 const MAX_DRAWN_OVER_BP = 5000;
 const STRIPE_GAP = 6; // guessed: dense enough to read as a pattern at 8px tall
-const STRIPE_WIDTH = 2; // guessed stroke width
+const STRIPE_WIDTH = 5; // guessed stroke width
 const VIRTUAL_WIDTH = 600; // guessed: wider than any phone screen, so the canvas always clips rather than running out of stripes
 
 // Wavy mode, kept gentle: a low, long wave. Peak-to-peak extent = 2 * amplitude + stroke
@@ -54,7 +54,7 @@ const VIRTUAL_WIDTH = 600; // guessed: wider than any phone screen, so the canva
 // stroke) or shorten WAVE_LENGTH; to slow it down, raise WAVE_PERIOD_MS.
 const WAVE_HEIGHT = HEIGHT;
 const WAVE_STROKE = 3.5;
-const WAVE_AMPLITUDE = 1;
+const WAVE_AMPLITUDE = 0;
 const WAVE_LENGTH = 36; // px per full wave
 const WAVE_PERIOD_MS = 1800; // time for the wave to drift one full length
 const WAVE_STEP = 2; // px between sampled points: smooth at this stroke, cheap to rebuild every frame

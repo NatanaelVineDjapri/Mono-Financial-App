@@ -23,7 +23,8 @@ export interface BudgetFigures {
 }
 
 // 'month' = the monthly limit card ("85,14% used" strong on the left, "Rp… remaining"
-// on the right); 'category' = a category row ("Rp… left" on the left, "…% used" right).
+// on the right, with a clean straight bar); 'category' = a category row ("Rp… left"
+// on the left, "…% used" right).
 export type BudgetBarLayout = 'month' | 'category';
 
 export function budgetBarLabel(subject: string, figures: BudgetFigures, layout: BudgetBarLayout, hidden: boolean): string {
@@ -54,7 +55,9 @@ export function BudgetBar({ subject, figures, layout, hidden, testID }: BudgetBa
         valueBp={figures.usedBp}
         label={subject}
         accessibilityLabel={budgetBarLabel(subject, figures, layout, hidden)}
-        wavy
+        // The summary card uses the flat token-based bar. Category rows keep their
+        // existing treatment because this redesign is scoped to the summary card.
+        wavy={layout === 'category'}
         testID={testID ? `${testID}-bar` : undefined}
       />
       <View style={styles.footer}>

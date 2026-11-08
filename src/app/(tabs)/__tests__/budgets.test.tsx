@@ -110,13 +110,13 @@ describe('BudgetsScreen', () => {
     expect(card.getByText('Rp247.667')).toBeTruthy();
   });
 
-  test('header: serif title left, month chip and edit button right in the Filters style, 8 apart, padding 16, 16 to the card', async () => {
+  test('header: serif title left, month chip and edit button right in the Filters style, 8 apart, padding 20 (in line with the cards), 16 to the card', async () => {
     mockData(OCTOBER);
     const result = await renderScreen();
     const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 
     const header = result.getByTestId('budgets-header');
-    expect(flat(header.props.style)).toMatchObject({ paddingRight: 16, paddingBottom: 16 });
+    expect(flat(header.props.style)).toMatchObject({ paddingHorizontal: 20, paddingBottom: 16 });
     expect(flat(result.getByText('Budgets').props.style).fontFamily).toBe('Newsreader_400Regular');
 
     const chip = result.getByTestId('budget-month-chip');

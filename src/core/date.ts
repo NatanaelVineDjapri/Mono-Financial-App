@@ -89,6 +89,13 @@ export function monthShortLabel(period: string): string {
   return `${MONTHS_SHORT[m - 1]} ${y}`;
 }
 
+// "Oct" — the month alone, no year (Budget-Category's four-month bar chart axis, where
+// the card's own title already states the year).
+export function monthAbbrev(period: string): string {
+  const m = Number(period.split('-')[1]);
+  return MONTHS_SHORT[m - 1];
+}
+
 // "October" — the month name alone (Budgets: "Days left in October").
 export function monthName(period: string): string {
   const m = Number(period.split('-')[1]);

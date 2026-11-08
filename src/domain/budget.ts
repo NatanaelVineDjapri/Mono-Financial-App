@@ -1,4 +1,4 @@
-import { daysBetween, nextPeriod, periodEnd, periodOfDate, previousPeriod } from '../core/date';
+import { daysBetween, nextPeriod, periodEnd, periodOfDate, periodStart, previousPeriod } from '../core/date';
 import type { Db } from '../data/db/types';
 import type {
   BudgetOverviewData,
@@ -142,6 +142,18 @@ export function checkAllocation(monthlyLimit: number, allocated: number, adding:
   };
 }
 
+// Signed basis-point change of `current` vs `previous`, half away from zero — same
+// rounding convention as v_budget_status's own used_bp (SQL side). Null when `previous`
+// is 0 and `current` isn't: the change is undefined, not an infinite or a zero percent,
+// so the caller shows the amount alone then.
+export function pctChangeBp(current: number, previous: number): number | null {
+  if (previous === 0) return current === 0 ? 0 : null;
+  const diff = current - previous;
+  const abs = Math.abs(diff);
+  const bp = Math.floor((abs * 20000 + previous) / (2 * previous));
+  return diff < 0 ? -bp : bp;
+}
+
 // Remaining spread over the days after today, rounded half away from zero (remaining is
 // never negative here). Null when no day is left; 0 when nothing is left to spend.
 export function availablePerDay(remaining: number, daysLeft: number): number | null {
@@ -198,20 +210,60 @@ export async function getBudgetOverview(db: Db, month: string | null, todayIso: 
   };
 }
 
+export interface CategoryMonthSpend {
+  period: string;
+  spent: number;
+}
+
 export interface CategoryBudgetDetail extends CategoryBudgetDetailData {
   // Only when the budget is over: raising it by the overage would bring the month's
   // allocation to `total`; `exceedsLimit` says whether the monthly limit must rise too.
   raise: { by: number; total: number; monthlyLimit: number; exceedsLimit: boolean } | null;
+  // The four-month bar chart (Budget-Category): `month` and the three periods before
+  // it, oldest first, each against v_category_spend (0 for a period with no expense
+  // rows in the category).
+  history: CategoryMonthSpend[];
+  // `month`'s own date bounds (honouring settings.month_start_day), for "Open in
+  // Transactions" to filter the ledger to exactly this period.
+  range: { startDate: string; endDate: string };
+  priorPeriod: string; // the period right before `month`
+  priorSpent: number; // that period's spend in this category (0 if none)
+  changeBp: number | null; // `spent` vs `priorSpent`, signed; null when priorSpent is 0 and spent isn't
+}
+
+// Oldest first, `month` last.
+function lastPeriods(month: string, count: number, startDay: number): string[] {
+  const periods = [month];
+  for (let i = 1; i < count; i++) periods.unshift(previousPeriod(periods[0], startDay));
+  return periods;
 }
 
 export async function getCategoryBudgetDetail(db: Db, categoryId: number, month: string): Promise<CategoryBudgetDetail> {
-  const data = await repo.getCategoryBudgetDetail(db, categoryId, month);
+  const startDay = await getMonthStartDay(db);
+  const periods = lastPeriods(month, 4, startDay);
+  const [data, spentByPeriod] = await Promise.all([
+    repo.getCategoryBudgetDetail(db, categoryId, month),
+    repo.getCategorySpendForPeriods(db, categoryId, periods),
+  ]);
+
   let raise: CategoryBudgetDetail['raise'] = null;
   if (data.budget && data.budget.over_by > 0 && data.monthlyLimit !== null) {
     const check = checkAllocation(data.monthlyLimit, data.allocated, data.budget.over_by);
     raise = { by: data.budget.over_by, total: check.total, monthlyLimit: data.monthlyLimit, exceedsLimit: check.status === 'over' };
   }
-  return { ...data, raise };
+
+  const priorPeriod = periods[periods.length - 2];
+  const priorSpent = spentByPeriod[priorPeriod] ?? 0;
+
+  return {
+    ...data,
+    raise,
+    history: periods.map(period => ({ period, spent: spentByPeriod[period] ?? 0 })),
+    range: { startDate: periodStart(month, startDay), endDate: periodEnd(month, startDay) },
+    priorPeriod,
+    priorSpent,
+    changeBp: pctChangeBp(data.spent, priorSpent),
+  };
 }
 
 export interface BudgetFormContext {

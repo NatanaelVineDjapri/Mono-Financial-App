@@ -1,11 +1,11 @@
 // Category spending review (DESIGN.md "F. Budgets" Category review, PAGES.md F3,
 // docs/screens "F · Category spending review"): the category's spending in the chosen
-// month, its bar against the allocation, and the expenses behind it. Figures come from
-// getCategoryBudgetDetail (v_budget_status, v_category_spend, v_month_budget). A row tap
-// opens /tx/[id] (still a stub until Phase 5).
-//
-// Not built here (outside Fase 4.4's scope): the September comparison, the four-month bar
-// chart (needs victory-native, not installed yet) and "Open in Transactions".
+// month, its bar against the allocation, the September-style comparison against the
+// period before it, the four-month bar chart, and the expenses behind it. Figures come
+// from getCategoryBudgetDetail (v_budget_status, v_category_spend, v_month_budget). A
+// row tap opens /tx/[id] (still a stub until Phase 5); "Open in Transactions" sets the
+// Transactions tab's own filters to this category and this month's exact date range
+// (CategoryHistoryChart.tsx has the chart's own header comment).
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,31 +16,36 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { today } from '@/core/clock';
-import { formatDayMonth, monthLabel } from '@/core/date';
-import { money, rp, shown } from '@/core/money';
+import { formatDayMonth, monthLabel, monthName } from '@/core/date';
+import { money, pct, rp, shown } from '@/core/money';
 import type { BudgetCategoryRow } from '@/domain/budget';
 import type { TxListRow } from '@/domain/transactionsList';
 import { BudgetBar } from '@/features/budgets/BudgetBar';
+import { CategoryHistoryChart } from '@/features/budgets/CategoryHistoryChart';
 import { useCategoryBudgetDetail } from '@/features/budgets/useBudgets';
+import { useStatsCollapsed } from '@/features/transactions/statsStore';
 import {
-    addNamedBudgetLabel,
-    backLabel,
-    budgetLimitLabel,
-    budgetsErrorMessage,
-    categoryNotFoundMessage,
-    categoryReviewTitle,
-    editNamedBudgetLabel,
-    expensesInCategoryLabel,
-    itemsCountLabel,
-    noBudgetForCategoryMessage,
-    noExpensesInCategoryMessage,
-    raiseBudgetNote,
-    retryLabel,
-    spentLabel,
-    txKindLabel,
-    txRowAccessibilityLabel,
+  addNamedBudgetLabel,
+  backLabel,
+  budgetLimitLabel,
+  budgetsErrorMessage,
+  categoryNotFoundMessage,
+  categoryReviewTitle,
+  changeVsMonthLabel,
+  editNamedBudgetLabel,
+  expensesInCategoryLabel,
+  itemsCountLabel,
+  monthSpentLabel,
+  noBudgetForCategoryMessage,
+  noExpensesInCategoryMessage,
+  openInTransactionsLabel,
+  raiseBudgetNote,
+  retryLabel,
+  spentLabel,
+  txKindLabel,
+  txRowAccessibilityLabel
 } from '@/i18n/id';
-import { MonoColors, radius } from '@/theme/tokens';
+import { amountColor, MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -90,6 +95,24 @@ export default function CategoryReviewScreen() {
 
   const name = data?.category?.name;
   const openEdit = () => router.push({ pathname: '/budget/edit', params: { month, categoryId: String(categoryId) } });
+  // Opens the ledger scoped to exactly this category and this month — every other
+  // filter is cleared first, so a stray filter left from an earlier Transactions visit
+  // can't quietly hide rows that belong here. The store (not a route param) carries the
+  // filter: Transactions already renders from it, so nothing there needs to change.
+  const openInTransactions = () => {
+    if (!data) return;
+    useStatsCollapsed.getState().updateFilters({
+      datePreset: 'custom',
+      customStart: data.range.startDate,
+      customEnd: data.range.endDate,
+      type: 'expense',
+      accountIds: [],
+      categoryIds: [categoryId],
+      minAmount: undefined,
+      maxAmount: undefined,
+    });
+    router.push('/transactions');
+  };
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -137,6 +160,11 @@ export default function CategoryReviewScreen() {
   const raise = data.raise;
   const count = data.transactions.length;
   const m = (v: number) => shown(rp(v), hidden);
+  const priorMonthName = monthName(data.priorPeriod);
+  const changeAmount = data.spent - data.priorSpent;
+  const changeColor = changeAmount > 0 ? amountColor('expense') : changeAmount < 0 ? amountColor('income') : MonoColors.text;
+  const changeText =
+    data.changeBp === null ? shown(rp(changeAmount, true), hidden) : `${shown(rp(changeAmount, true), hidden)} · ${pct(data.changeBp, true)}`;
 
   return (
     <View style={styles.screen}>
@@ -150,11 +178,27 @@ export default function CategoryReviewScreen() {
           {/* The one serif moment on this screen: the title above is sans (titleM). */}
           <Amount value={data.spent} variant="displayS" style={styles.hero} />
           {budget ? (
-            <BudgetBar subject={categoryName} figures={figuresOf(budget)} layout="category" hidden={hidden} testID="category-budget" />
+            <>
+              <BudgetBar subject={categoryName} figures={figuresOf(budget)} layout="category" hidden={hidden} testID="category-budget" />
+              <View style={styles.compareRows} testID="category-compare">
+                <View style={styles.compareRow}>
+                  <Text style={styles.body}>{monthSpentLabel(priorMonthName)}</Text>
+                  <Amount value={data.priorSpent} variant="figureS" />
+                </View>
+                <View style={styles.compareRow}>
+                  <Text style={styles.body}>{changeVsMonthLabel(priorMonthName)}</Text>
+                  <Text style={[styles.changeValue, { color: changeColor }]}>{changeText}</Text>
+                </View>
+              </View>
+            </>
           ) : (
             <Text style={styles.body}>{noBudgetForCategoryMessage(categoryName, monthLabel(month))}</Text>
           )}
         </View>
+
+        {budget && (
+          <CategoryHistoryChart history={data.history} limit={budget.limit_amount} hidden={hidden} testID="category-history" />
+        )}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{expensesInCategoryLabel()}</Text>
@@ -175,12 +219,15 @@ export default function CategoryReviewScreen() {
           </Text>
         )}
 
-        <Button
-          label={budget ? editNamedBudgetLabel(categoryName) : addNamedBudgetLabel(categoryName)}
-          icon={budget ? 'pencil' : 'plus'}
-          onPress={openEdit}
-          testID="category-edit-button"
-        />
+        <View style={styles.buttons}>
+          <Button
+            label={budget ? editNamedBudgetLabel(categoryName) : addNamedBudgetLabel(categoryName)}
+            icon={budget ? 'pencil' : 'plus'}
+            onPress={openEdit}
+            testID="category-edit-button"
+          />
+          <Button label={openInTransactionsLabel()} variant="secondary" onPress={openInTransactions} testID="category-open-transactions" />
+        </View>
         {raise && (
           <Text style={styles.note} testID="category-raise-note">
             {raiseBudgetNote(categoryName, m(raise.by), m(raise.total), m(raise.monthlyLimit), raise.exceedsLimit)}
@@ -208,6 +255,19 @@ const styles = StyleSheet.create({
   cardTop: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', columnGap: 12 },
   capLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   hero: { color: MonoColors.text, marginTop: 4, marginBottom: 12 },
+  compareRows: { marginTop: 4 },
+  compareRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    columnGap: 12,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: MonoColors.border,
+  },
+  changeValue: { ...MonoText.bodyStrong },
+  buttons: { gap: 12 },
 
   sectionHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', columnGap: 12, paddingTop: 8 },
   sectionTitle: { ...MonoText.titleM, color: MonoColors.text },

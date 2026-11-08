@@ -29,27 +29,27 @@ import { BudgetBar, budgetBarLabel, type BudgetFigures } from '@/features/budget
 import { MonthSheet } from '@/features/budgets/MonthSheet';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import {
-    addBudgetLabel,
-    addCategoryBudgetLabel,
-    availablePerDayLabel,
-    budgetLimitLabel,
-    budgetRowAccessibilityLabel,
-    budgetsEmptyBody,
-    budgetsEmptyTitle,
-    budgetsErrorMessage,
-    budgetsFootnote,
-    budgetsTotalSpentLabel,
-    byCategoryLabel,
-    daysLeftInLabel,
-    editMonthlyLimitLabel,
-    monthChipAccessibilityLabel,
-    monthTotalSubject,
-    mostUsedFirstLabel,
-    noCategoryBudgetsYet,
-    ofLimitLabel,
-    retryLabel,
-    reviewSpendingByCategoryLabel,
-    tabLabel
+  addBudgetLabel,
+  addCategoryBudgetLabel,
+  availablePerDayLabel,
+  budgetLimitLabel,
+  budgetRowAccessibilityLabel,
+  budgetsEmptyBody,
+  budgetsEmptyTitle,
+  budgetsErrorMessage,
+  budgetsFootnote,
+  budgetsTotalSpentLabel,
+  byCategoryLabel,
+  daysLeftInLabel,
+  editMonthlyLimitLabel,
+  monthChipAccessibilityLabel,
+  monthTotalSubject,
+  mostUsedFirstLabel,
+  noCategoryBudgetsYet,
+  ofLimitLabel,
+  retryLabel,
+  reviewSpendingByCategoryLabel,
+  tabLabel
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -158,7 +158,6 @@ export default function BudgetsScreen() {
   const header = (
     <ScreenHeader
       title={tabLabel('budgets')}
-      style={styles.header}
       testID="budgets-header"
       right={
         <>
@@ -258,21 +257,26 @@ export default function BudgetsScreen() {
 // grouped rows) so the two tabs read as one app.
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  // Right padding 16 for the two header buttons. The gap from the header to the Total spent
-  // card is ScreenHeader's own 16, the same as Accounts' card.
-  header: { paddingRight: 16 },
   content: { paddingHorizontal: 20, paddingBottom: 32, gap: 16 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
-  card: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, gap: 4 },
-  cardTop: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', columnGap: 12 },
+  card: { backgroundColor: MonoColors.card, borderRadius: radius.md, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 },
+  // Two-column top row: left holds the label + hero, right holds the ring + limit text.
+  // Two-column top row: label left, limit right.
+  cardTop: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    columnGap: 12,
+  },
   capLabel: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   meta: { ...MonoText.bodyS, color: MonoColors.textSecond },
-  hero: { color: MonoColors.text, marginTop: 4, marginBottom: 12 },
-  infoRows: { marginTop: 12 },
+  hero: { color: MonoColors.text, marginTop: 4, marginBottom: 16 },
+  infoRows: { marginTop: 16 },
   infoRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
