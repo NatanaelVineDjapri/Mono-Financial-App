@@ -156,7 +156,7 @@ Papan: `Main` · 390 × 2890
 - Header 64 px: tanda dan wordmark MONO di kiri, tanggal (Rab, 28 Okt 2026) dan tombol pengaturan di kanan.
 - Sapaan "Selamat datang, Nael" (IBM Plex Sans 600, 20/26).
 - Kekayaan bersih: label kecil, tombol Sembunyikan/Tampilkan, angka Rp8.880.000 dalam Newsreader 48/52 (satu-satunya momen serif di layar ini), baris perubahan +Rp3.243.000 (+57,53%) dan "vs 30 Sep 2026".
-- Bagian "Your accounts": carousel kartu akun bergaya bank (312 × 184) yang bisa digeser, tautan "All accounts", catatan bahwa total kartu sama dengan kekayaan bersih.
+- Bagian "Your accounts": carousel kartu akun bergaya bank (312 × 184) yang bisa digeser, tautan "All accounts", catatan bahwa total kartu sama dengan kekayaan bersih. Account cards in the carousel are the same BankCard component as on Accounts, at open height (184).
 - Kartu "Fixed expenses": Gym membership jatuh tempo hari ini (Rp200.000) dengan tombol "Review and record", lalu "Next: Internet · 5 Nov" Rp385.000.
 - Bulan ini: pemasukan, pengeluaran, selisih bersih.
 - Riwayat kekayaan bersih: grafik garis Mei–Okt dengan garis target Rp30 juta, disertai tabel nilai.

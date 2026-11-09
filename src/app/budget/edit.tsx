@@ -65,7 +65,7 @@ import {
     thisBudgetLabel,
     totalAllocatedLabel,
     totalMonthlyLimitLabel,
-    unallocatedMessage,
+    unallocatedMessage
 } from '@/i18n/id';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';

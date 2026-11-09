@@ -751,6 +751,26 @@ export function addNamedBudgetLabel(categoryName: string): string {
   return `Add ${categoryName} budget`;
 }
 
+export function deleteNamedBudgetLabel(categoryName: string): string {
+  return `Delete ${categoryName} budget`;
+}
+
+export function deleteBudgetConfirmTitle(categoryName: string): string {
+  return `Delete ${categoryName} budget?`;
+}
+
+export function deleteBudgetConfirmMessage(): string {
+  return 'This removes the budget limit for this category. Your existing transactions are not affected.';
+}
+
+export function deleteBudgetConfirmAction(): string {
+  return 'Delete';
+}
+
+export function budgetDeletedToast(categoryName: string): string {
+  return `${categoryName} budget deleted.`;
+}
+
 export function noBudgetForCategoryMessage(categoryName: string, monthLabelText: string): string {
   return `${categoryName} has no budget in ${monthLabelText}.`;
 }
@@ -767,4 +787,107 @@ export function backLabel(): string {
 
 export function categoryNotFoundMessage(): string {
   return 'This category no longer exists.';
+}
+
+// Overview tab (DESIGN.md "A. Overview", PAGES.md A1/A2).
+export function welcomeGreeting(nickname: string | null): string {
+  return nickname ? `Selamat datang, ${nickname}` : 'Selamat datang';
+}
+
+export function hideAmountsLabel(): string {
+  return 'Hide amounts';
+}
+
+export function showAmountsLabel(): string {
+  return 'Show amounts';
+}
+
+export function netWorthChangeLabel(amountFormatted: string, pctFormatted: string, vsDate: string): string {
+  return `${amountFormatted} (${pctFormatted}) vs ${vsDate}`;
+}
+
+export function yourAccountsLabel(): string {
+  return 'Your accounts';
+}
+
+export function allAccountsLabel(): string {
+  return 'All accounts';
+}
+
+export function fixedExpensesLabel(): string {
+  return 'Fixed expenses';
+}
+
+export function reviewAndRecordLabel(): string {
+  return 'Review and record';
+}
+
+export function nextDueLabel(name: string, date: string, amountFormatted: string): string {
+  return `Next: ${name} · ${date} ${amountFormatted}`;
+}
+
+export function thisMonthLabel(): string {
+  return 'This month';
+}
+
+export function incomeLabel(): string {
+  return 'Income';
+}
+
+export function expenseLabel(): string {
+  return 'Expense';
+}
+
+export function recentTransactionsLabel(): string {
+  return 'Recent transactions';
+}
+
+export function seeAllLabel(): string {
+  return 'See all';
+}
+
+// Overview empty state (PAGES.md A2).
+export function overviewEmptyMessage(): string {
+  return 'No accounts yet. Net worth is calculated from your accounts.';
+}
+
+export function setUpInFourStepsLabel(): string {
+  return 'Set up in four steps';
+}
+
+export function stepsDoneLabel(done: number, total: number): string {
+  return `${done} of ${total} done`;
+}
+
+export function addAccountStepLabel(): string {
+  return 'Add account';
+}
+
+export function addTransactionStepLabel(): string {
+  return 'Add transaction';
+}
+
+export function setBudgetStepLabel(): string {
+  return 'Set monthly budget';
+}
+
+export function createBackupStepLabel(): string {
+  return 'Create backup';
+}
+
+export function privacyByDesignNote(): string {
+  return 'Data only exists on this device. Private by design.';
+}
+
+// Recurring due card (PAGES.md A1).
+export function dueTodayLabel(): string {
+  return 'Due today';
+}
+
+export function noDueExpensesMessage(): string {
+  return 'No expenses due now.';
+}
+
+export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
+  return `${name}, due ${date}, ${amountFormatted}`;
 }
