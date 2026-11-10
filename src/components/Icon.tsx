@@ -1,5 +1,5 @@
 // DESIGN.md section 7: one line-icon set, 24 grid, 1.5 stroke, round caps/joins.
-// Sizes 16 (inline), 20 (default), 22 (bottom nav), 26 (empty states). Colour always comes in via the
+// Sizes 16 (inline), 20 (default), 22 (bottom nav), 26 (empty states), 28 (tab bar +). Colour always comes in via the
 // `color` prop (a token from the caller) — never a literal hex in this file.
 import { Platform } from 'react-native';
 import { Circle, Path, Rect, Svg } from 'react-native-svg';
@@ -39,11 +39,18 @@ export type IconName =
   | 'calendar'
   // Budgets (Fase 4.4): month selector "previous", back, and the edit actions.
   | 'chevron-left'
-  | 'pencil';
+  | 'pencil'
+  // Overview (R3): header bell, the month cards' arrow discs.
+  | 'bell'
+  | 'arrow-down'
+  | 'arrow-up';
 
 export interface IconProps {
   name: IconName;
-  size?: 16 | 20 | 22 | 26;
+  size?: 16 | 20 | 22 | 26 | 28;
+  // Stroke width on the 24 grid. Default 1.5; the tab bar's centre "+" uses 2. Applies to the
+  // single-path glyphs (plus, chevrons, …).
+  strokeWidth?: number;
   color: string;
   // When the icon is the only signal (no adjacent label), pass a label and it is exposed
   // to screen readers. Omitted = decorative: hidden, since the icon sits next to text that
@@ -75,13 +82,16 @@ const PATHS: Partial<Record<IconName, string>> = {
   refresh: 'M3 12 a9 9 0 0 1 15 -6.7 L21 8 M21 3 V8 H16 M21 12 a9 9 0 0 1 -15 6.7 L3 16 M3 21 V16 H8',
   calendar: 'M4 5 H20 V20 H4 Z M4 9 H20 M8 3 V7 M16 3 V7',
   'chevron-left': 'M15 6 L9 12 L15 18',
+  bell: 'M6 16 V11 a6 6 0 0 1 12 0 V16 L19.5 18 H4.5 Z M10 21 H14',
+  'arrow-down': 'M12 5 V19 M6 13 L12 19 L18 13',
+  'arrow-up': 'M12 19 V5 M6 11 L12 5 L18 11',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
 };
 
-function renderGlyph(name: IconName, color: string) {
+function renderGlyph(name: IconName, color: string, strokeWidth: number) {
   const d = PATHS[name];
   if (d) {
-    return <Path d={d} stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />;
+    return <Path d={d} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />;
   }
   switch (name) {
     case 'overview':
@@ -138,10 +148,10 @@ function accessibilityProps(label: string | undefined): Record<string, unknown> 
   };
 }
 
-export function Icon({ name, size = 20, color, label, testID }: IconProps) {
+export function Icon({ name, size = 20, color, strokeWidth = 1.5, label, testID }: IconProps) {
   return (
     <Svg testID={testID} width={size} height={size} viewBox="0 0 24 24" fill="none" {...accessibilityProps(label)}>
-      {renderGlyph(name, color)}
+      {renderGlyph(name, color, strokeWidth)}
     </Svg>
   );
 }

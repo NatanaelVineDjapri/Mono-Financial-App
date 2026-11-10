@@ -43,7 +43,7 @@ Sizes are in dp (React Native density-independent px). Line height shown as size
 | `bodyS` | IBM Plex Sans 400 | 13/18 | 0 | textSecond | Helper text, banners, key–value rows |
 | `caption` | IBM Plex Sans 400 | 12/16 | 0 | textMeta | "Sample data", dates under titles |
 | `label` | IBM Plex Sans 500 | 11/14 | +0.08em, UPPERCASE | textMeta | Section captions, table headers |
-| `navLabel` | IBM Plex Sans 600 | 13/16 | 0 | bg (on the active pill's own `text`-coloured fill) | Bottom navigation's active tab only — an inactive tab is icon-only, no label |
+| `navLabel` | IBM Plex Sans 500 (600 when active) | 10.5/12 | 0 | `#9A9A9A`, dark on the light pill | Bottom navigation (every tab shows its label; hidden below 340dp) |
 | `mono` | IBM Plex Mono 500 | 13/18 | 0 | text | Backup file names, timestamps |
 
 Consolidation note for engineering: the canvas shows three serif display sizes (48, 44, 40) because each screen was tuned by eye. In the app, keep **two** (`displayL` 48 for Overview, `displayS` 40 for everything else) and drop `displayM`.
@@ -104,7 +104,7 @@ Header row `label`. Body rows `bodyS` with tabular figures, numbers right-aligne
 - Underline is only for inline text links ("Back up", "Undo", "Reset all").
 - Italics are not used anywhere.
 - `label` is always uppercase with tracking. Don't uppercase anything else.
-- No text below 11 dp. 11 dp is allowed only for `label` and `navLabel`.
+- No text below 11 dp, except `navLabel` (10.5 dp), which hides at large text sizes instead of shrinking. 11 dp is allowed only for `label`.
 - Truncate with ellipsis only for names (account, merchant). Amounts, dates and labels that carry a number never truncate: the row grows instead.
 - Support system text scale up to 200%. Rows have min-height, not fixed height. At large scale, key–value rows may wrap onto two lines (label above, value below).
 - Don't centre-align amounts. Align to the right edge of the row, or to the start for hero figures.

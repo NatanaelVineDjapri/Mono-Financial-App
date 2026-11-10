@@ -117,9 +117,9 @@ describe('BankCard', () => {
     expect(flatStyle.height).toBe('100%');
   });
 
-  test('carousel variant is 312x184; list variant is full width at 358:184', async () => {
+  test('carousel variant is 300x154; list variant is full width at 358:184', async () => {
     const carousel = await render(<BankCard name="BCA" type="bank" icon="bca" balance={1} onPress={() => {}} variant="carousel" testID="c" />);
-    expect(carousel.getByTestId('c').props.style).toMatchObject({ width: 312, height: 184 });
+    expect(carousel.getByTestId('c').props.style).toMatchObject({ width: 300, height: 154 });
 
     const list = await render(<BankCard name="BCA" type="bank" icon="bca" balance={1} onPress={() => {}} variant="list" testID="l" />);
     expect(list.getByTestId('l').props.style).toMatchObject({ width: '100%', aspectRatio: 358 / 184 });

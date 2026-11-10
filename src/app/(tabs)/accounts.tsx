@@ -12,6 +12,7 @@ import { CardStack, type CardStackAccount } from '@/components/CardStack';
 import { HeaderButton } from '@/components/HeaderButton';
 import { Icon } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useTabBarClearance } from '@/components/TabBar';
 import { showToast } from '@/components/toast-store';
 import { formatDateTime } from '@/core/date';
 import { money } from '@/core/money';
@@ -99,6 +100,7 @@ function ExchangeRatesRow({ latestFxUpdate }: { latestFxUpdate: string | null | 
 
 export default function AccountsScreen() {
   const router = useRouter();
+  const tabBarClearance = useTabBarClearance();
   const { data, isLoading, isError, refetch } = useAccountsOverview();
   const { data: latestFxUpdate } = useLatestFxUpdate();
   const onRetry = useCallback(() => {
@@ -151,7 +153,7 @@ export default function AccountsScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction />} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]}>
         <CardStack
           netWorth={data.netWorth}
           accountCount={data.accountCount}
@@ -177,7 +179,7 @@ export default function AccountsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  content: { paddingHorizontal: 16, paddingBottom: 32, gap: 20 },
+  content: { paddingHorizontal: 16, gap: 20 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },

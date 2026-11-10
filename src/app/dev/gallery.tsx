@@ -16,7 +16,6 @@ import { BANK_CARDS, NEUTRAL_CARDS } from '@/components/BankCard/bankCards';
 import { Button } from '@/components/Button';
 import { ChartTable } from '@/components/ChartTable';
 import { Chip } from '@/components/Chip';
-import { Fab } from '@/components/Fab';
 import { Field } from '@/components/Field';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
@@ -100,17 +99,6 @@ function GalleryContent() {
               <IconButton label="Tambah" disabled>
                 <Icon name="plus" color={MonoColors.textDisabled} />
               </IconButton>
-            </Row>
-          </Section>
-
-          <Section title="Fab">
-            <Row label="default / disabled">
-              <Fab label="Catat transaksi" onPress={() => {}}>
-                <Icon name="plus" color={MonoColors.bg} />
-              </Fab>
-              <Fab label="Catat transaksi" onPress={() => {}} disabled>
-                <Icon name="plus" color={MonoColors.bg} />
-              </Fab>
             </Row>
           </Section>
 
@@ -229,7 +217,7 @@ function GalleryContent() {
           <Section title="BankCard — lebar (bug: latar lebih kecil dari wadah di layar lebar penuh)">
             <View style={{ gap: 16 }}>
               <Text style={styles.rowLabel}>Carousel (312, tetap)</Text>
-              <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="carousel" testID="card-312" />
+              <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="carousel" testID="card-300" />
               <Text style={styles.rowLabel}>List, lebar penuh (width 100%)</Text>
               <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="list" testID="card-full" />
               <Text style={styles.rowLabel}>List, wadah sempit 360dp</Text>

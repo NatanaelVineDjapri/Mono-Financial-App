@@ -270,11 +270,10 @@ describe('TransactionsScreen', () => {
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/tx/[id]', params: { id: '5' } });
   });
 
-  test('the FAB opens /ai-chat', async () => {
+  test('there is no FAB on this screen (the tab bar\'s + opens the chat)', async () => {
     mockResult(baseResult([OCT_PAGE]));
     const result = await renderScreen();
-    await fireEvent.press(result.getByRole('button', { name: 'Record via chat' }));
-    expect(mockPush).toHaveBeenCalledWith('/ai-chat');
+    expect(result.queryByRole('button', { name: /chat/i })).toBeNull();
   });
 
   test('the Filters button opens the Transaction filters sheet', async () => {
@@ -318,15 +317,12 @@ describe('TransactionsScreen', () => {
       expect(result.queryByText('+Rp0')).toBeNull();
     });
 
-    test('the list\'s bottom padding clears the FAB and its offset above the tab bar', async () => {
+    test('the list\'s bottom padding clears the floating tab bar (112 plus the bottom inset, 0 here)', async () => {
       mockResult(baseResult([OCT_PAGE]));
       const result = await renderScreen();
       const list = result.getByTestId('transactions-list');
       const flatStyle = Object.assign({}, ...[list.props.contentContainerStyle].flat());
-      // FAB 56 + its bottom offset: 16 above the bar's visible edge, less the 8 of empty
-      // strip the bar's box already has above it. The bar's height and the safe-area
-      // inset are outside this screen, so neither is part of the padding.
-      expect(flatStyle.paddingBottom).toBe(56 + (16 - 8));
+      expect(flatStyle.paddingBottom).toBe(112);
     });
 
     test('a row\'s subtitle has no date (the day header above it already states it)', async () => {

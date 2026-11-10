@@ -1,26 +1,34 @@
-// DESIGN.md sections 8/9: the five bottom tabs, drawn with our own custom TabBar (never
-// the OS tab bar) so the amber indicator and typography match the design on every
-// platform — hence `expo-router/js-tabs` (the JS-rendered, React Navigation-backed
-// navigator) rather than `expo-router/native-tabs`.
+// DESIGN.md "Bottom navigation": four tabs (Overview, Transactions, Accounts, Budgets) and a
+// gold "+" in the middle of the bar that opens the AI chat. Drawn with our own custom
+// TabBar (never the OS tab bar) so the bar matches the design on every platform — hence
+// `expo-router/js-tabs` (the JS-rendered, React Navigation-backed navigator) rather than
+// `expo-router/native-tabs`. More is not a tab: it is the pushed route /more.
+//
+// The bar floats over the screens (absolute, transparent zone), so each tab screen pads its
+// scroll content by `useTabBarClearance()`.
+import { useRouter } from 'expo-router';
 import { Tabs, type BottomTabBarProps } from 'expo-router/js-tabs';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import type { IconName } from '@/components/Icon';
 import { TabBar, type TabBarItem } from '@/components/TabBar';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
-import { tabLabel, type TabKey } from '@/i18n/id';
+import { aiEntryRoute, useAiConfigured } from '@/features/ai_chat/aiEntry';
+import { recordViaChatLabel, tabLabel, type TabKey } from '@/i18n/id';
 
 const TAB_ROUTES: { name: string; key: TabKey; icon: IconName }[] = [
   { name: 'index', key: 'overview', icon: 'overview' },
   { name: 'transactions', key: 'transactions', icon: 'flow' },
   { name: 'accounts', key: 'accounts', icon: 'bank' },
   { name: 'budgets', key: 'budgets', icon: 'pie' },
-  { name: 'more', key: 'more', icon: 'dots' },
 ];
 
-function CustomTabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
+function CustomTabBar({ state, navigateToTab }: BottomTabBarProps) {
+  const router = useRouter();
+  const aiConfigured = useAiConfigured();
   const hidden = useTabBarVisibility(s => s.hidden);
   // Same two-state pattern as Sheet.tsx: `hidden` directly gates the Animated.View's own
   // JSX presence (that's what gives Reanimated an actual unmount to animate `exiting`
@@ -42,6 +50,7 @@ function CustomTabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   return (
     !hidden && (
       <Animated.View
+        style={styles.host}
         entering={FadeIn}
         exiting={FadeOut.withCallback(finished => {
           'worklet';
@@ -55,7 +64,8 @@ function CustomTabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
             const route = state.routes.find(r => r.name === name);
             if (route) navigateToTab(route.key);
           }}
-          bottomInset={insets.bottom}
+          fabLabel={recordViaChatLabel()}
+          onFabPress={() => router.push(aiEntryRoute(aiConfigured) as never)}
           testID="tab-bar"
         />
       </Animated.View>
@@ -72,3 +82,9 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  // Over the screens, not below them; box-none so the transparent strip around the bar
+  // passes touches through to the content underneath.
+  host: { position: 'absolute', left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' },
+});

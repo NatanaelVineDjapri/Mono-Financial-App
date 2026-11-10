@@ -92,23 +92,28 @@ export function bankCardAccessibilityLabel(name: string, type: AccountType, bala
   return `${name}, ${accountTypeDescription(type)}, balance ${balanceText}`;
 }
 
-// TabBar / the five (tabs) routes (DESIGN.md section 9): the bottom nav's own labels,
-// reused as each tab's temporary app-bar title until its real content lands.
-export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets' | 'more';
+// TabBar / the four (tabs) routes (DESIGN.md "Bottom navigation"): the bottom nav's own
+// labels, reused as each tab's app-bar title. More is not a tab — see moreTitle().
+export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets';
 
 const tabLabels: Record<TabKey, string> = {
   overview: 'Overview',
   transactions: 'Transactions',
   accounts: 'Accounts',
   budgets: 'Budgets',
-  more: 'More',
 };
 
 export function tabLabel(key: TabKey): string {
   return tabLabels[key];
 }
 
-// Lainnya tab's __DEV__-only entry point into app/dev/index.tsx (never shown in a
+// The pushed /more screen (opened from the avatar on Overview): its title and the
+// avatar's accessibility label.
+export function moreTitle(): string {
+  return 'More';
+}
+
+// More's __DEV__-only entry point into app/dev/index.tsx (never shown in a
 // release build).
 export function devToolsLabel(): string {
   return 'Dev tools';
@@ -265,8 +270,9 @@ export function resetSearchLabel(): string {
   return 'Reset search';
 }
 
+// The tab bar's centre "+" (TabFab).
 export function recordViaChatLabel(): string {
-  return 'Record via chat';
+  return 'Add transaction by chat';
 }
 
 export function filtersSheetTitle(): string {
@@ -890,4 +896,187 @@ export function noDueExpensesMessage(): string {
 
 export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
   return `${name}, due ${date}, ${amountFormatted}`;
+}
+
+// ---------------------------------------------------------------- Overview rebuild (R3)
+// DESIGN.md "A. Overview", PAGES.md A1/A2.
+export function notificationsLabel(): string {
+  return 'Notifications';
+}
+
+export function backToOverviewLabel(): string {
+  return 'Overview';
+}
+
+export function netWorthLabel(): string {
+  return 'Net worth';
+}
+
+export function netWorthIncompleteNote(): string {
+  return 'Some currencies have no exchange rate yet, so this total is incomplete.';
+}
+
+export function expensesCardLabel(): string {
+  return 'Expenses';
+}
+
+export function incomeCardLabel(): string {
+  return 'Income';
+}
+
+// "▲ 8,05% vs Sep" — the arrow is drawn, not part of the string.
+export function overviewChangeVsLabel(pctFormatted: string, monthAbbrevText: string): string {
+  return `${pctFormatted} vs ${monthAbbrevText}`;
+}
+
+export function noChangeVsMonthLabel(monthAbbrevText: string): string {
+  return `No data for ${monthAbbrevText}`;
+}
+
+export function monthFlowCardAccessibilityLabel(label: string, amountFormatted: string, changeText: string): string {
+  return `${label} this month, ${amountFormatted}, ${changeText}`;
+}
+
+export function netCashFlowLabel(monthAbbrevText: string): string {
+  return `Net cash flow · ${monthAbbrevText}`;
+}
+
+export function consumptionOnlyNote(): string {
+  return 'Consumption only. Transfers between your accounts are excluded.';
+}
+
+export function accountsCountNote(count: number): string {
+  return `${count} ${count === 1 ? 'account' : 'accounts'}. Swipe to see all. Total equals net worth.`;
+}
+
+export function cashFlowTitle(): string {
+  return 'Cash flow';
+}
+
+export function lastSixMonthsLabel(): string {
+  return 'Last 6 months';
+}
+
+export function cashFlowAccessibilityLabel(valuesText: string): string {
+  return `Income versus expenses, last six months. ${valuesText}`;
+}
+
+export function cashFlowValuesText(monthAbbrevText: string, incomeFormatted: string, expenseFormatted: string): string {
+  return `${monthAbbrevText}: income ${incomeFormatted}, expenses ${expenseFormatted}`;
+}
+
+export function topCategoriesTitle(): string {
+  return 'Top categories';
+}
+
+export function amountsLinkLabel(): string {
+  return 'Amounts';
+}
+
+export function othersCategoryLabel(): string {
+  return 'Others';
+}
+
+export function noSpendingThisMonthMessage(): string {
+  return 'No spending recorded this month yet.';
+}
+
+export function topCategoriesRingAccessibilityLabel(valuesText: string): string {
+  return `Spending by category this month. ${valuesText}`;
+}
+
+export function legendValueText(name: string, percentFormatted: string): string {
+  return `${name} ${percentFormatted}`;
+}
+
+export function budgetSummaryTitle(monthLabelText: string): string {
+  return `Budget · ${monthLabelText}`;
+}
+
+export function detailsLabel(): string {
+  return 'Details';
+}
+
+export function percentUsedLabel(percentFormatted: string): string {
+  return `${percentFormatted} used`;
+}
+
+export function overLimitAlert(categoryName: string, overFormatted: string): string {
+  return `${categoryName} is over its limit by ${overFormatted}`;
+}
+
+export function noBudgetThisMonthMessage(): string {
+  return 'No monthly limit set for this month.';
+}
+
+export function goalsTitle(): string {
+  return 'Goals';
+}
+
+export function allGoalsLabel(): string {
+  return 'All goals';
+}
+
+export function goalTargetDateLabel(dateText: string): string {
+  return `Target ${dateText}`;
+}
+
+export function goalOfTargetLabel(targetFormatted: string): string {
+  return `of ${targetFormatted}`;
+}
+
+export function goalCompleteLabel(percentFormatted: string): string {
+  return `${percentFormatted} complete`;
+}
+
+export function goalRemainingLabel(amountFormatted: string): string {
+  return `${amountFormatted} remaining`;
+}
+
+export function netWorthHistoryTitle(): string {
+  return 'Net worth history';
+}
+
+export function netWorthHistoryAccessibilityLabel(valuesText: string): string {
+  return `Net worth at each month end. ${valuesText}`;
+}
+
+export function whereYourMoneyIsTitle(): string {
+  return 'Where your money is';
+}
+
+export function byAccountCaption(): string {
+  return 'By account';
+}
+
+export function whereMoneyAccessibilityLabel(valuesText: string): string {
+  return `Net worth by account. ${valuesText}`;
+}
+
+export function monthEndValuesNote(): string {
+  return 'Month-end values. The latest month is to date.';
+}
+
+export function nextRecurringLabel(name: string, dateText: string): string {
+  return `Next: ${name} · ${dateText}`;
+}
+
+export function axisInMillionsLabel(): string {
+  return 'axis in Rp million';
+}
+
+export function goalLineLabel(valueText: string): string {
+  return `Goal · Rp${valueText}`;
+}
+
+export function rangeSixMonthsLabel(): string {
+  return '6M';
+}
+
+export function rangeOneYearLabel(): string {
+  return '1Y';
+}
+
+export function rangeAllLabel(): string {
+  return 'All';
 }

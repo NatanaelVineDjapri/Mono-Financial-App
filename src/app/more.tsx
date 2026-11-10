@@ -1,12 +1,13 @@
-// Lainnya (More) tab. Placeholder app bar only — real content (Backup status, Goals,
-// Reports, Categories, Backup and restore, Settings) is Phase 4.2+. The "Dev tools" row
-// is the one exception: __DEV__-only, never shown in a release build.
+// More: a pushed screen (route /more, outside the (tabs) group), opened from the avatar on
+// Overview — not a tab, so no tab bar here or on its children (Goals, Reports, Categories,
+// Backup, Settings, Fixed expenses). Placeholder app bar only — real content is Phase 4.2+.
+// The "Dev tools" row is the one exception: __DEV__-only, never shown in a release build.
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { devToolsHint, devToolsLabel, tabLabel } from '@/i18n/id';
+import { backLabel, backToOverviewLabel, devToolsHint, devToolsLabel, moreTitle } from '@/i18n/id';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -36,9 +37,26 @@ function DevToolsRow() {
 }
 
 export default function MoreScreen() {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('more')} />
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={backLabel()}
+          hitSlop={4}
+          android_ripple={undefined}
+          style={({ pressed }) => [styles.back, pressed && styles.backPressed]}
+          testID="more-back"
+        >
+          <Icon name="chevron-left" color={MonoColors.text} />
+          <Text style={styles.backText}>{backToOverviewLabel()}</Text>
+        </Pressable>
+        <Text style={styles.title} accessibilityRole="header">
+          {moreTitle()}
+        </Text>
+      </View>
 
       {__DEV__ && <DevToolsRow />}
     </View>
@@ -47,6 +65,11 @@ export default function MoreScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
+  header: { paddingHorizontal: 12, paddingBottom: 16, gap: 4 },
+  back: { minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 12 },
+  backPressed: { opacity: 0.7 },
+  backText: { ...MonoText.body, color: MonoColors.text },
+  title: { ...MonoText.titleL, color: MonoColors.text, paddingHorizontal: 8 },
   row: {
     minHeight: 48,
     paddingHorizontal: 20,

@@ -8,8 +8,9 @@ import { getMonthBudget } from './budget';
 
 const MAX_CATEGORIES = 4; // + one "Others" bucket
 
-// Largest-remainder rounding (Hamilton's method): shares always sum to exactly 100.0%.
-export function largestRemainderSharesBp(values: number[], total: number): number[] {
+// Largest-remainder rounding (Hamilton's method): shares always sum to exactly `scale`
+// (10000 = 100,00% in basis points by default; 1000 = 100,0% in permille, one decimal).
+export function largestRemainderSharesBp(values: number[], total: number, scale = 10000): number[] {
   const n = values.length;
   if (n === 0 || total <= 0) return values.map(() => 0);
 
@@ -17,14 +18,14 @@ export function largestRemainderSharesBp(values: number[], total: number): numbe
   const remainders: number[] = [];
   let baseSum = 0;
   for (const value of values) {
-    const numerator = BigInt(value) * 10000n;
+    const numerator = BigInt(value) * BigInt(scale);
     const base = Number(numerator / BigInt(total));
     bases.push(base);
     remainders.push(Number(numerator % BigInt(total)));
     baseSum += base;
   }
 
-  const deficit = 10000 - baseSum;
+  const deficit = scale - baseSum;
   const order = remainders.map((_, index) => index).sort((a, b) => remainders[b] - remainders[a]);
   const shares = [...bases];
   for (let index = 0; index < deficit; index++) shares[order[index % n]] += 1;

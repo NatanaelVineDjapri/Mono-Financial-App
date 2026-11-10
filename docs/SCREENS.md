@@ -8,10 +8,10 @@
 |---|---|---|---|---|
 | 1 | Welcome (first launch, mascot video) | `/welcome` | Welcome | Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup |
 | 2 | Overview (tab) | `/(tabs)/index` | Main | Empty state: Overview-Empty. Account card carousel, fixed-expenses card, greeting "Selamat datang, Nael" |
-| 3 | Transactions (tab) | `/(tabs)/transactions` | Transactions | + FAB opens the AI chat; filters sheet (see sheets) |
+| 3 | Transactions (tab) | `/(tabs)/transactions` | Transactions | Filters sheet (see sheets). The centre + button of the tab bar opens the AI chat |
 | 4 | Accounts (tab) | `/(tabs)/accounts` | Accounts | Wallet-style card stack (total as top card, one card open). Variants: Accounts-Open, Accounts-Valas |
 | 5 | Budgets (tab) | `/(tabs)/budgets` | Budgets | Monthly limit, per-category bars, over-limit state |
-| 6 | More (tab) | `/(tabs)/more` | More | Entry to Goals, Categories, Reports, Backup, Settings, Fixed expenses |
+| 6 | More (pushed screen from the avatar on Overview) | `/more` | More | Entry to Goals, Categories, Reports, Backup, Settings, Fixed expenses |
 | 7 | Add / edit transaction | `/tx/add`, `/tx/[id]` | Tx-Add | Variants: Tx-Add-Errors (validation), Tx-Add-Transfer, Tx-Add-Valas (pocket chips, rupiah value line), Tx-Exchange (two amounts, rate summary). One form, three kinds |
 | 8 | Account detail | `/account/[id]` | Account-Detail | Running balance from `v_account_activity` |
 | 9 | Create / edit account | `/account/edit` | Account-Edit | Opening balance locked after first transaction. Type "Valas": Valas-Edit (name, one opening balance per currency, "Add currency") |
@@ -48,7 +48,7 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 
 ## Entry points worth getting right
 
-- The **+ FAB on Transactions opens the AI chat**, not the form. The Overview has no chat bar (removed on purpose).
+- The **gold + button in the middle of the tab bar opens the AI chat**, not the form, from every tab. The Overview has no chat bar (removed on purpose).
 - The chat has "Catat manual" to reach the form. The form has a "Chat" button back.
 - Add transaction is also reached from Account detail and the empty states.
 

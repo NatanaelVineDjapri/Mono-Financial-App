@@ -22,10 +22,7 @@ import { MonoText } from '@/theme/typography';
 
 export const RING_SIZE = 220;
 const STROKE_WIDTH = 16;
-const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
-const CENTER = RING_SIZE / 2;
 const GAP_PX = 5;
-const GAP_DEG = (GAP_PX / (2 * Math.PI * RADIUS)) * 360;
 const MIN_SWEEP_DEG = 1.5; // keeps a very small share visibly drawn instead of a degenerate sliver
 const START_DEG = -90; // Skia's own 0deg = 3 o'clock; this is 12 o'clock
 const FILL_DURATION_MS = 400;
@@ -49,6 +46,12 @@ export interface RingChartProps {
   selectedId?: number;
   onSegmentPress?: (id: number) => void;
   accessibilityLabel: string;
+  // The Transactions ring is 220 / stroke 16; the Overview's "Top categories" is 140 / 16.
+  size?: number;
+  strokeWidth?: number;
+  // Fixed font size for the centre figure (the compact ring has no room for the adaptive
+  // 15-36 scale, whose largest steps would not fit inside a 140 ring).
+  centerValueSize?: number;
   testID?: string;
 }
 
@@ -116,12 +119,14 @@ function arcPathD(cx: number, cy: number, r: number, startDeg: number, sweepDeg:
   return `M ${startX} ${startY} A ${r} ${r} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
 }
 
-export function hitTestSegment(arcs: Arc[], locationX: number, locationY: number): number | undefined {
-  const dx = locationX - CENTER;
-  const dy = locationY - CENTER;
+export function hitTestSegment(arcs: Arc[], locationX: number, locationY: number, size = RING_SIZE, strokeWidth = STROKE_WIDTH): number | undefined {
+  const radius = (size - strokeWidth) / 2;
+  const center = size / 2;
+  const dx = locationX - center;
+  const dy = locationY - center;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  const inner = RADIUS - STROKE_WIDTH / 2 - HIT_PADDING;
-  const outer = RADIUS + STROKE_WIDTH / 2 + HIT_PADDING;
+  const inner = radius - strokeWidth / 2 - HIT_PADDING;
+  const outer = radius + strokeWidth / 2 + HIT_PADDING;
   if (distance < inner || distance > outer) return undefined;
 
   const rawDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
@@ -142,21 +147,27 @@ export function RingChart({
   selectedId,
   onSegmentPress,
   accessibilityLabel,
+  size = RING_SIZE,
+  strokeWidth = STROKE_WIDTH,
+  centerValueSize,
   testID,
 }: RingChartProps) {
+  const radius = (size - strokeWidth) / 2;
+  const center = size / 2;
+  const gapDeg = (GAP_PX / (2 * Math.PI * radius)) * 360;
   const reducedMotion = useReducedMotion();
   const progress = useFillProgress(FILL_DURATION_MS, reducedMotion);
   const { arcs, isOverLimit } = layoutArcs(segments, limitIdr);
 
-  const trackPath = arcPathD(CENTER, CENTER, RADIUS, 0, 359.9);
+  const trackPath = arcPathD(center, center, radius, 0, 359.9);
 
-  const overRadius = RADIUS + STROKE_WIDTH / 2 + OVER_RING_GAP + OVER_RING_WIDTH / 2;
-  const overPath = arcPathD(CENTER, CENTER, overRadius, 0, 359.9);
+  const overRadius = radius + strokeWidth / 2 + OVER_RING_GAP + OVER_RING_WIDTH / 2;
+  const overPath = arcPathD(center, center, overRadius, 0, 359.9);
 
   const segmentPaths = arcs.map(arc => {
-    const trimmedSweep = Math.max(0, arc.sweepDeg - GAP_DEG);
+    const trimmedSweep = Math.max(0, arc.sweepDeg - gapDeg);
     const drawnSweep = arc.sweepDeg > 0 ? Math.max(MIN_SWEEP_DEG, trimmedSweep) * progress : 0;
-    const path = drawnSweep > 0 ? arcPathD(CENTER, CENTER, RADIUS, arc.startDeg + GAP_DEG / 2, drawnSweep) : null;
+    const path = drawnSweep > 0 ? arcPathD(center, center, radius, arc.startDeg + gapDeg / 2, drawnSweep) : null;
     return { ...arc, path };
   });
 
@@ -164,10 +175,10 @@ export function RingChart({
     Platform.OS === 'web' ? (
       // react-native-skia needs an explicit CanvasKit/WASM bootstrap on web (LoadSkiaWeb)
       // this Android-only app never sets up — same fallback reasoning as ProgressBar.tsx.
-      <View style={[styles.webFallback, { backgroundColor: MonoColors.raised }]} />
+      <View style={[styles.webFallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: MonoColors.raised }]} />
     ) : (
-      <Canvas style={styles.canvas}>
-        <Path path={trackPath} color={MonoColors.raised} style="stroke" strokeWidth={STROKE_WIDTH} strokeCap="round" />
+      <Canvas style={{ width: size, height: size }}>
+        <Path path={trackPath} color={MonoColors.raised} style="stroke" strokeWidth={strokeWidth} strokeCap="round" />
         {segmentPaths.map(
           segment =>
             segment.path && (
@@ -176,7 +187,7 @@ export function RingChart({
                 path={segment.path}
                 color={segment.color}
                 style="stroke"
-                strokeWidth={STROKE_WIDTH}
+                strokeWidth={strokeWidth}
                 strokeCap="round"
                 opacity={selectedId != null && selectedId !== segment.id ? 0.35 : 1}
               />
@@ -189,7 +200,7 @@ export function RingChart({
   return (
     <Pressable
       testID={testID}
-      style={styles.wrap}
+      style={[styles.wrap, { width: size, height: size }]}
       accessible
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
@@ -197,14 +208,14 @@ export function RingChart({
         onSegmentPress &&
         (event => {
           const { locationX, locationY } = event.nativeEvent;
-          const hit = hitTestSegment(arcs, locationX, locationY);
+          const hit = hitTestSegment(arcs, locationX, locationY, size, strokeWidth);
           if (hit != null) onSegmentPress(hit);
         })
       }
     >
       {canvasBody}
       <View style={styles.centerWrap} pointerEvents="none">
-        <CenterText label={centerLabel} value={centerValue} sub={centerSub} />
+        <CenterText label={centerLabel} value={centerValue} sub={centerSub} valueSize={centerValueSize} compact={size < RING_SIZE} />
       </View>
     </Pressable>
   );
@@ -213,7 +224,7 @@ export function RingChart({
 // Split out since this exact stack — small label, big figure, small sub-line — is only
 // used here. The big figure's font size adapts to the string length so longer numbers
 // (e.g. 100+ million) scale down instead of overflowing the 220px-wide ring.
-function CenterText({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function CenterText({ label, value, sub, valueSize, compact }: { label: string; value: string; sub?: string; valueSize?: number; compact: boolean }) {
   // Responsive font sizing: scale down aggressively when digits increase.
   // Thresholds based on typical IDR formatting with dots (Rp8.700.000 = 11 chars).
   const getFontSize = (text: string): number => {
@@ -226,11 +237,11 @@ function CenterText({ label, value, sub }: { label: string; value: string; sub?:
     return 15; // 10 miliar+
   };
 
-  const fontSize = getFontSize(value);
+  const fontSize = valueSize ?? getFontSize(value);
 
   return (
     <>
-      <Text style={[MonoText.caption, { color: MonoColors.textMeta, textTransform: 'uppercase' }]}>{label}</Text>
+      <Text style={[MonoText.caption, { color: MonoColors.textMeta, textTransform: 'uppercase' }]} numberOfLines={compact ? 1 : undefined}>{label}</Text>
       <Text style={[MonoText.figureL, { color: MonoColors.text, fontSize }]}>{value}</Text>
       {!!sub && <Text style={[MonoText.bodyS, { color: MonoColors.textSecond }]}>{sub}</Text>}
     </>
@@ -238,8 +249,7 @@ function CenterText({ label, value, sub }: { label: string; value: string; sub?:
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: RING_SIZE, height: RING_SIZE, alignItems: 'center', justifyContent: 'center' },
-  canvas: { width: RING_SIZE, height: RING_SIZE },
-  webFallback: { width: RING_SIZE, height: RING_SIZE, borderRadius: RING_SIZE / 2 },
+  wrap: { alignItems: 'center', justifyContent: 'center' },
+  webFallback: {},
   centerWrap: { position: 'absolute', alignItems: 'center', gap: 2, paddingHorizontal: 24 },
 });

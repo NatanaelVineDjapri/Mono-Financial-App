@@ -18,6 +18,15 @@ export function pct(bp: number, sign = false): string {
   return sign && bp > 0 ? `+${s}` : s;
 }
 
+// 335 (permille) -> "33,5%". One decimal, integer maths only: the Overview's category
+// shares, rounded with largestRemainderSharesBp(values, total, 1000) so they add to 100,0%.
+export function pct1(permille: number, sign = false): string {
+  const a = Math.abs(permille);
+  const s = `${Math.floor(a / 10)},${a % 10}%`;
+  if (permille < 0) return `−${s}`;
+  return sign && permille > 0 ? `+${s}` : s;
+}
+
 // Whole rupiah, compact for tight spaces (a bar chart's own value label): 640000 ->
 // "640k", 812000 -> "812k". Rounds to the nearest thousand, half away from zero — a chart
 // label, never the exact figure a screen states elsewhere (that's rp(), always).
@@ -67,4 +76,17 @@ export function toIdr(minor: number, rateE4: number, minorFactor: number): numbe
 // does not jump between shown and hidden state.
 export function shown(formatted: string, hidden: boolean): string {
   return hidden ? 'Rp••••••••' : formatted; // 8 bullets (U+2022)
+}
+
+// Hidden-amounts mode also covers the Overview's percentages (month-over-month change,
+// category shares): next to a masked amount they would still leak the ratio. Same fixed
+// width idea as shown() — "••,••%" is as wide as "12,34%".
+export function shownPct(formatted: string, hidden: boolean): string {
+  return hidden ? '••,••%' : formatted;
+}
+
+// A chart's y-axis label ("8", "12", "500k") is an amount too: hidden mode masks it, at a
+// short fixed width so the axis gutter does not jump.
+export function shownCompact(formatted: string, hidden: boolean): string {
+  return hidden ? '•••' : formatted;
 }

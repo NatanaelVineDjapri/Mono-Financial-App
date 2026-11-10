@@ -135,16 +135,16 @@ Papan: `Main` · 390 × 2970
  
 **Tata letak dan komponen**
  
-- Header 64 px: tanda dan wordmark MONO di kiri; tombol lonceng dan avatar bulat "N" di kanan (avatar membuka More).
-- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif di layar ini), "Net worth" dengan tombol Sembunyikan/Tampilkan, angka Rp8.880.000 (IBM Plex Sans 700, 40/46), chip perubahan emas "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026".
-- Dua kartu berdampingan, Expenses dan Income bulan ini: cakram ikon emas, angka (20/26, 700) dan perubahan terhadap September (8,05% netral, 7,14% emas). Di bawahnya baris tipis "Net cash flow" dan catatan transfer tidak dihitung.
-- Bagian "Your accounts": carousel kartu akun berwarna bank bergaya coverflow 3D (300 × 154): kartu yang fokus berada di tengah ukuran penuh, kartu tetangga mengintip di kiri dan kanan (skala 0,88, miring sekitar 26° pada sumbu Y, lebih gelap), titik indikator di bawahnya, tautan "All accounts", catatan bahwa total kartu sama dengan kekayaan bersih.
-- Kartu "Cash flow": batang pemasukan vs pengeluaran enam bulan, disertai tabel nilai.
-- Kartu "Top categories": cincin 140 dengan porsi terbesar di tengah (Food & drink 33,5%), legenda dengan persen (Bills 27,0%, Shopping 19,1%, Transport 12,7%, Others 7,7%), tautan "Amounts" ke Reports.
+- Header 64: logo dan wordmark MONO di kiri; tombol lonceng (44, belum berfungsi) dan avatar bulat 44 berisi huruf pertama nama panggilan ("N", fill raised, border 1 px) yang membuka `/more`.
+- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan emas (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026".
+- Dua kartu berdampingan (jarak 12), Expenses dan Income bulan ini: cakram ikon emas 40, label, angka (20/26, 700), perubahan terhadap bulan lalu (Expenses abu netral dengan segitiga, Income emas). Di bawahnya kartu tipis "Net cash flow · Oct" bernilai emas dan catatan "Consumption only. Transfers between your accounts are excluded."
+- "Your accounts": carousel kartu bank berwarna bergaya coverflow 3D (300 × 154): kartu yang fokus di tengah dengan ukuran penuh dan bayangan lembut, kartu tetangga mengintip di kiri dan kanan (skala 0,88, miring sekitar 26° pada sumbu Y, lebih gelap), snap ke tengah, berputar (kartu terakhir ada di kiri kartu pertama, dan sebaliknya), titik indikator di bawahnya (yang aktif lebih panjang, emas), nama dan saldo di kiri bawah dengan warna `fg` kartu, tag kecil di kanan atas, tautan "All accounts".
+- Kartu "Cash flow": batang pemasukan (emas) vs pengeluaran (#737373) enam bulan, disertai garis kisi, garis dasar (sumbu x), keterangan sumbu y dalam juta rupiah, dan tabel nilai.
+- Kartu "Top categories": cincin 140 (stroke 16, ujung bulat, jeda 5) dengan persen terbesar dan nama kategorinya di tengah, legenda dengan titik, nama dan persen (largest remainder satu desimal; Food & drink 33,5%), tautan "Amounts" ke Reports. Warna: terbesar emas, lalu #A3A3A3, #737373, #525252, Others #3A3A3A.
 - Kartu "Fixed expenses" berbingkai emas 1,5 px: Gym membership jatuh tempo hari ini (Rp200.000) dengan tombol "Review and record", lalu "Next: Internet · 5 Nov" Rp385.000.
 - Transaksi terbaru, ringkasan anggaran dengan peringatan melebihi batas, kartu target.
-- Riwayat kekayaan bersih: grafik garis Mei–Okt dengan garis target Rp30 juta, disertai tabel nilai.
-- Posisi uang: bar bertumpuk per akun (BCA 77,05% · Jago Pocket 14,36% · Cash wallet dan GoPay 8,59%).
+- Riwayat kekayaan bersih: grafik garis dengan garis kisi, keterangan sumbu y (juta rupiah), garis target putus-putus, nilai terakhir di atas titik akhir, pilihan rentang 6M / 1Y / All, dan tabel nilai.
+- Posisi uang: bar bertumpuk per akun (BCA 77,05% · Jago Pocket 14,36% · sisanya digabung 8,59%).
 - Navigasi bawah: empat tab dan tombol + emas di tengah (lihat DESIGN.md), Overview aktif.
 **Keadaan**
  
@@ -670,7 +670,7 @@ Papan: `Recurring` · 390 × 1080
 - Needs confirmation: kartu berbingkai 1,5 px untuk Gym membership (Health, BCA Tabungan, tiap tanggal 28, Rp200.000, tag "Due today") dengan tombol "Record now" dan "Skip this month".
 - Coming up: Internet 5 Nov Rp385.000, Music subscription 12 Nov Rp54.990, Electricity token 24 Nov "about Rp562.000" dengan label Amount varies.
 - Tombol "Add fixed expense" dan catatan pengingat: notifikasi sehari sebelum dan saat jatuh tempo; bulan yang terlewat menunggu di sini, terlama dulu.
-- Navigasi bawah dengan More aktif.
+- Layar anak More: tanpa bar bawah, panah kembali ke More.
 **Keadaan**
  
 - Ketuk baris untuk membuka form ubah. "Record now" membuka sheet konfirmasi.

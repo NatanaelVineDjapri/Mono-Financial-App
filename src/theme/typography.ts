@@ -5,6 +5,7 @@ const UI = {
   regular: 'IBMPlexSans_400Regular',
   medium: 'IBMPlexSans_500Medium',
   semi: 'IBMPlexSans_600SemiBold',
+  bold: 'IBMPlexSans_700Bold',
 };
 const SERIF = 'Newsreader_400Regular';
 const MONO = 'IBMPlexMono_500Medium';
@@ -28,8 +29,14 @@ export const MonoText = {
   bodyS: { fontFamily: UI.regular, fontSize: 13, lineHeight: 18, ...tab },
   caption: { fontFamily: UI.regular, fontSize: 12, lineHeight: 16, ...tab },
   label: { fontFamily: UI.medium, fontSize: 11, lineHeight: 14, letterSpacing: 0.88 },
-  // Bottom navigation's active-tab pill label only (TabBar.tsx) — an inactive tab is
-  // icon-only, so there is no "inactive" weight to this token.
-  navLabel: { fontFamily: UI.semi, fontSize: 13, lineHeight: 16 },
+  // Bottom navigation labels (TabBar.tsx): 500 for an inactive tab, 600 on the active pill.
+  navLabel: { fontFamily: UI.medium, fontSize: 10.5, lineHeight: 12 },
+  navLabelActive: { fontFamily: UI.semi, fontSize: 10.5, lineHeight: 12 },
+  // Overview (DESIGN.md "A. Overview"): the one serif greeting, the hero balance and the
+  // month cards' figure, all sans 700 except the greeting.
+  heroGreeting: { fontFamily: SERIF, fontSize: 28, lineHeight: 34 },
+  heroBalance: { fontFamily: UI.bold, fontSize: 40, lineHeight: 46, ...tab },
+  figureCard: { fontFamily: UI.bold, fontSize: 20, lineHeight: 26, ...tab },
+  chip: { fontFamily: UI.semi, fontSize: 13, lineHeight: 16, ...tab },
   mono: { fontFamily: MONO, fontSize: 13, lineHeight: 18 },
 } as const;

@@ -1,13 +1,13 @@
 // Transactions tab (DESIGN.md "B. Transactions", PAGES.md B1). Tx-Filters applies a
 // draft stored beside the Transactions statistics UI state.
-// /tx/[id] and /ai-chat are stub routes until the detail and chat screens exist.
+// /tx/[id] is a stub route until the detail screen exists. There is no FAB here: the tab
+// bar's centre "+" opens the AI chat from every tab.
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
-import { Fab } from '@/components/Fab';
 import { FilterSheet } from '@/components/FilterSheet';
 import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -15,7 +15,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
-import { TAB_BAR_ZONE_PADDING_TOP } from '@/components/TabBar';
+import { useTabBarClearance } from '@/components/TabBar';
 import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
 import { activeTransactionFilterCount } from '@/domain/transactionFilters';
@@ -37,7 +37,6 @@ import {
   filtersButtonAccessibilityLabel,
   monthExpenseLabel,
   netLabel,
-  recordViaChatLabel,
   removeFilterAccessibilityLabel,
   resetSearchLabel,
   searchPlaceholder,
@@ -58,22 +57,6 @@ const TYPE_OPTIONS: SegmentedOption[] = (['all', 'income', 'expense', 'transfer'
   value,
   label: txTypeChipLabel(value),
 }));
-
-const FAB_SIZE = 56; // matches Fab.tsx's own (unexported) SIZE constant
-const FAB_GAP = -40; // clearance between the FAB and the tab bar's visible top edge
-// The FAB floats inside this screen, and the screen ends where the tab bar begins: the tab
-// navigator lays the bar out below its screens instead of over them. The bar's own height
-// and the bottom safe-area inset are therefore already outside this view and must not be
-// added to `bottom`. What remains is the empty strip at the top of the bar's box, above its
-// visible edge; it counts toward FAB_GAP. The list's end padding follows the FAB's top edge
-// (FAB_SIZE + FAB_BOTTOM) so the last row can always scroll clear of the button.
-
-const FAB_LIFT = 56;
-
-const FAB_BOTTOM = Math.max(
-  0,
-  FAB_GAP + FAB_LIFT - TAB_BAR_ZONE_PADDING_TOP
-);
 
 function useDebouncedValue(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value);
@@ -321,6 +304,7 @@ export default function TransactionsScreen() {
   // cleanup always restores it too, so leaving this tab never leaves the bar hidden
   // on another one.
   const setTabBarHidden = useTabBarVisibility(state => state.setHidden);
+  const tabBarClearance = useTabBarClearance();
   useEffect(() => {
     setTabBarHidden(filterSheetOpen);
     return () => setTabBarHidden(false);
@@ -483,15 +467,9 @@ export default function TransactionsScreen() {
             if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
           }}
           onEndReachedThreshold={0.4}
-          contentContainerStyle={[styles.listContent, { paddingBottom: FAB_SIZE + FAB_BOTTOM }]}
+          contentContainerStyle={[styles.listContent, { paddingBottom: tabBarClearance }]}
         />
       )}
-
-      <View style={styles.fab}>
-        <Fab label={recordViaChatLabel()} onPress={() => router.push('/ai-chat')}>
-          <Icon name="plus" size={20} color={MonoColors.bg} />
-        </Fab>
-      </View>
 
       <FilterSheet
         visible={filterSheetOpen}
@@ -547,7 +525,7 @@ const styles = StyleSheet.create({
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
-  listContent: { paddingHorizontal: 20, paddingBottom: 96, gap: 20 },
+  listContent: { paddingHorizontal: 20, gap: 20 },
 
   summaryCard: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, marginBottom: 20 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, gap: 12 },
@@ -616,8 +594,4 @@ const styles = StyleSheet.create({
   rowRight: { alignItems: 'flex-end', gap: 2 },
   approxIdr: { ...MonoText.caption, color: MonoColors.textMeta },
   rowKindLabel: { ...MonoText.caption, color: MonoColors.textMeta },
-
-  // Pinned to the screen, not inside the list: it never scrolls with the content and is
-  // always shown at full size. FAB_BOTTOM is where it sits above the tab bar.
-  fab: { position: 'absolute', right: 20, bottom: FAB_BOTTOM },
 });

@@ -32,7 +32,7 @@ export interface BankCardProps {
   icon: string | null; // accounts.icon; null or an unrecognised slug falls back to a neutral card
   balance: number; // whole rupiah; for a Valas account, the total rupiah value
   subline?: string; // Valas only, e.g. "US$250,00 · S$180,00"
-  // carousel: fixed 312×184. list: full width, 358:184 (the "open" card in the Accounts
+  // carousel: fixed 300×154 (the Overview's row; same art, same 358:184 look, cropped by cover). list: full width, 358:184 (the "open" card in the Accounts
   // card stack — CLAUDE.md/Fase 4.2c: "don't change the full look"). strip: full width,
   // 68 tall (the card stack's own *closed* card — Fase 4.2c's "potongan").
   variant?: "carousel" | "list" | "strip";
@@ -236,7 +236,7 @@ export function BankCard({
 }
 
 const styles = StyleSheet.create({
-  carousel: { width: 312, height: 184 },
+  carousel: { width: 300, height: 154 },
   list: { width: "100%", aspectRatio: 358 / 184 },
   card: { flex: 1, borderRadius: radius.lg, overflow: "hidden" },
   // Explicit 100%/100% alongside StyleSheet.absoluteFill: on this RN/Fabric version, an

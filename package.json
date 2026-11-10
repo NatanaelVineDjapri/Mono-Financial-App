@@ -93,6 +93,7 @@
           "@shopify/react-native-skia/jestSetup.js"
         ],
         "moduleNameMapper": {
+          "^@/assets/(.*)$": "<rootDir>/assets/$1",
           "^idn-finlogos/react-native$": "<rootDir>/node_modules/idn-finlogos/dist/react-native/index.js",
           "assets/bank-cards/png/(.+)\\.png$": "<rootDir>/assets/bank-cards/png/$1@3x.png"
         },

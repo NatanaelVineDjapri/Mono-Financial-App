@@ -21,6 +21,7 @@ import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useTabBarClearance } from '@/components/TabBar';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
 import { monthLabel, monthName, monthShortLabel } from '@/core/date';
 import { rp, shown } from '@/core/money';
@@ -118,6 +119,7 @@ function CategoryRow({ row, hidden, onPress }: { row: BudgetCategoryRow; hidden:
 
 export default function BudgetsScreen() {
   const router = useRouter();
+  const tabBarClearance = useTabBarClearance();
   const hidden = useHideAmounts(state => state.hidden);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [monthSheetOpen, setMonthSheetOpen] = useState(false);
@@ -217,7 +219,7 @@ export default function BudgetsScreen() {
   return (
     <View style={styles.screen}>
       {header}
-      <ScrollView contentContainerStyle={styles.content} testID="budgets-scroll">
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]} testID="budgets-scroll">
         {data.limit && <MonthCard overview={data} limit={data.limit} hidden={hidden} />}
 
         <View style={styles.sectionHeader}>
@@ -251,7 +253,7 @@ export default function BudgetsScreen() {
 // grouped rows) so the two tabs read as one app.
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  content: { paddingHorizontal: 20, paddingBottom: 32, gap: 16 },
+  content: { paddingHorizontal: 20, gap: 16 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
