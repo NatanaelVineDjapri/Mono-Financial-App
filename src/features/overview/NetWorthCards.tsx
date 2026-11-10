@@ -22,7 +22,6 @@ import {
   monthEndValuesNote,
   netWorthHistoryAccessibilityLabel,
   netWorthHistoryTitle,
-  othersCategoryLabel,
   rangeAllLabel,
   rangeOneYearLabel,
   rangeSixMonthsLabel,
@@ -167,7 +166,7 @@ export interface WhereYourMoneyCardProps {
 export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
   if (shares.length === 0) return null;
-  const nameOf = (s: AccountShareRow) => (s.id === -1 ? othersCategoryLabel() : s.label);
+  const nameOf = (s: AccountShareRow) => s.label;
   const colorOf = (i: number) => SHARE_COLORS[Math.min(i, SHARE_COLORS.length - 1)];
   const valuesText = shares.map(s => `${nameOf(s)} ${shown(rp(s.amount), hidden)} ${shownPct(pct(s.shareBp), hidden)}`).join(', ');
 
@@ -181,7 +180,7 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
       </View>
       <View accessible accessibilityRole="image" accessibilityLabel={whereMoneyAccessibilityLabel(valuesText)} style={styles.stack}>
         {shares.map((s, i) => (
-          <View key={s.id} style={{ flex: s.shareBp, backgroundColor: colorOf(i) }} />
+          s.shareBp > 0 && <View key={s.id} style={{ flex: s.shareBp, backgroundColor: colorOf(i) }} />
         ))}
       </View>
       {shares.map((s, i) => (

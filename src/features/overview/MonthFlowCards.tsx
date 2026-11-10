@@ -1,7 +1,7 @@
 // Expenses and Income for the month, side by side (grid of 2, gap 12), then the slim
 // "Net cash flow" row and the note that transfers are excluded. Each card: a gold icon
-// disc, the label, the amount (20/26, 700) and the change against last month: Expenses
-// in neutral grey, Income in gold, each with a triangle. Amounts go through <Amount>,
+// disc with the label beside it on one line, the amount (20/26, 700) and the change against last month: Expenses
+// in neutral grey, Income in green on a rise (red on a fall), each with a triangle. Amounts go through <Amount>,
 // percentages through shownPct (hidden mode masks both).
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -55,8 +55,10 @@ function FlowCard({ label, icon, amount, changeBp, previousPeriod, changeColor, 
       accessibilityLabel={monthFlowCardAccessibilityLabel(label, shown(rp(amount), hidden), changeText)}
       testID={testID}
     >
-      <GoldDisc icon={icon} />
-      <Text style={styles.cardLabel}>{label}</Text>
+      <View style={styles.head}>
+        <GoldDisc icon={icon} />
+        <Text style={styles.cardLabel}>{label}</Text>
+      </View>
       <Amount value={amount} variant="figureCard" />
       <View style={styles.changeRow}>
         {changeBp != null && <Triangle up={changeBp >= 0} color={changeColor} />}
@@ -85,13 +87,13 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
           amount={month.income}
           changeBp={incomeChangeBp}
           previousPeriod={previousPeriod}
-          changeColor={MonoColors.accent}
+          changeColor={incomeChangeBp != null && incomeChangeBp < 0 ? MonoColors.negative : MonoColors.positive}
           testID="overview-income-card"
         />
       </View>
       <Card style={styles.netRow} testID="overview-net-cash-flow">
         <Text style={styles.netLabel}>{netCashFlowLabel(monthAbbrev(period))}</Text>
-        <Amount value={month.net} sign variant="figureS" style={{ color: MonoColors.accent }} />
+        <Amount value={month.net} sign kind={month.net < 0 ? 'expense' : month.net > 0 ? 'income' : undefined} variant="figureS" />
       </Card>
       <Text style={styles.note}>{consumptionOnlyNote()}</Text>
     </View>
@@ -102,7 +104,9 @@ const styles = StyleSheet.create({
   wrap: { paddingHorizontal: 16, gap: 12 },
   grid: { flexDirection: 'row', gap: 12 },
   card: { flex: 1, gap: 8 },
-  cardLabel: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  // The icon disc and the label share one line (the label wraps at large text sizes).
+  head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  cardLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flexShrink: 1 },
   changeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   change: { ...MonoText.caption, flexShrink: 1 },
   netRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, paddingVertical: 12 },

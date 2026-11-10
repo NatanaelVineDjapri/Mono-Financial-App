@@ -1,5 +1,5 @@
 import { act, fireEvent, render, within } from '@testing-library/react-native';
-import { Dimensions } from 'react-native';
+import { Dimensions, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -10,6 +10,7 @@ import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { MonoColors } from '@/theme/tokens';
 import OverviewScreen from '../index';
 
 jest.mock('@/features/accounts/useAccountsOverview');
@@ -17,6 +18,13 @@ jest.mock('@/features/overview/useOverview');
 jest.mock('@/features/recurring/useRecurringDue');
 jest.mock('@/features/budgets/useBudgets');
 jest.mock('@/features/transactions/useTransactionsList');
+
+// A controllable window width (the Hide button's label depends on it).
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions');
+const mockWindow = useWindowDimensions as jest.MockedFunction<typeof useWindowDimensions>;
+function setWindow(overrides: Partial<ReturnType<typeof useWindowDimensions>> = {}) {
+  mockWindow.mockReturnValue({ width: 750, height: 1334, scale: 2, fontScale: 1, ...overrides });
+}
 
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
@@ -114,6 +122,7 @@ function mockFilled() {
 describe('Overview', () => {
   beforeEach(async () => {
     mockPush.mockClear();
+    setWindow();
     await act(async () => useHideAmounts.getState().setHidden(false));
   });
 
@@ -136,7 +145,7 @@ describe('Overview', () => {
     expect(result.getByText('Cash flow')).toBeTruthy();
     expect(result.getByText('Top categories')).toBeTruthy();
     expect(result.getAllByText('33,5%').length).toBeGreaterThan(0); // the ring's centre and its legend
-    expect(result.getAllByText('Others').length).toBeGreaterThan(0); // ring legend and where-your-money bar
+    expect(within(result.getByTestId('overview-top-legend')).getByText('Others')).toBeTruthy(); // the ring folds categories; accounts below are never folded
     expect(result.getByText('Fixed expenses')).toBeTruthy();
     expect(result.getByText('Recent transactions')).toBeTruthy();
     expect(result.getByText('Budget · Oct 2026')).toBeTruthy();
@@ -144,6 +153,38 @@ describe('Overview', () => {
     expect(result.getByText('Total assets')).toBeTruthy();
     expect(result.getByText('Net worth history')).toBeTruthy();
     expect(result.getByText('Where your money is')).toBeTruthy();
+  });
+
+  test('positive money is green, never gold: hero chip, Income change and Net cash flow; Expenses stay neutral', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const style = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
+    expect(MonoColors.positive).toBe('#4ADE80');
+    expect(MonoColors.positive).not.toBe(MonoColors.accent);
+
+    expect(style(result.getByText('+Rp3.243.000 (+57,53%)')).color).toBe(MonoColors.positive);
+    expect(style(result.getByText('7,14% vs Sep')).color).toBe(MonoColors.positive);
+    expect(style(result.getByText('8,05% vs Sep')).color).toBe(MonoColors.textSecond);
+    const net = within(result.getByTestId('overview-net-cash-flow')).getByText('+Rp3.243.000');
+    expect(style(net).color).toBe(MonoColors.positive);
+  });
+
+  test('a falling net worth turns the hero chip red (with its minus and a down triangle)', async () => {
+    mockFilled();
+    mockQuery(useOverviewData, { ...OVERVIEW, netWorthChange: -500000, netWorthChangeBp: -533 });
+    const result = await renderScreen();
+    const text = result.getByText('−Rp500.000 (−5,33%)');
+    expect(Object.assign({}, ...[text.props.style].flat(Infinity).filter(Boolean)).color).toBe(MonoColors.negative);
+  });
+
+  test('where your money is lists every account on its own row, nothing folded into Others', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const card = within(result.getByTestId('overview-where-money'));
+    for (const name of ['BCA Tabungan', 'Jago Pocket', 'Cash wallet', 'GoPay']) expect(card.getByText(name)).toBeTruthy();
+    expect(card.queryByText('Others')).toBeNull();
+    expect(card.getByText('77,05%')).toBeTruthy();
+    expect(card.getByText('3,52%')).toBeTruthy();
   });
 
   test('the carousel is a coverflow: snaps one card (260) at a time, first card centred, one dot per account', async () => {
@@ -252,7 +293,50 @@ describe('Overview', () => {
     expect(result.getAllByText('••,••%').length).toBeGreaterThan(0);
   });
 
-  test('empty: header, wave hero with Rp0, the four steps and the privacy note; no charts', async () => {
+  test('one artwork sits behind the header and the hero together, clipped, with no fill on the hero', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const flat = (n: { props: { style?: unknown } }) => Object.assign({}, ...[n.props.style].flat(Infinity).filter(Boolean));
+    const top = result.getByTestId('overview-top');
+    expect(flat(top)).toMatchObject({ position: 'relative', overflow: 'hidden' });
+    expect(flat(top).backgroundColor).toBeUndefined();
+    // The header and the hero are both children of that one container.
+    expect(within(top).getByTestId('overview-header')).toBeTruthy();
+    expect(within(top).getByTestId('overview-hero')).toBeTruthy();
+    expect(flat(result.getByTestId('overview-hero')).backgroundColor).toBeUndefined();
+
+    const image = result.getByTestId('overview-backdrop', { includeHiddenElements: true });
+    const style = flat(image);
+    // Scaled uniformly to the screen width (936:1681), shifted up, pinned to the left edge.
+    expect(style).toMatchObject({ position: 'absolute', left: 0, width: 750 });
+    expect(style.height).toBeCloseTo((750 * 1681) / 936, 5);
+    expect(style.top).toBeLessThan(0);
+    expect(image.props.pointerEvents).toBe('none');
+    expect(image.props.importantForAccessibility).toBe('no-hide-descendants');
+  });
+
+  test('the Hide amounts button is plain text: no fill, no border, 13/18, the same grey as NET WORTH, 44 high', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const flat = (n: { props: { style?: unknown } }) => Object.assign({}, ...[n.props.style].flat(Infinity).filter(Boolean));
+    const style = flat(result.getByTestId('overview-hide-toggle'));
+    expect(style).toMatchObject({ minHeight: 44, justifyContent: 'flex-end' });
+    expect(style.backgroundColor).toBeUndefined();
+    expect(style.borderWidth).toBeUndefined();
+    expect(flat(result.getByText('Hide amounts'))).toMatchObject({ color: '#8A8A8A', fontSize: 13, lineHeight: 18, fontFamily: 'IBMPlexSans_500Medium' });
+    expect(flat(within(result.getByTestId('overview-hero')).getByText('Net worth')).color).toBe('#8A8A8A');
+  });
+
+  test('under 360dp the button reads "Hide" but keeps its full accessibility label', async () => {
+    mockFilled();
+    setWindow({ width: 340 });
+    const result = await renderScreen();
+    expect(result.getByText('Hide')).toBeTruthy();
+    expect(result.queryByText('Hide amounts')).toBeNull();
+    expect(result.getByRole('button', { name: 'Hide amounts' })).toBeTruthy();
+  });
+
+  test('empty: header and hero with the artwork behind them and Rp0, the four steps and the privacy note; no charts', async () => {
     mockQuery(useAccountsOverview, { ...ACCOUNTS, accountCount: 0, groups: [], netWorth: 0 });
     mockQuery(useOverviewData, undefined);
     mockQuery(useRecurringDue, []);
@@ -261,7 +345,7 @@ describe('Overview', () => {
     mockQuery(useTransactionsList, undefined);
     const result = await renderScreen();
     expect(result.getByLabelText('MONO')).toBeTruthy();
-    expect(result.getByTestId('hero-wave', { includeHiddenElements: true })).toBeTruthy();
+    expect(result.getByTestId('overview-backdrop', { includeHiddenElements: true })).toBeTruthy();
     expect(result.getByText('Rp0')).toBeTruthy();
     expect(result.getByText('Set up in four steps')).toBeTruthy();
     expect(result.getByText('0 of 4 done')).toBeTruthy();

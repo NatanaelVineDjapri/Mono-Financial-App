@@ -53,11 +53,10 @@ export interface OverviewData {
   topShares: ShareRow[];
 }
 
-const ACCOUNT_SLICES = 3; // at most this many rows; beyond it, the two largest + one Others
-
-// "Where your money is": each account's share of the positive balances, largest first;
-// with more than three accounts the two largest are named and the rest fold into Others. Accounts at or below zero are not part of a share of
-// money held. Basis points (two decimals), summing to exactly 10000.
+// "Where your money is": every account's share of the money held, largest first, one row
+// per account (nothing is folded into "Others", so each account can be read on its own).
+// An account at zero is listed with a 0,00% share; one below zero is not part of a share
+// of money held. Basis points (two decimals), summing to exactly 10000.
 export interface AccountShareInput {
   id: number;
   name: string;
@@ -65,23 +64,18 @@ export interface AccountShareInput {
 }
 
 export interface AccountShareRow {
-  id: number; // -1 for Others
+  id: number;
   label: string;
   amount: number;
   shareBp: number;
 }
 
 export function accountShares(accounts: AccountShareInput[]): AccountShareRow[] {
-  const positive = accounts.filter(a => a.balance > 0).sort((a, b) => b.balance - a.balance);
-  const named = positive.length <= ACCOUNT_SLICES ? positive.length : ACCOUNT_SLICES - 1;
-  const top = positive.slice(0, named);
-  const rest = positive.slice(named);
-  const buckets: { id: number; label: string; amount: number }[] = top.map(a => ({ id: a.id, label: a.name, amount: a.balance }));
-  const restTotal = rest.reduce((sum, a) => sum + a.balance, 0);
-  if (restTotal > 0) buckets.push({ id: -1, label: '', amount: restTotal });
-  const total = buckets.reduce((sum, b) => sum + b.amount, 0);
-  const shares = largestRemainderSharesBp(buckets.map(b => b.amount), total);
-  return buckets.map((b, i) => ({ ...b, shareBp: shares[i] }));
+  const held = accounts.filter(a => a.balance >= 0).sort((a, b) => b.balance - a.balance);
+  const total = held.reduce((sum, a) => sum + a.balance, 0);
+  if (total <= 0) return [];
+  const shares = largestRemainderSharesBp(held.map(a => a.balance), total);
+  return held.map((a, i) => ({ id: a.id, label: a.name, amount: a.balance, shareBp: shares[i] }));
 }
 
 const ZERO_FLOW: OverviewFlow = { income: 0, expense: 0, net: 0 };

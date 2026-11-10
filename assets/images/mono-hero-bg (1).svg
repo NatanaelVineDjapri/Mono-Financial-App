@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 250" width="390" height="250">
+<defs>
+<linearGradient id="gw" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#F0D9A3"/><stop offset=".55" stop-color="#C9A45C"/><stop offset="1" stop-color="#6E5427" stop-opacity="0"/></linearGradient>
+<radialGradient id="rg" gradientUnits="userSpaceOnUse" cx="390" cy="10" r="230">
+<stop offset="0" stop-color="#E3C27A" stop-opacity=".22"/><stop offset=".5" stop-color="#E3C27A" stop-opacity=".07"/><stop offset="1" stop-color="#E3C27A" stop-opacity="0"/></radialGradient>
+<linearGradient id="fy" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="210">
+<stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".14" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<mask id="fade"><rect width="390" height="250" fill="url(#fy)"/></mask>
+</defs>
+<rect width="390" height="250" fill="url(#rg)" mask="url(#fade)"/>
+<path transform="translate(390 20) scale(.5) translate(-390 -52)" d="M390 52 C356 60 338 86 312 112 C284 140 250 150 216 160 C262 164 300 150 332 124 C356 104 372 92 390 88 Z" fill="url(#gw)"/>
+</svg>

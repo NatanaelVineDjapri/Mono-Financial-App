@@ -77,38 +77,37 @@ describe('getOverviewData', () => {
 });
 
 describe('accountShares', () => {
-  test('the IDR sample: BCA 77,05%, Jago 14,36%, the two smallest folded into 8,59%', () => {
+  test('the IDR sample: one row per account, largest first, shares add up to 100,00%', () => {
     const rows = accountShares([
       { id: 1, name: 'BCA Tabungan', balance: 6842500 },
       { id: 2, name: 'Cash wallet', balance: 450000 },
       { id: 3, name: 'GoPay', balance: 312500 },
       { id: 4, name: 'Jago Pocket', balance: 1275000 },
     ]);
-    // Three named slices at most; Cash wallet + GoPay (762.500) fold into one Others bucket.
-    expect(rows.map(r => [r.id, r.amount])).toEqual([[1, 6842500], [4, 1275000], [-1, 762500]]);
-    expect(rows.map(r => r.shareBp)).toEqual([7705, 1436, 859]);
+    expect(rows.map(r => r.label)).toEqual(['BCA Tabungan', 'Jago Pocket', 'Cash wallet', 'GoPay']);
+    expect(rows.map(r => r.amount)).toEqual([6842500, 1275000, 450000, 312500]);
+    expect(rows.map(r => r.shareBp)).toEqual([7705, 1436, 507, 352]);
     expect(rows.reduce((s, r) => s + r.shareBp, 0)).toBe(10000);
   });
 
-  test('more than three accounts: the two largest are named, the rest become one Others bucket; empty and negative accounts are left out', () => {
+  test('many accounts are never folded together', () => {
+    const rows = accountShares(Array.from({ length: 7 }, (_, i) => ({ id: i + 1, name: `A${i + 1}`, balance: (i + 1) * 100 })));
+    expect(rows).toHaveLength(7);
+    expect(rows.map(r => r.label)).toEqual(['A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1']);
+    expect(rows.reduce((s, r) => s + r.shareBp, 0)).toBe(10000);
+  });
+
+  test('an empty account is listed at 0,00%; a negative one is left out', () => {
     const rows = accountShares([
-      { id: 1, name: 'A', balance: 400 },
-      { id: 2, name: 'B', balance: 300 },
-      { id: 3, name: 'C', balance: 200 },
-      { id: 4, name: 'D', balance: 60 },
-      { id: 5, name: 'E', balance: 40 },
-      { id: 6, name: 'F', balance: 0 },
-      { id: 7, name: 'G', balance: -50 },
+      { id: 1, name: 'A', balance: 500 },
+      { id: 2, name: 'B', balance: 0 },
+      { id: 3, name: 'C', balance: -50 },
     ]);
-    expect(rows.map(r => [r.id, r.amount])).toEqual([[1, 400], [2, 300], [-1, 300]]);
-    expect(rows.reduce((s, r) => s + r.shareBp, 0)).toBe(10000);
+    expect(rows.map(r => [r.label, r.shareBp])).toEqual([['A', 10000], ['B', 0]]);
   });
 
-  test('three accounts or fewer are all shown by name', () => {
-    expect(accountShares([{ id: 1, name: 'A', balance: 3 }, { id: 2, name: 'B', balance: 2 }, { id: 3, name: 'C', balance: 1 }]).map(r => r.id)).toEqual([1, 2, 3]);
-  });
-
-  test('no positive balance: no slices', () => {
+  test('no money held: no rows', () => {
     expect(accountShares([{ id: 1, name: 'A', balance: 0 }])).toEqual([]);
+    expect(accountShares([])).toEqual([]);
   });
 });

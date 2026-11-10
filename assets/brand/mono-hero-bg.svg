@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 250" width="390" height="250">
+<defs>
+<linearGradient id="gw" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#F0D9A3"/><stop offset=".55" stop-color="#C9A45C"/><stop offset="1" stop-color="#6E5427" stop-opacity="0"/></linearGradient>
+<linearGradient id="gg" gradientUnits="userSpaceOnUse" x1="0" y1="52" x2="0" y2="250">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity=".09"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity=".035"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+<linearGradient id="haze" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="250">
+<stop offset="0" stop-color="#E3C27A" stop-opacity=".16"/><stop offset=".55" stop-color="#E3C27A" stop-opacity=".05"/><stop offset="1" stop-color="#E3C27A" stop-opacity="0"/></linearGradient>
+<linearGradient id="hx" gradientUnits="userSpaceOnUse" x1="390" y1="0" x2="150" y2="0">
+<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<mask id="mx"><rect width="390" height="250" fill="url(#hx)"/></mask>
+<linearGradient id="fy" gradientUnits="userSpaceOnUse" x1="0" y1="120" x2="0" y2="250">
+<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
+<mask id="fade"><rect width="390" height="250" fill="url(#fy)"/></mask>
+</defs>
+<g mask="url(#fade)">
+<rect width="390" height="250" fill="url(#haze)" mask="url(#mx)"/>
+<path d="M390 70 C340 76 318 112 282 144 C246 176 196 190 140 214 C120 222 100 236 80 250 L390 250 Z" fill="url(#gg)"/>
+</g>
+<path d="M390 52 C356 60 338 86 312 112 C284 140 250 150 216 160 C262 164 300 150 332 124 C356 104 372 92 390 88 Z" fill="url(#gw)"/>
+</svg>

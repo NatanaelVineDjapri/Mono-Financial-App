@@ -1,5 +1,5 @@
 // DESIGN.md section 7: one line-icon set, 24 grid, 1.5 stroke, round caps/joins.
-// Sizes 16 (inline), 20 (default), 22 (bottom nav), 26 (empty states), 28 (tab bar +). Colour always comes in via the
+// Sizes 16 (inline), 18 (Overview's hide button), 20 (default), 22 (bottom nav), 26 (empty states), 28 (tab bar +). Colour always comes in via the
 // `color` prop (a token from the caller) — never a literal hex in this file.
 import { Platform } from 'react-native';
 import { Circle, Path, Rect, Svg } from 'react-native-svg';
@@ -47,7 +47,7 @@ export type IconName =
 
 export interface IconProps {
   name: IconName;
-  size?: 16 | 20 | 22 | 26 | 28;
+  size?: 16 | 18 | 20 | 22 | 26 | 28;
   // Stroke width on the 24 grid. Default 1.5; the tab bar's centre "+" uses 2. Applies to the
   // single-path glyphs (plus, chevrons, …).
   strokeWidth?: number;

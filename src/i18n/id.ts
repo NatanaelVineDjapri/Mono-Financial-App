@@ -808,6 +808,15 @@ export function showAmountsLabel(): string {
   return 'Show amounts';
 }
 
+// The same two buttons on a narrow screen (under 360dp); the accessibility label stays long.
+export function hideAmountsShortLabel(): string {
+  return 'Hide';
+}
+
+export function showAmountsShortLabel(): string {
+  return 'Show';
+}
+
 export function netWorthChangeLabel(amountFormatted: string, pctFormatted: string, vsDate: string): string {
   return `${amountFormatted} (${pctFormatted}) vs ${vsDate}`;
 }

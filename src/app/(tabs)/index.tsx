@@ -4,7 +4,7 @@
 // Every figure comes from src/domain through the hooks in src/features/overview (views
 // underneath); nothing is computed here. Empty state when no accounts exist.
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useTabBarClearance } from '@/components/TabBar';
@@ -21,12 +21,13 @@ import { MonthFlowCards } from '@/features/overview/MonthFlowCards';
 import { NetWorthHistoryCard, WhereYourMoneyCard } from '@/features/overview/NetWorthCards';
 import { OverviewEmpty } from '@/features/overview/OverviewEmpty';
 import { OverviewHeader } from '@/features/overview/OverviewHeader';
+import { OverviewTop } from '@/features/overview/OverviewTop';
 import { RecentTransactionsCard } from '@/features/overview/RecentTransactionsCard';
 import { TopCategoriesCard } from '@/features/overview/TopCategoriesCard';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
-import { allAccountsLabel, yourAccountsLabel } from '@/i18n/id';
+import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n/id';
 import { MonoColors } from '@/theme/tokens';
 
 // Sample nickname from the DESIGN.md Welcome board — in a later phase this comes from a
@@ -60,18 +61,24 @@ export default function OverviewScreen() {
   const onBackup = useCallback(() => router.push('/backup' as never), [router]);
 
   const header = <OverviewHeader initial={NICKNAME.charAt(0).toUpperCase()} onAvatarPress={onOpenMore} />;
+  // One artwork behind the header and the hero together (the logo down to the balance).
+  const top = (hero: ReactNode) => (
+    <OverviewTop>
+      {header}
+      {hero}
+    </OverviewTop>
+  );
 
   if (accountsLoading || !accountsData) {
-    return <View style={styles.screen}>{header}</View>;
+    return <View style={styles.screen}>{top(null)}</View>;
   }
 
   if (accountsData.accountCount === 0) {
     return (
       <View style={styles.screen}>
-        {header}
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]}>
+          {top(<HeroSection nickname={NICKNAME} netWorth={0} note={overviewEmptyMessage()} />)}
           <OverviewEmpty
-            nickname={NICKNAME}
             onAddAccount={onAddAccount}
             onAddTransaction={onAddTransaction}
             onSetBudget={onSetBudget}
@@ -95,9 +102,8 @@ export default function OverviewScreen() {
 
   return (
     <View style={styles.screen}>
-      {header}
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll">
-        <HeroSection nickname={NICKNAME} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} />
+        {top(<HeroSection nickname={NICKNAME} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} />)}
 
         {overview && (
           <MonthFlowCards
@@ -118,6 +124,7 @@ export default function OverviewScreen() {
         />
 
         {overview && <CashFlowCard months={overview.cashFlow} />}
+        <WhereYourMoneyCard shares={accountShares(accounts)} />
         {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
 
         <FixedExpensesCard dueToday={dueToday} nextDue={nextDue} onOpen={onOpenRecurring} />
@@ -128,7 +135,7 @@ export default function OverviewScreen() {
         {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
 
         {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
-        <WhereYourMoneyCard shares={accountShares(accounts)} />
+        
       </ScrollView>
     </View>
   );

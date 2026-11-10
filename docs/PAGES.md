@@ -136,15 +136,15 @@ Papan: `Main` · 390 × 2970
 **Tata letak dan komponen**
  
 - Header 64: logo dan wordmark MONO di kiri; tombol lonceng (44, belum berfungsi) dan avatar bulat 44 berisi huruf pertama nama panggilan ("N", fill raised, border 1 px) yang membuka `/more`.
-- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan emas (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026".
-- Dua kartu berdampingan (jarak 12), Expenses dan Income bulan ini: cakram ikon emas 40, label, angka (20/26, 700), perubahan terhadap bulan lalu (Expenses abu netral dengan segitiga, Income emas). Di bawahnya kartu tipis "Net cash flow · Oct" bernilai emas dan catatan "Consumption only. Transfers between your accounts are excluded."
+- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan hijau (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026". The top of the screen has one background image, `assets/images/mono-overview-bg.jpg` (portrait artwork, 936×1681), behind everything from the MONO logo down to the balance: scaled uniformly to the screen width and shifted so the thin gold ribbon sits in the top-right corner, with a short fade into the screen background (#0A0A0A) at its bottom so there is no visible edge. The header and the hero have no fill of their own (the header scrolls with the content). The Hide/Show amounts control is plain text with no fill and no border: an 18 eye icon and "Hide amounts" in the same grey as the "NET WORTH" label (#8A8A8A, 13/18, 500), right-aligned with a 44 high touch area; under 360dp it reads "Hide".
+- Dua kartu berdampingan (jarak 12), Expenses dan Income bulan ini: cakram ikon emas 40 dengan label di sebelahnya (satu baris), angka (20/26, 700), perubahan terhadap bulan lalu (Expenses abu netral dengan segitiga, Income hijau). Di bawahnya kartu tipis "Net cash flow · Oct" bernilai hijau dan catatan "Consumption only. Transfers between your accounts are excluded."
 - "Your accounts": carousel kartu bank berwarna bergaya coverflow 3D (300 × 154): kartu yang fokus di tengah dengan ukuran penuh dan bayangan lembut, kartu tetangga mengintip di kiri dan kanan (skala 0,88, miring sekitar 26° pada sumbu Y, lebih gelap), snap ke tengah, berputar (kartu terakhir ada di kiri kartu pertama, dan sebaliknya), titik indikator di bawahnya (yang aktif lebih panjang, emas), nama dan saldo di kiri bawah dengan warna `fg` kartu, tag kecil di kanan atas, tautan "All accounts".
 - Kartu "Cash flow": batang pemasukan (emas) vs pengeluaran (#737373) enam bulan, disertai garis kisi, garis dasar (sumbu x), keterangan sumbu y dalam juta rupiah, dan tabel nilai.
 - Kartu "Top categories": cincin 140 (stroke 16, ujung bulat, jeda 5) dengan persen terbesar dan nama kategorinya di tengah, legenda dengan titik, nama dan persen (largest remainder satu desimal; Food & drink 33,5%), tautan "Amounts" ke Reports. Warna: terbesar emas, lalu #A3A3A3, #737373, #525252, Others #3A3A3A.
 - Kartu "Fixed expenses" berbingkai emas 1,5 px: Gym membership jatuh tempo hari ini (Rp200.000) dengan tombol "Review and record", lalu "Next: Internet · 5 Nov" Rp385.000.
 - Transaksi terbaru, ringkasan anggaran dengan peringatan melebihi batas, kartu target.
 - Riwayat kekayaan bersih: grafik garis dengan garis kisi, keterangan sumbu y (juta rupiah), garis target putus-putus, nilai terakhir di atas titik akhir, pilihan rentang 6M / 1Y / All, dan tabel nilai.
-- Posisi uang: bar bertumpuk per akun (BCA 77,05% · Jago Pocket 14,36% · sisanya digabung 8,59%).
+- Posisi uang: bar bertumpuk per akun (satu baris per akun, tidak ada yang digabung: BCA Tabungan 77,05% · Jago Pocket 14,36% · Cash wallet 5,07% · GoPay 3,52%).
 - Navigasi bawah: empat tab dan tombol + emas di tengah (lihat DESIGN.md), Overview aktif.
 **Keadaan**
  
@@ -153,7 +153,7 @@ Papan: `Main` · 390 × 2970
 **Catatan**
  
 - Semua angka diturunkan dari catatan. Tidak ada total yang diketik manual.
-- Naik/turun ditandai tanda + dan − serta ikon; emas dan merah hanya menguatkan, tidak pernah jadi satu-satunya penanda.
+- Naik/turun ditandai tanda + dan − serta ikon; hijau dan merah hanya menguatkan, tidak pernah jadi satu-satunya penanda.
 ### A2 · Overview — keadaan kosong
  
 Papan: `Overview-Empty` · 390 × 844

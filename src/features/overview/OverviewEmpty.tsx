@@ -1,5 +1,5 @@
-// Overview-Empty (PAGES.md A2): same header, the wave hero with Rp0, the four setup steps
-// (each a link to its screen) and the private-by-design note. No charts and no cards.
+// Overview-Empty (PAGES.md A2): below the same header and hero (Rp0, drawn by the screen),
+// the four setup steps (each a link to its screen) and the private-by-design note. No charts.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/Card';
@@ -8,7 +8,6 @@ import {
   addAccountStepLabel,
   addTransactionStepLabel,
   createBackupStepLabel,
-  overviewEmptyMessage,
   privacyByDesignNote,
   setBudgetStepLabel,
   setUpInFourStepsLabel,
@@ -17,10 +16,7 @@ import {
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-import { HeroSection } from './HeroSection';
-
 export interface OverviewEmptyProps {
-  nickname: string;
   onAddAccount: () => void;
   onAddTransaction: () => void;
   onSetBudget: () => void;
@@ -37,10 +33,9 @@ function Step({ icon, label, onPress, testID }: { icon: IconName; label: string;
   );
 }
 
-export function OverviewEmpty({ nickname, onAddAccount, onAddTransaction, onSetBudget, onBackup }: OverviewEmptyProps) {
+export function OverviewEmpty({ onAddAccount, onAddTransaction, onSetBudget, onBackup }: OverviewEmptyProps) {
   return (
     <>
-      <HeroSection nickname={nickname} netWorth={0} note={overviewEmptyMessage()} />
       <Card style={styles.card} testID="overview-setup">
         <Text style={styles.title} accessibilityRole="header">
           {setUpInFourStepsLabel()}
