@@ -9,7 +9,10 @@ import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
+import { useGreeting } from '@/features/overview/useGreeting';
+import { useDisplayName } from '@/features/settings/useDisplayName';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { useLanguage } from '@/i18n/lang';
 import { MonoColors } from '@/theme/tokens';
 import OverviewScreen from '../index';
 
@@ -18,6 +21,8 @@ jest.mock('@/features/overview/useOverview');
 jest.mock('@/features/recurring/useRecurringDue');
 jest.mock('@/features/budgets/useBudgets');
 jest.mock('@/features/transactions/useTransactionsList');
+jest.mock('@/features/overview/useGreeting', () => ({ useGreeting: jest.fn(() => 'morning') }));
+jest.mock('@/features/settings/useDisplayName', () => ({ ...jest.requireActual('@/features/settings/useDisplayName'), useDisplayName: jest.fn(() => 'Nael') }));
 
 // A controllable window width (the Hide button's label depends on it).
 jest.mock('react-native/Libraries/Utilities/useWindowDimensions');
@@ -134,7 +139,7 @@ describe('Overview', () => {
     const result = await renderScreen();
     expect(result.getByLabelText('MONO')).toBeTruthy();
     expect(result.getByRole('button', { name: 'Notifications' })).toBeTruthy();
-    expect(result.getByText('Selamat datang, Nael')).toBeTruthy();
+    expect(result.getByText('Selamat pagi, Nael')).toBeTruthy();
     expect(result.getByTestId('hero-balance').props.children).toBe('Rp8.880.000');
     expect(result.getByText('+Rp3.243.000 (+57,53%)')).toBeTruthy();
     expect(result.getByText('vs 30 Sep 2026')).toBeTruthy();
@@ -289,6 +294,63 @@ describe('Overview', () => {
     const result = await renderScreen();
     const style = Object.assign({}, ...[result.getByTestId('overview-scroll').props.contentContainerStyle].flat());
     expect(style.paddingBottom).toBe(112);
+  });
+
+  test('the greeting follows the time of day and says the name', async () => {
+    mockFilled();
+    for (const [kind, text] of [
+      ['morning', 'Selamat pagi, Nael'],
+      ['afternoon', 'Selamat siang, Nael'],
+      ['late_afternoon', 'Selamat sore, Nael'],
+      ['evening', 'Selamat malam, Nael'],
+    ] as const) {
+      (useGreeting as jest.Mock).mockReturnValueOnce(kind);
+      const result = await renderScreen();
+      expect(result.getByText(text)).toBeTruthy();
+    }
+  });
+
+  test('after several opens the same day it asks how you are', async () => {
+    mockFilled();
+    (useGreeting as jest.Mock).mockReturnValueOnce('checkin');
+    const result = await renderScreen();
+    expect(result.getByText('Apa kabar, Nael?')).toBeTruthy();
+    expect(result.queryByText(/Selamat/)).toBeNull();
+  });
+
+  test('English reads "Good morning, Nael" and "How are you, Nael?"', async () => {
+    mockFilled();
+    useLanguage.setState({ language: 'en' });
+    const morning = await renderScreen();
+    expect(morning.getByText('Good morning, Nael')).toBeTruthy();
+    (useGreeting as jest.Mock).mockReturnValueOnce('checkin');
+    const checkin = await renderScreen();
+    expect(checkin.getByText('How are you, Nael?')).toBeTruthy();
+  });
+
+  test('until the greeting is known the line is empty, never drawn twice in two wordings', async () => {
+    mockFilled();
+    (useGreeting as jest.Mock).mockReturnValueOnce(null);
+    const result = await renderScreen();
+    expect(result.queryByText(/Selamat|Good|How are you|Apa kabar/)).toBeNull();
+  });
+
+  test('the name is the one saved in Settings; the avatar shows its first letter', async () => {
+    mockFilled();
+    (useDisplayName as jest.Mock).mockReturnValue('Budi');
+    const named = await renderScreen();
+    expect(named.getByText('Selamat pagi, Budi')).toBeTruthy();
+    expect(named.getByTestId('overview-more-avatar')).toHaveTextContent('B');
+    (useDisplayName as jest.Mock).mockReturnValue('Nael');
+  });
+
+  test('with no saved name the owner\'s own name stands in, on the greeting and on the avatar', async () => {
+    mockFilled();
+    (useDisplayName as jest.Mock).mockReturnValue('');
+    const unnamed = await renderScreen();
+    expect(unnamed.getByText('Selamat pagi, Nael')).toBeTruthy();
+    expect(unnamed.getByTestId('overview-more-avatar')).toHaveTextContent('N');
+    (useDisplayName as jest.Mock).mockReturnValue('Nael');
   });
 
   test('the avatar opens /more', async () => {

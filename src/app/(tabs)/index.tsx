@@ -21,21 +21,27 @@ import { MonthFlowCards } from '@/features/overview/MonthFlowCards';
 import { NetWorthHistoryCard, WhereYourMoneyCard } from '@/features/overview/NetWorthCards';
 import { OverviewEmpty } from '@/features/overview/OverviewEmpty';
 import { OverviewHeader } from '@/features/overview/OverviewHeader';
+import { useGreeting } from '@/features/overview/useGreeting';
+import { avatarInitial, useDisplayName } from '@/features/settings/useDisplayName';
 import { OverviewTop } from '@/features/overview/OverviewTop';
 import { RecentTransactionsCard } from '@/features/overview/RecentTransactionsCard';
 import { TopCategoriesCard } from '@/features/overview/TopCategoriesCard';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
-import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n/id';
+import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 
 // Sample nickname from the DESIGN.md Welcome board — in a later phase this comes from a
 // persistent setting (CLAUDE.md's "Optional nickname field" note on Welcome).
+// Until Settings has a place to type a name, the owner's own name stands in when none is saved.
 const NICKNAME = 'Nael';
 
 export default function OverviewScreen() {
   const router = useRouter();
+  const savedName = useDisplayName();
+  const displayName = savedName.trim() || NICKNAME;
+  const greeting = useGreeting();
   const clearance = useTabBarClearance();
   const { data: accountsData, isLoading: accountsLoading } = useAccountsOverview();
   const { data: overview } = useOverviewData();
@@ -60,7 +66,7 @@ export default function OverviewScreen() {
   const onSetBudget = useCallback(() => router.push('/budget/edit' as never), [router]);
   const onBackup = useCallback(() => router.push('/backup' as never), [router]);
 
-  const header = <OverviewHeader initial={NICKNAME.charAt(0).toUpperCase()} onAvatarPress={onOpenMore} />;
+  const header = <OverviewHeader initial={avatarInitial(displayName)} onAvatarPress={onOpenMore} />;
   // One artwork behind the header and the hero together (the logo down to the balance).
   const top = (hero: ReactNode) => (
     <OverviewTop>
@@ -77,7 +83,7 @@ export default function OverviewScreen() {
     return (
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]}>
-          {top(<HeroSection nickname={NICKNAME} netWorth={0} note={overviewEmptyMessage()} />)}
+          {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={0} note={overviewEmptyMessage()} />)}
           <OverviewEmpty
             onAddAccount={onAddAccount}
             onAddTransaction={onAddTransaction}
@@ -107,7 +113,7 @@ export default function OverviewScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll">
-        {top(<HeroSection nickname={NICKNAME} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} ytd={ytd} />)}
+        {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} ytd={ytd} />)}
 
         {overview && (
           <MonthFlowCards

@@ -20,7 +20,8 @@ import {
   showAmountsShortLabel,
   welcomeGreeting,
   ytdCaption,
-} from '@/i18n/id';
+  type GreetingKind,
+} from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -38,6 +39,7 @@ export interface HeroChange {
 
 export interface HeroSectionProps {
   nickname: string;
+  greeting: GreetingKind | null; // null until it is known: the line is left empty, never drawn twice
   netWorth: number;
   incomplete?: boolean;
   change?: HeroChange | null;
@@ -72,7 +74,7 @@ export function ChangeChip({ change, hidden, ytd = false }: { change: HeroChange
   );
 }
 
-export function HeroSection({ nickname, netWorth, incomplete = false, change, ytd, note }: HeroSectionProps) {
+export function HeroSection({ nickname, greeting, netWorth, incomplete = false, change, ytd, note }: HeroSectionProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const toggle = useHideAmounts(s => s.toggle);
   const { width } = useWindowDimensions();
@@ -82,7 +84,7 @@ export function HeroSection({ nickname, netWorth, incomplete = false, change, yt
   return (
     <View style={styles.hero} testID="overview-hero">
       <Text style={styles.greeting} accessibilityRole="header">
-        {welcomeGreeting(nickname)}
+        {greeting ? welcomeGreeting(nickname, greeting) : ' '}
       </Text>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{netWorthLabel()}</Text>
