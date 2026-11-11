@@ -1815,3 +1815,554 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
       return couldNotSaveMessage();
   }
 }
+
+
+// AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
+export function aiSetupTitle(): string {
+  return 'Catat lewat chat';
+}
+
+export function aiSetupBadge(): string {
+  return 'FITUR OPSIONAL';
+}
+
+export function aiSetupDescription(): string {
+  return 'Ketik "kopi 25rb pakai GoPay", AI menyiapkan draf transaksinya. Kamu cek, lalu simpan. Fitur ini mati sampai kamu memasukkan API key Gemini milikmu sendiri.';
+}
+
+export function aiSetupSentToGemini(): string {
+  return 'DIKIRIM KE GEMINI';
+}
+
+export function aiSetupNotSent(): string {
+  return 'TIDAK DIKIRIM';
+}
+
+export function aiSetupSentItem1(): string {
+  return 'Pesan yang kamu ketik';
+}
+
+export function aiSetupSentItem2(): string {
+  return 'Nama akun dan nama kategori, supaya draf cocok dengan datamu';
+}
+
+export function aiSetupSentItem3(): string {
+  return 'Tanggal hari ini';
+}
+
+export function aiSetupNotSentItem1(): string {
+  return 'Saldo, riwayat transaksi, anggaran, dan target';
+}
+
+export function aiSetupNotSentItem2(): string {
+  return 'Berkas cadangan';
+}
+
+export function aiSetupApiKeyLabel(): string {
+  return 'API KEY GEMINI';
+}
+
+export function aiSetupWhatsThisLabel(): string {
+  return 'Kunci apa?';
+}
+
+export function aiSetupPasteButton(): string {
+  return 'Tempel';
+}
+
+export function aiSetupKeyNote(): string {
+  return 'Dibuat di Google AI Studio. Disimpan hanya di ponsel ini (Android Keystore). MONO tidak punya server yang menerimanya.';
+}
+
+export function aiSetupBillingWarning(): string {
+  return 'Pesanmu diproses lewat API key-mu. Pemakaian mengikuti kuota atau tagihan tersebut. Fitur ini perlu internet; bagian lain MONO tetap offline.';
+}
+
+export function aiSetupSaveAndTest(): string {
+  return 'Simpan dan tes kunci';
+}
+
+export function aiSetupLaterButton(): string {
+  return 'Nanti saja';
+}
+
+export function aiSetupTestNote(): string {
+  return 'Tes mengirim satu pesan singkat. Tidak ada data keuangan di dalamnya.';
+}
+
+export function aiChatGreeting(): string {
+  return 'Halo! Ketik transaksimu, misalnya "kopi 25rb pakai GoPay".';
+}
+
+export function aiChatFooterWarning(): string {
+  return 'AI bisa salah. Selalu cek draf sebelum menyimpan.';
+}
+
+export function aiChatInputPlaceholder(): string {
+  return 'Ketik transaksi…';
+}
+
+export function aiDraftSaveButton(): string {
+  return 'Simpan';
+}
+
+export function aiDraftEditButton(): string {
+  return 'Ubah';
+}
+
+export function aiDraftCancelButton(): string {
+  return 'Batal';
+}
+
+export function aiDraftExpenseKind(): string {
+  return 'PENGELUARAN';
+}
+
+export function aiDraftIncomeKind(): string {
+  return 'PEMASUKAN';
+}
+
+export function aiDraftTransferKind(): string {
+  return 'TRANSFER';
+}
+
+// ---------------------------------------------------------------- AI chat: fixed sentences
+// Every sentence the person reads in the chat is written here, by the app. The model never
+// supplies one (CLAUDE.md rule 9). src/features/ai_chat/messages.ts assembles them.
+export function aiMsgOutOfScope(): string {
+  return 'Aku cuma bisa mencatat transaksi. Coba ketik seperti “kopi 25rb pake gopay”.';
+}
+
+export function aiMsgDataLookup(): string {
+  return 'Aku tidak membaca saldomu, aku hanya mencatat. Saldo ada di tab Accounts.';
+}
+
+export function aiMsgOpenAccounts(): string {
+  return 'Buka Accounts';
+}
+
+export function aiMsgExamples(): string[] {
+  return ['Kopi 25rb pake gopay', 'Transfer 500rb BCA ke Jago'];
+}
+
+export function aiMsgAskAccountAndCategory(): string {
+  return 'Dari akun mana, dan untuk apa? Satu ketukan cukup.';
+}
+
+export function aiMsgAskAccount(): string {
+  return 'Dari akun mana?';
+}
+
+export function aiMsgAskCategory(): string {
+  return 'Untuk apa?';
+}
+
+export function aiMsgAskAmount(): string {
+  return 'Berapa nominalnya?';
+}
+
+export function aiMsgAskToAccount(): string {
+  return 'Pindah ke akun mana?';
+}
+
+export function aiMsgAskType(): string {
+  return 'Ini pengeluaran, pemasukan, atau transfer?';
+}
+
+export function aiMsgUnknownTransferTarget(name: string): string {
+  return `Aku tidak menemukan akun bernama “${name}”. Transfer hanya bisa antar akunmu sendiri. Mau dicatat sebagai pengeluaran?`;
+}
+
+export function aiMsgRecordAsExpense(): string {
+  return 'Catat pengeluaran';
+}
+
+export function aiMsgCheckAmount(typedText: string | null, typedFormatted: string | null, draftFormatted: string): string {
+  if (typedText == null || typedFormatted == null) {
+    return `Nominal perlu dicek. Drafnya ${draftFormatted}, tapi angkanya tidak cocok dengan pesanmu.`;
+  }
+  return `Nominal perlu dicek. Kamu mengetik “${typedText}” (${typedFormatted}), drafnya ${draftFormatted}.`;
+}
+
+export function aiMsgUseAmount(formatted: string): string {
+  return `Pakai ${formatted}`;
+}
+
+export function aiMsgDraftsReady(count: number): string {
+  return count > 1 ? `Aku menemukan ${count} transaksi. Cek dulu ya.` : 'Oke, ini drafnya. Belum ada yang tersimpan.';
+}
+
+export function aiMsgBlockedLead(): string {
+  return 'Draf dibuat, tapi tidak bisa disimpan.';
+}
+
+export function aiMsgBlockedShortfall(shortfallFormatted: string): string {
+  return `Kurang ${shortfallFormatted}. Ganti akun, kecilkan jumlah, atau pindahkan uang dulu.`;
+}
+
+export function aiMsgBlockedReason(code: string): string {
+  switch (code) {
+    case 'future_date':
+      return 'Tanggalnya belum terjadi. Ubah tanggalnya.';
+    case 'before_opening_date':
+      return 'Akun ini belum ada pada tanggal itu. Ganti akun atau tanggalnya.';
+    case 'same_account':
+      return 'Akun asal dan tujuan sama. Pilih dua akun yang berbeda.';
+    case 'category_kind_mismatch':
+      return 'Kategorinya tidak cocok dengan jenis transaksi. Pilih kategori lain.';
+    case 'forex_not_supported':
+      return 'Akun Valas belum didukung di chat. Pilih akun rupiah.';
+    default:
+      return 'Ada bagian yang perlu diperbaiki. Ketuk Ubah untuk memeriksanya.';
+  }
+}
+
+export function aiMsgChangeAccount(): string {
+  return 'Ganti akun';
+}
+
+export function aiMsgChangeAmount(): string {
+  return 'Ubah jumlah';
+}
+
+export interface AiMsgBlock {
+  title: string;
+  detail: string;
+}
+
+export function aiMsgError(code: string): AiMsgBlock {
+  switch (code) {
+    case 'no_internet':
+      return { title: 'Tidak ada internet.', detail: 'Chat butuh koneksi. Kamu tetap bisa mencatat manual.' };
+    case 'key_rejected':
+      return { title: 'Kunci Gemini ditolak.', detail: 'Cek kunci di Pengaturan. Tidak ada transaksi yang dibuat.' };
+    case 'quota':
+      return { title: 'Kuota kunci habis.', detail: 'Coba lagi nanti, atau catat manual. Pesanmu tetap ada di kolom ketik.' };
+    case 'unreadable':
+      return { title: 'Balasan tidak terbaca.', detail: 'AI mengirim jawaban yang tidak bisa dipakai. Coba kalimat yang lebih singkat. Tidak ada yang tersimpan.' };
+    case 'timeout':
+      return { title: 'Terlalu lama menunggu.', detail: 'Tidak ada yang berubah. Coba lagi, atau catat manual. Pesanmu tetap ada di kolom ketik.' };
+    case 'too_long':
+      return { title: 'Pesan terlalu panjang.', detail: 'Maksimal 500 karakter. Persingkat dulu. Tidak ada yang berubah.' };
+    case 'empty':
+      return { title: 'Pesan masih kosong.', detail: 'Ketik transaksinya dulu.' };
+    case 'busy':
+      return { title: 'Pesan sebelumnya masih diproses.', detail: 'Tunggu sebentar. Tidak ada yang berubah.' };
+    default:
+      return { title: 'Gagal memproses.', detail: 'Tidak ada yang berubah.' };
+  }
+}
+
+export function aiMsgErrorManualAction(): string {
+  return 'Catat manual';
+}
+
+export function aiMsgErrorSettingsAction(): string {
+  return 'Buka pengaturan AI';
+}
+
+export function aiMsgSaved(kind: 'income' | 'expense' | 'transfer', accountName: string, balanceFormatted: string, toAccountName?: string, toBalanceFormatted?: string): string {
+  if (kind === 'transfer' && toAccountName && toBalanceFormatted) {
+    return `Transfer tersimpan. ${accountName} sekarang ${balanceFormatted}, ${toAccountName} ${toBalanceFormatted}.`;
+  }
+  const label = kind === 'income' ? 'Pemasukan' : kind === 'transfer' ? 'Transfer' : 'Pengeluaran';
+  return `${label} tersimpan. ${accountName} sekarang ${balanceFormatted}.`;
+}
+
+export function aiMsgSavedMany(count: number): string {
+  return `${count} transaksi tersimpan.`;
+}
+
+export function aiMsgNotReady(): string {
+  return 'Ada draf yang belum siap disimpan. Lengkapi dulu. Tidak ada yang tersimpan.';
+}
+
+// ---------------------------------------------------------------- AI chat: screens (AI-2)
+// Setup (K1), chat (K2), states (K3) and edit one by one (K4). The sentences the assistant
+// "says" are in the aiMsg* block above; these are the screens' own labels.
+export function aiBackLabel(): string {
+  return 'Kembali';
+}
+
+export function aiCloseLabel(): string {
+  return 'Tutup';
+}
+
+export function aiUndoLabel(): string {
+  return 'Urungkan';
+}
+
+export function aiRetryLabel(): string {
+  return 'Coba lagi';
+}
+
+export function aiSetupRejectedHelpLabel(): string {
+  return 'Kunci ditolak?';
+}
+
+export function aiSetupRejectedHelp(): string {
+  return 'Buat kunci baru di Google AI Studio, salin utuh tanpa spasi, lalu tempel di sini. Pastikan kunci itu aktif dan kuotanya belum habis.';
+}
+
+export function aiSetupGetKeyLink(): string {
+  return 'Belum punya kunci? Buat di Google AI Studio';
+}
+
+export function aiSetupGetKeyLinkLabel(): string {
+  return 'Buka Google AI Studio di browser untuk membuat API key';
+}
+
+export function aiSetupShowKeyLabel(): string {
+  return 'Tampilkan kunci';
+}
+
+export function aiSetupHideKeyLabel(): string {
+  return 'Sembunyikan kunci';
+}
+
+export function aiSetupTesting(): string {
+  return 'Menguji kunci…';
+}
+
+export function aiSetupKeySavedTitle(): string {
+  return 'Kunci tersimpan';
+}
+
+export function aiSetupKeySavedHint(): string {
+  return 'Kunci hanya ada di ponsel ini. Untuk menggantinya, tempel kunci baru di bawah.';
+}
+
+export function aiSetupReplaceKeyLabel(): string {
+  return 'GANTI KUNCI';
+}
+
+export function aiSettingsSwitchLabel(): string {
+  return 'Catat lewat chat (AI)';
+}
+
+export function aiSettingsSwitchNeedsKeyHint(): string {
+  return 'Simpan dan tes kunci dulu.';
+}
+
+export function aiSettingsKeyRowLabel(): string {
+  return 'API key Gemini';
+}
+
+export function aiSettingsKeyRowValue(hasKey: boolean): string {
+  return hasKey ? 'Tersimpan' : 'Belum ada';
+}
+
+export function aiDeleteKeyLabel(): string {
+  return 'Hapus kunci';
+}
+
+export function aiDeleteKeyTitle(): string {
+  return 'Hapus kunci?';
+}
+
+export function aiDeleteKeyMessage(): string {
+  return 'Kunci dihapus dari ponsel ini dan Catat lewat chat dimatikan. Transaksi yang sudah kamu simpan tidak berubah.';
+}
+
+export function aiDeleteKeyConfirm(): string {
+  return 'Hapus';
+}
+
+export function aiKeyDeletedToast(): string {
+  return 'Kunci dihapus.';
+}
+
+export function aiChatHeaderHint(): string {
+  return 'Hanya membuat draf';
+}
+
+export function aiChatManualButton(): string {
+  return 'Catat manual';
+}
+
+export function aiChatSettingsLabel(): string {
+  return 'Pengaturan AI';
+}
+
+export function aiChatOpening(name: string): string {
+  const greeting = name.trim() ? `Halo ${name.trim()}!` : 'Halo!';
+  return `${greeting} Ketik transaksimu seperti ngobrol, misalnya “kopi 25rb pakai GoPay”. Aku siapkan drafnya, kamu yang menekan Simpan.`;
+}
+
+export function aiChatSuggestions(): string[] {
+  return ['Beli bensin 40rb', 'Transfer 500rb BCA ke Jago', 'Gaji masuk 8jt ke BCA', 'Makan siang 48rb cash, parkir 5rb'];
+}
+
+export function aiChatSendLabel(): string {
+  return 'Kirim';
+}
+
+export function aiChatCounter(count: number, max: number): string {
+  return `${count}/${max}`;
+}
+
+export function aiChatProcessing(): string {
+  return 'Menyiapkan draf…';
+}
+
+export function aiChatCancelRequest(): string {
+  return 'Batal';
+}
+
+export function aiChatYouLabel(text: string): string {
+  return `Kamu: ${text}`;
+}
+
+export function aiChatAssistantLabel(text: string): string {
+  return `MONO: ${text}`;
+}
+
+export function aiChatMascotLabel(): string {
+  return 'Maskot MONO';
+}
+
+export function aiDraftKindWord(kind: 'income' | 'expense' | 'transfer'): string {
+  return kind === 'income' ? 'pemasukan' : kind === 'transfer' ? 'transfer' : 'pengeluaran';
+}
+
+export function aiDraftTag(kind: 'income' | 'expense' | 'transfer'): string {
+  return `DRAF · ${aiDraftKindWord(kind).toUpperCase()}`;
+}
+
+export function aiDraftUnsaved(): string {
+  return 'Belum tersimpan';
+}
+
+export function aiDraftSavedBadge(): string {
+  return 'Tersimpan';
+}
+
+export function aiDraftCategoryRow(): string {
+  return 'Kategori';
+}
+
+export function aiDraftAccountRow(): string {
+  return 'Akun';
+}
+
+export function aiDraftFromRow(): string {
+  return 'Dari';
+}
+
+export function aiDraftToRow(): string {
+  return 'Ke';
+}
+
+export function aiDraftDateRow(): string {
+  return 'Tanggal';
+}
+
+export function aiDraftBalanceAfterRow(accountName: string): string {
+  return `Saldo ${accountName} setelah`;
+}
+
+export function aiDraftUntitled(kind: 'income' | 'expense' | 'transfer'): string {
+  return kind === 'income' ? 'Pemasukan' : kind === 'transfer' ? 'Transfer' : 'Pengeluaran';
+}
+
+export function aiDraftNotSet(): string {
+  return 'Belum dipilih';
+}
+
+export function aiDraftsHeading(count: number): string {
+  return `${count} DRAF`;
+}
+
+export function aiDraftsTotalRow(): string {
+  return 'Total';
+}
+
+export function aiDraftsSaveN(count: number): string {
+  return `Simpan ${count} transaksi`;
+}
+
+export function aiDraftsEditEach(): string {
+  return 'Ubah satu per satu';
+}
+
+export function aiDraftLockedNeeds(): string {
+  return 'Belum lengkap';
+}
+
+export function aiDraftLockedCheckAmount(): string {
+  return 'Nominal perlu dicek';
+}
+
+export function aiDraftLockedBlocked(): string {
+  return 'Tidak bisa disimpan';
+}
+
+export function aiDraftCheckboxLabel(title: string, checked: boolean, locked: string | null): string {
+  if (locked) return `${title}, ${locked}`;
+  return `${title}, ${checked ? 'dipilih' : 'tidak dipilih'}`;
+}
+
+export function aiDraftSavingLabel(): string {
+  return 'Menyimpan…';
+}
+
+export function aiDraftA11y(kind: 'income' | 'expense' | 'transfer', title: string, amountSpoken: string, details: string[], saved: boolean): string {
+  const state = saved ? 'tersimpan' : 'belum tersimpan';
+  return [`Draf ${aiDraftKindWord(kind)}`, title, amountSpoken, ...details, state].join(', ');
+}
+
+export function aiDraftsA11y(count: number, totalSpoken: string): string {
+  return `${count} draf transaksi, total ${totalSpoken}, belum tersimpan`;
+}
+
+export function aiDraftAmountSpoken(kind: 'income' | 'expense' | 'transfer', formatted: string): string {
+  return kind === 'expense' ? `minus ${formatted}` : kind === 'income' ? `plus ${formatted}` : formatted;
+}
+
+export function aiEditTitle(): string {
+  return 'Ubah draf';
+}
+
+export function aiEditProgress(index: number, total: number): string {
+  return `${index} dari ${total}`;
+}
+
+export function aiEditFromMessage(): string {
+  return 'Dari pesanmu';
+}
+
+export function aiEditSaveContinue(): string {
+  return 'Simpan dan lanjut';
+}
+
+export function aiEditSkip(): string {
+  return 'Lewati';
+}
+
+export function aiEditDiscardTitle(): string {
+  return 'Buang perubahan?';
+}
+
+export function aiEditDiscardMessage(): string {
+  return 'Draf yang belum kamu simpan akan hilang. Yang sudah tersimpan tetap tersimpan.';
+}
+
+export function aiEditDiscardConfirm(): string {
+  return 'Buang';
+}
+
+export function aiEditKeepEditing(): string {
+  return 'Lanjut mengubah';
+}
+
+export function aiEditNothingToEdit(): string {
+  return 'Tidak ada draf untuk diubah.';
+}
+
+export function aiLoadErrorMessage(): string {
+  return 'Data belum bisa dibaca. Tidak ada yang berubah.';
+}
+
+export function aiUndoFailed(): string {
+  return 'Tidak bisa mengurungkan. Tidak ada yang berubah.';
+}
