@@ -43,11 +43,23 @@ export type IconName =
   // Overview (R3): header bell, the month cards' arrow discs.
   | 'bell'
   | 'arrow-down'
-  | 'arrow-up';
+  | 'arrow-up'
+  // Transaction detail: delete, and the Food & drink category tile.
+  | 'trash'
+  | 'food'
+  // The + menu: AI chat and receipt scan (Manual uses 'pencil').
+  | 'chat'
+  | 'scan'
+  // The transaction form's transfer banner.
+  | 'info'
+  // Account form: the type tiles (Bank uses 'bank', Savings 'savings').
+  | 'banknote'
+  | 'phone'
+  | 'savings';
 
 export interface IconProps {
   name: IconName;
-  size?: 16 | 18 | 20 | 22 | 26 | 28;
+  size?: 16 | 18 | 20 | 22 | 24 | 26 | 28;
   // Stroke width on the 24 grid. Default 1.5; the tab bar's centre "+" uses 2. Applies to the
   // single-path glyphs (plus, chevrons, …).
   strokeWidth?: number;
@@ -85,6 +97,14 @@ const PATHS: Partial<Record<IconName, string>> = {
   bell: 'M6 16 V11 a6 6 0 0 1 12 0 V16 L19.5 18 H4.5 Z M10 21 H14',
   'arrow-down': 'M12 5 V19 M6 13 L12 19 L18 13',
   'arrow-up': 'M12 19 V5 M6 11 L12 5 L18 11',
+  food: 'M5 3 V8 a2 2 0 0 0 4 0 V3 M7 3 V21 M17 21 V3 C14 5 13.5 9.5 14 12.5 H17',
+  banknote: 'M3 7 H21 V17 H3 Z M12 9.5 a2.5 2.5 0 1 0 0.001 0 Z M6.5 12 V12.1 M17.5 12 V12.1',
+  phone: 'M8 3 H16 V21 H8 Z M11 18 H13',
+  savings: 'M6 20 V13 M12 20 V8 M18 20 V4 M4 20 H20',
+  info: 'M12 3 a9 9 0 1 0 0.001 0 Z M12 11 V16.5 M12 7.5 V7.6',
+  chat: 'M4 5 H20 V16 H11 L6 20 V16 H4 Z M8 9.5 H16 M8 12.5 H13',
+  scan: 'M4 8 V4 H8 M16 4 H20 V8 M20 16 V20 H16 M8 20 H4 V16 M4 12 H20',
+  trash: 'M4 7 H20 M9 7 V4 H15 V7 M6 7 L7 20 H17 L18 7 M10 11 V16 M14 11 V16',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
 };
 

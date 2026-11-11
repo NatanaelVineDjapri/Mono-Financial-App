@@ -8,6 +8,10 @@ import { MonoText } from "@/theme/typography";
 export interface SegmentedOption {
   value: string;
   label: string;
+  // This one option cannot be chosen (the edit form locks Transfer): dimmed, announced as
+  // disabled, with `hint` saying why.
+  disabled?: boolean;
+  hint?: string;
 }
 
 export interface SegmentedProps {
@@ -29,20 +33,22 @@ export function Segmented({
     <View style={styles.row} accessibilityRole="radiogroup" testID={testID}>
       {options.map((option) => {
         const selected = option.value === value;
+        const optionDisabled = disabled || !!option.disabled;
         return (
           <Pressable
             key={option.value}
-            onPress={disabled ? undefined : () => onChange(option.value)}
-            disabled={disabled}
+            onPress={optionDisabled ? undefined : () => onChange(option.value)}
+            disabled={optionDisabled}
             accessibilityRole="radio"
             accessibilityLabel={option.label}
-            accessibilityState={{ selected, disabled }}
+            accessibilityHint={option.hint}
+            accessibilityState={{ selected, disabled: optionDisabled }}
             android_ripple={undefined}
             style={({ pressed }) => [
               styles.segment,
               selected && styles.selected,
-              pressed && !disabled && !selected && styles.pressed,
-              disabled && styles.disabled,
+              pressed && !optionDisabled && !selected && styles.pressed,
+              optionDisabled && styles.disabled,
             ]}
           >
             <Text
