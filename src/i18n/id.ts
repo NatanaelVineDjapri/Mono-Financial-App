@@ -69,6 +69,7 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
+
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
 export function currencyCountTag(count: number): string {
@@ -1827,6 +1828,7 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
   }
 }
 
+
 // AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
 export function aiSetupTitle(): string {
   return 'Catat lewat chat';
@@ -2508,4 +2510,150 @@ export function languageIndonesianLabel(): string {
 
 export function languageSelectorLabel(): string {
   return 'Bahasa';
+}
+
+// Goals list screen & edit form (DESIGN.md "G. Goals").
+export function goalNeededPaceLabel(amountFormatted: string): string {
+  return `Needed pace, estimate`;
+}
+
+export function goalNeededPaceValue(amountFormatted: string): string {
+  return `${amountFormatted} / month`;
+}
+
+export function goalAccountLinkedLabel(accountName: string): string {
+  return `Linked account: ${accountName}`;
+}
+
+export function goalNotLinkedLabel(): string {
+  return 'Not linked to an account yet';
+}
+
+export function goalCalculatedLabel(): string {
+  return 'Calculated: all accounts added together';
+}
+
+export function goalsEmptyTitle(): string {
+  return 'No goals yet';
+}
+
+export function goalsEmptyBody(): string {
+  return 'Add a goal to track your progress toward a target.';
+}
+
+export function addGoalLabel(): string {
+  return 'Add goal';
+}
+
+export function goalsFooterNote(): string {
+  return 'Progress is never typed in. It is computed from the accounts a goal is linked to, so it matches your records.';
+}
+
+// Goal edit form.
+export function newGoalTitle(): string {
+  return 'New goal';
+}
+
+export function editGoalTitle(): string {
+  return 'Edit goal';
+}
+
+export function goalNameLabel(): string {
+  return 'NAME';
+}
+
+export function goalNamePlaceholder(): string {
+  return 'e.g. Emergency fund';
+}
+
+export function goalProgressSourceLabel(): string {
+  return 'PROGRESS IS CALCULATED FROM';
+}
+
+export function goalModeOneAccountLabel(): string {
+  return 'One account';
+}
+
+export function goalModeOneAccountSub(): string {
+  return 'Balance of a linked account';
+}
+
+export function goalModeTotalAssetsLabel(): string {
+  return 'Total assets';
+}
+
+export function goalModeTotalAssetsSub(): string {
+  return 'All accounts added together';
+}
+
+export function goalLinkedAccountLabel(): string {
+  return 'LINKED ACCOUNT';
+}
+
+export function goalCurrentBalanceNote(amountFormatted: string): string {
+  return `Current balance ${amountFormatted} — read from your records, not typed in.`;
+}
+
+export function goalTargetAmountLabel(): string {
+  return 'TARGET AMOUNT';
+}
+
+export function goalTargetDateLabel2(): string {
+  return 'TARGET DATE, OPTIONAL';
+}
+
+export function goalPreviewLabel(): string {
+  return 'PREVIEW FROM STORED RECORDS';
+}
+
+export function goalPreviewSavedSoFar(): string {
+  return 'Saved so far';
+}
+
+export function goalPreviewRemaining(): string {
+  return 'Remaining';
+}
+
+export function goalPreviewMonthsLeft(monthsLeft: number, dateFormatted: string): string {
+  return `Months left, to ${dateFormatted}`;
+}
+
+export function goalPreviewMonthsLeftValue(monthsLeft: number): string {
+  return `${monthsLeft}`;
+}
+
+export function goalPreviewNeededPace(): string {
+  return 'Needed pace, estimate';
+}
+
+export function goalDeleteNote(): string {
+  return 'Deleting a goal never changes accounts or transactions.';
+}
+
+export function saveGoalLabel(): string {
+  return 'Save goal';
+}
+
+export function goalLinkAccountPickerTitle(): string {
+  return 'Link an account';
+}
+
+export function goalNameTooLong(): string {
+  return 'Name must be 40 characters or fewer.';
+}
+
+export function goalNameRequired(): string {
+  return 'Name is required.';
+}
+
+export function goalAmountRequired(): string {
+  return 'Target amount must be greater than zero.';
+}
+
+export function goalAccountRequired(): string {
+  return 'Choose an account to link.';
+}
+
+export function goalLinkCTA(): string {
+  return 'Link an account or log contributions to start tracking.';
 }
