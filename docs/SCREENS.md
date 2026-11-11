@@ -25,7 +25,7 @@
 | 17 | Restore — confirm replace | `/backup/restore-confirm` | Restore-Confirm | Incompatible file: Restore-Invalid |
 | 18 | Settings | `/settings` | Settings | Assistant section, reminders, Exchange rates row, About |
 | 19 | AI chat — setup & consent | `/ai-setup` | AI-Setup | Gemini key (bring your own), disclosure |
-| 20 | AI chat | `/ai-chat` | AI-Chat | States and system messages: AI-Chat-States. "Catat manual" opens Tx-Add |
+| 20 | AI chat | `/ai-chat` | AI-Chat | States and system messages: AI-Chat-States. Rules and mechanism: AI-Rules. No "Catat manual" button in the header; a failed message offers it. Entry: the gold + button of the tab bar (or `/ai-setup` when no key is saved) |
 | 21 | Fixed expenses | `/recurring` | Recurring | |
 | 22 | Create / edit fixed expense | `/recurring/edit` | Recurring-Edit | |
 | 23 | Valas account detail | `/account/[id]` (type forex) | Valas-Detail | One pocket per currency with rupiah value, Add and Exchange, activity with currency chips |
@@ -50,7 +50,8 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 ## Entry points worth getting right
 
 - The **gold + button in the middle of the tab bar** opens three round icon buttons on an arc around it, from every tab: **Scan** a receipt, **AI chat** and **Manual** (the form). The Overview has no chat bar (removed on purpose). Scan and the form are placeholders until they are built.
-- The chat has "Catat manual" to reach the form. The form has a "Chat" button back.
+- The gold + button in the middle of the tab bar opens the AI chat from every tab (as the AI chat choice of its menu); `/ai-setup` opens instead until a key is saved and tested.
+- The chat header has no "Catat manual" button; the form is reached from the + menu, and a failed chat message offers "Catat manual". The form has a "Chat" button back.
 - Add transaction is also reached from Account detail and the empty states.
 - **Tapping any transaction row** (Transactions, Account detail, Overview recent, Budget category) opens Transaction detail; Edit there opens the form pre-filled, Delete asks first and then shows a snackbar with Undo.
 

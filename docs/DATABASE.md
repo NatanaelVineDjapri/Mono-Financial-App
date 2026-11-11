@@ -30,6 +30,8 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `recurring_events` | konfirmasi atau lewati per tanggal jatuh tempo | PK `(recurring_id, due_on)`. Menghapus transaksinya menghapus event, jadi bulan itu jatuh tempo lagi. |
 | `backup_log` | riwayat cadangan di perangkat | Tidak ikut berkas cadangan dan tidak disentuh restore. |
 
+`source = 'ai'` untuk catatan dari chat AI (draf disimpan lewat save.ts, tanpa jalur khusus).
+
 ### Relasi
 
 - `accounts` 1—N `transactions` lewat `account_id`, dan 1—N lewat `to_account_id` (hanya transfer).
