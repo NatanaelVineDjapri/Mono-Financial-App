@@ -1,0 +1,725 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ClarifyCard (K3, 1) snapshot 1`] = `
+<View
+  style={
+    {
+      "alignItems": "flex-start",
+      "flexDirection": "row",
+      "gap": 8,
+      "paddingRight": 24,
+    }
+  }
+  testID="clarify-card"
+>
+  <View
+    accessible={false}
+    importantForAccessibility="no-hide-descendants"
+    style={
+      [
+        {
+          "backgroundColor": "#0A0A0A",
+          "overflow": "hidden",
+        },
+        {
+          "borderRadius": 16,
+          "height": 32,
+          "width": 32,
+        },
+      ]
+    }
+  >
+    <ViewManagerAdapter_ExpoImage
+      containerViewRef={"[React.ref]"}
+      contentFit="cover"
+      contentPosition={
+        {
+          "left": "50%",
+          "top": "50%",
+        }
+      }
+      height={61.44}
+      left={-14.719999999999999}
+      nativeViewRef={"[React.ref]"}
+      onError={[Function]}
+      onLoad={[Function]}
+      onLoadStart={[Function]}
+      onProgress={[Function]}
+      placeholder={[]}
+      position="absolute"
+      sfEffect={null}
+      source={
+        [
+          {
+            "testUri": "../../../assets/mascot/welcome-poster.jpg",
+          },
+        ]
+      }
+      style={
+        {
+          "height": 61.44,
+          "left": -14.719999999999999,
+          "position": "absolute",
+          "top": -1.8175999999999988,
+          "width": 61.44,
+        }
+      }
+      svgVariables={null}
+      symbolSize={null}
+      symbolWeight={null}
+      top={-1.8175999999999988}
+      transition={null}
+      width={61.44}
+    />
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#151516",
+        "borderBottomLeftRadius": 4,
+        "borderBottomRightRadius": 16,
+        "borderColor": "#272728",
+        "borderTopLeftRadius": 16,
+        "borderTopRightRadius": 16,
+        "borderWidth": 1,
+        "flexGrow": 0,
+        "flexShrink": 1,
+        "gap": 12,
+        "paddingHorizontal": 14,
+        "paddingVertical": 12,
+      }
+    }
+  >
+    <Text
+      accessibilityLabel="MONO: Dari akun mana, dan untuk apa? Satu ketukan cukup."
+      accessibilityLiveRegion="none"
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#F5F5F5",
+          "fontFamily": "IBMPlexSans_400Regular",
+          "fontSize": 15,
+          "fontVariant": [
+            "tabular-nums",
+          ],
+          "lineHeight": 22,
+        }
+      }
+    >
+      Dari akun mana, dan untuk apa? Satu ketukan cukup.
+    </Text>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="BCA Tabungan"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-account-1"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          BCA Tabungan
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Cash wallet"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-account-2"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Cash wallet
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="GoPay"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-account-3"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          GoPay
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Jago Pocket"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-account-4"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Jago Pocket
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Food & drink"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-category-10"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Food & drink
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Transport"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-category-11"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Transport
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Shopping"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-category-12"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Shopping
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Bills"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": false,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 10,
+              "flexDirection": "row",
+              "gap": 6,
+              "height": 40,
+              "paddingHorizontal": 12,
+            },
+            {
+              "backgroundColor": "#171717",
+              "borderColor": "#2B2B2B",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            undefined,
+          ]
+        }
+        testID="chip-category-13"
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Bills
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;

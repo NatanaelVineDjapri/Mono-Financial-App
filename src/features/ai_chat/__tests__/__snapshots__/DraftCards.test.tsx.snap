@@ -1,0 +1,2995 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`DraftCard snapshot: blocked 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "stretch",
+        "backgroundColor": "#101011",
+        "borderRadius": 16,
+        "gap": 12,
+        "padding": 14,
+      },
+      {
+        "borderColor": "#737373",
+        "borderStyle": "dashed",
+        "borderWidth": 1.5,
+      },
+    ]
+  }
+  testID="card"
+>
+  <View
+    accessibilityLabel="Draf pengeluaran, Headphone, minus Rp1.500.000, Shopping, Cash wallet, belum tersimpan"
+    accessible={true}
+    style={
+      {
+        "gap": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "borderColor": "#737373",
+            "borderRadius": 999,
+            "borderWidth": 1,
+            "paddingHorizontal": 10,
+            "paddingVertical": 3,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 11,
+              "letterSpacing": 0.88,
+              "lineHeight": 14,
+            }
+          }
+        >
+          DRAF · PENGELUARAN
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 12,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 16,
+            }
+          }
+        >
+          Belum tersimpan
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 12,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#F5F5F5",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 17,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Headphone
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 17,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 24,
+            },
+            {
+              "color": "#FF6B6B",
+            },
+          ]
+        }
+      >
+        −Rp1.500.000
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "gap": 6,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Kategori
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Shopping
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Akun
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Cash wallet
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Tanggal
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          28 Oct 2026
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderColor": "#FF6B6B",
+        "borderRadius": 12,
+        "borderWidth": 1.5,
+        "gap": 12,
+        "padding": 12,
+      }
+    }
+    testID="blocked-d1"
+  >
+    <View
+      accessibilityLabel="Draf dibuat, tapi tidak bisa disimpan. Kurang Rp1.050.000. Ganti akun, kecilkan jumlah, atau pindahkan uang dulu."
+      accessibilityRole="alert"
+      accessible={true}
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 10,
+        }
+      }
+    >
+      <RNSVGSvgView
+        accessibilityElementsHidden={true}
+        accessible={false}
+        align="xMidYMid"
+        bbHeight={20}
+        bbWidth={20}
+        fill="none"
+        focusable={false}
+        height={20}
+        meetOrSlice={0}
+        minX={0}
+        minY={0}
+        style={
+          [
+            {
+              "backgroundColor": "transparent",
+              "borderWidth": 0,
+            },
+            {
+              "flex": 0,
+              "height": 20,
+              "width": 20,
+            },
+          ]
+        }
+        vbHeight={24}
+        vbWidth={24}
+        width={20}
+      >
+        <RNSVGGroup
+          fill={null}
+          propList={
+            [
+              "fill",
+            ]
+          }
+        >
+          <RNSVGPath
+            d="M12 3 L22 20 L2 20 Z M12 9 L12 14 M12 17.5 L12 17.5"
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+            propList={
+              [
+                "stroke",
+                "strokeWidth",
+                "strokeLinecap",
+                "strokeLinejoin",
+              ]
+            }
+            stroke={
+              {
+                "payload": 4294929259,
+                "type": 0,
+              }
+            }
+            strokeLinecap={1}
+            strokeLinejoin={1}
+            strokeWidth={1.5}
+          />
+        </RNSVGGroup>
+      </RNSVGSvgView>
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 2,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_600SemiBold",
+              "fontSize": 15,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Draf dibuat, tapi tidak bisa disimpan.
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 20,
+            }
+          }
+        >
+          Kurang Rp1.050.000. Ganti akun, kecilkan jumlah, atau pindahkan uang dulu.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Ganti akun"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flexGrow": 1,
+            },
+          ]
+        }
+        testID="change-account-d1"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Ganti akun
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Ubah jumlah"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flexGrow": 1,
+            },
+          ]
+        }
+        testID="change-amount-d1"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Ubah jumlah
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Simpan"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "#F5F5F5",
+            },
+            false,
+            {
+              "opacity": 0.4,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-save"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Simpan
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Ubah"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-edit"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Ubah
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      accessibilityLabel="Batal"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={4}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "minHeight": 44,
+        }
+      }
+      testID="draft-cancel"
+    >
+      <Text
+        style={
+          {
+            "color": "#A3A3A3",
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 15,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Batal
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DraftCard snapshot: check amount 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "stretch",
+        "backgroundColor": "#101011",
+        "borderRadius": 16,
+        "gap": 12,
+        "padding": 14,
+      },
+      {
+        "borderColor": "#737373",
+        "borderStyle": "dashed",
+        "borderWidth": 1.5,
+      },
+    ]
+  }
+  testID="card"
+>
+  <View
+    accessibilityLabel="Draf pengeluaran, Bensin, minus Rp4.000, Transport, Cash wallet, belum tersimpan"
+    accessible={true}
+    style={
+      {
+        "gap": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "borderColor": "#737373",
+            "borderRadius": 999,
+            "borderWidth": 1,
+            "paddingHorizontal": 10,
+            "paddingVertical": 3,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 11,
+              "letterSpacing": 0.88,
+              "lineHeight": 14,
+            }
+          }
+        >
+          DRAF · PENGELUARAN
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 12,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 16,
+            }
+          }
+        >
+          Belum tersimpan
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 12,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#F5F5F5",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 17,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Bensin
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 17,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 24,
+            },
+            {
+              "color": "#FF6B6B",
+            },
+          ]
+        }
+      >
+        −Rp4.000
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "gap": 6,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Kategori
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Transport
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Akun
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Cash wallet
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Tanggal
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          28 Oct 2026
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderColor": "#FF6B6B",
+        "borderRadius": 12,
+        "borderWidth": 1.5,
+        "gap": 12,
+        "padding": 12,
+      }
+    }
+    testID="check-amount-d1"
+  >
+    <View
+      accessibilityLabel="Nominal perlu dicek. Kamu mengetik “40rb” (Rp40.000), drafnya Rp4.000."
+      accessibilityRole="alert"
+      accessible={true}
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 10,
+        }
+      }
+    >
+      <RNSVGSvgView
+        accessibilityElementsHidden={true}
+        accessible={false}
+        align="xMidYMid"
+        bbHeight={20}
+        bbWidth={20}
+        fill="none"
+        focusable={false}
+        height={20}
+        meetOrSlice={0}
+        minX={0}
+        minY={0}
+        style={
+          [
+            {
+              "backgroundColor": "transparent",
+              "borderWidth": 0,
+            },
+            {
+              "flex": 0,
+              "height": 20,
+              "width": 20,
+            },
+          ]
+        }
+        vbHeight={24}
+        vbWidth={24}
+        width={20}
+      >
+        <RNSVGGroup
+          fill={null}
+          propList={
+            [
+              "fill",
+            ]
+          }
+        >
+          <RNSVGPath
+            d="M12 3 L22 20 L2 20 Z M12 9 L12 14 M12 17.5 L12 17.5"
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+            propList={
+              [
+                "stroke",
+                "strokeWidth",
+                "strokeLinecap",
+                "strokeLinejoin",
+              ]
+            }
+            stroke={
+              {
+                "payload": 4294929259,
+                "type": 0,
+              }
+            }
+            strokeLinecap={1}
+            strokeLinejoin={1}
+            strokeWidth={1.5}
+          />
+        </RNSVGGroup>
+      </RNSVGSvgView>
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 2,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 20,
+            }
+          }
+        >
+          Nominal perlu dicek. Kamu mengetik “40rb” (Rp40.000), drafnya Rp4.000.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Pakai Rp40.000"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flexGrow": 1,
+            },
+          ]
+        }
+        testID="use-amount-d1-40000"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Pakai Rp40.000
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Pakai Rp4.000"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flexGrow": 1,
+            },
+          ]
+        }
+        testID="use-amount-d1-4000"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Pakai Rp4.000
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Simpan"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "#F5F5F5",
+            },
+            false,
+            {
+              "opacity": 0.4,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-save"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Simpan
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Ubah"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-edit"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Ubah
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      accessibilityLabel="Batal"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={4}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "minHeight": 44,
+        }
+      }
+      testID="draft-cancel"
+    >
+      <Text
+        style={
+          {
+            "color": "#A3A3A3",
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 15,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Batal
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DraftCard snapshot: ready 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "stretch",
+        "backgroundColor": "#101011",
+        "borderRadius": 16,
+        "gap": 12,
+        "padding": 14,
+      },
+      {
+        "borderColor": "#737373",
+        "borderStyle": "dashed",
+        "borderWidth": 1.5,
+      },
+    ]
+  }
+  testID="card"
+>
+  <View
+    accessibilityLabel="Draf pengeluaran, Kopi, minus Rp25.000, Food & drink, GoPay, belum tersimpan"
+    accessible={true}
+    style={
+      {
+        "gap": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "borderColor": "#737373",
+            "borderRadius": 999,
+            "borderWidth": 1,
+            "paddingHorizontal": 10,
+            "paddingVertical": 3,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 11,
+              "letterSpacing": 0.88,
+              "lineHeight": 14,
+            }
+          }
+        >
+          DRAF · PENGELUARAN
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 12,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 16,
+            }
+          }
+        >
+          Belum tersimpan
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 12,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#F5F5F5",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 17,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Kopi
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 17,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 24,
+            },
+            {
+              "color": "#FF6B6B",
+            },
+          ]
+        }
+      >
+        −Rp25.000
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "gap": 6,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Kategori
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Food & drink
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Akun
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          GoPay
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Tanggal
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          28 Oct 2026
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+            }
+          }
+        >
+          Saldo GoPay setelah
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            }
+          }
+        >
+          Rp287.500
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Simpan"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "#F5F5F5",
+            },
+            false,
+            false,
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-save"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#0A0A0A",
+                },
+              ]
+            }
+          >
+            Simpan
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Ubah"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            },
+            {
+              "backgroundColor": "transparent",
+              "borderColor": "#737373",
+              "borderWidth": 1,
+            },
+            false,
+            false,
+            {
+              "flex": 1,
+            },
+          ]
+        }
+        testID="draft-edit"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontFamily": "IBMPlexSans_600SemiBold",
+                  "fontSize": 15,
+                  "lineHeight": 22,
+                },
+                {
+                  "color": "#F5F5F5",
+                },
+              ]
+            }
+          >
+            Ubah
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View
+      accessibilityLabel="Batal"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={4}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "minHeight": 44,
+        }
+      }
+      testID="draft-cancel"
+    >
+      <Text
+        style={
+          {
+            "color": "#A3A3A3",
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 15,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Batal
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`MultiDraftCard snapshot 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "stretch",
+        "backgroundColor": "#101011",
+        "borderRadius": 16,
+        "gap": 12,
+        "padding": 14,
+      },
+      {
+        "borderColor": "#737373",
+        "borderStyle": "dashed",
+        "borderWidth": 1.5,
+      },
+    ]
+  }
+  testID="multi"
+>
+  <View
+    accessibilityLabel="2 draf transaksi, total −Rp53.000, belum tersimpan"
+    accessible={true}
+    style={
+      {
+        "gap": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "borderColor": "#737373",
+            "borderRadius": 999,
+            "borderWidth": 1,
+            "paddingHorizontal": 10,
+            "paddingVertical": 3,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F5F5F5",
+              "fontFamily": "IBMPlexSans_500Medium",
+              "fontSize": 11,
+              "letterSpacing": 0.88,
+              "lineHeight": 14,
+            }
+          }
+        >
+          2 DRAF
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#8A8A8A",
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 12,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 16,
+            }
+          }
+        >
+          Belum tersimpan
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 4,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Makan siang, dipilih"
+        accessibilityRole="checkbox"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": true,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "minHeight": 48,
+            "paddingVertical": 8,
+          }
+        }
+        testID="draft-row-d1"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#737373",
+                "borderRadius": 6,
+                "borderWidth": 1.5,
+                "height": 22,
+                "justifyContent": "center",
+                "marginTop": 1,
+                "width": 22,
+              },
+              {
+                "backgroundColor": "#F5F5F5",
+                "borderColor": "#F5F5F5",
+              },
+              false,
+            ]
+          }
+        >
+          <RNSVGSvgView
+            accessibilityElementsHidden={true}
+            accessible={false}
+            align="xMidYMid"
+            bbHeight={16}
+            bbWidth={16}
+            fill="none"
+            focusable={false}
+            height={16}
+            meetOrSlice={0}
+            minX={0}
+            minY={0}
+            style={
+              [
+                {
+                  "backgroundColor": "transparent",
+                  "borderWidth": 0,
+                },
+                {
+                  "flex": 0,
+                  "height": 16,
+                  "width": 16,
+                },
+              ]
+            }
+            vbHeight={24}
+            vbWidth={24}
+            width={16}
+          >
+            <RNSVGGroup
+              fill={null}
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            >
+              <RNSVGPath
+                d="M5 13 L10 18 L19 6"
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+                propList={
+                  [
+                    "stroke",
+                    "strokeWidth",
+                    "strokeLinecap",
+                    "strokeLinejoin",
+                  ]
+                }
+                stroke={
+                  {
+                    "payload": 4278848010,
+                    "type": 0,
+                  }
+                }
+                strokeLinecap={1}
+                strokeLinejoin={1}
+                strokeWidth={1.5}
+              />
+            </RNSVGGroup>
+          </RNSVGSvgView>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 2,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#F5F5F5",
+                "fontFamily": "IBMPlexSans_600SemiBold",
+                "fontSize": 15,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Makan siang
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#8A8A8A",
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              }
+            }
+          >
+            Food & drink · Cash wallet
+          </Text>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_500Medium",
+                "fontSize": 14,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 20,
+              },
+              {
+                "color": "#FF6B6B",
+              },
+            ]
+          }
+        >
+          −Rp48.000
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityLabel="Parkir, dipilih"
+        accessibilityRole="checkbox"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": true,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 12,
+            "minHeight": 48,
+            "paddingVertical": 8,
+          }
+        }
+        testID="draft-row-d2"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#737373",
+                "borderRadius": 6,
+                "borderWidth": 1.5,
+                "height": 22,
+                "justifyContent": "center",
+                "marginTop": 1,
+                "width": 22,
+              },
+              {
+                "backgroundColor": "#F5F5F5",
+                "borderColor": "#F5F5F5",
+              },
+              false,
+            ]
+          }
+        >
+          <RNSVGSvgView
+            accessibilityElementsHidden={true}
+            accessible={false}
+            align="xMidYMid"
+            bbHeight={16}
+            bbWidth={16}
+            fill="none"
+            focusable={false}
+            height={16}
+            meetOrSlice={0}
+            minX={0}
+            minY={0}
+            style={
+              [
+                {
+                  "backgroundColor": "transparent",
+                  "borderWidth": 0,
+                },
+                {
+                  "flex": 0,
+                  "height": 16,
+                  "width": 16,
+                },
+              ]
+            }
+            vbHeight={24}
+            vbWidth={24}
+            width={16}
+          >
+            <RNSVGGroup
+              fill={null}
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            >
+              <RNSVGPath
+                d="M5 13 L10 18 L19 6"
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+                propList={
+                  [
+                    "stroke",
+                    "strokeWidth",
+                    "strokeLinecap",
+                    "strokeLinejoin",
+                  ]
+                }
+                stroke={
+                  {
+                    "payload": 4278848010,
+                    "type": 0,
+                  }
+                }
+                strokeLinecap={1}
+                strokeLinejoin={1}
+                strokeWidth={1.5}
+              />
+            </RNSVGGroup>
+          </RNSVGSvgView>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 2,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#F5F5F5",
+                "fontFamily": "IBMPlexSans_600SemiBold",
+                "fontSize": 15,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Parkir
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#8A8A8A",
+                "fontFamily": "IBMPlexSans_400Regular",
+                "fontSize": 13,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 18,
+              }
+            }
+          >
+            Transport · Cash wallet
+          </Text>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_500Medium",
+                "fontSize": 14,
+                "fontVariant": [
+                  "tabular-nums",
+                ],
+                "lineHeight": 20,
+              },
+              {
+                "color": "#FF6B6B",
+              },
+            ]
+          }
+        >
+          −Rp5.000
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderTopColor": "#272728",
+        "borderTopWidth": 1,
+        "gap": 6,
+        "paddingTop": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 12,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#8A8A8A",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_400Regular",
+            "fontSize": 13,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 18,
+          }
+        }
+      >
+        Total
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#F5F5F5",
+              "flexShrink": 1,
+              "fontFamily": "IBMPlexSans_400Regular",
+              "fontSize": 13,
+              "fontVariant": [
+                "tabular-nums",
+              ],
+              "lineHeight": 18,
+              "textAlign": "right",
+            },
+            {
+              "color": "#FF6B6B",
+            },
+          ]
+        }
+      >
+        −Rp53.000
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 12,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#8A8A8A",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_400Regular",
+            "fontSize": 13,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 18,
+          }
+        }
+      >
+        Saldo Cash wallet setelah
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#F5F5F5",
+            "flexShrink": 1,
+            "fontFamily": "IBMPlexSans_400Regular",
+            "fontSize": 13,
+            "fontVariant": [
+              "tabular-nums",
+            ],
+            "lineHeight": 18,
+            "textAlign": "right",
+          }
+        }
+      >
+        Rp397.000
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Simpan 2 transaksi"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 12,
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          },
+          {
+            "backgroundColor": "#F5F5F5",
+          },
+          false,
+          false,
+          undefined,
+        ]
+      }
+      testID="drafts-save"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_600SemiBold",
+                "fontSize": 15,
+                "lineHeight": 22,
+              },
+              {
+                "color": "#0A0A0A",
+              },
+            ]
+          }
+        >
+          Simpan 2 transaksi
+        </Text>
+      </View>
+    </View>
+    <View
+      accessibilityLabel="Ubah satu per satu"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 12,
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          },
+          {
+            "backgroundColor": "transparent",
+            "borderColor": "#737373",
+            "borderWidth": 1,
+          },
+          false,
+          false,
+          undefined,
+        ]
+      }
+      testID="drafts-edit-each"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "IBMPlexSans_600SemiBold",
+                "fontSize": 15,
+                "lineHeight": 22,
+              },
+              {
+                "color": "#F5F5F5",
+              },
+            ]
+          }
+        >
+          Ubah satu per satu
+        </Text>
+      </View>
+    </View>
+    <View
+      accessibilityLabel="Batal"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      hitSlop={4}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "minHeight": 44,
+        }
+      }
+      testID="draft-cancel"
+    >
+      <Text
+        style={
+          {
+            "color": "#A3A3A3",
+            "fontFamily": "IBMPlexSans_600SemiBold",
+            "fontSize": 15,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Batal
+      </Text>
+    </View>
+  </View>
+</View>
+`;
