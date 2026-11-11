@@ -347,6 +347,7 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 | Charts | `victory-native` `CartesianChart`, main series gold, others differ by lightness and dash, value table beneath |
 | Account cards | `BankCard` (background PNG + `idn-finlogos` Logo + text), style from `accounts.icon` (bank slug), fallback by `accounts.type` |
 | Switch | `MonoSwitch` (Pressable, role switch) |
+| More row | `MoreRow`: min height 64, icon tile 40 (radius 14, `#1D1D1E` fill, 1 px `#2A2A2B` border), title 15/20 600, subtitle 13/18 `#8A8A8A`, chevron, 1 px `#272728` separators inside a `card`. The Backup status card above the groups has three states (none, older than 30 days, recent), each with an icon and a sentence |
  
 ### SQLite schema v1
  

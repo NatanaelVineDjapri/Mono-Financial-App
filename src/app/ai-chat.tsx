@@ -24,13 +24,14 @@ import {
 } from '@/features/ai_chat/chatActions';
 import { useChatStore, type ChatMessage } from '@/features/ai_chat/chatStore';
 import { useBlockScreenshots } from '@/features/ai_chat/useBlockScreenshots';
-import { useChatEnv, useChatNames, useDisplayName } from '@/features/ai_chat/useChatEnv';
+import { useChatEnv, useChatNames } from '@/features/ai_chat/useChatEnv';
 import { AssistantBubble, UserBubble } from '@/features/ai_chat/ui/Bubbles';
 import { ChatHeader } from '@/features/ai_chat/ui/ChatHeader';
 import { Composer } from '@/features/ai_chat/ui/Composer';
 import { DraftCard, MultiDraftCard } from '@/features/ai_chat/ui/DraftCards';
 import { ClarifyCard, ErrorCard, OutOfScopeCard, ProcessingBubble } from '@/features/ai_chat/ui/MessageCards';
-import { aiChatOpening, aiChatSuggestions } from '@/i18n/id';
+import { aiChatOpening, aiChatSuggestions } from '@/i18n';
+import { useDisplayName } from '@/features/settings/useDisplayName';
 import { MonoColors } from '@/theme/tokens';
 
 export default function AiChatScreen() {

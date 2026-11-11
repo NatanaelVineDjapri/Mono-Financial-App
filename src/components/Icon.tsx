@@ -55,7 +55,14 @@ export type IconName =
   // Account form: the type tiles (Bank uses 'bank', Savings 'savings').
   | 'banknote'
   | 'phone'
-  | 'savings';
+  | 'savings'
+  // More (menu rows): goals, reports, categories, backup and restore, settings.
+  | 'target'
+  | 'file-text'
+  | 'tag'
+  | 'database'
+  | 'download'
+  | 'slider';
 
 export interface IconProps {
   name: IconName;
@@ -105,6 +112,12 @@ const PATHS: Partial<Record<IconName, string>> = {
   chat: 'M4 5 H20 V16 H11 L6 20 V16 H4 Z M8 9.5 H16 M8 12.5 H13',
   scan: 'M4 8 V4 H8 M16 4 H20 V8 M20 16 V20 H16 M8 20 H4 V16 M4 12 H20',
   trash: 'M4 7 H20 M9 7 V4 H15 V7 M6 7 L7 20 H17 L18 7 M10 11 V16 M14 11 V16',
+  target: 'M12 3 a9 9 0 1 0 0.001 0 Z M12 8 a4 4 0 1 0 0.001 0 Z M12 12 V12.1',
+  'file-text': 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19 M9 13 H16 M9 17 H15',
+  tag: 'M3 12 V4 H11 L21 14 L14 21 Z M7.5 8 V8.1',
+  download: 'M12 4 V15 M7 10 L12 15 L17 10 M5 20 H19',
+  database: 'M4 6 C4 4 20 4 20 6 C20 8 4 8 4 6 Z M4 6 V18 C4 20 20 20 20 18 V6 M4 12 C4 14 20 14 20 12',
+  slider: 'M4 7 H13 M17 7 H20 M4 17 H7 M11 17 H20 M15 4.5 V9.5 M9 14.5 V19.5',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
 };
 

@@ -11,7 +11,7 @@
 | 3 | Transactions (tab) | `/(tabs)/transactions` | Transactions | Filters sheet (see sheets). The centre + button of the tab bar opens the add menu (scan, AI chat, manual) |
 | 4 | Accounts (tab) | `/(tabs)/accounts` | Accounts | Wallet-style card stack (total as top card, one card open). Variants: Accounts-Open, Accounts-Valas |
 | 5 | Budgets (tab) | `/(tabs)/budgets` | Budgets | Monthly limit, per-category bars, over-limit state |
-| 6 | More (pushed screen from the avatar on Overview) | `/more` | More | Entry to Goals, Categories, Reports, Backup, Settings, Fixed expenses |
+| 6 | More (pushed screen from the avatar on Overview) | `/more` | More | Entry to Goals, Categories, Reports, Backup, Settings, Fixed expenses. Backup card: none, older than 30 days, recent. Opened from the avatar on Overview; no tab bar on More or its child screens |
 | 7 | Add / edit transaction | `/tx/add`, `/tx/[id]/edit` | Tx-Add | Variants: Tx-Add-Errors (validation), Tx-Add-Transfer, Tx-Add-Valas (pocket chips, rupiah value line), Tx-Exchange (two amounts, rate summary). One form, three kinds. Validation: domain layer first (validate.ts), DB guards as backstop, DB error codes mapped by `mapDbError`. |
 | 8 | Account detail | `/account/[id]` | Account-Detail | Running balance from `v_account_activity`. The pencil opens the account form; Add and Transfer open the transaction form with this account chosen. |
 | 9 | Create / edit account | `/account/edit`, `/account/edit?id=` | Account-Edit | Opening balance locked after first transaction. Type "Valas": Valas-Edit (name, one opening balance per currency, "Add currency") |

@@ -8,7 +8,6 @@ import { showToast } from '@/components/toast-store';
 import { nowIso, today } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
-import { getSetting } from '@/data/repo/settings';
 import { getTxFormData } from '@/domain/txForm';
 
 import type { ChatEnv } from './chatActions';
@@ -47,9 +46,3 @@ export function useChatNames(): Names {
   );
 }
 
-// "Halo <nama>!": the name the person set in Settings, empty until they do.
-export function useDisplayName(): string {
-  const db = useDb();
-  const { data } = useQuery({ queryKey: [...queryKeys.settings, 'display-name'], queryFn: () => getSetting(db, 'display_name'), staleTime: 0 });
-  return data ?? '';
-}

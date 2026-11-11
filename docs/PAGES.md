@@ -436,16 +436,20 @@ Papan: `More` · 390 × 930
  
 **Tata letak dan komponen**
  
-- Judul dan kartu status cadangan: "Disimpan hanya di perangkat ini", cadangan terakhir 21 Okt 2026 20:14 WIB, tautan Back up.
+- Judul dan kartu status cadangan: "Disimpan hanya di perangkat ini", cadangan terakhir 21 Okt 2026 20:14 WIB, dan ikon unduh di kanan yang membuka Backup.
 - Grup Money: Financial goals, Fixed expenses ("1 due today"), Reports, Categories.
 - Grup Data and app: Backup and restore, Settings.
 - Footer lockup MONO dengan "Version 1.0.0 · Works offline · No account, no sync".
 **Keadaan**
- 
-- More adalah layar yang didorong dari avatar di Overview (tanpa bar bawah), dengan panah kembali "Overview".
+
+- More adalah layar yang didorong dari avatar di Overview (tanpa bar bawah), dengan panah kembali berlabel "Overview". Layar anaknya juga tanpa bar bawah.
+- Kartu cadangan punya tiga keadaan: belum ada cadangan, cadangan lebih dari 30 hari (ikon peringatan dan jumlah hari), dan baru (tanggal dan jam cadangan terakhir). Ikon dan kalimat selalu ada; warna tidak pernah satu-satunya sinyal.
+- "Pengeluaran tetap" menampilkan "<n> jatuh tempo" hanya bila ada pengeluaran tetap yang jatuh tempo hari ini atau terlewat.
+
 **Catatan**
- 
+
 - Status cadangan diletakkan di atas supaya risiko kehilangan data selalu terlihat.
+- Kartu dan hitungan dimuat ulang tiap layar fokus. Layar ini tidak menampilkan nominal uang.
 ### G1 · Target keuangan
  
 Papan: `Goals` · 390 × 1040

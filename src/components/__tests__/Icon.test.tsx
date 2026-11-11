@@ -23,6 +23,12 @@ const NAMES: IconName[] = [
   'lock',
   'chevron-left',
   'pencil',
+  'target',
+  'file-text',
+  'tag',
+  'database',
+  'download',
+  'slider',
 ];
 
 // Decorative icons (the default, no `label`) are hidden from accessibility, and RTL's

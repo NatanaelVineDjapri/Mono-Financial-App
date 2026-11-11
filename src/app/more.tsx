@@ -1,87 +1,149 @@
-// More: a pushed screen (route /more, outside the (tabs) group), opened from the avatar on
-// Overview — not a tab, so no tab bar here or on its children (Goals, Reports, Categories,
-// Backup, Settings, Fixed expenses). Placeholder app bar only — real content is Phase 4.2+.
-// The "Dev tools" row is the one exception: __DEV__-only, never shown in a release build.
-import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+// More (/more, board "More", PAGES.md M): the secondary menu, pushed from the avatar on Overview
+// and not a tab, so there is no tab bar here or on any screen it opens. The backup status comes
+// first so the risk of losing data is always in view; then two groups of rows; then the footer.
+// It reads when the last backup was made and how many fixed expenses are due, and shows no
+// amounts, so hidden-amounts mode has nothing to hide here.
+import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Card } from '@/components/Card';
+import { Segmented } from '@/components/Segmented';
 import { Icon } from '@/components/Icon';
-import { backLabel, backToOverviewLabel, devToolsHint, devToolsLabel, moreTitle } from '@/i18n/id';
+import { BackupStatusCard } from '@/features/more/BackupStatusCard';
+import { MoreRow } from '@/features/more/MoreRow';
+import { useMoreData } from '@/features/more/useMoreData';
+import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
+import {
+  devToolsHint,
+  devToolsLabel,
+  moreBackLabel,
+  moreBackText,
+  moreBackupRestoreSub,
+  moreBackupRestoreTitle,
+  moreCategoriesSub,
+  moreCategoriesTitle,
+  moreFooterLine,
+  moreGoalsSub,
+  moreGoalsTitle,
+  moreGroupData,
+  moreGroupLanguage,
+  languageEnglishLabel,
+  languageIndonesianLabel,
+  moreGroupMoney,
+  moreLogoLabel,
+  moreRecurringSub,
+  moreRecurringTitle,
+  moreReportsSub,
+  moreReportsTitle,
+  moreScreenTitle,
+  moreSettingsSub,
+  moreSettingsTitle,
+} from '@/i18n';
+import { languageChoiceEnabled } from '@/i18n/lang';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-function DevToolsRow() {
-  const label = devToolsLabel();
-  const hint = devToolsHint();
-
-  // router.push(), not <Link asChild><Pressable>: wrapping this exact Pressable (a
-  // function `style` prop, accessibilityRole + accessibilityLabel) in Link's asChild
-  // silently dropped its View/Text children on a real Android build — Jest/RTL couldn't
-  // catch it (asChild's clone still looked right there), only a device build showed the
-  // row's text and icon slot never mounting at all. Confirmed by removing asChild alone.
-  return (
-    <Pressable
-      onPress={() => router.push('/dev')}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-    >
-      <View style={styles.rowText}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowHint}>{hint}</Text>
-      </View>
-      <Icon name="chevron-right" color={MonoColors.textSecond} />
-    </Pressable>
-  );
-}
+const LOGO_HEIGHT = 56;
+const LOGO_ASPECT = 499 / 431; // assets/brand/mono-lockup.png
 
 export default function MoreScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { backup, dueCount } = useMoreData();
+  const { language, change: changeLanguage } = useLanguageSetting();
+  const version = Constants.expoConfig?.version ?? null;
+  const go = (path: string) => () => router.push(path as never);
+
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel={backLabel()}
+          accessibilityLabel={moreBackLabel()}
           hitSlop={4}
           android_ripple={undefined}
           style={({ pressed }) => [styles.back, pressed && styles.backPressed]}
           testID="more-back"
         >
           <Icon name="chevron-left" color={MonoColors.text} />
-          <Text style={styles.backText}>{backToOverviewLabel()}</Text>
+          <Text style={styles.backText}>{moreBackText()}</Text>
         </Pressable>
-        <Text style={styles.title} accessibilityRole="header">
-          {moreTitle()}
-        </Text>
       </View>
 
-      {__DEV__ && <DevToolsRow />}
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 24 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title} accessibilityRole="header">
+          {moreScreenTitle()}
+        </Text>
+
+        <BackupStatusCard state={backup} onBackup={go('/backup')} />
+
+        <Text style={styles.group} accessibilityRole="header">
+          {moreGroupMoney()}
+        </Text>
+        <Card style={styles.groupCard}>
+          <MoreRow icon="target" title={moreGoalsTitle()} sub={moreGoalsSub()} onPress={go('/goals')} testID="more-goals" />
+          <MoreRow icon="refresh" title={moreRecurringTitle()} sub={moreRecurringSub(dueCount)} onPress={go('/recurring')} testID="more-recurring" />
+          <MoreRow icon="file-text" title={moreReportsTitle()} sub={moreReportsSub()} onPress={go('/reports')} testID="more-reports" />
+          <MoreRow icon="tag" title={moreCategoriesTitle()} sub={moreCategoriesSub()} onPress={go('/categories')} last testID="more-categories" />
+        </Card>
+
+        <Text style={styles.group} accessibilityRole="header">
+          {moreGroupData()}
+        </Text>
+        <Card style={styles.groupCard}>
+          <MoreRow icon="database" title={moreBackupRestoreTitle()} sub={moreBackupRestoreSub()} onPress={go('/backup')} testID="more-backup" />
+          <MoreRow icon="slider" title={moreSettingsTitle()} sub={moreSettingsSub()} onPress={go('/settings')} last testID="more-settings" />
+        </Card>
+
+        {languageChoiceEnabled() && (
+          <>
+            <Text style={styles.group} accessibilityRole="header">
+              {moreGroupLanguage()}
+            </Text>
+            <Card style={styles.languageCard}>
+              <Segmented
+                options={[
+                  { value: 'en', label: languageEnglishLabel() },
+                  { value: 'id', label: languageIndonesianLabel() },
+                ]}
+                value={language}
+                onChange={value => changeLanguage(value === 'id' ? 'id' : 'en')}
+                testID="language-selector"
+              />
+            </Card>
+          </>
+        )}
+
+        {__DEV__ && (
+          <Card style={styles.devCard}>
+            <MoreRow icon="info" title={devToolsLabel()} sub={devToolsHint()} onPress={go('/dev')} last testID="more-dev" />
+          </Card>
+        )}
+
+        <View style={styles.footer}>
+          <Image source={require('@/assets/brand/mono-lockup.png')} style={{ height: LOGO_HEIGHT, width: LOGO_HEIGHT * LOGO_ASPECT }} resizeMode="contain" accessibilityLabel={moreLogoLabel()} />
+          <Text style={styles.footerText}>{moreFooterLine(version)}</Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  header: { paddingHorizontal: 12, paddingBottom: 16, gap: 4 },
-  back: { minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 12 },
+  header: { paddingHorizontal: 12, paddingBottom: 8 },
+  back: { minHeight: 44, minWidth: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 12 },
   backPressed: { opacity: 0.7 },
   backText: { ...MonoText.body, color: MonoColors.text },
-  title: { ...MonoText.titleL, color: MonoColors.text, paddingHorizontal: 8 },
-  row: {
-    minHeight: 48,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: MonoColors.border,
-  },
-  rowPressed: { backgroundColor: MonoColors.raised },
-  rowText: { flex: 1, gap: 2 },
-  rowLabel: { ...MonoText.body, color: MonoColors.text },
-  rowHint: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  content: { paddingHorizontal: 16 },
+  title: { ...MonoText.titleL, color: MonoColors.text, marginTop: 8, marginBottom: 16 },
+  group: { ...MonoText.label, color: MonoColors.textMeta, marginTop: 24, marginBottom: 8, marginLeft: 4 },
+  groupCard: { padding: 0, overflow: 'hidden' },
+  languageCard: { padding: 12 },
+  devCard: { padding: 0, overflow: 'hidden', marginTop: 24 },
+  footer: { alignItems: 'center', gap: 8, marginTop: 32 },
+  footerText: { ...MonoText.caption, color: MonoColors.textMeta, textAlign: 'center' },
 });
