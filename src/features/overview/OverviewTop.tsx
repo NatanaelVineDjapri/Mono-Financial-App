@@ -1,53 +1,55 @@
-// The top of the Overview: one background image behind everything from the MONO logo down
-// to the net worth balance (the header and the hero are its children). The image is the
-// owner's portrait artwork (assets/images/mono-overview-bg.jpg, 936×1681): dark, with a thin
-// gold ribbon rising to the right. It is scaled to the screen width (uniformly) and shifted
-// up so the ribbon's right end lands just under the status bar, in the top-right corner;
-// the container clips the rest.
-//
-// The artwork is opaque and its bottom is a little lighter than the screen, so a short
-// fade into #0A0A0A sits along the container's bottom edge: that fade is the only overlay,
-// and it keeps the block from ending in a visible line.
+// The top of the Overview: a diagonal amber-to-dark gradient behind the header and hero,
+// matching the same visual language as the BankCard total card in Accounts
+// (top-left #0A0A0A → bottom-right #E3C27A with a fade to bg at the bottom edge).
 import type { ReactNode } from 'react';
-import { Image, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { MonoColors } from '@/theme/tokens';
 
-const IMAGE_WIDTH = 936;
-const IMAGE_HEIGHT = 1681;
-// Where the ribbon's right end sits in the artwork (its top edge at the right border).
-const RIBBON_Y = 986;
-// Where that point should land inside the container, in dp (just below the status bar).
-const RIBBON_TARGET_Y = 40;
-const FADE_HEIGHT = 96;
+const FADE_HEIGHT = 80;
 
 export function OverviewTop({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();
-  const scale = width / IMAGE_WIDTH;
-  const imageHeight = IMAGE_HEIGHT * scale;
-  const offsetTop = RIBBON_TARGET_Y - RIBBON_Y * scale;
+  // Generous height so the gradient fills the header + hero area.
+  const bgHeight = 280;
 
   return (
     <View style={styles.top} testID="overview-top">
-      <Image
-        source={require('@/assets/images/mono-overview-bg.jpg')}
-        style={[styles.image, { width, height: imageHeight, top: offsetTop }]}
-        resizeMode="cover"
+      {/* Diagonal gradient: dark top-left → amber bottom-right */}
+      <View
+        style={[styles.gradient, { width, height: bgHeight }]}
         pointerEvents="none"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         testID="overview-backdrop"
-      />
-      <View style={styles.fade} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Svg width="100%" height={FADE_HEIGHT}>
+      >
+        <Svg width={width} height={bgHeight}>
           <Defs>
-            <LinearGradient id="topFade" x1="0" y1="0" x2="0" y2="1">
+            <LinearGradient id="heroBg" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor="#0A0A0A" stopOpacity="1" />
+              <Stop offset="0.6" stopColor="#2A1F0A" stopOpacity="1" />
+              <Stop offset="1" stopColor={MonoColors.accent} stopOpacity="0.85" />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width={width} height={bgHeight} fill="url(#heroBg)" />
+        </Svg>
+      </View>
+      {/* Bottom fade into screen bg so the gradient melts into the content below */}
+      <View
+        style={[styles.fade, { top: bgHeight - FADE_HEIGHT, width }]}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <Svg width={width} height={FADE_HEIGHT}>
+          <Defs>
+            <LinearGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor={MonoColors.bg} stopOpacity="0" />
               <Stop offset="1" stopColor={MonoColors.bg} stopOpacity="1" />
             </LinearGradient>
           </Defs>
-          <Rect x="0" y="0" width="100%" height={FADE_HEIGHT} fill="url(#topFade)" />
+          <Rect x="0" y="0" width={width} height={FADE_HEIGHT} fill="url(#bottomFade)" />
         </Svg>
       </View>
       {children}
@@ -56,8 +58,7 @@ export function OverviewTop({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  // No fill of its own: the artwork and, past it, the screen's #0A0A0A.
   top: { position: 'relative', overflow: 'hidden' },
-  image: { position: 'absolute', left: 0 },
-  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: FADE_HEIGHT },
+  gradient: { position: 'absolute', top: 0, left: 0 },
+  fade: { position: 'absolute', left: 0 },
 });
