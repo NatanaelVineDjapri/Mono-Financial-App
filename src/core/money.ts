@@ -52,6 +52,20 @@ const SYMBOL: Record<string, string> = {
   SAR: 'SAR ',
 };
 
+// "S$" for SGD: the short symbol money() prefixes, for a rate line like "S$1 = Rp12.500".
+export function currencySymbol(code: string): string {
+  return SYMBOL[code] ?? `${code} `;
+}
+
+// A rate_e4 (rupiah per 1 major unit, times 10.000) as rupiah: "Rp12.500", or "Rp12.500,25"
+// when it is not a whole number (two decimals at most, half away from zero).
+export function rateRp(rateE4: number): string {
+  const hundredths = Math.floor((rateE4 + 50) / 100);
+  const whole = Math.floor(hundredths / 100);
+  const frac = hundredths % 100;
+  return frac === 0 ? rp(whole) : `${rp(whole)},${String(frac).padStart(2, '0')}`;
+}
+
 export function money(minor: number, code: string, minorFactor: number, sign = false): string {
   const a = Math.abs(minor);
   const digits = String(minorFactor).length - 1; // 100 -> 2, 1 -> 0

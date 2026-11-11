@@ -2,6 +2,7 @@ import {
     addDays,
     daysBetween,
     formatDateTime,
+    formatTimeWib,
     formatDayHeader,
     formatDayMonth,
     formatShortDate,
@@ -96,4 +97,10 @@ test('monthShortLabel is the chip text "Oct 2026"', () => {
 test('addDays crosses a month/year boundary correctly', () => {
   expect(addDays('2026-10-31', 1)).toBe('2026-11-01');
   expect(addDays('2026-01-01', -1)).toBe('2025-12-31');
+});
+
+test('formatTimeWib shows the WIB clock time of an instant', () => {
+  expect(formatTimeWib('2026-10-28T12:41:00+07:00')).toBe('12:41');
+  expect(formatTimeWib('2026-10-28T05:09:00Z')).toBe('12:09');
+  expect(formatTimeWib('2026-10-28T20:30:00Z')).toBe('03:30'); // past midnight in WIB
 });

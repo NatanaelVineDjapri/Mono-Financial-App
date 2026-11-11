@@ -29,3 +29,12 @@ export function today(): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${wib.getUTCFullYear()}-${pad(wib.getUTCMonth() + 1)}-${pad(wib.getUTCDate())}`;
 }
+
+// "Now" as an ISO instant with the WIB offset ("2026-10-28T12:41:09+07:00"): what the domain
+// functions take as `now` (created_at, and the date their future-date check compares with).
+export function nowIso(): string {
+  const wib = new Date(now().getTime() + WIB_OFFSET_MS);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const date = `${wib.getUTCFullYear()}-${pad(wib.getUTCMonth() + 1)}-${pad(wib.getUTCDate())}`;
+  return `${date}T${pad(wib.getUTCHours())}:${pad(wib.getUTCMinutes())}:${pad(wib.getUTCSeconds())}+07:00`;
+}

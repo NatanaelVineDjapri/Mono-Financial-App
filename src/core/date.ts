@@ -107,6 +107,14 @@ export function monthName(period: string): string {
 // WIB (UTC+7, the app's one timezone per CLAUDE.md step 5's clock), not the device's own.
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 
+// "12:41" — the clock time of an ISO instant in WIB (a record's created_at, shown beside its
+// date on Transaction detail).
+export function formatTimeWib(iso: string): string {
+  const wib = new Date(new Date(iso).getTime() + WIB_OFFSET_MS);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(wib.getUTCHours())}:${pad(wib.getUTCMinutes())}`;
+}
+
 export function formatDateTime(iso: string): string {
   const wib = new Date(new Date(iso).getTime() + WIB_OFFSET_MS);
   const pad = (n: number) => String(n).padStart(2, '0');

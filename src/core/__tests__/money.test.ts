@@ -1,4 +1,4 @@
-import { money, pct, rp, shown, toIdr } from '../money';
+import { currencySymbol, money, pct, rateRp, rp, shown, toIdr } from '../money';
 
 describe('rp', () => {
   test('formats a plain amount with thousands separators', () => {
@@ -117,5 +117,20 @@ describe('shown', () => {
 
   test('masks the value to a fixed placeholder when hidden', () => {
     expect(shown('Rp1.250.000', true)).toBe('Rp••••••••');
+  });
+});
+
+describe('currencySymbol and rateRp', () => {
+  test('currencySymbol: the symbol money() uses, or the code and a space', () => {
+    expect(currencySymbol('SGD')).toBe('S$');
+    expect(currencySymbol('USD')).toBe('US$');
+    expect(currencySymbol('CHF')).toBe('CHF ');
+  });
+
+  test('rateRp: whole rupiah plain, otherwise two decimals', () => {
+    expect(rateRp(125000000)).toBe('Rp12.500');
+    expect(rateRp(162500000)).toBe('Rp16.250');
+    expect(rateRp(156234500)).toBe('Rp15.623,45');
+    expect(rateRp(333333)).toBe('Rp33,33');
   });
 });
