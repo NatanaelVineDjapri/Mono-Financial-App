@@ -152,6 +152,7 @@ export interface AddTransferInput {
   occurredOn: string;
   description?: string;
   note?: string | null;
+  source?: TxSource;
 }
 
 export interface AddedTransfer {
@@ -192,6 +193,7 @@ export async function addTransfer(db: Db, input: AddTransferInput, now: string):
         occurredOn: input.occurredOn,
         description: input.description,
         note: input.note,
+        source: input.source,
       },
       now,
     );

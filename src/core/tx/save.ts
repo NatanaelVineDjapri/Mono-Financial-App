@@ -10,7 +10,7 @@ import { DomainError, UnexpectedDbError } from '../../domain/errors';
 import { addExpense, addIncome, addTransfer, deleteTransaction, updateTransaction } from '../../domain/transactions';
 import type { Db } from '../../data/db/types';
 import { getPocketBalanceNow } from '../../data/repo/transactionDetail';
-import type { TransactionRow } from '../../data/repo/transactions';
+import type { TransactionRow, TxSource } from '../../data/repo/transactions';
 import { txDbErrorMessage } from '../../i18n/id';
 import { formatShortDate } from '../date';
 import type { TxFormValues, TxType } from './validate';
@@ -27,7 +27,8 @@ export function mapDbError(code: string | undefined, ctx: { shortfallFormatted?:
   });
 }
 
-function failure(error: unknown, today: string): { ok: false; message: string } {
+// A thrown error as a message (exported for the chat's batch save, which owns its own transaction).
+export function failure(error: unknown, today: string): { ok: false; message: string } {
   if (error instanceof DomainError) {
     const ctx = error.context as { shortfallFormatted?: string; currency?: string };
     return { ok: false, message: mapDbError(error.code, { ...ctx, today }) };
@@ -51,40 +52,48 @@ function cleanText(text: string): string {
   return text.trim();
 }
 
+// One new row, written inside a transaction the caller owns. Throws the domain's errors
+// (nothing is caught here), so a batch can roll back as a whole. `source` says where the record
+// came from: the form ('manual') or the chat ('ai').
+export async function writeNewTransaction(txn: Db, values: TxFormValues, now: string, source: TxSource = 'manual'): Promise<number> {
+  const accountId = values.accountId as number;
+  if (values.type === 'transfer') {
+    return (
+      await addTransfer(
+        txn,
+        {
+          accountId,
+          currency: IDR,
+          toAccountId: values.toAccountId as number,
+          amount: values.amount,
+          occurredOn: values.date,
+          description: cleanText(values.description),
+          source,
+        },
+        now,
+      )
+    ).id;
+  }
+  const input = {
+    accountId,
+    currency: IDR,
+    categoryId: values.categoryId as number,
+    amount: values.amount,
+    occurredOn: values.date,
+    description: cleanText(values.description),
+    note: cleanText(values.note) || null,
+    source,
+  };
+  return (values.type === 'income' ? await addIncome(txn, input, now) : await addExpense(txn, input, now)).id;
+}
+
 // A new record. `values` has passed validateTx; `now` is an ISO instant with offset.
 export async function saveNewTransaction(db: Db, values: TxFormValues, now: string): Promise<SaveOutcome<SavedTransaction>> {
   const accountId = values.accountId as number;
   let id = 0;
   try {
     await db.withExclusiveTransactionAsync(async txn => {
-      if (values.type === 'transfer') {
-        id = (
-          await addTransfer(
-            txn,
-            {
-              accountId,
-              currency: IDR,
-              toAccountId: values.toAccountId as number,
-              amount: values.amount,
-              occurredOn: values.date,
-              description: cleanText(values.description),
-            },
-            now,
-          )
-        ).id;
-        return;
-      }
-      const input = {
-        accountId,
-        currency: IDR,
-        categoryId: values.categoryId as number,
-        amount: values.amount,
-        occurredOn: values.date,
-        description: cleanText(values.description),
-        note: cleanText(values.note) || null,
-        source: 'manual' as const,
-      };
-      id = (values.type === 'income' ? await addIncome(txn, input, now) : await addExpense(txn, input, now)).id;
+      id = await writeNewTransaction(txn, values, now);
     });
   } catch (error) {
     return failure(error, now.slice(0, 10));
