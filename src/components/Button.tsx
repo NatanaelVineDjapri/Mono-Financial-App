@@ -19,7 +19,9 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children' |
 
 export function Button({ label, icon, variant = 'primary', disabled = false, loading = false, onPress, style, ...rest }: ButtonProps) {
   const isDisabled = disabled || loading;
-  const textColor = isDisabled ? MonoColors.textDisabled : variant === 'primary' ? MonoColors.bg : MonoColors.text;
+  const textColor = isDisabled
+    ? variant === 'primary' ? MonoColors.text : MonoColors.textDisabled
+    : variant === 'primary' ? MonoColors.bg : MonoColors.text;
 
   return (
     <Pressable
