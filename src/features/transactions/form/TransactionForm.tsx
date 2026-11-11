@@ -30,6 +30,11 @@ import {
 } from '@/core/tx/validate';
 import type { TxFormData } from '@/domain/txForm';
 import {
+    aiDraftSaveButton,
+    aiDraftSavingLabel,
+    aiEditSaveContinue,
+    aiEditSkip,
+    aiEditTitle,
     addTransactionTitle,
     cancelLabel,
     chooseAccountPlaceholder,
@@ -48,6 +53,7 @@ import {
     txKindLabel,
     typeLockedHint
 } from '@/i18n/id';
+import { DraftProgressBar, DraftProgressText, SourceQuote } from '@/features/ai_chat/ui/DraftEditChrome';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -60,8 +66,19 @@ const BAR_BORDER = '#272728';
 
 export type SubmitResult = { ok: true } | { ok: false; message: string };
 
+// "Ubah draf" (/ai-draft-edit): the same form, filled from an AI draft. Simpan saves THIS draft
+// and moves on to the next; Lewati moves on without saving.
+export interface DraftModeProps {
+  index: number; // 0-based, of `total`
+  total: number;
+  sourceMessage: string;
+  initialValues: TxFormValues;
+  onSkip: () => void;
+}
+
 export interface TransactionFormProps {
-  mode: 'add' | 'edit';
+  mode: 'add' | 'edit' | 'draft';
+  draft?: DraftModeProps; // with mode 'draft'
   data: TxFormData;
   today: string;
   initialType?: TxType;
@@ -73,7 +90,8 @@ export interface TransactionFormProps {
 
 type SheetName = AccountSheetRole | 'category' | 'date' | null;
 
-function initialValues(mode: 'add' | 'edit', data: TxFormData, today: string, initialType?: TxType, initialAccountId?: number): TxFormValues {
+function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: string, initialType?: TxType, initialAccountId?: number, draft?: DraftModeProps): TxFormValues {
+  if (mode === 'draft' && draft) return draft.initialValues;
   if (mode === 'edit' && data.record) {
     const r = data.record;
     return {
@@ -101,11 +119,11 @@ function initialValues(mode: 'add' | 'edit', data: TxFormData, today: string, in
   };
 }
 
-export function TransactionForm({ mode, data, today, initialType, initialAccountId, onCancel, onChat, onSubmit }: TransactionFormProps) {
+export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, onCancel, onChat, onSubmit }: TransactionFormProps) {
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
 
-  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, initialType, initialAccountId));
+  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, initialType, initialAccountId, draft));
   const [touched, setTouched] = useState<ReadonlySet<TxFieldKey>>(new Set());
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -206,12 +224,15 @@ export function TransactionForm({ mode, data, today, initialType, initialAccount
             <Icon name="close" color={MonoColors.text} />
           </IconButton>
           <Text style={styles.title} accessibilityRole="header">
-            {mode === 'edit' ? editTransactionTitle() : addTransactionTitle()}
+            {mode === 'draft' ? aiEditTitle() : mode === 'edit' ? editTransactionTitle() : addTransactionTitle()}
           </Text>
+          {mode === 'draft' && draft && <DraftProgressText index={draft.index} total={draft.total} />}
         </View>
       </View>
+      {mode === 'draft' && draft && <DraftProgressBar index={draft.index} total={draft.total} />}
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" testID="tx-form-scroll">
+        {mode === 'draft' && draft && <SourceQuote text={draft.sourceMessage} />}
         <Segmented options={segmentOptions} value={values.type} onChange={v => changeType(v as TxType)} testID="tx-type" />
 
         <AmountCard
@@ -294,9 +315,23 @@ export function TransactionForm({ mode, data, today, initialType, initialAccount
         {hasVisibleErrors && <ErrorLine error={{ text: fieldsNeedAttention(fieldCount) }} testID="tx-error-summary" />}
         {!!serverError && <ErrorLine error={{ text: serverError }} testID="tx-server-error" />}
         <View style={styles.barRow}>
-          <Button label={cancelLabel()} variant="secondary" onPress={onCancel} style={styles.cancelButton} testID="tx-cancel" />
+          {mode === 'draft' && draft ? (
+            <Button label={aiEditSkip()} variant="secondary" onPress={draft.onSkip} disabled={saving} style={styles.cancelButton} testID="tx-skip" />
+          ) : (
+            <Button label={cancelLabel()} variant="secondary" onPress={onCancel} style={styles.cancelButton} testID="tx-cancel" />
+          )}
           <Button
-            label={saving ? savingLabel() : saveButtonLabel(saveType)}
+            label={
+              mode === 'draft' && draft
+                ? saving
+                  ? aiDraftSavingLabel()
+                  : draft.index + 1 >= draft.total
+                    ? aiDraftSaveButton()
+                    : aiEditSaveContinue()
+                : saving
+                  ? savingLabel()
+                  : saveButtonLabel(saveType)
+            }
             onPress={() => void onSavePress()}
             disabled={hasVisibleErrors || saving}
             style={styles.saveButton}
