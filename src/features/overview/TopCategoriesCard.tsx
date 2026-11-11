@@ -17,7 +17,7 @@ import {
   othersCategoryLabel,
   topCategoriesRingAccessibilityLabel,
   topCategoriesTitle,
-} from '@/i18n/id';
+} from '@/i18n';
 import { CHART_CATEGORY_COLORS, MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

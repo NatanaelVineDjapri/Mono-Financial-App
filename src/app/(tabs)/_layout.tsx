@@ -27,7 +27,7 @@ import {
   closeAddMenuLabel,
   tabLabel,
   type TabKey,
-} from '@/i18n/id';
+} from '@/i18n';
 
 const TAB_ROUTES: { name: string; key: TabKey; icon: IconName }[] = [
   { name: 'index', key: 'overview', icon: 'overview' },

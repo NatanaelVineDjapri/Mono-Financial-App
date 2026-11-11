@@ -7,7 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
-import { aiChatCounter, aiChatFooterWarning, aiChatInputPlaceholder, aiChatSendLabel } from '@/i18n/id';
+import { aiChatCounter, aiChatFooterWarning, aiChatInputPlaceholder, aiChatSendLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

@@ -15,7 +15,7 @@ import type { AccountFormValues } from '@/core/account/validate';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getAccountEditData, listAccountNames, type AccountEditData } from '@/domain/accountDetail';
-import { accountChangesSavedMessage, accountCreatedMessage } from '@/i18n/id';
+import { accountChangesSavedMessage, accountCreatedMessage } from '@/i18n';
 
 import type { AccountSubmitResult } from './AccountForm';
 

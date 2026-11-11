@@ -17,7 +17,7 @@ import {
   aiMsgOutOfScope,
   aiMsgSaved,
   aiMsgSavedMany,
-} from '../../i18n/id';
+} from '../../i18n';
 import type { AiErrorCode } from './client';
 import type { Draft } from './draft';
 import type { OutOfScopeReason } from './schema';

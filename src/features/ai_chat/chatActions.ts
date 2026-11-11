@@ -9,7 +9,7 @@ import { rp, shown } from '../../core/money';
 import type { TxFormValues } from '../../core/tx/validate';
 import type { Db } from '../../data/db/types';
 import { getTxFormData } from '../../domain/txForm';
-import { aiUndoFailed, aiUndoLabel } from '../../i18n/id';
+import { aiUndoFailed, aiUndoLabel } from '../../i18n';
 import { chooseAmount, evaluateDrafts, type Draft } from './draft';
 import { fillClarification, interpret, recordAsExpense, type InterpretContext, type InterpretResult } from './interpret';
 import { savedManyText, savedText } from './messages';

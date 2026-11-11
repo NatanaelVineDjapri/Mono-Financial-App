@@ -4,7 +4,7 @@
 import { DomainError } from '../../domain/errors';
 import { createAccount, updateAccount } from '../../domain/accounts';
 import type { Db } from '../../data/db/types';
-import { accountDbErrorMessage } from '../../i18n/id';
+import { accountDbErrorMessage } from '../../i18n';
 import { formatShortDate } from '../date';
 import type { AccountFormValues } from './validate';
 

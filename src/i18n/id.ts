@@ -69,7 +69,6 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
-
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
 export function currencyCountTag(count: number): string {
@@ -796,8 +795,20 @@ export function categoryNotFoundMessage(): string {
 }
 
 // Overview tab (DESIGN.md "A. Overview", PAGES.md A1/A2).
-export function welcomeGreeting(nickname: string | null): string {
-  return nickname ? `Selamat datang, ${nickname}` : 'Selamat datang';
+export type GreetingKind = 'morning' | 'afternoon' | 'late_afternoon' | 'evening' | 'checkin';
+
+// The line on Overview: by the time of day, or "Apa kabar, Nael?" once the app was opened several
+// times that day.
+export function welcomeGreeting(nickname: string | null, kind: GreetingKind): string {
+  const words: Record<GreetingKind, string> = {
+    morning: 'Selamat pagi',
+    afternoon: 'Selamat siang',
+    late_afternoon: 'Selamat sore',
+    evening: 'Selamat malam',
+    checkin: 'Apa kabar',
+  };
+  const end = kind === 'checkin' ? '?' : '';
+  return nickname ? `${words[kind]}, ${nickname}${end}` : `${words[kind]}${end}`;
 }
 
 export function hideAmountsLabel(): string {
@@ -1816,7 +1827,6 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
   }
 }
 
-
 // AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
 export function aiSetupTitle(): string {
   return 'Catat lewat chat';
@@ -2352,7 +2362,7 @@ export function aiEditDiscardConfirm(): string {
 }
 
 export function aiEditKeepEditing(): string {
-  return 'Lanjut mengubah';
+  return 'Lanjut';
 }
 
 export function aiEditNothingToEdit(): string {
@@ -2365,4 +2375,137 @@ export function aiLoadErrorMessage(): string {
 
 export function aiUndoFailed(): string {
   return 'Tidak bisa mengurungkan. Tidak ada yang berubah.';
+}
+
+// ---------------------------------------------------------------- More (pushed from the Overview avatar)
+export function moreScreenTitle(): string {
+  return 'More';
+}
+
+export function moreBackText(): string {
+  return 'Overview';
+}
+
+export function moreBackLabel(): string {
+  return 'Kembali ke Overview';
+}
+
+export function moreBackupPrivate(): string {
+  return 'Disimpan hanya di perangkat ini';
+}
+
+export function moreBackupLast(whenText: string): string {
+  return `Cadangan terakhir ${whenText}`;
+}
+
+export function moreBackupNone(): string {
+  return 'Belum ada cadangan';
+}
+
+export function moreBackupDaysAgo(days: number): string {
+  return `Cadangan terakhir ${days} hari lalu`;
+}
+
+export function moreBackupActionLabel(): string {
+  return 'Cadangkan sekarang';
+}
+
+export function moreGroupMoney(): string {
+  return 'UANG';
+}
+
+export function moreGroupData(): string {
+  return 'DATA DAN APLIKASI';
+}
+
+export function moreGoalsTitle(): string {
+  return 'Target keuangan';
+}
+
+export function moreGoalsSub(): string {
+  return 'Target dari saldo nyata';
+}
+
+export function moreRecurringTitle(): string {
+  return 'Pengeluaran tetap';
+}
+
+export function moreRecurringSub(dueCount: number): string {
+  const base = 'Gym, internet, langganan';
+  return dueCount > 0 ? `${base} · ${dueCount} jatuh tempo` : base;
+}
+
+export function moreReportsTitle(): string {
+  return 'Laporan';
+}
+
+export function moreReportsSub(): string {
+  return 'Arus kas, pengeluaran, kekayaan bersih, ekspor CSV';
+}
+
+export function moreCategoriesTitle(): string {
+  return 'Kategori';
+}
+
+export function moreCategoriesSub(): string {
+  return 'Kategori pemasukan dan pengeluaran';
+}
+
+export function moreBackupRestoreTitle(): string {
+  return 'Cadangan dan pemulihan';
+}
+
+export function moreBackupRestoreSub(): string {
+  return 'Ekspor atau pulihkan cadangan JSON, ekspor CSV';
+}
+
+export function moreSettingsTitle(): string {
+  return 'Pengaturan';
+}
+
+export function moreSettingsSub(): string {
+  return 'Mata uang, privasi, format, tentang';
+}
+
+export function moreFooterLine(version: string | null): string {
+  const parts = [version ? `Versi ${version}` : null, 'Bekerja offline', 'Tanpa akun, tanpa sinkron'];
+  return parts.filter(Boolean).join(' · ');
+}
+
+export function moreRowLabel(title: string, sub: string): string {
+  return `${title}, ${sub}`;
+}
+
+export function moreComingSoon(): string {
+  return 'Layar ini belum dibuat.';
+}
+
+export function moreLogoLabel(): string {
+  return 'MONO Finance';
+}
+
+// ---------------------------------------------------------------- Database
+export function dbOpenFailedMessage(): string {
+  return 'Databasenya gagal dibuka.';
+}
+
+export function dbRetryLabel(): string {
+  return 'Coba lagi';
+}
+
+// ---------------------------------------------------------------- Language
+export function moreGroupLanguage(): string {
+  return 'BAHASA';
+}
+
+export function languageEnglishLabel(): string {
+  return 'English';
+}
+
+export function languageIndonesianLabel(): string {
+  return 'Bahasa Indonesia';
+}
+
+export function languageSelectorLabel(): string {
+  return 'Bahasa';
 }

@@ -18,7 +18,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { monthAbbrev } from '@/core/date';
 import { rp, rpCompact, shown } from '@/core/money';
 import type { CategoryMonthSpend } from '@/domain/budget';
-import { categoryHistoryAccessibilityLabel, dashedEqualsLimitLabel, lastFourMonthsLabel } from '@/i18n/id';
+import { categoryHistoryAccessibilityLabel, dashedEqualsLimitLabel, lastFourMonthsLabel } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

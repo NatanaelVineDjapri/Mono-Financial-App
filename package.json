@@ -74,6 +74,9 @@
         "displayName": "node",
         "preset": "jest-expo",
         "testEnvironment": "node",
+        "setupFilesAfterEnv": [
+          "<rootDir>/src/i18n/jest-setup.ts"
+        ],
         "testMatch": [
           "<rootDir>/src/data/**/*.test.ts",
           "<rootDir>/src/domain/**/*.test.ts",
@@ -96,6 +99,9 @@
         ],
         "setupFiles": [
           "@shopify/react-native-skia/jestSetup.js"
+        ],
+        "setupFilesAfterEnv": [
+          "<rootDir>/src/i18n/jest-setup.ts"
         ],
         "moduleNameMapper": {
           "^@/assets/(.*)$": "<rootDir>/assets/$1",

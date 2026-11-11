@@ -3,7 +3,7 @@
 // dashed card, so they can see what the assistant was reading.
 import { StyleSheet, Text, View } from 'react-native';
 
-import { aiEditFromMessage, aiEditProgress } from '@/i18n/id';
+import { aiEditFromMessage, aiEditProgress } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

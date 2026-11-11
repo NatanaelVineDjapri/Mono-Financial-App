@@ -28,7 +28,7 @@ import Animated, {
 import { BankCard } from '@/components/BankCard';
 import { money } from '@/core/money';
 import type { AccountsOverviewAccount } from '@/domain/balances';
-import { accountsCountNote } from '@/i18n/id';
+import { accountsCountNote } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

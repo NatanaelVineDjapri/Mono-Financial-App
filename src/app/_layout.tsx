@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -19,6 +19,7 @@ import { SplashBrand } from '@/components/SplashBrand';
 import { ToastHost } from '@/components/ToastHost';
 import { DbProvider, useDb } from '@/data/db/DbProvider';
 import { getSetting } from '@/data/repo/settings';
+import { initialLanguage, useLanguage } from '@/i18n/lang';
 import { navTheme } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -48,6 +49,33 @@ function HiddenAmountsInit() {
   }, [db]);
 
   return null;
+}
+
+// The UI language (settings.language, English until the person picks another). It is read before
+// anything is drawn, so a person who chose Indonesian never sees a flash of English; and the tree
+// below is drawn again when the language changes, because the text is read at render time.
+function LanguageGate({ children }: { children: ReactNode }) {
+  const db = useDb();
+  const language = useLanguage(s => s.language);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSetting(db, 'language')
+      .then(value => {
+        if (!cancelled) useLanguage.getState().setLanguage(initialLanguage(value));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [db]);
+
+  if (!loaded) return null;
+  return <Fragment key={language}>{children}</Fragment>;
 }
 
 export default function RootLayout() {
@@ -80,6 +108,7 @@ export default function RootLayout() {
             <SplashBrand />
             <DbProvider>
               <HiddenAmountsInit />
+              <LanguageGate>
               {/* A real Stack (not Slot) so the (tabs) navigator stays mounted underneath
                   every sibling route (account/[id], budget/*, tx/[id], ai-chat, dev) — pushed
                   with an absolute path from inside a tab. Without this, popping back off one
@@ -89,6 +118,7 @@ export default function RootLayout() {
                   off everywhere. */}
               <Stack screenOptions={{ headerShown: false }} />
               <ToastHost />
+              </LanguageGate>
             </DbProvider>
           </ThemeProvider>
         </QueryClientProvider>

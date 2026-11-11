@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { dbOpenFailedMessage, dbRetryLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -59,9 +60,9 @@ export function DbProvider({ children, openDb = defaultOpenDb }: DbProviderProps
   if (state.status === 'error') {
     return (
       <View style={[styles.screen, styles.errorScreen]} testID="db-error-screen">
-        <Text style={styles.errorText}>Databasenya gagal dibuka.</Text>
+        <Text style={styles.errorText}>{dbOpenFailedMessage()}</Text>
         <Button
-          label="Coba lagi"
+          label={dbRetryLabel()}
           onPress={() => {
             setState({ status: 'loading' });
             setAttempt(a => a + 1);

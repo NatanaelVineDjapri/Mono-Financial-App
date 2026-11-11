@@ -18,7 +18,7 @@ import { BankCard } from '@/components/BankCard';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { rp, shown } from '@/core/money';
 import type { AccountType } from '@/data/repo/accounts';
-import { accountsCountLabel, accountsSummaryLabel, cardStackAdvanceLabel, cardStackOpenLabel } from '@/i18n/id';
+import { accountsCountLabel, accountsSummaryLabel, cardStackAdvanceLabel, cardStackOpenLabel } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

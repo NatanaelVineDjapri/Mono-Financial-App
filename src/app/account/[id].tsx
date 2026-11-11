@@ -17,7 +17,7 @@ import type { ActivityFilter } from '@/domain/accountDetail';
 import { ActionButtons, ActivitySection, BalanceHero, ReconCard } from '@/features/accounts/detail/AccountDetailView';
 import { useAccountActivity, useAccountDetail } from '@/features/accounts/detail/useAccountDetail';
 import { useStatsCollapsed } from '@/features/transactions/statsStore';
-import { accountDetailLoadError, accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, valasDetailComingLater } from '@/i18n/id';
+import { accountDetailLoadError, accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, valasDetailComingLater } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

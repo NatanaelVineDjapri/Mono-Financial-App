@@ -12,7 +12,7 @@ import type { TxType } from '@/core/tx/validate';
 import { aiEntryRoute, useAiConfigured } from '@/features/ai_chat/aiEntry';
 import { TransactionForm } from '@/features/transactions/form/TransactionForm';
 import { useAddSubmit, useTxFormData } from '@/features/transactions/form/useTxForm';
-import { retryLabel, txDetailLoadError } from '@/i18n/id';
+import { retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

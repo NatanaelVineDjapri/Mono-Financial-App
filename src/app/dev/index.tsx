@@ -50,32 +50,32 @@ function DevToolsContent() {
       </View>
 
       <View style={styles.list}>
-        <Button label="Muat data contoh" onPress={() => after(() => loadSampleData(db), 'Data contoh dimuat.')} />
+        <Button label="Load sample data" onPress={() => after(() => loadSampleData(db), 'Sample data loaded.')} />
         <Button
-          label="Muat data contoh + Valas"
+          label="Load sample data + Valas"
           variant="secondary"
-          onPress={() => after(() => loadSampleDataWithValas(db), 'Data contoh + Valas dimuat.')}
+          onPress={() => after(() => loadSampleDataWithValas(db), 'Sample data + Valas loaded.')}
         />
         <Button
-          label="+ Tambah transaksi November"
+          label="+ Add November transactions"
           variant="secondary"
-          onPress={() => after(() => loadNovemberData(db), 'Transaksi November ditambahkan.')}
+          onPress={() => after(() => loadNovemberData(db), 'November transactions added.')}
         />
 
         {confirmingReset ? (
           <View style={styles.confirmRow}>
-            <Text style={styles.confirmText}>Yakin reset database? Semua data yang sudah dimasukkan akan hilang.</Text>
+            <Text style={styles.confirmText}>Reset the database? Everything you entered will be lost.</Text>
             <View style={styles.confirmButtons}>
               <Button
-                label="Ya, hapus"
+                label="Yes, delete"
                 variant="secondary"
                 style={styles.confirmButton}
                 onPress={() => {
                   setConfirmingReset(false);
-                  void after(() => resetDatabase(db), 'Database direset.');
+                  void after(() => resetDatabase(db), 'Database reset.');
                 }}
               />
-              <Button label="Batal" variant="secondary" style={styles.confirmButton} onPress={() => setConfirmingReset(false)} />
+              <Button label="Cancel" variant="secondary" style={styles.confirmButton} onPress={() => setConfirmingReset(false)} />
             </View>
           </View>
         ) : (
@@ -83,14 +83,14 @@ function DevToolsContent() {
         )}
 
         <Button
-          label="Set tanggal ke 28 Okt 2026"
+          label="Set the date to 28 Oct 2026"
           variant="secondary"
-          onPress={() => after(async () => setClockOverride(SAMPLE_DATE_ISO), 'Tanggal di-set ke 28 Okt 2026.')}
+          onPress={() => after(async () => setClockOverride(SAMPLE_DATE_ISO), 'Date set to 28 Oct 2026.')}
         />
         <Button
-          label="Pakai tanggal asli"
+          label="Use the real date"
           variant="secondary"
-          onPress={() => after(async () => setClockOverride(null), 'Pakai tanggal asli lagi.')}
+          onPress={() => after(async () => setClockOverride(null), 'Using the real date again.')}
         />
 
         <Link href="/dev/gallery" asChild>

@@ -13,7 +13,7 @@ import { Amount } from "@/components/Amount";
 import { useHideAmounts } from "@/components/hide-amounts-store";
 import type { AccountType } from "@/data/repo/accounts";
 import { rp, shown } from "@/core/money";
-import { accountTypeTag, bankCardAccessibilityLabel } from "@/i18n/id";
+import { accountTypeTag, bankCardAccessibilityLabel } from "@/i18n";
 import { radius } from "@/theme/tokens";
 import { MonoText } from "@/theme/typography";
 

@@ -15,7 +15,7 @@ import { useChatStore } from '@/features/ai_chat/chatStore';
 import { useChatEnv } from '@/features/ai_chat/useChatEnv';
 import { TransactionForm, type SubmitResult } from '@/features/transactions/form/TransactionForm';
 import { useTxFormData } from '@/features/transactions/form/useTxForm';
-import { aiBackLabel, aiEditDiscardConfirm, aiEditDiscardMessage, aiEditDiscardTitle, aiEditKeepEditing, aiEditNothingToEdit, aiLoadErrorMessage, aiRetryLabel } from '@/i18n/id';
+import { aiBackLabel, aiEditDiscardConfirm, aiEditDiscardMessage, aiEditDiscardTitle, aiEditKeepEditing, aiEditNothingToEdit, aiLoadErrorMessage, aiRetryLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { AccessibilityInfo, PanResponder, Pressable, StyleSheet, Text, View, findNodeHandle, type TextInstance } from 'react-native';
 
 import { Icon, type IconName } from '@/components/Icon';
-import { closeLabel } from '@/i18n/id';
+import { closeLabel } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

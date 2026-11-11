@@ -6,7 +6,7 @@ import { Card } from '@/components/Card';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { money, rp, shown } from '@/core/money';
 import type { TxListRow } from '@/data/repo/transactions';
-import { recentTransactionsLabel, seeAllLabel, txKindLabel, txRowAccessibilityLabel } from '@/i18n/id';
+import { recentTransactionsLabel, seeAllLabel, txKindLabel, txRowAccessibilityLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { pct, rp, shown } from '@/core/money';
-import { budgetBarAccessibilityLabel, budgetLeftLabel, budgetRemainingLabel, overBy, usedPctLabel } from '@/i18n/id';
+import { budgetBarAccessibilityLabel, budgetLeftLabel, budgetRemainingLabel, overBy, usedPctLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

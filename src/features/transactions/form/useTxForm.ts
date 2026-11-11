@@ -21,7 +21,7 @@ import type { TxFormValues } from '@/core/tx/validate';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getTxFormData, type TxEditRecord, type TxFormData } from '@/domain/txForm';
-import { changesSavedMessage, txSavedMessage, undoFailedMessage, undoLabel } from '@/i18n/id';
+import { changesSavedMessage, txSavedMessage, undoFailedMessage, undoLabel } from '@/i18n';
 
 import type { SubmitResult } from './TransactionForm';
 

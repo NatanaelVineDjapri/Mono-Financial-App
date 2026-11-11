@@ -38,7 +38,7 @@ import { Easing, cancelAnimation, useDerivedValue, useReducedMotion, useSharedVa
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { pct, rp, shown } from '@/core/money';
-import { overBy, progressAccessibilityLabel } from '@/i18n/id';
+import { overBy, progressAccessibilityLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

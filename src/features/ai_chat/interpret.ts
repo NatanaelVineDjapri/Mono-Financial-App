@@ -18,7 +18,7 @@ import {
   aiMsgAskToAccount,
   aiMsgAskType,
   aiMsgUnknownTransferTarget,
-} from '../../i18n/id';
+} from '../../i18n';
 import { extractAmountCandidates, parseRupiah, type AmountCandidate } from './amount';
 import { callGemini, messageLengthProblem, type AiErrorCode } from './client';
 import {

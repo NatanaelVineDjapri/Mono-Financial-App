@@ -11,7 +11,7 @@ import { addExpense, addIncome, addTransfer, deleteTransaction, updateTransactio
 import type { Db } from '../../data/db/types';
 import { getPocketBalanceNow } from '../../data/repo/transactionDetail';
 import type { TransactionRow, TxSource } from '../../data/repo/transactions';
-import { txDbErrorMessage } from '../../i18n/id';
+import { txDbErrorMessage } from '../../i18n';
 import { formatShortDate } from '../date';
 import type { TxFormValues, TxType } from './validate';
 

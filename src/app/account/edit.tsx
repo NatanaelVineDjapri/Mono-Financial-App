@@ -12,7 +12,7 @@ import { today as todayLocal } from '@/core/clock';
 import type { AccountFormValues, AccountValidationContext, PlainAccountType } from '@/core/account/validate';
 import { AccountForm } from '@/features/accounts/form/AccountForm';
 import { useAccountFormData, useChangeAccountSubmit, useCreateAccountSubmit } from '@/features/accounts/form/useAccountForm';
-import { accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, txDetailLoadError, valasDetailComingLater } from '@/i18n/id';
+import { accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, txDetailLoadError, valasDetailComingLater } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

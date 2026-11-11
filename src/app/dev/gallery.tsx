@@ -68,12 +68,12 @@ function GalleryContent() {
       <View style={[styles.controlBar, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.controlBarTitle}>Dev gallery</Text>
         <View style={styles.controlRow}>
-          <Text style={styles.controlLabel}>Skala teks 200% (simulasi)</Text>
-          <MonoSwitch value={scale200} onValueChange={setScale200} label="Skala teks 200%, simulasi" />
+          <Text style={styles.controlLabel}>Text scale 200% (simulated)</Text>
+          <MonoSwitch value={scale200} onValueChange={setScale200} label="Text scale 200%, simulated" />
         </View>
         <View style={styles.controlRow}>
-          <Text style={styles.controlLabel}>Sembunyikan nominal</Text>
-          <MonoSwitch value={hidden} onValueChange={toggleHidden} label="Sembunyikan nominal" />
+          <Text style={styles.controlLabel}>Hide amounts</Text>
+          <MonoSwitch value={hidden} onValueChange={toggleHidden} label="Hide amounts" />
         </View>
       </View>
 
@@ -81,22 +81,22 @@ function GalleryContent() {
         <View style={scale200 ? styles.scaled : undefined}>
           <Section title="Button">
             <Row label="primary: default / disabled / loading">
-              <Button label="Simpan" onPress={() => {}} />
-              <Button label="Simpan" onPress={() => {}} disabled />
-              <Button label="Simpan" onPress={() => {}} loading />
+              <Button label="Save" onPress={() => {}} />
+              <Button label="Save" onPress={() => {}} disabled />
+              <Button label="Save" onPress={() => {}} loading />
             </Row>
             <Row label="secondary: default / disabled">
-              <Button label="Batal" variant="secondary" onPress={() => {}} />
-              <Button label="Batal" variant="secondary" onPress={() => {}} disabled />
+              <Button label="Cancel" variant="secondary" onPress={() => {}} />
+              <Button label="Cancel" variant="secondary" onPress={() => {}} disabled />
             </Row>
           </Section>
 
           <Section title="IconButton">
             <Row label="default / disabled">
-              <IconButton label="Tambah">
+              <IconButton label="Add">
                 <Icon name="plus" color={MonoColors.text} />
               </IconButton>
-              <IconButton label="Tambah" disabled>
+              <IconButton label="Add" disabled>
                 <Icon name="plus" color={MonoColors.textDisabled} />
               </IconButton>
             </Row>
@@ -104,18 +104,18 @@ function GalleryContent() {
 
           <Section title="Chip">
             <Row label="unselected / selected / disabled">
-              <Chip label="Makanan" selected={false} onPress={() => {}} />
-              <Chip label="Makanan" selected onPress={() => {}} />
-              <Chip label="Makanan" selected={false} onPress={() => {}} disabled />
+              <Chip label="Food" selected={false} onPress={() => {}} />
+              <Chip label="Food" selected onPress={() => {}} />
+              <Chip label="Food" selected={false} onPress={() => {}} disabled />
             </Row>
           </Section>
 
           <Section title="Segmented">
-            <Row label="terpilih (ketuk buat ganti) / disabled">
+            <Row label="selected (tap to change) / disabled">
               <Segmented
                 options={[
-                  { value: 'expense', label: 'Pengeluaran' },
-                  { value: 'income', label: 'Pemasukan' },
+                  { value: 'expense', label: 'Expense' },
+                  { value: 'income', label: 'Income' },
                   { value: 'transfer', label: 'Transfer' },
                 ]}
                 value={segmentValue}
@@ -134,55 +134,55 @@ function GalleryContent() {
           </Section>
 
           <Section title="Field">
-            <Row label="default (ketuk buat lihat fokus)">
-              <Field label="Nama akun" placeholder="BCA Tabungan" />
+            <Row label="default (tap to see focus)">
+              <Field label="Account name" placeholder="BCA Tabungan" />
             </Row>
             <Row label="error">
-              <Field label="Nama akun" placeholder="BCA Tabungan" error="Nama akun wajib diisi." />
+              <Field label="Account name" placeholder="BCA Tabungan" error="Account name is required." />
             </Row>
             <Row label="disabled">
-              <Field label="Nama akun" value="BCA Tabungan" disabled />
+              <Field label="Account name" value="BCA Tabungan" disabled />
             </Row>
           </Section>
 
           <Section title="AmountField">
-            <Row label="default (ketuk buat lihat fokus)">
-              <AmountField label="Jumlah" value={amount} onChangeValue={setAmount} />
+            <Row label="default (tap to see focus)">
+              <AmountField label="Amount" value={amount} onChangeValue={setAmount} />
             </Row>
             <Row label="error">
-              <AmountField label="Jumlah" value={amountWithError} onChangeValue={setAmountWithError} error="Masukkan jumlah di atas Rp0." />
+              <AmountField label="Amount" value={amountWithError} onChangeValue={setAmountWithError} error="Enter an amount above Rp0." />
             </Row>
             <Row label="disabled">
-              <AmountField label="Jumlah" value={200000} onChangeValue={() => {}} disabled />
+              <AmountField label="Amount" value={200000} onChangeValue={() => {}} disabled />
             </Row>
           </Section>
 
           <Section title="Sheet">
-            <Row label="tombol buka">
-              <Button label="Buka Sheet" onPress={() => setSheetVisible(true)} />
+            <Row label="open button">
+              <Button label="Open Sheet" onPress={() => setSheetVisible(true)} />
             </Row>
           </Section>
 
           <Section title="Toast">
-            <Row label="tombol tampilkan, dengan Undo">
-              <Button label="Tampilkan Toast" onPress={() => setToastVisible(true)} />
+            <Row label="show button, with Undo">
+              <Button label="Show Toast" onPress={() => setToastVisible(true)} />
             </Row>
           </Section>
 
           <Section title="MonoSwitch">
             <Row label="on / off / disabled">
-              <MonoSwitch value={switchOn} onValueChange={setSwitchOn} label="Contoh switch" />
-              <MonoSwitch value={false} onValueChange={() => {}} label="Contoh switch" />
-              <MonoSwitch value={true} onValueChange={() => {}} label="Contoh switch" disabled />
+              <MonoSwitch value={switchOn} onValueChange={setSwitchOn} label="Example switch" />
+              <MonoSwitch value={false} onValueChange={() => {}} label="Example switch" />
+              <MonoSwitch value={true} onValueChange={() => {}} label="Example switch" disabled />
             </Row>
           </Section>
 
           <Section title="ProgressBar">
             <Row label="0% / 50% / 100%">
               <View style={{ gap: 12, flex: 1 }}>
-                <ProgressBar valueBp={0} label="Kosong" />
-                <ProgressBar valueBp={5000} label="Setengah" />
-                <ProgressBar valueBp={10000} label="Penuh" />
+                <ProgressBar valueBp={0} label="Empty" />
+                <ProgressBar valueBp={5000} label="Half" />
+                <ProgressBar valueBp={10000} label="Full" />
               </View>
             </Row>
             <Row label="over-limit (116%)">
@@ -195,11 +195,11 @@ function GalleryContent() {
           <Section title="ChartTable">
             <ChartTable
               columns={[
-                { label: 'Pemasukan', kind: 'income' },
-                { label: 'Pengeluaran', kind: 'expense' },
+                { label: 'Income', kind: 'income' },
+                { label: 'Expense', kind: 'expense' },
               ]}
               rows={[
-                { label: 'Mei', values: [6800000, 6800000] },
+                { label: 'May', values: [6800000, 6800000] },
                 { label: 'Jun', values: [7000000, 6600000] },
               ]}
               totalRow={{ label: 'Total', values: [13800000, 13400000] }}
@@ -214,7 +214,7 @@ function GalleryContent() {
             </Row>
           </Section>
 
-          <Section title="BankCard — lebar (bug: latar lebih kecil dari wadah di layar lebar penuh)">
+          <Section title="BankCard — width (bug: the background is smaller than its container on a full-width screen)">
             <View style={{ gap: 16 }}>
               <Text style={styles.rowLabel}>Carousel (312, tetap)</Text>
               <BankCard name="BCA Tabungan" type="bank" icon="bca" balance={6842500} onPress={() => {}} variant="carousel" testID="card-300" />
@@ -238,12 +238,12 @@ function GalleryContent() {
             />
           </Section>
 
-          <Section title="BankCard — kartu netral">
+          <Section title="BankCard — neutral cards">
             <View style={{ gap: 12 }}>
               {Object.keys(NEUTRAL_CARDS).map(slug => (
                 <BankCard
                   key={slug}
-                  name={slug === 'cash' ? 'Cash wallet' : slug === 'valas' ? 'Valas' : 'Akun tanpa bank'}
+                  name={slug === 'cash' ? 'Cash wallet' : slug === 'valas' ? 'Valas' : 'Account without a bank'}
                   type={slug === 'cash' ? 'cash' : slug === 'valas' ? 'forex' : 'ewallet'}
                   icon={null}
                   balance={450000}
@@ -253,7 +253,7 @@ function GalleryContent() {
             </View>
           </Section>
 
-          <Section title="BankCard — semua slug bank/e-wallet">
+          <Section title="BankCard — every bank/e-wallet slug">
             <View style={{ gap: 12 }}>
               {Object.entries(BANK_CARDS).map(([slug, card]) => (
                 <BankCard key={slug} name={card.name} type="bank" icon={slug} balance={1234500} onPress={() => {}} />
@@ -263,14 +263,14 @@ function GalleryContent() {
         </View>
       </ScrollView>
 
-      <Sheet visible={sheetVisible} onClose={() => setSheetVisible(false)} closeLabel="Tutup">
-        <Text style={styles.sheetTitle}>Contoh Sheet</Text>
-        <Text style={styles.sheetBody}>Ini isi contoh di dalam Sheet, buat lihat scrim dan animasinya.</Text>
+      <Sheet visible={sheetVisible} onClose={() => setSheetVisible(false)} closeLabel="Close">
+        <Text style={styles.sheetTitle}>Example Sheet</Text>
+        <Text style={styles.sheetBody}>This is example content inside the Sheet, to see the scrim and its animation.</Text>
       </Sheet>
 
       <Toast
         visible={toastVisible}
-        message="Contoh toast ditampilkan."
+        message="Example toast shown."
         actionLabel="Urungkan"
         onAction={() => {}}
         onDismiss={() => setToastVisible(false)}

@@ -11,7 +11,7 @@ import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useShare
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
-import { aiChatCancelRequest, aiChatProcessing, aiDraftCancelButton, aiMsgRecordAsExpense, aiRetryLabel } from '@/i18n/id';
+import { aiChatCancelRequest, aiChatProcessing, aiDraftCancelButton, aiMsgRecordAsExpense, aiRetryLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

@@ -2,7 +2,7 @@
 // its own (camera, text recognition, a review step) that is not specified or built yet, so
 // this is a placeholder with the route in place.
 import { ComingSoonScreen } from '@/components/ComingSoonScreen';
-import { scanReceiptTitle, scanStubMessage } from '@/i18n/id';
+import { scanReceiptTitle, scanStubMessage } from '@/i18n';
 
 export default function ScanReceiptScreen() {
   return <ComingSoonScreen title={scanReceiptTitle()} message={scanStubMessage()} />;

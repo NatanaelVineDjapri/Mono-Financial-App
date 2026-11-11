@@ -6,7 +6,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { aiChatAssistantLabel, aiChatYouLabel } from '@/i18n/id';
+import { aiChatAssistantLabel, aiChatYouLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

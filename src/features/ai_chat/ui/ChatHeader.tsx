@@ -7,7 +7,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { HeaderButton } from '@/components/HeaderButton';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
-import { aiBackLabel, aiChatHeaderHint, aiChatSettingsLabel, aiSetupTitle } from '@/i18n/id';
+import { aiBackLabel, aiChatHeaderHint, aiChatSettingsLabel, aiSetupTitle } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

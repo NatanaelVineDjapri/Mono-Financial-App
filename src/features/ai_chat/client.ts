@@ -140,7 +140,7 @@ export async function testKey(key: string, options: CallOptions = {}): Promise<{
   try {
     const result = await send(
       {
-        systemInstruction: { parts: [{ text: 'Balas dengan satu kata.' }] },
+        systemInstruction: { parts: [{ text: 'Reply with one word.' }] },
         contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
         generationConfig: { maxOutputTokens: PING_MAX_OUTPUT_TOKENS },
       },

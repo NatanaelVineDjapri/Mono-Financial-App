@@ -6,7 +6,7 @@ import { nowIso } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { getAccountDetail, listAccountActivity, type ActivityFilter, type ActivityKind } from '@/domain/accountDetail';
-import { activityKindLabel } from '@/i18n/id';
+import { activityKindLabel } from '@/i18n';
 
 export function useAccountDetail(id: number) {
   const db = useDb();

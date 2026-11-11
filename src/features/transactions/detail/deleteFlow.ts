@@ -16,7 +16,7 @@ import {
   transactionDeletedMessage,
   transactionRestoreFailedMessage,
   undoLabel,
-} from '@/i18n/id';
+} from '@/i18n';
 
 function messageFor(error: unknown, fallback: string): string {
   if (error instanceof DomainError) {

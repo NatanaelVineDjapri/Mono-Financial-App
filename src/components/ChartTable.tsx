@@ -10,7 +10,7 @@ import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
 import { Amount } from '@/components/Amount';
 import { pct } from '@/core/money';
-import { chartTableToggleLabel } from '@/i18n/id';
+import { chartTableToggleLabel } from '@/i18n';
 import { MonoColors, type AmountKind } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

@@ -17,7 +17,7 @@ import {
   aiDraftNotSet,
   aiDraftToRow,
   aiDraftUntitled,
-} from '../../../i18n/id';
+} from '../../../i18n';
 import type { Draft } from '../draft';
 
 export interface Names {

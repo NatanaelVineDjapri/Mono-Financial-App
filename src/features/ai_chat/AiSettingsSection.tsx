@@ -26,7 +26,7 @@ import {
   aiSettingsSwitchLabel,
   aiSettingsSwitchNeedsKeyHint,
   aiDraftCancelButton,
-} from '@/i18n/id';
+} from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 

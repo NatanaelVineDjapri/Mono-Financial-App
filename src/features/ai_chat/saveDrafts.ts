@@ -7,7 +7,7 @@
 import type { Db } from '../../data/db/types';
 import { getPocketBalanceNow } from '../../data/repo/transactionDetail';
 import { deleteTransaction } from '../../domain/transactions';
-import { aiMsgNotReady } from '../../i18n/id';
+import { aiMsgNotReady } from '../../i18n';
 import { failure, writeNewTransaction, type SaveOutcome } from '../../core/tx/save';
 import type { TxType } from '../../core/tx/validate';
 import { missingFields, toFormValues, type Draft } from './draft';
