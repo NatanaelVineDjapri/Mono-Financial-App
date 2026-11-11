@@ -1,8 +1,7 @@
 // Akun (Accounts) tab (DESIGN.md "D. Accounts" / "Account cards", PAGES.md D1/V1; Fase
-// 4.2c: "Accounts screen = card stack"). Add account, transfer and account detail are
-// later phases — every action here just shows a "Not available yet." toast until those
-// screens exist, except the card stack's own open card, which now navigates to the
-// /account/[id] stub.
+// 4.2c: "Accounts screen = card stack"). Add account opens /account/edit, Transfer opens the
+// transaction form as a transfer, and the card stack's open card opens /account/[id]. Only
+// the Exchange rates row still says "Not available yet." (its screen is a later phase).
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -38,16 +37,14 @@ import {
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-// TODO(Phase 5): Add account and Transfer between accounts don't exist yet — every entry
-// point here shows this toast instead of navigating.
+// The Exchange rates screen is a later phase: its row shows this toast instead of navigating.
 function notAvailable() {
   showToast(notAvailableToast());
 }
 
-// ScreenHeader's right slot: Add account doesn't exist yet (Phase 5), so this matches
-// the screen's own "Add account" button below and just shows the same toast.
-function AccountsHeaderAction() {
-  return <HeaderButton icon="plus" label={addAccountLabel()} onPress={notAvailable} testID="accounts-add-button" />;
+// ScreenHeader's right slot: the same "Add account" as the screen's own button below.
+function AccountsHeaderAction({ onPress }: { onPress: () => void }) {
+  return <HeaderButton icon="plus" label={addAccountLabel()} onPress={onPress} testID="accounts-add-button" />;
 }
 
 function forexSubline(account: AccountsOverviewAccount): string | undefined {
@@ -106,6 +103,8 @@ export default function AccountsScreen() {
   const onRetry = useCallback(() => {
     void refetch();
   }, [refetch]);
+  const onAddAccount = useCallback(() => router.push('/account/edit' as never), [router]);
+  const onTransfer = useCallback(() => router.push({ pathname: '/tx/add', params: { type: 'transfer' } }), [router]);
   const onOpenAccount = useCallback(
     (id: number) => router.push({ pathname: '/account/[id]', params: { id: String(id) } }),
     [router],
@@ -114,7 +113,7 @@ export default function AccountsScreen() {
   if (isLoading) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction />} />
+        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
       </View>
     );
   }
@@ -122,7 +121,7 @@ export default function AccountsScreen() {
   if (isError || !data) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction />} />
+        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
         <View style={styles.centerFill}>
           <Text style={styles.errorText}>{accountsErrorMessage()}</Text>
           <Button label={retryLabel()} onPress={onRetry} />
@@ -134,12 +133,12 @@ export default function AccountsScreen() {
   if (data.accountCount === 0) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction />} />
+        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
         <View style={styles.centerFill}>
           <Icon name="bank" size={26} color={MonoColors.textDisabled} />
           <Text style={styles.emptyTitle}>{accountsEmptyTitle()}</Text>
           <Text style={styles.emptyBody}>{accountsEmptyBody()}</Text>
-          <Button label={addAccountLabel()} icon="plus" onPress={notAvailable} />
+          <Button label={addAccountLabel()} icon="plus" onPress={onAddAccount} />
         </View>
       </View>
     );
@@ -152,7 +151,7 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction />} />
+      <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]}>
         <CardStack
           netWorth={data.netWorth}
@@ -165,8 +164,8 @@ export default function AccountsScreen() {
         />
         {hasForex && <ExchangeRatesRow latestFxUpdate={latestFxUpdate} />}
         <View style={styles.buttonRow}>
-          <Button label={transferAccountsLabel()} icon="transfer" onPress={notAvailable} style={styles.buttonFlex} />
-          <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={notAvailable} style={styles.buttonFlex} />
+          <Button label={transferAccountsLabel()} icon="transfer" onPress={onTransfer} style={styles.buttonFlex} />
+          <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={onAddAccount} style={styles.buttonFlex} />
         </View>
         <View style={styles.footerRow}>
           <Icon name="lock" size={16} color={MonoColors.textMeta} />

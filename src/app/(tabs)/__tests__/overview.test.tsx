@@ -66,6 +66,9 @@ const OVERVIEW: OverviewData = {
   netWorthChange: 3243000,
   netWorthChangeBp: 5753,
   netWorthVsDate: '2026-09-30',
+  netWorthYtdChange: 4120000,
+  netWorthYtdBp: 8661,
+  netWorthYtdVsDate: '2025-12-31',
   netWorthHistory: [
     { month: '2026-05', netWorth: 0 },
     { month: '2026-06', netWorth: 400000 },
@@ -135,6 +138,9 @@ describe('Overview', () => {
     expect(result.getByTestId('hero-balance').props.children).toBe('Rp8.880.000');
     expect(result.getByText('+Rp3.243.000 (+57,53%)')).toBeTruthy();
     expect(result.getByText('vs 30 Sep 2026')).toBeTruthy();
+    // The second line: year to date, vs the end of last year.
+    expect(result.getByText('+Rp4.120.000 (+86,61%)')).toBeTruthy();
+    expect(result.getByText('YTD · vs 31 Dec 2025')).toBeTruthy();
     expect(within(result.getByTestId('overview-expenses-card')).getByText('Expenses')).toBeTruthy();
     expect(result.getAllByText('Rp4.257.000').length).toBeGreaterThan(0);
     expect(result.getByText('8,05% vs Sep')).toBeTruthy();
@@ -167,6 +173,19 @@ describe('Overview', () => {
     expect(style(result.getByText('8,05% vs Sep')).color).toBe(MonoColors.textSecond);
     const net = within(result.getByTestId('overview-net-cash-flow')).getByText('+Rp3.243.000');
     expect(style(net).color).toBe(MonoColors.positive);
+  });
+
+  test('the YTD line sits under the month line, in the same green; with no earlier month end it is not drawn', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const style = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
+    expect(style(result.getByText('+Rp4.120.000 (+86,61%)')).color).toBe(MonoColors.positive);
+    expect(result.getByTestId('hero-change-ytd').props.accessibilityLabel).toBe('Year to date +Rp4.120.000 (+86,61%) vs 31 Dec 2025');
+
+    mockQuery(useOverviewData, { ...OVERVIEW, netWorthYtdChange: null, netWorthYtdBp: null, netWorthYtdVsDate: null });
+    const without = await renderScreen();
+    expect(without.queryByTestId('hero-change-ytd')).toBeNull();
+    expect(without.getByTestId('hero-change')).toBeTruthy(); // the month line is unaffected
   });
 
   test('a falling net worth turns the hero chip red (with its minus and a down triangle)', async () => {
@@ -284,7 +303,7 @@ describe('Overview', () => {
     await act(async () => useHideAmounts.getState().setHidden(true));
     const result = await renderScreen();
     // No real number from the sample survives anywhere on the screen.
-    for (const text of ['Rp8.880.000', 'Rp4.257.000', 'Rp7.500.000', '+Rp3.243.000', 'Rp3.243.000', 'Rp6.842.500', '33,5%', '8,05%', '7,14%', '57,53%', '77,05%']) {
+    for (const text of ['Rp8.880.000', 'Rp4.257.000', 'Rp7.500.000', '+Rp3.243.000', 'Rp3.243.000', 'Rp6.842.500', '33,5%', '8,05%', '7,14%', '57,53%', '77,05%', '4.120.000', '86,61%']) {
       expect(result.queryAllByText(new RegExp(text.replace(/[.+]/g, '\\$&'))).length).toBe(0);
     }
     expect(result.getByTestId('hero-balance').props.children).toBe('Rp••••••••');
@@ -349,8 +368,8 @@ describe('Overview', () => {
     expect(result.getByText('Rp0')).toBeTruthy();
     expect(result.getByText('Set up in four steps')).toBeTruthy();
     expect(result.getByText('0 of 4 done')).toBeTruthy();
-    expect(result.getByText('Create backup')).toBeTruthy();
-    expect(result.getByText('Data only exists on this device. Private by design.')).toBeTruthy();
+    expect(result.getByText('Create a backup')).toBeTruthy();
+    expect(result.getByText('Private by design. No sign-up, no server, no sync. Records are stored on this phone and work offline.')).toBeTruthy();
     expect(result.queryByText('Cash flow')).toBeNull();
     await fireEvent.press(result.getByRole('button', { name: 'More' }));
     expect(mockPush).toHaveBeenCalledWith('/more');

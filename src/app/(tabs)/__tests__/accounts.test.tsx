@@ -199,15 +199,17 @@ describe('AccountsScreen', () => {
     expect(refetch).toHaveBeenCalled();
   });
 
-  test('empty: icon, one sentence, and "Add account" shows the not-available toast', async () => {
+  test('empty: icon, one sentence, and "Add account" opens the account form', async () => {
     mockResult({ data: { netWorth: 0, incomplete: false, accountCount: 0, groups: [] }, isLoading: false, isError: false });
     const result = await renderScreen();
 
     expect(result.getByText('No accounts yet')).toBeTruthy();
     for (const button of result.getAllByRole('button', { name: 'Add account' })) {
+      mockPush.mockClear();
       await fireEvent.press(button);
+      expect(mockPush).toHaveBeenCalledWith('/account/edit');
     }
-    expect(showToast).toHaveBeenCalledWith('Not available yet.');
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   test('tapping the already-open card navigates to /account/[id]', async () => {
@@ -226,10 +228,14 @@ describe('AccountsScreen', () => {
     expect(result.getByTestId('card-stack-card-1').props.accessibilityLabel).toContain('Open account.');
   });
 
-  test('Transfer shows the not-available toast', async () => {
+  test('Transfer opens the transaction form as a transfer; Add account opens the account form', async () => {
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const result = await renderScreen();
-    fireEvent.press(result.getByRole('button', { name: 'Transfer' }));
-    expect(showToast).toHaveBeenCalledWith('Not available yet.');
+    await fireEvent.press(result.getByRole('button', { name: 'Transfer' }));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/tx/add', params: { type: 'transfer' } });
+    mockPush.mockClear();
+    await fireEvent.press(result.getByTestId('accounts-add-button'));
+    expect(mockPush).toHaveBeenCalledWith('/account/edit');
+    expect(showToast).not.toHaveBeenCalled();
   });
 });
