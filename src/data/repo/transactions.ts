@@ -68,16 +68,18 @@ export async function insertTransaction(db: Db, input: NewTransaction, now: stri
   return result.lastInsertRowId;
 }
 
+// `kind` may change between income and expense (the edit form); the schema's own guards still
+// check the category against it. A transfer never changes into or out of its kind.
 export async function updateTransaction(
   db: Db,
   id: number,
-  patch: Partial<Omit<NewTransaction, 'kind'>>,
+  patch: Partial<Omit<NewTransaction, 'kind'>> & { kind?: 'income' | 'expense' },
   now: string,
 ): Promise<void> {
   const fields: string[] = ['updated_at = $now'];
   const params: Record<string, string | number | null> = { $id: id, $now: now };
   const map: Record<string, string> = {
-    accountId: 'account_id', currency: 'currency', toAccountId: 'to_account_id', toCurrency: 'to_currency',
+    kind: 'kind', accountId: 'account_id', currency: 'currency', toAccountId: 'to_account_id', toCurrency: 'to_currency',
     categoryId: 'category_id', amount: 'amount', amountTo: 'amount_to', amountIdr: 'amount_idr',
     occurredOn: 'occurred_on', description: 'description', note: 'note', source: 'source',
   };
@@ -93,6 +95,35 @@ export async function updateTransaction(
 
 export async function deleteTransaction(db: Db, id: number): Promise<void> {
   await db.runAsync('delete from transactions where id = $id', { $id: id });
+}
+
+// Puts a deleted record back exactly as it was: same id, same created_at/updated_at (Undo
+// after Delete). The SQL guards still run on the insert, like for any new record.
+export async function restoreTransaction(db: Db, row: TransactionRow): Promise<void> {
+  await db.runAsync(
+    `insert into transactions
+      (id, kind, account_id, currency, to_account_id, to_currency, category_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at)
+     values
+      ($id, $kind, $accountId, $currency, $toAccountId, $toCurrency, $categoryId, $amount, $amountTo, $amountIdr, $occurredOn, $description, $note, $source, $createdAt, $updatedAt)`,
+    {
+      $id: row.id,
+      $kind: row.kind,
+      $accountId: row.account_id,
+      $currency: row.currency,
+      $toAccountId: row.to_account_id,
+      $toCurrency: row.to_currency,
+      $categoryId: row.category_id,
+      $amount: row.amount,
+      $amountTo: row.amount_to,
+      $amountIdr: row.amount_idr,
+      $occurredOn: row.occurred_on,
+      $description: row.description,
+      $note: row.note,
+      $source: row.source,
+      $createdAt: row.created_at,
+      $updatedAt: row.updated_at,
+    },
+  );
 }
 
 export async function getTransaction(db: Db, id: number): Promise<TransactionRow | null> {

@@ -54,11 +54,12 @@ export async function createAccount(db: Db, input: NewAccount, now: string): Pro
 export async function updateAccount(
   db: Db,
   id: number,
-  patch: Partial<Pick<NewAccount, 'name' | 'openingBalance' | 'openingDate' | 'icon' | 'sortOrder'>> & { archived?: boolean },
+  patch: Partial<Pick<NewAccount, 'name' | 'type' | 'openingBalance' | 'openingDate' | 'icon' | 'sortOrder'>> & { archived?: boolean },
 ): Promise<void> {
   const fields: string[] = [];
   const params: Record<string, string | number | null> = { $id: id };
   if (patch.name !== undefined) { fields.push('name = $name'); params.$name = patch.name; }
+  if (patch.type !== undefined) { fields.push('type = $type'); params.$type = patch.type; }
   if (patch.openingBalance !== undefined) { fields.push('opening_balance = $openingBalance'); params.$openingBalance = patch.openingBalance; }
   if (patch.openingDate !== undefined) { fields.push('opening_date = $openingDate'); params.$openingDate = patch.openingDate; }
   if (patch.icon !== undefined) { fields.push('icon = $icon'); params.$icon = patch.icon; }
@@ -83,6 +84,27 @@ export async function listAccounts(db: Db, opts: { includeArchived?: boolean } =
 // v_account_balance doesn't carry icon or sort_order (CLAUDE.md rule 2: a view only
 // derives balances — these are plain stored columns on `accounts`), so the Accounts tab's
 // overview joins them in here rather than reaching into `accounts` directly from a screen.
+// The transaction form's account list: each account's balance (a view) with its opening date
+// (a plain column, which the form needs to refuse a date before the account existed).
+export interface AccountFormRow {
+  id: number;
+  name: string;
+  type: AccountType;
+  icon: string | null;
+  opening_date: string;
+  balance: number; // rupiah
+}
+
+export async function listAccountsForForm(db: Db): Promise<AccountFormRow[]> {
+  return db.getAllAsync<AccountFormRow>(
+    `select a.id, a.name, a.type, a.icon, a.opening_date, vb.balance
+     from accounts a
+     join v_account_balance vb on vb.id = a.id
+     where a.archived = 0
+     order by a.sort_order, a.id`,
+  );
+}
+
 export interface AccountOverviewRow extends AccountBalance {
   icon: string | null;
   sort_order: number;
