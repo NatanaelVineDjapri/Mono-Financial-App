@@ -59,8 +59,9 @@ function TotalCard({ netWorth, accountCount, note }: { netWorth: number; account
       <Svg style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="total" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#F5F5F5" />
-            <Stop offset="1" stopColor="#C7C7C7" />
+            <Stop offset="0" stopColor="#C9973A" />
+            <Stop offset="0.5" stopColor="#E3C27A" />
+            <Stop offset="1" stopColor="#F0D99A" />
           </LinearGradient>
         </Defs>
         <Rect width="100%" height="100%" fill="url(#total)" />
