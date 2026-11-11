@@ -13,66 +13,6 @@ exports[`ClarifyCard (K3, 1) snapshot 1`] = `
   testID="clarify-card"
 >
   <View
-    accessible={false}
-    importantForAccessibility="no-hide-descendants"
-    style={
-      [
-        {
-          "backgroundColor": "#0A0A0A",
-          "overflow": "hidden",
-        },
-        {
-          "borderRadius": 16,
-          "height": 32,
-          "width": 32,
-        },
-      ]
-    }
-  >
-    <ViewManagerAdapter_ExpoImage
-      containerViewRef={"[React.ref]"}
-      contentFit="cover"
-      contentPosition={
-        {
-          "left": "50%",
-          "top": "50%",
-        }
-      }
-      height={61.44}
-      left={-14.719999999999999}
-      nativeViewRef={"[React.ref]"}
-      onError={[Function]}
-      onLoad={[Function]}
-      onLoadStart={[Function]}
-      onProgress={[Function]}
-      placeholder={[]}
-      position="absolute"
-      sfEffect={null}
-      source={
-        [
-          {
-            "testUri": "../../../assets/mascot/welcome-poster.jpg",
-          },
-        ]
-      }
-      style={
-        {
-          "height": 61.44,
-          "left": -14.719999999999999,
-          "position": "absolute",
-          "top": -1.8175999999999988,
-          "width": 61.44,
-        }
-      }
-      svgVariables={null}
-      symbolSize={null}
-      symbolWeight={null}
-      top={-1.8175999999999988}
-      transition={null}
-      width={61.44}
-    />
-  </View>
-  <View
     style={
       {
         "backgroundColor": "#151516",

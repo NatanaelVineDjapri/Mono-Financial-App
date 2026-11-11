@@ -13,6 +13,9 @@ function clarify(items: Parameters<typeof tx>[0][], message: string): ClarifyRes
   return result;
 }
 
+// The mascot's picture is an asset whose path a snapshot would record: keep it out of the snapshot.
+jest.mock('../ui/MascotAvatar', () => ({ MascotAvatar: () => null }));
+
 const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 
 describe('bubbles', () => {
