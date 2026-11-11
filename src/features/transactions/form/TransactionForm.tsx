@@ -52,7 +52,7 @@ import {
     txFieldErrorMessage,
     txKindLabel,
     typeLockedHint
-} from '@/i18n/id';
+} from '@/i18n';
 import { DraftProgressBar, DraftProgressText, SourceQuote } from '@/features/ai_chat/ui/DraftEditChrome';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -229,7 +229,8 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
           {mode === 'draft' && draft && <DraftProgressText index={draft.index} total={draft.total} />}
         </View>
       </View>
-      {mode === 'draft' && draft && <DraftProgressBar index={draft.index} total={draft.total} />}
+      {/* one segment for one draft would only be a white line: the bar is for two or more */}
+      {mode === 'draft' && draft && draft.total > 1 && <DraftProgressBar index={draft.index} total={draft.total} />}
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" testID="tx-form-scroll">
         {mode === 'draft' && draft && <SourceQuote text={draft.sourceMessage} />}

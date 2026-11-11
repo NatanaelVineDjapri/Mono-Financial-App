@@ -104,6 +104,7 @@ describe('K4: the screen', () => {
     startSession([lunch], 'makan siang 48rb cash');
     const screen = await renderScreen();
     expect(screen.getByText('1 dari 1')).toBeTruthy();
+    expect(screen.queryByRole('progressbar')).toBeNull(); // a single segment would only be a white line
     expect(screen.getByRole('button', { name: 'Simpan' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Simpan dan lanjut' })).toBeNull();
   });
@@ -192,7 +193,7 @@ describe('closing before the end', () => {
     expect(await screen.findByText('Buang perubahan?')).toBeTruthy();
     expect(screen.getByText('Draf yang belum kamu simpan akan hilang. Yang sudah tersimpan tetap tersimpan.')).toBeTruthy();
 
-    await fireEvent.press(screen.getByRole('button', { name: 'Lanjut mengubah' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Lanjut' }));
     await waitFor(() => expect(screen.queryByText('Buang perubahan?')).toBeNull());
     expect(mockBack).not.toHaveBeenCalled();
     expect(useChatStore.getState().edit).not.toBeNull();
