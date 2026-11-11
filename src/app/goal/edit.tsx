@@ -3,7 +3,7 @@
 // Progress is never typed in — always read from v_goal_progress.
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     KeyboardAvoidingView,
@@ -126,26 +126,28 @@ export default function GoalEditScreen() {
   const { create, update, remove } = useGoalMutations();
   const db = useDb();
 
-  // Form state
+  // Form state — initialized from existing goal or defaults
   const [name, setName] = useState('');
   const [mode, setMode] = useState<GoalMode>('total_assets');
   const [accountId, setAccountId] = useState<number | null>(null);
   const [targetAmount, setTargetAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
+  const initializedRef = useRef(false);
 
   // Errors
   const [nameErr, setNameErr] = useState('');
   const [amountErr, setAmountErr] = useState('');
   const [accountErr, setAccountErr] = useState('');
 
-  // Load existing data into form when editing
+  // Load existing data into form when editing (once)
   useEffect(() => {
-    if (!existing) return;
+    if (!existing || initializedRef.current) return;
     setName(existing.name);
     setMode(existing.mode);
     setAccountId(existing.account_id);
     setTargetAmount(existing.target_amount);
     setTargetDate(existing.target_date ?? '');
+    initializedRef.current = true;
   }, [existing]);
 
   // Accounts list for picker
