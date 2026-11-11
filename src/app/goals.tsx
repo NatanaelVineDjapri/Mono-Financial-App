@@ -1,31 +1,26 @@
 // Goals screen (DESIGN.md "G. Goals"). Back arrow returns to More.
 // Progress is always read from v_goal_progress — never typed in.
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
 import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
-import { ProgressBar } from '@/components/ProgressBar';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { formatShortDate } from '@/core/date';
 import { pct, rp, shown } from '@/core/money';
 import type { GoalProgressRow } from '@/data/repo/goals';
+import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useGoalProgress } from '@/features/goals/useGoals';
 import {
     addGoalLabel,
-    goalAccountLinkedLabel,
-    goalCalculatedLabel,
     goalCompleteLabel,
     goalLinkCTA,
-    goalNotLinkedLabel,
     goalOfTargetLabel,
     goalRemainingLabel,
-    goalTargetDateLabel,
     goalsEmptyBody,
     goalsEmptyTitle,
     goalsFooterNote,
@@ -54,10 +49,10 @@ function neededPace(remaining: number, months: number | null): number | null {
 interface GoalCardProps {
   goal: GoalProgressRow;
   accountName?: string;
-  onEdit: () => void;
+  onPress: () => void;
 }
 
-function GoalItem({ goal, accountName, onEdit }: GoalCardProps) {
+function GoalItem({ goal, accountName, onPress }: GoalCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const percent = shown(pct(goal.progress_bp, false), hidden);
   const ml = monthsLeft(goal.target_date);
@@ -65,49 +60,46 @@ function GoalItem({ goal, accountName, onEdit }: GoalCardProps) {
 
   const sourceNote =
     goal.mode === 'total_assets'
-      ? goalCalculatedLabel()
+      ? 'Calculated: all accounts added together'
       : accountName
-        ? goalAccountLinkedLabel(accountName)
-        : goalNotLinkedLabel();
+        ? `Linked account: ${accountName}`
+        : 'Not linked to an account yet';
 
   return (
-    <Card style={styles.card} testID={`goal-card-${goal.id}`}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={styles.goalItem}
+      testID={`goal-card-${goal.id}`}
+    >
       {/* Top row: name + target date */}
-      <View style={styles.cardHead}>
-        <View style={styles.nameRow}>
+      <View style={styles.goalHead}>
+        <View style={styles.nameCol}>
           <Text style={styles.goalName} testID={`goal-name-${goal.id}`}>
             {goal.name}
           </Text>
-          <View style={styles.sourcePill}>
-            <Icon name="target" size={16} color={MonoColors.textMeta} />
-            <Text style={styles.sourceText}>{sourceNote}</Text>
-          </View>
+          <Text style={styles.sourceNote}>{sourceNote}</Text>
         </View>
         {!!goal.target_date && (
-          <Text style={styles.targetDate}>{goalTargetDateLabel(formatShortDate(goal.target_date))}</Text>
+          <Text style={styles.targetDate}>{`Target ${formatShortDate(goal.target_date)}`}</Text>
         )}
       </View>
 
       {/* Amount */}
-      <View style={styles.amountRow}>
-        <Amount value={goal.current_amount} variant="figureM" testID={`goal-amount-${goal.id}`} />
-        <Text style={styles.ofTarget}>{goalOfTargetLabel(shown(rp(goal.target_amount), hidden))}</Text>
-      </View>
+      <Amount value={goal.current_amount} variant="displayS" style={styles.amount} testID={`goal-amount-${goal.id}`} />
+      <Text style={styles.ofTarget}>{goalOfTargetLabel(shown(rp(goal.target_amount), hidden))}</Text>
 
-      {/* Progress bar */}
-      <ProgressBar valueBp={goal.progress_bp} label={goal.name} />
-
-      {/* Percent + remaining */}
+      {/* Percent + remaining in one row */}
       <View style={styles.metaRow}>
-        <Text style={[styles.meta, styles.metaAccent]}>{goalCompleteLabel(percent)}</Text>
-        <Text style={styles.meta}>{goalRemainingLabel(shown(rp(goal.remaining), hidden))}</Text>
+        <Text style={styles.percentText}>{goalCompleteLabel(percent)}</Text>
+        <Text style={styles.remainingText}>{goalRemainingLabel(shown(rp(goal.remaining), hidden))}</Text>
       </View>
 
       {/* Pace row */}
       {goal.remaining > 0 && pace != null && (
         <View style={styles.paceRow}>
-          <Text style={styles.meta}>Needed pace, estimate</Text>
-          <Text style={styles.meta}>{shown(rp(pace), hidden)} / month</Text>
+          <Text style={styles.paceLabel}>Needed pace, estimate</Text>
+          <Text style={styles.paceValue}>{shown(rp(pace), hidden)} / month</Text>
         </View>
       )}
 
@@ -115,17 +107,7 @@ function GoalItem({ goal, accountName, onEdit }: GoalCardProps) {
       {goal.mode === 'account' && goal.account_id == null && (
         <Text style={styles.linkCTA}>{goalLinkCTA()}</Text>
       )}
-
-      {/* Edit button */}
-      <View style={styles.editButtonWrap}>
-        <HeaderButton
-          icon="pencil"
-          label={`Edit ${goal.name}`}
-          onPress={onEdit}
-          testID={`goal-edit-${goal.id}`}
-        />
-      </View>
-    </Card>
+    </Pressable>
   );
 }
 
@@ -133,6 +115,17 @@ export default function GoalsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data: goals = [], isLoading } = useGoalProgress();
+  const { data: overview } = useAccountsOverview();
+
+  // Build a map: account_id -> account.name for quick lookup
+  const accountMap = new Map<number, string>();
+  if (overview) {
+    for (const group of overview.groups) {
+      for (const acc of group.accounts) {
+        accountMap.set(acc.id, acc.name);
+      }
+    }
+  }
 
   const onEdit = (id: number) =>
     router.push({ pathname: '/goal/edit', params: { id: String(id) } } as never);
@@ -159,9 +152,10 @@ export default function GoalsScreen() {
           </View>
         )}
 
-        {goals.map(goal => (
-          <GoalItem key={goal.id} goal={goal} onEdit={() => onEdit(goal.id)} />
-        ))}
+        {goals.map(goal => {
+          const accountName = goal.account_id ? accountMap.get(goal.account_id) : undefined;
+          return <GoalItem key={goal.id} goal={goal} accountName={accountName} onPress={() => onEdit(goal.id)} />;
+        })}
 
         {goals.length > 0 && (
           <View style={styles.footer}>
@@ -187,34 +181,34 @@ export default function GoalsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  content: { paddingHorizontal: 16, gap: 16, paddingTop: 8 },
+  content: { paddingHorizontal: 20, gap: 20, paddingTop: 12 },
 
   empty: { alignItems: 'center', gap: 12, paddingTop: 48, paddingHorizontal: 24 },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
-  card: { gap: 10 },
-  cardHead: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', columnGap: 12, rowGap: 4 },
-  nameRow: { gap: 4, flex: 1 },
-  goalName: { ...MonoText.bodyStrong, color: MonoColors.text },
-  sourcePill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sourceText: { ...MonoText.caption, color: MonoColors.textMeta },
+  goalItem: { gap: 6, paddingVertical: 8 },
+  goalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+  nameCol: { flex: 1, gap: 2 },
+  goalName: { ...MonoText.bodyStrong, color: MonoColors.text, fontSize: 16 },
+  sourceNote: { ...MonoText.caption, color: MonoColors.textMeta },
   targetDate: { ...MonoText.bodyS, color: MonoColors.textSecond },
 
-  amountRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8 },
-  ofTarget: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  amount: { marginTop: 4 },
+  ofTarget: { ...MonoText.bodyS, color: MonoColors.textSecond, marginTop: 2 },
 
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 12, rowGap: 4 },
-  paceRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 12, rowGap: 4 },
-  meta: { ...MonoText.bodyS, color: MonoColors.textSecond },
-  metaAccent: { color: MonoColors.accent },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 4 },
+  percentText: { ...MonoText.bodyS, color: MonoColors.text },
+  remainingText: { ...MonoText.bodyS, color: MonoColors.textSecond },
 
-  linkCTA: { ...MonoText.bodyS, color: MonoColors.accent },
+  paceRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginTop: 2 },
+  paceLabel: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  paceValue: { ...MonoText.bodyS, color: MonoColors.accent },
 
-  editButtonWrap: { alignSelf: 'flex-end', marginTop: 4 },
+  linkCTA: { ...MonoText.bodyS, color: MonoColors.accent, marginTop: 4 },
 
-  footer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
+  footer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 8 },
+  footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1, lineHeight: 18 },
 
   addButton: { marginTop: 8 },
 });
