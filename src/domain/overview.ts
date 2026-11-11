@@ -46,6 +46,11 @@ export interface OverviewData {
   netWorthChange: number | null;
   netWorthChangeBp: number | null;
   netWorthVsDate: string | null; // 'YYYY-MM-DD', last day of the previous month
+  // Year to date: vs the last month end before this calendar year (31 Dec last year); null
+  // when the records start this year, so there is no earlier month end to compare with.
+  netWorthYtdChange: number | null;
+  netWorthYtdBp: number | null;
+  netWorthYtdVsDate: string | null; // 'YYYY-MM-DD'
   netWorthHistory: NetWorthMonth[];
   cashFlow: OverviewMonthFlow[]; // CASH_FLOW_MONTHS periods, oldest first, this period last
   topCategories: CategoryStatsResult;
@@ -123,6 +128,11 @@ export async function getOverviewData(db: Db, todayIso: string): Promise<Overvie
   const hasChange = !!last && last.month === currentMonth && !!before;
   const netWorthChange = hasChange ? worth.netWorth - before.netWorth : null;
 
+  // Year to date: the newest month end before this year (history is oldest first).
+  const yearStart = `${currentMonth.slice(0, 4)}-01`;
+  const yearBaseline = [...history].reverse().find(m => m.month < yearStart) ?? null;
+  const hasYtd = !!last && last.month === currentMonth && !!yearBaseline;
+
   return {
     period,
     previousPeriod: previous,
@@ -135,6 +145,9 @@ export async function getOverviewData(db: Db, todayIso: string): Promise<Overvie
     netWorthChange,
     netWorthChangeBp: hasChange ? pctChangeBp(worth.netWorth, before.netWorth) : null,
     netWorthVsDate: hasChange ? addDays(`${currentMonth}-01`, -1) : null,
+    netWorthYtdChange: hasYtd ? worth.netWorth - yearBaseline.netWorth : null,
+    netWorthYtdBp: hasYtd ? pctChangeBp(worth.netWorth, yearBaseline.netWorth) : null,
+    netWorthYtdVsDate: hasYtd ? addDays(`${yearStart}-01`, -1) : null,
     netWorthHistory: history,
     cashFlow: periods.map(p => ({ period: p, ...flowOf(p) })),
     topCategories,

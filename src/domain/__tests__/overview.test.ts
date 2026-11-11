@@ -76,6 +76,29 @@ describe('getOverviewData', () => {
   });
 });
 
+describe('year to date', () => {
+  test('vs the last month end of the previous year; null when the records start this year', async () => {
+    const real = new Date().toISOString().slice(0, 10);
+    const year = Number(real.slice(0, 4));
+
+    // Records start this year: no earlier month end to compare with.
+    const fresh = openTestDb();
+    await createAccount(fresh, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: `${year}-01-01` }, NOW);
+    expect((await getOverviewData(fresh, real)).netWorthYtdChange).toBeNull();
+
+    // Records start in December last year: 31 Dec is the baseline.
+    const db = openTestDb();
+    const acc = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: `${year - 1}-12-01` }, NOW);
+    const cats = await listCategories(db);
+    await addIncome(db, { accountId: acc, currency: 'IDR', categoryId: cats.find(c => c.name === 'Salary')!.id, amount: 500000, occurredOn: `${year}-01-01` }, real);
+    const data = await getOverviewData(db, real);
+    expect(data.netWorth).toBe(1500000);
+    expect(data.netWorthYtdChange).toBe(500000);
+    expect(data.netWorthYtdBp).toBe(5000);
+    expect(data.netWorthYtdVsDate).toBe(`${year - 1}-12-31`);
+  });
+});
+
 describe('accountShares', () => {
   test('the IDR sample: one row per account, largest first, shares add up to 100,00%', () => {
     const rows = accountShares([

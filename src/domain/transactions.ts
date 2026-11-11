@@ -223,3 +223,20 @@ export async function deleteTransaction(db: Db, id: number): Promise<void> {
     throwDomainError(err);
   }
 }
+
+// Delete with a way back: removes the record in one statement and returns the row as it was,
+// so Undo can put the very same record back (same id).
+export async function deleteTransactionWithSnapshot(db: Db, id: number): Promise<repo.TransactionRow | null> {
+  const snapshot = await repo.getTransaction(db, id);
+  if (!snapshot) return null;
+  await deleteTransaction(db, id);
+  return snapshot;
+}
+
+export async function restoreTransaction(db: Db, snapshot: repo.TransactionRow): Promise<void> {
+  try {
+    await repo.restoreTransaction(db, snapshot);
+  } catch (err) {
+    throwDomainError(err);
+  }
+}

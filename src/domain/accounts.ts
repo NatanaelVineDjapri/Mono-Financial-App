@@ -26,6 +26,7 @@ export async function createAccount(db: Db, input: CreateAccountInput, now: stri
 
 export interface RenameAccountInput {
   name?: string;
+  type?: PlainAccountType; // one normal type to another; forex is locked by the schema
   openingBalance?: number;
   openingDate?: string;
   icon?: string | null;
