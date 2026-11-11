@@ -36,6 +36,7 @@ The design is finished and lives in a Claude Design canvas (owner's claude.ai ac
 10. **Fixed expenses are templates.** They change nothing until the user confirms a due date. Confirming writes one expense and one `recurring_events` row in one exclusive transaction. Due dates are computed (`v_recurring_due`), not stored.
 11. **Restore is all-or-nothing.** One exclusive transaction: set `meta.guards_off` to 1, delete, insert, set it back to 0, `PRAGMA foreign_key_check`, read `v_integrity_issues`. Any error or any returned row rolls back. `backup_log` and `meta` are not exported.
 12. **Hidden amounts mode** goes through one gate (`shown()`); every currency figure passes it.
+15. **Transaction forms validate in `src/core/tx/validate.ts` (pure, tested) first**; SQL guards are only a backstop and DB error codes go through `mapDbError`. Never write a balance.
 ## Stack and layout
  
 Expo (development build, not Expo Go only), `expo-router`, `expo-sqlite`, `@tanstack/react-query` (reads, invalidate after writes), `zustand` (UI-only state), `react-native-reanimated`, `react-native-gesture-handler`, `@shopify/react-native-skia`, `victory-native` (two charts), `expo-font` + `@expo-google-fonts/*`, `expo-video`, `expo-sharing`, `expo-document-picker`, `expo-file-system`, `expo-asset`, `expo-crypto`, `expo-local-authentication`, `expo-screen-capture`, `expo-notifications`, `expo-secure-store`. Dev: `jest`, `better-sqlite3`, `eslint`. Styling: `StyleSheet` plus the token file. Pin versions with `expo-doctor`.
@@ -79,7 +80,7 @@ The Valas boards use a **separate** sample: Valas holds US$250,00 and S$180,00 (
 1. **Foundation:** Expo project, TypeScript, `tokens.ts`, `typography.ts`, `money.ts` with tests, fonts, theme.
 2. **Database:** schema asset, `open.ts`, repos, domain functions. Port `db/verify_schema.py` to Jest with `better-sqlite3` and reproduce every number above, the Valas section, and all 13 guard codes.
 3. **Components:** Button, Chip, Segmented, Field, AmountField, Sheet, Toast, ProgressBar, MonoSwitch, BankCard, ChartTable.
-4. **Tabs:** Overview, Transactions, Accounts, Budgets, plus a gold + button in the middle of the bar that opens the AI chat. More opens from the avatar on Overview.
+4. **Tabs:** Overview, Transactions, Accounts, Budgets, plus a gold + button in the middle of the bar that opens three choices: scan a receipt, AI chat, or the manual form. More opens from the avatar on Overview.
 5. **Entry:** Add/edit transaction (expense, income, transfer, errors), then account, budget and goal create/edit, categories.
 6. **Insight:** Account detail, category review, Goals, Reports with charts.
 7. **Data safety:** Backup, restore (with guards_off flow), Settings, app lock, hide amounts, screenshot block.
