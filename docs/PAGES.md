@@ -35,7 +35,7 @@ Papan: `DS-Components` · 1280 × 3960
 - 02 Input: keadaan kolom teks (normal, wajib diisi, terkunci setelah transaksi pertama), kolom nominal dengan chip tambah cepat, pencarian, dan pemilih akun, kategori, tanggal.
 - 03 Baris dan daftar: baris transaksi dan akun, baris anggaran (normal dan melebihi batas), baris target.
 - 04 Progres dan grafik: bar progres (0%, 48%, 85,14%, melebihi batas dengan segmen bergaris), gaya grafik dengan seri dibedakan lewat tingkat terang, tabel nilai di samping grafik, dan panduan kapan perlu grafik.
-- 05 Navigasi: bottom navigation melayang (zona 112, bar 64, radius 30; empat tab dengan label dan tombol + emas 64 di tengah yang membuka chat AI; tab aktif berupa pil putih) dan variasi app bar dengan tombol header berbingkai 48 radius 14.
+- 05 Navigasi: bottom navigation melayang (zona 112, bar 64, radius 30; empat tab dengan label dan tombol + emas 64 di tengah yang membuka tiga pilihan (scan struk, chat AI, manual); tab aktif berupa pil putih) dan variasi app bar dengan tombol header berbingkai 48 radius 14.
 - 06 Permukaan dan umpan balik: bottom sheet, dialog konfirmasi merusak (Replace all data?), snackbar dengan Undo, banner dan empty state.
 **Keadaan**
  
@@ -71,7 +71,7 @@ Papan: `Handoff` · 1280 × 4720
  
 - 1 · Token warna dan tema (src/theme/tokens.ts).
 - 2 · Tipografi dan format uang (src/core/money.ts), dengan formatter rupiah dan persen buatan sendiri.
-- 3 · Peta komponen: Button dan IconButton berbasis Pressable, tombol + tengah TabFab 64 (membuka chat AI, tidak ada FAB lain), Chip 40 tinggi, Segmented, Field dan AmountField berbasis TextInput (hanya digit, menyimpan int), tab bar expo-router 72, sheet dan dialog lewat rute transparentModal (hapus semua meminta ketik ERASE), Toast dengan Undo, ProgressBar 8 tinggi dengan segmen bergaris saat melebihi, grafik victory-native dengan tabel nilai, kartu bank yang digambar dengan Skia, dan MonoSwitch kustom.
+- 3 · Peta komponen: Button dan IconButton berbasis Pressable, tombol + tengah TabFab 64 (membuka tiga pilihan tambah transaksi: scan struk, chat AI, manual; tidak ada FAB lain), Chip 40 tinggi, Segmented, Field dan AmountField berbasis TextInput (hanya digit, menyimpan int), tab bar expo-router 72, sheet dan dialog lewat rute transparentModal (hapus semua meminta ketik ERASE), Toast dengan Undo, ProgressBar 8 tinggi dengan segmen bergaris saat melebihi, grafik victory-native dengan tabel nilai, kartu bank yang digambar dengan Skia, dan MonoSwitch kustom.
 - 4 · Aturan akuntansi, sumber kebenaran tunggal (src/domain): tidak ada saldo tersimpan, transfer, kekayaan bersih, arus bulanan, anggaran terpakai, target, pembulatan, dan penjaga.
 - 5 · Stack dan paket (package.json) dan 6 · Ringkasan skema SQLite v1 (src/data/db), dengan berkas lengkap di papan Database.
 - 7 · Format berkas cadangan (src/data/backup) dan urutan pemulihan: periksa penanda mono-finance dan schema_version, validasi total, lalu invalidasi cache TanStack Query sehingga Overview dihitung ulang dari baris hasil pemulihan.
@@ -136,7 +136,7 @@ Papan: `Main` · 390 × 2970
 **Tata letak dan komponen**
  
 - Header 64: logo dan wordmark MONO di kiri; tombol lonceng (44, belum berfungsi) dan avatar bulat 44 berisi huruf pertama nama panggilan ("N", fill raised, border 1 px) yang membuka `/more`.
-- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan hijau (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026". The top of the screen has one background image, `assets/images/mono-overview-bg.jpg` (portrait artwork, 936×1681), behind everything from the MONO logo down to the balance: scaled uniformly to the screen width and shifted so the thin gold ribbon sits in the top-right corner, with a short fade into the screen background (#0A0A0A) at its bottom so there is no visible edge. The header and the hero have no fill of their own (the header scrolls with the content). The Hide/Show amounts control is plain text with no fill and no border: an 18 eye icon and "Hide amounts" in the same grey as the "NET WORTH" label (#8A8A8A, 13/18, 500), right-aligned with a 44 high touch area; under 360dp it reads "Hide".
+- Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan hijau (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026". Di bawahnya chip kedua untuk tahun berjalan (YTD): selisih dan persen terhadap akhir tahun lalu, dengan keterangan "YTD · vs 31 Dec 2025"; tidak tampil bila catatan baru mulai tahun ini. The top of the screen has one background image, `assets/images/mono-overview-bg.jpg` (portrait artwork, 936×1681), behind everything from the MONO logo down to the balance: scaled uniformly to the screen width and shifted so the thin gold ribbon runs through the top-right corner above the greeting and the balance, with the image's own bottom edge fading into the screen background (#0A0A0A) so there is no visible edge. The header and the hero have no fill of their own (the header scrolls with the content). The Hide/Show amounts control is plain text with no fill and no border: an 18 eye icon and "Hide amounts" in the same grey as the "NET WORTH" label (#8A8A8A, 13/18, 500), right-aligned with a 44 high touch area; under 360dp it reads "Hide".
 - Dua kartu berdampingan (jarak 12), Expenses dan Income bulan ini: cakram ikon emas 40 dengan label di sebelahnya (satu baris), angka (20/26, 700), perubahan terhadap bulan lalu (Expenses abu netral dengan segitiga, Income hijau). Di bawahnya kartu tipis "Net cash flow · Oct" bernilai hijau dan catatan "Consumption only. Transfers between your accounts are excluded."
 - "Your accounts": carousel kartu bank berwarna bergaya coverflow 3D (300 × 154): kartu yang fokus di tengah dengan ukuran penuh dan bayangan lembut, kartu tetangga mengintip di kiri dan kanan (skala 0,88, miring sekitar 26° pada sumbu Y, lebih gelap), snap ke tengah, berputar (kartu terakhir ada di kiri kartu pertama, dan sebaliknya), titik indikator di bawahnya (yang aktif lebih panjang, emas), nama dan saldo di kiri bawah dengan warna `fg` kartu, tag kecil di kanan atas, tautan "All accounts".
 - Kartu "Cash flow": batang pemasukan (emas) vs pengeluaran (#737373) enam bulan, disertai garis kisi, garis dasar (sumbu x), keterangan sumbu y dalam juta rupiah, dan tabel nilai.
@@ -237,6 +237,7 @@ Papan: `Tx-Add` · 390 × 844
 **Catatan**
  
 - "Saldo setelah" menunjukkan dampak sebelum pengguna menyimpan.
+- Form yang sama dipakai untuk ubah (`/tx/[id]/edit`): terisi data record, tombol "Save changes", jenis transfer tidak bisa diganti. Akun Valas dikerjakan di Tx-Add-Valas.
 ### C2 · Tambah transaksi — validasi
  
 Papan: `Tx-Add-Errors` · 390 × 960
@@ -251,7 +252,7 @@ Papan: `Tx-Add-Errors` · 390 × 960
 - Ringkasan "2 fields need attention before this can be saved." dan tombol Save expense nonaktif.
 **Keadaan**
  
-- Kolom bermasalah berbingkai 1,5 px terang, ikon peringatan, dan teks. Tidak memakai warna merah.
+- Kolom bermasalah berbingkai 1,5 px merah (#FF6B6B), ikon peringatan, dan kalimat. Warna tidak pernah menjadi satu-satunya sinyal. Error muncul setelah kolom disentuh atau Save diketuk; saldo kurang muncul langsung.
 **Catatan**
  
 - Pesan menyebut apa yang salah, berapa selisihnya, dan cara memperbaikinya.
@@ -274,6 +275,33 @@ Papan: `Tx-Add-Transfer` · 390 × 844
 **Catatan**
  
 - Satu baris transfer mengubah dua saldo sekaligus tetapi tidak mengubah kekayaan bersih.
+### C4 · Detail transaksi
+
+Papan: `Tx-Detail` (+ `Tx-Detail-Transfer`, `Tx-Detail-Valas`, `Tx-Delete`) · 390 × 844
+
+**Tujuan.** Melihat satu catatan secara utuh, lalu mengubah atau menghapusnya. Rute `/tx/[id]` (layar yang didorong, tanpa bar bawah); form ubah di `/tx/[id]/edit`. Dibuka dengan mengetuk baris transaksi di Transaksi, Detail akun, Ringkasan, atau Kategori anggaran.
+
+**Tata letak dan komponen**
+
+- Header: panah kembali dan judul "Transaction". Tidak ada tombol pensil.
+- Kartu hero: kotak kategori 48 (isi kartu, border 1 px, ikon emas), deskripsi (18/24, semibold), "kategori · tanggal", tag jenis (Expense / Income / Transfer) dan nominal IBM Plex Sans 700 40/46: pengeluaran merah dengan −, pemasukan hijau dengan +, transfer netral tanpa tanda.
+- Kartu rincian: Account (nama dan "Balance after Rp…" dari `v_account_activity`, tanpa ikon di sebelahnya), Date (tanggal dan jam), Category, Source (Manual, AI chat, Fixed expense) dan Notes ("No note" bila kosong).
+- Kartu anggaran: hanya untuk pengeluaran yang kategorinya punya anggaran bulan itu. Bar 8 px, total bulan itu ("Rp1.425.000 of Rp1.800.000 · 79%"), melewati batas memakai segmen merah bergaris, dan kalimat "This transaction is part of that total."
+- Bilah bawah: Delete (lebar 120, garis tepi, teks merah) dan Edit (putih solid).
+
+**Varian**
+
+- Transfer: ikon tukar, nominal netral, kalimat bahwa transfer bukan pemasukan atau pengeluaran. Kartu From dan To (kotak bank, nama akun, panah turun di antaranya) dengan −Rp merah di From, +Rp netral di To, dan "After Rp…" di tiap sisi. Tanpa kategori dan tanpa kartu anggaran.
+- Valas: nominal dalam mata uang kantong ("−S$100,00") dan di bawahnya "Rp1.250.000 at the time (S$1 = Rp12.500)". Rincian ditambah Currency, Rupiah value dan Rate used; kotak info bahwa nilai rupiah dibekukan saat dicatat.
+
+**Hapus**
+
+- Delete membuka dialog "Delete this transaction?" yang menyebut catatan, saldo akun dan total anggaran sesudah dihapus, dengan Cancel dan Delete. Setelah Delete layar kembali dan muncul snackbar "Transaction deleted" dengan Undo yang mengembalikan catatan yang sama. Menghapus transfer menghapus kedua sisinya; pemasukan yang sudah terpakai tidak bisa dihapus karena saldo akan negatif.
+
+**Catatan**
+
+- Semua angka dibaca dari view; tidak ada saldo atau total yang disimpan.
+
 ## D · Akun
  
 ### D1 · Accounts (data contoh)
@@ -302,15 +330,17 @@ Papan: `Account-Detail` · 390 × 1100
  
 **Tata letak dan komponen**
  
-- App bar dengan nama akun (BCA Tabungan), jenis, dan saldo saat ini Rp6.842.500.
+- App bar dengan panah kembali, nama akun (BCA Tabungan) dan tombol pensil yang membuka form ubah (`/account/edit?id=`). Di bawahnya jenis akun dan saldo saat ini Rp6.842.500 (serif).
 - Rekonsiliasi: saldo awal (1 Jan 2026) Rp1.200.000, uang masuk +Rp15.000.000, uang keluar −Rp9.357.500, saldo saat ini Rp6.842.500.
-- Pintasan Add dan Transfer.
+- Pintasan Add dan Transfer: membuka form transaksi dengan akun ini sudah terpilih.
 - Aktivitas Oktober, terbaru dulu, dengan filter All / In / Out. Tiap baris menampilkan saldo berjalan seperti mutasi rekening.
-- Tautan "View all transactions for this account".
+- Tautan "View all transactions for this account": membuka tab Transaksi yang disaring ke akun ini sejak tanggal saldo awal sampai hari ini.
 **Keadaan**
  
 - Transfer keluar tampil tanpa tanda dengan label "Transfer out".
 **Catatan**
+ 
+- Akun Valas punya detail sendiri (Valas-Detail); layar ini menampilkan "coming later" untuknya.
  
 - Saldo = saldo awal + pemasukan − pengeluaran ± transfer; tidak ada saldo yang disimpan.
 ### D3 · Buat / ubah akun
@@ -323,10 +353,13 @@ Papan: `Account-Edit` · 390 × 844
  
 - Pilihan tipe berupa ubin: Bank, Cash, E-wallet, Savings, dan Valas (lihat `Valas-Edit` di bagian V).
 - Nama akun dan saldo awal (Rp1.200.000) per tanggal 1 Jan 2026 dengan penjelasan bahwa mengubahnya akan menghitung ulang saldo saat ini.
-- Pilihan ikon (opsional).
+- Pilihan ikon (opsional): baris tanda bank untuk Bank dan Savings, tanda dompet digital untuk E-wallet, tanpa pilihan untuk Cash. Pilih merek bank atau dompet digital yang sama dengan kartu akun; tanda yang tidak cocok dengan jenis baru dibuang saat jenis diganti.
 - Catatan: tidak perlu login bank atau nomor kartu.
-- Tombol Cancel dan "Create account".
+- Tombol Cancel dan "Create account" (saat ubah: "Save changes").
 **Keadaan**
+ 
+- Kolom bermasalah berbingkai 1,5 px merah (#FF6B6B), ikon peringatan, dan kalimat; muncul setelah kolom disentuh atau Save diketuk. Aturan: nama wajib, paling banyak 40 karakter dan tidak sama dengan akun lain (huruf besar atau kecil sama saja); saldo awal bilangan bulat Rp0 atau lebih; tanggal tidak setelah hari ini.
+- Saat ubah akun yang sudah punya catatan: tanggal saldo awal tidak boleh melewati catatan tertua, dan saldo awal tidak boleh membuat saldo saat ini di bawah nol.
  
 - Ubin terpilih memakai bingkai 1,5 px terang.
 **Catatan**
