@@ -2,6 +2,7 @@
 // second language stays possible later). This file currently only has the 13 guard-code
 // messages — the rest of the app's copy is written screen by screen, later phases.
 import type { AccountType } from '../data/repo/accounts';
+import type { TxSource } from '../data/repo/transactions';
 import type { GuardCode } from '../domain/errors';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
@@ -1078,6 +1079,10 @@ export function goalRemainingLabel(amountFormatted: string): string {
   return `${amountFormatted} remaining`;
 }
 
+export function goalAchieved(): string {
+  return 'Tercapai';
+}
+
 export function netWorthHistoryTitle(): string {
   return 'Net worth history';
 }
@@ -1180,13 +1185,14 @@ export function noNoteLabel(): string {
   return 'No note';
 }
 
-const txSourceLabels: Record<'manual' | 'ai' | 'recurring', string> = {
+const txSourceLabels: Record<TxSource, string> = {
   manual: 'Manual',
   ai: 'AI chat',
   recurring: 'Fixed expense',
+  scan: 'Scan struk',
 };
 
-export function txSourceName(source: 'manual' | 'ai' | 'recurring'): string {
+export function txSourceName(source: TxSource): string {
   return txSourceLabels[source];
 }
 
@@ -1332,15 +1338,11 @@ export function addTransactionTitle(): string {
 }
 
 export function scanReceiptTitle(): string {
-  return 'Scan a receipt';
+  return 'Scan struk';
 }
 
 export function addStubMessage(): string {
   return 'The add form is not built yet.';
-}
-
-export function scanStubMessage(): string {
-  return 'Receipt scanning is not built yet.';
 }
 
 // The second change line under the balance: since the start of the year.
@@ -2656,4 +2658,153 @@ export function goalAccountRequired(): string {
 
 export function goalLinkCTA(): string {
   return 'Link an account or log contributions to start tracking.';
+}
+
+// ---- Receipt scan (/tx/scan, /tx/scan/review): the camera, its error states and the review ----
+export function receiptFrameHint(): string {
+  return 'Masukkan seluruh struk ke dalam bingkai. Pastikan teks terbaca dan tidak buram.';
+}
+
+export function receiptCloseLabel(): string {
+  return 'Tutup';
+}
+
+export function receiptFlashLabel(on: boolean): string {
+  return on ? 'Matikan flash' : 'Nyalakan flash';
+}
+
+export function receiptGalleryLabel(): string {
+  return 'Pilih dari galeri';
+}
+
+export function receiptShutterLabel(): string {
+  return 'Ambil foto';
+}
+
+export function receiptManualLabel(): string {
+  return 'Isi manual';
+}
+
+export function receiptReadingLabel(): string {
+  return 'Membaca struk…';
+}
+
+export function receiptPermissionTitle(): string {
+  return 'Kamera belum diizinkan';
+}
+
+export function receiptPermissionBody(): string {
+  return 'Izinkan kamera supaya MONO bisa memotret struk. Gambarnya dibaca di perangkat, tidak disimpan, dan tidak dikirim ke mana pun. Kamu juga bisa memilih foto dari galeri.';
+}
+
+export function receiptOpenSettingsLabel(): string {
+  return 'Buka pengaturan';
+}
+
+export function receiptAllowCameraLabel(): string {
+  return 'Izinkan kamera';
+}
+
+export function receiptUnreadableMessage(): string {
+  return 'Struk belum terbaca. Coba foto ulang atau isi manual.';
+}
+
+export function receiptForeignMessage(): string {
+  return 'Struk dalam mata uang asing belum bisa dibaca di sini. Isi manual saja.';
+}
+
+export function receiptRetakeLabel(): string {
+  return 'Foto ulang';
+}
+
+export function receiptReviewTitle(): string {
+  return 'Hasil scan';
+}
+
+export function receiptBackLabel(): string {
+  return 'Kembali';
+}
+
+export function receiptOnDeviceTitle(): string {
+  return 'Dibaca di perangkat';
+}
+
+export function receiptOnDeviceNote(): string {
+  return 'Gambar tidak disimpan dan tidak dikirim. Periksa dulu sebelum menyimpan.';
+}
+
+export function receiptDraftTag(): string {
+  return 'DRAF · PENGELUARAN';
+}
+
+export function receiptNotSavedLabel(): string {
+  return 'Belum tersimpan';
+}
+
+export function receiptDateLine(dateText: string, fromReceipt: boolean): string {
+  return fromReceipt ? `${dateText} · dari struk` : `${dateText} · hari ini`;
+}
+
+export function receiptShopLabel(): string {
+  return 'Nama toko';
+}
+
+export function receiptTotalPick(): string {
+  return 'Total, pilih yang benar';
+}
+
+export function receiptTotalTypeOwn(): string {
+  return 'Ketik sendiri';
+}
+
+export function receiptTotalOwnLabel(): string {
+  return 'Total (Rp)';
+}
+
+export function receiptCategoryLabel(): string {
+  return 'Kategori';
+}
+
+export function receiptChooseCategory(): string {
+  return 'Pilih kategori';
+}
+
+export function receiptAccountLabel(): string {
+  return 'Akun';
+}
+
+export function receiptDateLabel(): string {
+  return 'Tanggal';
+}
+
+export function receiptBalanceAfter(amountText: string): string {
+  return `Saldo setelah ${amountText}`;
+}
+
+export function receiptSimilarNotice(dateText: string, amountText: string, name: string): string {
+  return `Mirip dengan transaksi ${dateText}: ${amountText}${name ? `, ${name}` : ''}. Tetap boleh disimpan.`;
+}
+
+export function receiptCancelLabel(): string {
+  return 'Batal';
+}
+
+export function receiptSaveLabel(): string {
+  return 'Simpan pengeluaran';
+}
+
+export function receiptSavingLabel(): string {
+  return 'Menyimpan…';
+}
+
+export function receiptNothingToReview(): string {
+  return 'Tidak ada hasil scan untuk diperiksa.';
+}
+
+export function receiptScanAgainLabel(): string {
+  return 'Scan lagi';
+}
+
+export function receiptLoadError(): string {
+  return 'Akun dan kategori tidak bisa dimuat.';
 }

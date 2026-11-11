@@ -5,6 +5,7 @@
 // second language stays possible later). This file currently only has the 13 guard-code
 // messages — the rest of the app's copy is written screen by screen, later phases.
 import type { AccountType } from '../data/repo/accounts';
+import type { TxSource } from '../data/repo/transactions';
 import type { GuardCode } from '../domain/errors';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
@@ -71,6 +72,7 @@ const accountTypeTags: Record<AccountType, string> = {
 export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
+
 
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
@@ -1080,6 +1082,10 @@ export function goalRemainingLabel(amountFormatted: string): string {
   return `${amountFormatted} remaining`;
 }
 
+export function goalAchieved(): string {
+  return 'Achieved';
+}
+
 export function netWorthHistoryTitle(): string {
   return 'Net worth history';
 }
@@ -1182,13 +1188,14 @@ export function noNoteLabel(): string {
   return 'No note';
 }
 
-const txSourceLabels: Record<'manual' | 'ai' | 'recurring', string> = {
+const txSourceLabels: Record<TxSource, string> = {
   manual: 'Manual',
   ai: 'AI chat',
   recurring: 'Fixed expense',
+  scan: 'Receipt scan',
 };
 
-export function txSourceName(source: 'manual' | 'ai' | 'recurring'): string {
+export function txSourceName(source: TxSource): string {
   return txSourceLabels[source];
 }
 
@@ -1339,10 +1346,6 @@ export function scanReceiptTitle(): string {
 
 export function addStubMessage(): string {
   return 'The add form is not built yet.';
-}
-
-export function scanStubMessage(): string {
-  return 'Receipt scanning is not built yet.';
 }
 
 // The second change line under the balance: since the start of the year.
@@ -1829,6 +1832,7 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
       return couldNotSaveMessage();
   }
 }
+
 
 // AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
 export function aiSetupTitle(): string {
@@ -2511,4 +2515,300 @@ export function languageIndonesianLabel(): string {
 
 export function languageSelectorLabel(): string {
   return 'Language';
+}
+
+// ---------------------------------------------------------------- Goals (synced from id.ts)
+// Goals list screen & edit form (DESIGN.md "G. Goals").
+export function goalNeededPaceLabel(amountFormatted: string): string {
+  return `Needed pace, estimate`;
+}
+
+export function goalNeededPaceValue(amountFormatted: string): string {
+  return `${amountFormatted} / month`;
+}
+
+export function goalAccountLinkedLabel(accountName: string): string {
+  return `Linked account: ${accountName}`;
+}
+
+export function goalNotLinkedLabel(): string {
+  return 'Not linked to an account yet';
+}
+
+export function goalCalculatedLabel(): string {
+  return 'Calculated: all accounts added together';
+}
+
+export function goalsEmptyTitle(): string {
+  return 'No goals yet';
+}
+
+export function goalsEmptyBody(): string {
+  return 'Add a goal to track your progress toward a target.';
+}
+
+export function addGoalLabel(): string {
+  return 'Add goal';
+}
+
+export function goalsFooterNote(): string {
+  return 'Progress is never typed in. It is computed from the accounts a goal is linked to, so it matches your records.';
+}
+
+// Goal edit form.
+export function newGoalTitle(): string {
+  return 'New goal';
+}
+
+export function editGoalTitle(): string {
+  return 'Edit goal';
+}
+
+export function goalNameLabel(): string {
+  return 'NAME';
+}
+
+export function goalNamePlaceholder(): string {
+  return 'e.g. Emergency fund';
+}
+
+export function goalProgressSourceLabel(): string {
+  return 'PROGRESS IS CALCULATED FROM';
+}
+
+export function goalModeOneAccountLabel(): string {
+  return 'One account';
+}
+
+export function goalModeOneAccountSub(): string {
+  return 'Balance of a linked account';
+}
+
+export function goalModeTotalAssetsLabel(): string {
+  return 'Total assets';
+}
+
+export function goalModeTotalAssetsSub(): string {
+  return 'All accounts added together';
+}
+
+export function goalLinkedAccountLabel(): string {
+  return 'LINKED ACCOUNT';
+}
+
+export function goalCurrentBalanceNote(amountFormatted: string): string {
+  return `Current balance ${amountFormatted} — read from your records, not typed in.`;
+}
+
+export function goalTargetAmountLabel(): string {
+  return 'TARGET AMOUNT';
+}
+
+export function goalTargetDateLabel2(): string {
+  return 'TARGET DATE, OPTIONAL';
+}
+
+export function goalPreviewLabel(): string {
+  return 'PREVIEW FROM STORED RECORDS';
+}
+
+export function goalPreviewSavedSoFar(): string {
+  return 'Saved so far';
+}
+
+export function goalPreviewRemaining(): string {
+  return 'Remaining';
+}
+
+export function goalPreviewMonthsLeft(monthsLeft: number, dateFormatted: string): string {
+  return `Months left, to ${dateFormatted}`;
+}
+
+export function goalPreviewMonthsLeftValue(monthsLeft: number): string {
+  return `${monthsLeft}`;
+}
+
+export function goalPreviewNeededPace(): string {
+  return 'Needed pace, estimate';
+}
+
+export function goalDeleteNote(): string {
+  return 'Deleting a goal never changes accounts or transactions.';
+}
+
+export function saveGoalLabel(): string {
+  return 'Save goal';
+}
+
+export function goalLinkAccountPickerTitle(): string {
+  return 'Link an account';
+}
+
+export function goalNameTooLong(): string {
+  return 'Name must be 40 characters or fewer.';
+}
+
+export function goalNameRequired(): string {
+  return 'Name is required.';
+}
+
+export function goalAmountRequired(): string {
+  return 'Target amount must be greater than zero.';
+}
+
+export function goalAccountRequired(): string {
+  return 'Choose an account to link.';
+}
+
+export function goalLinkCTA(): string {
+  return 'Link an account or log contributions to start tracking.';
+}
+
+// ---- Receipt scan (/tx/scan, /tx/scan/review): the camera, its error states and the review ----
+export function receiptFrameHint(): string {
+  return 'Fit the whole receipt inside the frame. Make sure the text is readable and not blurry.';
+}
+
+export function receiptCloseLabel(): string {
+  return 'Close';
+}
+
+export function receiptFlashLabel(on: boolean): string {
+  return on ? 'Turn flash off' : 'Turn flash on';
+}
+
+export function receiptGalleryLabel(): string {
+  return 'Choose from gallery';
+}
+
+export function receiptShutterLabel(): string {
+  return 'Take photo';
+}
+
+export function receiptManualLabel(): string {
+  return 'Enter manually';
+}
+
+export function receiptReadingLabel(): string {
+  return 'Reading the receipt…';
+}
+
+export function receiptPermissionTitle(): string {
+  return 'Camera access is off';
+}
+
+export function receiptPermissionBody(): string {
+  return 'Allow the camera so MONO can photograph a receipt. The picture is read on your phone, not saved and not sent anywhere. You can also choose a photo from your gallery.';
+}
+
+export function receiptOpenSettingsLabel(): string {
+  return 'Open settings';
+}
+
+export function receiptAllowCameraLabel(): string {
+  return 'Allow camera';
+}
+
+export function receiptUnreadableMessage(): string {
+  return 'The receipt could not be read. Try another photo or enter it manually.';
+}
+
+export function receiptForeignMessage(): string {
+  return 'Receipts in a foreign currency cannot be read here yet. Enter it manually.';
+}
+
+export function receiptRetakeLabel(): string {
+  return 'Retake photo';
+}
+
+export function receiptReviewTitle(): string {
+  return 'Scan result';
+}
+
+export function receiptBackLabel(): string {
+  return 'Back';
+}
+
+export function receiptOnDeviceTitle(): string {
+  return 'Read on your phone';
+}
+
+export function receiptOnDeviceNote(): string {
+  return 'The picture is not saved and not sent. Check it before saving.';
+}
+
+export function receiptDraftTag(): string {
+  return 'DRAFT · EXPENSE';
+}
+
+export function receiptNotSavedLabel(): string {
+  return 'Not saved yet';
+}
+
+export function receiptDateLine(dateText: string, fromReceipt: boolean): string {
+  return fromReceipt ? `${dateText} · from the receipt` : `${dateText} · today`;
+}
+
+export function receiptShopLabel(): string {
+  return 'Shop';
+}
+
+export function receiptTotalPick(): string {
+  return 'Total, pick the right one';
+}
+
+export function receiptTotalTypeOwn(): string {
+  return 'Type it';
+}
+
+export function receiptTotalOwnLabel(): string {
+  return 'Total (Rp)';
+}
+
+export function receiptCategoryLabel(): string {
+  return 'Category';
+}
+
+export function receiptChooseCategory(): string {
+  return 'Choose a category';
+}
+
+export function receiptAccountLabel(): string {
+  return 'Account';
+}
+
+export function receiptDateLabel(): string {
+  return 'Date';
+}
+
+export function receiptBalanceAfter(amountText: string): string {
+  return `Balance after ${amountText}`;
+}
+
+export function receiptSimilarNotice(dateText: string, amountText: string, name: string): string {
+  return `Looks like the transaction on ${dateText}: ${amountText}${name ? `, ${name}` : ''}. You can still save it.`;
+}
+
+export function receiptCancelLabel(): string {
+  return 'Cancel';
+}
+
+export function receiptSaveLabel(): string {
+  return 'Save expense';
+}
+
+export function receiptSavingLabel(): string {
+  return 'Saving…';
+}
+
+export function receiptNothingToReview(): string {
+  return 'There is no scan result to review.';
+}
+
+export function receiptScanAgainLabel(): string {
+  return 'Scan again';
+}
+
+export function receiptLoadError(): string {
+  return 'Your accounts and categories could not be loaded.';
 }

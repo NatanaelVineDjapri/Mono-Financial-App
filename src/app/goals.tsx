@@ -4,22 +4,22 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
+import { ProgressBar } from '@/components/ProgressBar';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { formatShortDate } from '@/core/date';
-import { pct, rp, shown } from '@/core/money';
+import { rp, shown } from '@/core/money';
 import type { GoalProgressRow } from '@/data/repo/goals';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useGoalProgress } from '@/features/goals/useGoals';
 import {
     addGoalLabel,
-    goalCompleteLabel,
+    goalAchieved,
     goalLinkCTA,
-    goalOfTargetLabel,
     goalRemainingLabel,
     goalsEmptyBody,
     goalsEmptyTitle,
@@ -52,61 +52,75 @@ interface GoalCardProps {
   onPress: () => void;
 }
 
-function GoalItem({ goal, accountName, onPress }: GoalCardProps) {
+function GoalCard({ goal, accountName, onPress }: GoalCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
-  const percent = shown(pct(goal.progress_bp, false), hidden);
+  const percentBp = goal.progress_bp;
+  const isAchieved = percentBp >= 10000;
   const ml = monthsLeft(goal.target_date);
   const pace = neededPace(goal.remaining, ml);
 
-  const sourceNote =
-    goal.mode === 'total_assets'
-      ? 'Calculated: all accounts added together'
-      : accountName
-        ? `Linked account: ${accountName}`
-        : 'Not linked to an account yet';
+  // Not linked: dark card with "Belum tertaut ke akun" message
+  const isNotLinked = goal.mode === 'account' && goal.account_id == null;
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      style={styles.goalItem}
       testID={`goal-card-${goal.id}`}
     >
-      {/* Top row: name + target date */}
-      <View style={styles.goalHead}>
-        <View style={styles.nameCol}>
-          <Text style={styles.goalName} testID={`goal-name-${goal.id}`}>
+      <Card style={isNotLinked ? styles.cardNotLinked : styles.card}>
+        {/* Top row: name + target date */}
+        <View style={styles.cardHead}>
+          <Text style={styles.goalName} numberOfLines={1} testID={`goal-name-${goal.id}`}>
             {goal.name}
           </Text>
-          <Text style={styles.sourceNote}>{sourceNote}</Text>
+          {!!goal.target_date && (
+            <Text style={styles.targetDate}>{`Target ${formatShortDate(goal.target_date)}`}</Text>
+          )}
         </View>
-        {!!goal.target_date && (
-          <Text style={styles.targetDate}>{`Target ${formatShortDate(goal.target_date)}`}</Text>
+
+        {isNotLinked ? (
+          <Text style={styles.notLinkedText}>{goalLinkCTA()}</Text>
+        ) : (
+          <>
+            {/* Amount row: current + "dari" + target on same baseline */}
+            <View style={styles.amountRow}>
+              <Text style={styles.currentAmount} testID={`goal-amount-${goal.id}`}>
+                {shown(rp(goal.current_amount, false), hidden)}
+              </Text>
+              <Text style={styles.ofTargetInline}>
+                {` dari ${shown(rp(goal.target_amount, false), hidden)}`}
+              </Text>
+            </View>
+
+            {/* Progress bar emas */}
+            <ProgressBar
+              valueBp={percentBp}
+              label={goal.name}
+              style={styles.progress}
+              testID={`goal-progress-${goal.id}`}
+            />
+
+            {/* Meta rows */}
+            <View style={styles.metaContainer}>
+              {isAchieved ? (
+                <Text style={styles.achievedLabel}>{goalAchieved()}</Text>
+              ) : (
+                <>
+                  <Text style={styles.remainingText}>
+                    {goalRemainingLabel(shown(rp(goal.remaining), hidden))}
+                  </Text>
+                  {pace != null && goal.remaining > 0 && (
+                    <Text style={styles.paceText}>
+                      {`${shown(rp(pace), hidden)} / bulan`}
+                    </Text>
+                  )}
+                </>
+              )}
+            </View>
+          </>
         )}
-      </View>
-
-      {/* Amount */}
-      <Amount value={goal.current_amount} variant="displayS" style={styles.amount} testID={`goal-amount-${goal.id}`} />
-      <Text style={styles.ofTarget}>{goalOfTargetLabel(shown(rp(goal.target_amount), hidden))}</Text>
-
-      {/* Percent + remaining in one row */}
-      <View style={styles.metaRow}>
-        <Text style={styles.percentText}>{goalCompleteLabel(percent)}</Text>
-        <Text style={styles.remainingText}>{goalRemainingLabel(shown(rp(goal.remaining), hidden))}</Text>
-      </View>
-
-      {/* Pace row */}
-      {goal.remaining > 0 && pace != null && (
-        <View style={styles.paceRow}>
-          <Text style={styles.paceLabel}>Needed pace, estimate</Text>
-          <Text style={styles.paceValue}>{shown(rp(pace), hidden)} / month</Text>
-        </View>
-      )}
-
-      {/* CTA when not linked */}
-      {goal.mode === 'account' && goal.account_id == null && (
-        <Text style={styles.linkCTA}>{goalLinkCTA()}</Text>
-      )}
+      </Card>
     </Pressable>
   );
 }
@@ -154,7 +168,7 @@ export default function GoalsScreen() {
 
         {goals.map(goal => {
           const accountName = goal.account_id ? accountMap.get(goal.account_id) : undefined;
-          return <GoalItem key={goal.id} goal={goal} accountName={accountName} onPress={() => onEdit(goal.id)} />;
+          return <GoalCard key={goal.id} goal={goal} accountName={accountName} onPress={() => onEdit(goal.id)} />;
         })}
 
         {goals.length > 0 && (
@@ -181,31 +195,30 @@ export default function GoalsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  content: { paddingHorizontal: 20, gap: 20, paddingTop: 12 },
+  content: { paddingHorizontal: 20, gap: 16, paddingTop: 12 },
 
   empty: { alignItems: 'center', gap: 12, paddingTop: 48, paddingHorizontal: 24 },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
-  goalItem: { gap: 6, paddingVertical: 8 },
-  goalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-  nameCol: { flex: 1, gap: 2 },
-  goalName: { ...MonoText.bodyStrong, color: MonoColors.text, fontSize: 16 },
-  sourceNote: { ...MonoText.caption, color: MonoColors.textMeta },
+  card: { padding: 16, gap: 12 },
+  cardNotLinked: { backgroundColor: '#101011' },
+  cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  goalName: { ...MonoText.bodyStrong, color: MonoColors.text, fontSize: 16, flex: 1 },
   targetDate: { ...MonoText.bodyS, color: MonoColors.textSecond },
 
-  amount: { marginTop: 4 },
-  ofTarget: { ...MonoText.bodyS, color: MonoColors.textSecond, marginTop: 2 },
+  notLinkedText: { ...MonoText.body, color: MonoColors.textSecond },
 
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 4 },
-  percentText: { ...MonoText.bodyS, color: MonoColors.text },
+  amountRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' },
+  currentAmount: { ...MonoText.figureM, color: MonoColors.text },
+  ofTargetInline: { ...MonoText.bodyS, color: MonoColors.textSecond },
+
+  progress: { marginTop: 4 },
+
+  metaContainer: { gap: 4, marginTop: 4 },
+  achievedLabel: { ...MonoText.bodyStrong, color: MonoColors.accent },
   remainingText: { ...MonoText.bodyS, color: MonoColors.textSecond },
-
-  paceRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginTop: 2 },
-  paceLabel: { ...MonoText.bodyS, color: MonoColors.textSecond },
-  paceValue: { ...MonoText.bodyS, color: MonoColors.accent },
-
-  linkCTA: { ...MonoText.bodyS, color: MonoColors.accent, marginTop: 4 },
+  paceText: { ...MonoText.bodyS, color: MonoColors.text },
 
   footer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 8 },
   footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1, lineHeight: 18 },
