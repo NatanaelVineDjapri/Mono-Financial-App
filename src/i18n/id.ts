@@ -875,23 +875,47 @@ export function stepsDoneLabel(done: number, total: number): string {
 }
 
 export function addAccountStepLabel(): string {
-  return 'Add account';
+  return 'Add an account';
+}
+
+export function addAccountStepHint(): string {
+  return 'Track cash, e-wallet or savings, with an opening balance';
 }
 
 export function addTransactionStepLabel(): string {
-  return 'Add transaction';
+  return 'Record a transaction';
+}
+
+export function addTransactionStepHint(): string {
+  return 'Income, expense or transfer';
 }
 
 export function setBudgetStepLabel(): string {
-  return 'Set monthly budget';
+  return 'Set a monthly budget';
+}
+
+export function setBudgetStepHint(): string {
+  return 'Spending limit and category limits';
 }
 
 export function createBackupStepLabel(): string {
-  return 'Create backup';
+  return 'Create a backup';
+}
+
+export function createBackupStepHint(): string {
+  return 'Your data lives only on this device';
+}
+
+export function chartsAppearTitle(): string {
+  return 'Charts appear with your first records';
+}
+
+export function chartsAppearBody(): string {
+  return 'Net worth history, income versus expenses and asset allocation are drawn from stored records.';
 }
 
 export function privacyByDesignNote(): string {
-  return 'Data only exists on this device. Private by design.';
+  return 'Private by design. No sign-up, no server, no sync. Records are stored on this phone and work offline.';
 }
 
 // Recurring due card (PAGES.md A1).
@@ -1088,4 +1112,184 @@ export function rangeOneYearLabel(): string {
 
 export function rangeAllLabel(): string {
   return 'All';
+}
+
+// ---------------------------------------------------------------- Transaction detail
+// Tx-Detail, Tx-Detail-Transfer, Tx-Detail-Valas, Tx-Delete (DESIGN.md "C2").
+export function editTransactionLabel(): string {
+  return 'Edit transaction';
+}
+
+export function editLabel(): string {
+  return 'Edit';
+}
+
+export function deleteLabel(): string {
+  return 'Delete';
+}
+
+export function txDetailAccountLabel(): string {
+  return 'Account';
+}
+
+export function txDetailDateLabel(): string {
+  return 'Date';
+}
+
+export function txDetailSourceLabel(): string {
+  return 'Source';
+}
+
+export function txDetailNotesLabel(): string {
+  return 'Notes';
+}
+
+export function txDetailCurrencyLabel(): string {
+  return 'Currency';
+}
+
+export function txDetailRupiahValueLabel(): string {
+  return 'Rupiah value';
+}
+
+export function txDetailRateUsedLabel(): string {
+  return 'Rate used';
+}
+
+export function txDetailFromLabel(): string {
+  return 'From';
+}
+
+export function txDetailToLabel(): string {
+  return 'To';
+}
+
+export function noNoteLabel(): string {
+  return 'No note';
+}
+
+const txSourceLabels: Record<'manual' | 'ai' | 'recurring', string> = {
+  manual: 'Manual',
+  ai: 'AI chat',
+  recurring: 'Fixed expense',
+};
+
+export function txSourceName(source: 'manual' | 'ai' | 'recurring'): string {
+  return txSourceLabels[source];
+}
+
+export function balanceAfterLabel(amountFormatted: string): string {
+  return `Balance after ${amountFormatted}`;
+}
+
+export function afterLabel(amountFormatted: string): string {
+  return `After ${amountFormatted}`;
+}
+
+export function pocketAfterLabel(symbol: string, amountFormatted: string): string {
+  return `Pocket ${symbol} · after ${amountFormatted}`;
+}
+
+export function txCategoryDateLine(categoryName: string, dateText: string): string {
+  return `${categoryName} · ${dateText}`;
+}
+
+export function txDateTimeLine(dateText: string, timeText: string): string {
+  return `${dateText} · ${timeText}`;
+}
+
+export function transferExplainer(): string {
+  return 'Moves money between your accounts. It is not income or spending and is not counted in reports or budgets.';
+}
+
+export function txBudgetCardTitle(categoryName: string): string {
+  return `Budget · ${categoryName}`;
+}
+
+export function txBudgetOfLimit(limitFormatted: string, percentFormatted: string): string {
+  return `of ${limitFormatted} · ${percentFormatted}`;
+}
+
+export function txBudgetPartNote(): string {
+  return 'This transaction is part of that total.';
+}
+
+export function rupiahAtTheTime(rupiahFormatted: string, rateText: string): string {
+  return `${rupiahFormatted} at the time (${rateText})`;
+}
+
+export function rateEquals(symbol: string, rateFormatted: string): string {
+  return `${symbol}1 = ${rateFormatted}`;
+}
+
+export function rateFixedNote(): string {
+  return 'The rupiah value is fixed when you record the transaction, so later rate changes do not rewrite it.';
+}
+
+export function txNotFoundMessage(): string {
+  return 'This transaction no longer exists.';
+}
+
+export function txDetailLoadError(): string {
+  return 'Could not load this transaction.';
+}
+
+export function txDetailHeroAccessibilityLabel(title: string, kindLabel: string, subtitle: string, amountFormatted: string): string {
+  return `${title}, ${kindLabel}, ${subtitle}, ${amountFormatted}`;
+}
+
+export function deleteDialogTitle(): string {
+  return 'Delete this transaction?';
+}
+
+// The dialog's body as plain and bold parts: the nominals are bold. `toParts` is a clause for a
+// transfer's second account, `budgetParts` for an expense that counts toward a budget.
+export function deleteDialogParts(input: {
+  title: string;
+  amount: string;
+  accountName: string;
+  accountAfter: string;
+  toAccountName?: string;
+  toAccountAfter?: string;
+  budgetCategory?: string;
+  budgetAfter?: string;
+}): { text: string; strong?: boolean }[] {
+  const parts: { text: string; strong?: boolean }[] = [
+    { text: `“${input.title}”, ` },
+    { text: input.amount, strong: true },
+    { text: `, will be removed. ${input.accountName} goes back to ` },
+    { text: input.accountAfter, strong: true },
+  ];
+  if (input.toAccountName && input.toAccountAfter) {
+    parts.push({ text: ` and ${input.toAccountName} to ` }, { text: input.toAccountAfter, strong: true });
+  }
+  if (input.budgetCategory && input.budgetAfter) {
+    parts.push({ text: ` and the ${input.budgetCategory} budget to ` }, { text: input.budgetAfter, strong: true });
+  }
+  parts.push({ text: '. You can undo this for a few seconds.' });
+  return parts;
+}
+
+export function transactionDeletedMessage(): string {
+  return 'Transaction deleted';
+}
+
+export function undoLabel(): string {
+  return 'Undo';
+}
+
+export function transactionRestoreFailedMessage(): string {
+  return 'Could not undo the delete.';
+}
+
+export function deleteBlockedMessage(): string {
+  return 'This would take the account below zero, so it cannot be deleted. The money has already been spent.';
+}
+
+export function deleteFailedMessage(): string {
+  return 'Could not delete this transaction.';
+}
+
+export function editStubMessage(): string {
+  return 'The edit form is not built yet.';
 }
