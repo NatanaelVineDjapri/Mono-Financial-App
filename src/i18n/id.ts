@@ -1293,3 +1293,525 @@ export function deleteFailedMessage(): string {
 export function editStubMessage(): string {
   return 'The edit form is not built yet.';
 }
+
+// The centre + button's add menu (TabFabMenu): three ways to add a transaction.
+export function addTransactionLabel(): string {
+  return 'Add transaction';
+}
+
+export function closeAddMenuLabel(): string {
+  return 'Close menu';
+}
+
+export function addMenuScanAccessibilityLabel(): string {
+  return 'Scan a receipt';
+}
+
+export function addMenuAiAccessibilityLabel(): string {
+  return 'Add with AI chat';
+}
+
+export function addMenuManualAccessibilityLabel(): string {
+  return 'Add manually';
+}
+
+export function addTransactionTitle(): string {
+  return 'Add transaction';
+}
+
+export function scanReceiptTitle(): string {
+  return 'Scan a receipt';
+}
+
+export function addStubMessage(): string {
+  return 'The add form is not built yet.';
+}
+
+export function scanStubMessage(): string {
+  return 'Receipt scanning is not built yet.';
+}
+
+// The second change line under the balance: since the start of the year.
+export function ytdCaption(dateText: string): string {
+  return `YTD · vs ${dateText}`;
+}
+
+export function netWorthYtdChangeLabel(amountFormatted: string, pctFormatted: string, dateText: string): string {
+  return pctFormatted
+    ? `Year to date ${amountFormatted} (${pctFormatted}) vs ${dateText}`
+    : `Year to date ${amountFormatted} vs ${dateText}`;
+}
+
+// ---------------------------------------------------------------- Transaction form
+// Tx-Add, Tx-Add-Errors, Tx-Add-Transfer and the edit form (DESIGN.md section 14 for the messages).
+export function editTransactionTitle(): string {
+  return 'Edit transaction';
+}
+
+export function chatButtonLabel(): string {
+  return 'Chat';
+}
+
+export function chatButtonAccessibilityLabel(): string {
+  return 'Add this transaction by chat instead';
+}
+
+export function amountFieldLabel(): string {
+  return 'Amount';
+}
+
+export function amountToMoveLabel(): string {
+  return 'Amount to move';
+}
+
+export function amountAccessibilityLabel(): string {
+  return 'Amount in rupiah';
+}
+
+export function quickAddLabel(amountFormatted: string): string {
+  return `+${amountFormatted}`;
+}
+
+export function quickAddAccessibilityLabel(amountFormatted: string): string {
+  return `Add ${amountFormatted} to the amount`;
+}
+
+export function moreCategoriesLabel(): string {
+  return 'More';
+}
+
+export function allCategoriesTitle(): string {
+  return 'All categories';
+}
+
+export function allCategoriesSubtitle(kindLabel: string): string {
+  return `Choose a ${kindLabel.toLowerCase()} category`;
+}
+
+export function formAccountLabel(): string {
+  return 'Account';
+}
+
+export function fromLabel(): string {
+  return 'From';
+}
+
+export function toLabel(): string {
+  return 'To';
+}
+
+export function balanceAfterColonLabel(amountFormatted: string): string {
+  return `Balance after: ${amountFormatted}`;
+}
+
+export function swapAccountsLabel(): string {
+  return 'Swap From and To';
+}
+
+export function transferInfoBanner(): string {
+  return 'Moves money between your own accounts. Net worth does not change, and this is not counted as income or an expense.';
+}
+
+export function formDateLabel(): string {
+  return 'Date';
+}
+
+export function todayLabel(): string {
+  return 'Today';
+}
+
+export function yesterdayLabel(): string {
+  return 'Yesterday';
+}
+
+export function formDescriptionLabel(): string {
+  return 'Description';
+}
+
+export function formDescriptionOptionalLabel(): string {
+  return 'Description · optional';
+}
+
+export function descriptionPlaceholder(): string {
+  return 'e.g. Furniture deposit';
+}
+
+export function formNotesOptionalLabel(): string {
+  return 'Notes · optional';
+}
+
+export function notesPlaceholder(): string {
+  return 'Add a note';
+}
+
+export function saveButtonLabel(type: 'income' | 'expense' | 'transfer' | 'edit'): string {
+  return type === 'edit' ? 'Save changes' : `Save ${type}`;
+}
+
+export function savingLabel(): string {
+  return 'Saving…';
+}
+
+export function fieldsNeedAttention(count: number): string {
+  return count === 1 ? '1 field needs attention before this can be saved.' : `${count} fields need attention before this can be saved.`;
+}
+
+export function pickAccountTitle(): string {
+  return 'Choose account';
+}
+
+export function pickAccountSubtitle(): string {
+  return 'Your balance now is shown for each';
+}
+
+export function pickFromTitle(): string {
+  return 'Choose the From account';
+}
+
+export function pickToTitle(): string {
+  return 'Choose the To account';
+}
+
+export function valasComingLater(): string {
+  return 'Valas: coming later';
+}
+
+export function balanceNowLabel(amountFormatted: string): string {
+  return `Balance ${amountFormatted}`;
+}
+
+export function pickDateTitle(): string {
+  return 'Choose date';
+}
+
+export function pickDateSubtitle(): string {
+  return 'Not later than today';
+}
+
+export function previousMonthLabel(): string {
+  return 'Previous month';
+}
+
+export function nextMonthLabel(): string {
+  return 'Next month';
+}
+
+export function chooseDateAccessibilityLabel(dateText: string): string {
+  return `Date, ${dateText}. Choose another date`;
+}
+
+export function typeLockedHint(): string {
+  return 'The type of a transfer cannot be changed.';
+}
+
+export function editValasUnsupportedMessage(): string {
+  return 'Valas transactions cannot be edited here yet.';
+}
+
+export function couldNotSaveMessage(): string {
+  return "Couldn't save. Nothing was changed.";
+}
+
+export function txSavedMessage(
+  kind: 'income' | 'expense' | 'transfer',
+  accountName: string,
+  balanceFormatted: string,
+  toAccountName?: string,
+  toBalanceFormatted?: string,
+): string {
+  const label = txKindLabel(kind);
+  if (kind === 'transfer' && toAccountName && toBalanceFormatted) {
+    return `${label} saved. ${accountName} is now ${balanceFormatted}, ${toAccountName} ${toBalanceFormatted}.`;
+  }
+  return `${label} saved. ${accountName} is now ${balanceFormatted}.`;
+}
+
+export function changesSavedMessage(): string {
+  return 'Changes saved.';
+}
+
+export function undoFailedMessage(): string {
+  return 'Could not undo that.';
+}
+
+// One field's error, as a sentence. `linkText` is the part of the sentence that is a link
+// ("transfer money in first" switches the form to a transfer into that account).
+export interface TxErrorMessage {
+  text: string;
+  linkText?: string;
+}
+
+export interface TxErrorInput {
+  code: string;
+  accountName?: string;
+  balance?: number;
+  shortfall?: number;
+  today?: string;
+  type?: 'income' | 'expense' | 'transfer';
+}
+
+export const TRANSFER_IN_FIRST_LINK = 'transfer money in first';
+
+export function txFieldErrorMessage(error: TxErrorInput, rpFormat: (n: number) => string, dateFormat: (d: string) => string): TxErrorMessage {
+  switch (error.code) {
+    case 'amount_required':
+      return { text: 'Enter an amount above Rp0.' };
+    case 'category_required':
+      return { text: 'Choose a category so this counts toward the right budget.' };
+    case 'category_kind_mismatch':
+      return { text: 'Choose a category that matches the transaction type.' };
+    case 'account_required':
+      return { text: 'Choose an account.' };
+    case 'to_account_required':
+      return { text: 'Choose the account to move the money to.' };
+    case 'forex_not_supported':
+      return { text: 'Valas accounts are coming later. Pick a rupiah account.' };
+    case 'same_account':
+      return { text: 'Pick two different accounts.' };
+    case 'insufficient_balance': {
+      const name = error.accountName ?? 'This account';
+      const has = rpFormat(error.balance ?? 0);
+      const short = rpFormat(error.shortfall ?? 0);
+      if (error.type === 'transfer') {
+        return { text: `${name} only has ${has}. Pick another account or lower the amount. Short by ${short}.` };
+      }
+      return {
+        text: `${name} only has ${has}. Pick another account, lower the amount, or ${TRANSFER_IN_FIRST_LINK}. Short by ${short}.`,
+        linkText: TRANSFER_IN_FIRST_LINK,
+      };
+    }
+    case 'future_date':
+      return { text: `Date cannot be later than ${dateFormat(error.today ?? '')}.` };
+    case 'before_opening_date':
+      return { text: "This account didn't exist yet on that date." };
+    default:
+      return { text: couldNotSaveMessage() };
+  }
+}
+
+// The database's own error code (the guards are a backstop behind the form's checks), as a
+// message. Unknown codes never leak a technical string.
+export function txDbErrorMessage(
+  code: string | undefined,
+  ctx: { shortfallFormatted?: string; currency?: string; todayFormatted?: string } = {},
+): string {
+  switch (code) {
+    case 'future_date':
+      return ctx.todayFormatted ? `Date cannot be later than ${ctx.todayFormatted}.` : 'Date cannot be in the future.';
+    case 'before_opening_date':
+      return "This account didn't exist yet on that date.";
+    case 'category_kind_mismatch':
+      return 'Choose a category that matches the transaction type.';
+    case 'insufficient_balance':
+      return ctx.shortfallFormatted ? `Short by ${ctx.shortfallFormatted}. Pick another account or lower the amount.` : 'Not enough balance in this account.';
+    case 'currency_not_in_account':
+      return ctx.currency ? `This account does not have a ${ctx.currency} pocket.` : 'This account does not have a pocket for that currency.';
+    case 'missing_fx_rate':
+      return ctx.currency ? `Add an exchange rate for ${ctx.currency} first.` : 'Add an exchange rate first.';
+    default:
+      return couldNotSaveMessage();
+  }
+}
+
+// The date sheet's weekday row, Monday first.
+export function weekdayInitials(): string[] {
+  return ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+}
+
+export function chooseAccountPlaceholder(): string {
+  return 'Choose account';
+}
+
+// ---------------------------------------------------------------- Account detail and form
+// Account-Detail and Account-Edit (new and existing).
+export function accountKindCaption(typeLabel: string): string {
+  return `${typeLabel} · current balance`;
+}
+
+const accountTypeNames: Record<'bank' | 'cash' | 'ewallet' | 'savings' | 'forex', string> = {
+  bank: 'Bank account',
+  cash: 'Cash',
+  ewallet: 'E-wallet',
+  savings: 'Savings',
+  forex: 'Valas account',
+};
+
+export function accountTypeName(type: 'bank' | 'cash' | 'ewallet' | 'savings' | 'forex'): string {
+  return accountTypeNames[type];
+}
+
+export function editAccountLabel(): string {
+  return 'Edit account';
+}
+
+export function openingBalanceOnLabel(dateText: string): string {
+  return `Opening balance · ${dateText}`;
+}
+
+export function moneyInLabel(): string {
+  return 'Money in';
+}
+
+export function moneyOutLabel(): string {
+  return 'Money out';
+}
+
+export function currentBalanceLabel(): string {
+  return 'Current balance';
+}
+
+export function moneyInOutNote(): string {
+  return 'Money in and out include transfers to and from your other accounts.';
+}
+
+export function addToAccountLabel(): string {
+  return 'Add';
+}
+
+export function transferFromAccountLabel(): string {
+  return 'Transfer';
+}
+
+export function activityMonthTitle(monthName: string): string {
+  return `Activity · ${monthName}`;
+}
+
+export function newestFirstLabel(): string {
+  return 'Newest first';
+}
+
+export function activityFilterLabel(filter: 'all' | 'in' | 'out'): string {
+  return filter === 'all' ? 'All' : filter === 'in' ? 'In' : 'Out';
+}
+
+export function activityKindLabel(kind: 'income' | 'expense' | 'transfer_out' | 'transfer_in'): string {
+  return kind === 'income' ? 'Income' : kind === 'expense' ? 'Expense' : kind === 'transfer_out' ? 'Transfer out' : 'Transfer in';
+}
+
+export function activitySubtitle(dateText: string, balanceFormatted: string): string {
+  return `${dateText} · Balance ${balanceFormatted}`;
+}
+
+export function activityEmptyMessage(monthName: string): string {
+  return `Nothing recorded in ${monthName} yet.`;
+}
+
+export function activityFilterEmptyMessage(): string {
+  return 'No records match this filter.';
+}
+
+export function viewAllForAccountLabel(): string {
+  return 'View all transactions for this account';
+}
+
+export function accountNotFoundMessage(): string {
+  return 'This account no longer exists.';
+}
+
+export function accountDetailLoadError(): string {
+  return 'Could not load this account.';
+}
+
+export function valasDetailComingLater(): string {
+  return 'The Valas account detail is coming later.';
+}
+
+export function newAccountTitle(): string {
+  return 'New account';
+}
+
+export function accountTypeSectionLabel(): string {
+  return 'Account type';
+}
+
+export function accountTypeTileLabel(type: 'bank' | 'cash' | 'ewallet' | 'savings'): string {
+  return type === 'bank' ? 'Bank' : type === 'cash' ? 'Cash' : type === 'ewallet' ? 'E-wallet' : 'Savings';
+}
+
+export function accountNameLabel(): string {
+  return 'Account name';
+}
+
+export function accountNamePlaceholder(): string {
+  return 'e.g. BCA Tabungan';
+}
+
+export function openingBalanceLabel(): string {
+  return 'Opening balance';
+}
+
+export function asOfDateLabel(dateText: string): string {
+  return `As of ${dateText}`;
+}
+
+export function openingBalanceHelp(): string {
+  return 'The balance on that date. Income, expenses and transfers you record afterwards move it. Editing this later recalculates the current balance.';
+}
+
+export function accountIconSectionLabel(): string {
+  return 'Icon · optional';
+}
+
+export function noBankIconLabel(): string {
+  return 'No bank';
+}
+
+export function bankIconAccessibilityLabel(name: string): string {
+  return `${name} icon`;
+}
+
+export function accountPrivacyNote(): string {
+  return 'No bank login or card number is needed. This is only a label you keep on this device.';
+}
+
+export function createAccountLabel(): string {
+  return 'Create account';
+}
+
+export function accountCreatedMessage(name: string, balanceFormatted: string): string {
+  return `Account created. ${name} starts at ${balanceFormatted}.`;
+}
+
+export function accountChangesSavedMessage(): string {
+  return 'Changes saved.';
+}
+
+export function accountFieldErrorMessage(
+  error: { code: string; shortfall?: number; firstRecordOn?: string; today?: string },
+  rpFormat: (n: number) => string,
+  dateFormat: (d: string) => string,
+): string {
+  switch (error.code) {
+    case 'name_required':
+      return 'Give the account a name.';
+    case 'name_too_long':
+      return 'Keep the name to 40 characters or fewer.';
+    case 'name_taken':
+      return 'You already have an account with this name.';
+    case 'balance_invalid':
+      return 'Enter an opening balance of Rp0 or more.';
+    case 'balance_below_zero':
+      return `With this opening balance the account would be ${rpFormat(error.shortfall ?? 0)} below zero. Enter a higher amount.`;
+    case 'future_date':
+      return `Date cannot be later than ${dateFormat(error.today ?? '')}.`;
+    case 'after_first_record':
+      return `This account has records from ${dateFormat(error.firstRecordOn ?? '')}. Pick that day or an earlier one.`;
+    default:
+      return couldNotSaveMessage();
+  }
+}
+
+export function accountDbErrorMessage(code: string | undefined, ctx: { firstRecordOn?: string } = {}): string {
+  switch (code) {
+    case 'name_taken':
+      return 'You already have an account with this name.';
+    case 'before_opening_date':
+      return ctx.firstRecordOn ? `This account has records from ${ctx.firstRecordOn}. Pick that day or an earlier one.` : 'This account has records before that date.';
+    case 'insufficient_balance':
+      return 'With this opening balance the account would go below zero.';
+    case 'account_type_locked':
+      return 'This account type can no longer be changed.';
+    default:
+      return couldNotSaveMessage();
+  }
+}

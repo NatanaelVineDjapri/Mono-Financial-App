@@ -97,13 +97,17 @@ export default function OverviewScreen() {
     overview && overview.netWorthChange != null && overview.netWorthVsDate
       ? { amount: overview.netWorthChange, bp: overview.netWorthChangeBp, vsDate: overview.netWorthVsDate }
       : null;
+  const ytd: HeroChange | null =
+    overview && overview.netWorthYtdChange != null && overview.netWorthYtdVsDate
+      ? { amount: overview.netWorthYtdChange, bp: overview.netWorthYtdBp, vsDate: overview.netWorthYtdVsDate }
+      : null;
   const overCategory = budget?.categories.find(c => c.is_over === 1);
   const goalTarget = goals?.find(g => g.mode === 'total_assets')?.target_amount;
 
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll">
-        {top(<HeroSection nickname={NICKNAME} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} />)}
+        {top(<HeroSection nickname={NICKNAME} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} ytd={ytd} />)}
 
         {overview && (
           <MonthFlowCards
@@ -125,16 +129,17 @@ export default function OverviewScreen() {
 
         {overview && <CashFlowCard months={overview.cashFlow} />}
         <WhereYourMoneyCard shares={accountShares(accounts)} />
-        {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
-
-        <FixedExpensesCard dueToday={dueToday} nextDue={nextDue} onOpen={onOpenRecurring} />
-
-        {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}
-
-        {budget?.limit && <BudgetSummaryCard month={budget.month} limit={budget.limit} overCategory={overCategory} onOpen={onOpenBudgets} />}
         {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
 
         {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
+        {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
+
+        <FixedExpensesCard dueToday={dueToday} nextDue={nextDue} onOpen={onOpenRecurring} />
+        {budget?.limit && <BudgetSummaryCard month={budget.month} limit={budget.limit} overCategory={overCategory} onOpen={onOpenBudgets} />}
+        
+        {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}
+
+        
         
       </ScrollView>
     </View>

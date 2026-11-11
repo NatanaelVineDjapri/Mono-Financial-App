@@ -13,11 +13,13 @@ import {
   hideAmountsLabel,
   hideAmountsShortLabel,
   netWorthChangeLabel,
+  netWorthYtdChangeLabel,
   netWorthIncompleteNote,
   netWorthLabel,
   showAmountsLabel,
   showAmountsShortLabel,
   welcomeGreeting,
+  ytdCaption,
 } from '@/i18n/id';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -39,10 +41,13 @@ export interface HeroSectionProps {
   netWorth: number;
   incomplete?: boolean;
   change?: HeroChange | null;
+  ytd?: HeroChange | null; // year to date, the second line under the balance
   note?: string; // empty state: the one-line explanation under the balance
 }
 
-export function ChangeChip({ change, hidden }: { change: HeroChange; hidden: boolean }) {
+// One change line: the green (red when falling) chip and its caption. The first line says "vs
+// <last month end>"; the YTD line (`ytd`) says "YTD · vs <last year end>".
+export function ChangeChip({ change, hidden, ytd = false }: { change: HeroChange; hidden: boolean; ytd?: boolean }) {
   const amountText = shown(rp(change.amount, true), hidden);
   const pctText = change.bp == null ? null : shownPct(pct(change.bp, true), hidden);
   const text = pctText ? `${amountText} (${pctText})` : amountText;
@@ -53,19 +58,21 @@ export function ChangeChip({ change, hidden }: { change: HeroChange; hidden: boo
     <View
       style={styles.changeRow}
       accessible
-      accessibilityLabel={netWorthChangeLabel(amountText, pctText ?? '', vs).replace(' ()', '')}
-      testID="hero-change"
+      accessibilityLabel={
+        ytd ? netWorthYtdChangeLabel(amountText, pctText ?? '', vs) : netWorthChangeLabel(amountText, pctText ?? '', vs).replace(' ()', '')
+      }
+      testID={ytd ? 'hero-change-ytd' : 'hero-change'}
     >
       <View style={[styles.chip, { backgroundColor: rising ? CHIP_FILL_POSITIVE : CHIP_FILL_NEGATIVE }]}>
         <Triangle up={rising} color={tone} />
         <Text style={[styles.chipText, { color: tone }]}>{text}</Text>
       </View>
-      <Text style={styles.vs}>{`vs ${vs}`}</Text>
+      <Text style={styles.vs}>{ytd ? ytdCaption(vs) : `vs ${vs}`}</Text>
     </View>
   );
 }
 
-export function HeroSection({ nickname, netWorth, incomplete = false, change, note }: HeroSectionProps) {
+export function HeroSection({ nickname, netWorth, incomplete = false, change, ytd, note }: HeroSectionProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const toggle = useHideAmounts(s => s.toggle);
   const { width } = useWindowDimensions();
@@ -96,6 +103,7 @@ export function HeroSection({ nickname, netWorth, incomplete = false, change, no
       {!!note && <Text style={styles.note}>{note}</Text>}
       {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
       {change && <ChangeChip change={change} hidden={hidden} />}
+      {ytd && <ChangeChip change={ytd} hidden={hidden} ytd />}
     </View>
   );
 }
