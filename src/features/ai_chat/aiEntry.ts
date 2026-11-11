@@ -1,15 +1,25 @@
-// Where the tab bar's centre "+" goes: the chat when the user's Gemini key is set up, the
-// setup flow when it is not (CLAUDE.md rule 9 — the key lives in expo-secure-store).
-//
-// Phase 9 (AI chat) owns the real check. expo-secure-store is not installed yet, so for now
-// the app behaves as if setup were done and always opens the chat stub; `/ai-setup` is the
-// route that screen will own. No network here — this file only picks a path.
+// Where the tab bar's centre "+" goes: the chat when the AI is usable, the setup flow when it
+// is not (CLAUDE.md rule 9). "Usable" is a saved key AND the Settings switch on; see
+// aiSettings.ts. No network here: this file only picks a path.
+import { useQuery } from '@tanstack/react-query';
+
+import { useDb } from '../../data/db/DbProvider';
+import { queryKeys } from '../../data/queryKeys';
+import { isAiConfigured } from './aiSettings';
+
 export type AiEntryRoute = '/ai-chat' | '/ai-setup';
 
 export function aiEntryRoute(isConfigured: boolean): AiEntryRoute {
   return isConfigured ? '/ai-chat' : '/ai-setup';
 }
 
+export const aiConfiguredKey = [...queryKeys.settings, 'ai-configured'] as const;
+
+// True only when a key is saved and the Settings switch is on. Until the first read finishes
+// it is false, so an early tap opens the setup screen, which forwards to the chat if all is set.
+// Every write that changes the key or the switch calls invalidateAfterWrite, which refreshes this.
 export function useAiConfigured(): boolean {
-  return true;
+  const db = useDb();
+  const { data } = useQuery({ queryKey: aiConfiguredKey, queryFn: () => isAiConfigured(db), staleTime: 0 });
+  return data === true;
 }
