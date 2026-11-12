@@ -230,7 +230,7 @@ Papan: `Tx-Add` · 390 × 844
 - Akun (BCA Tabungan) dengan teks "Saldo setelah: Rp6.717.500".
 - Tanggal 28 Okt 2026 dengan pintasan Today dan Yesterday, lalu deskripsi dan catatan opsional.
 - Tombol Cancel dan "Save expense".
-- Tombol "Chat" di header kanan membuka layar Catat lewat chat.
+- Tombol "Chat" di header kanan membuka layar Catat lewat chat. Di aplikasi header kanan memuat tombol "Scan struk" (garis tipis, ikon scan) yang membuka R1; papan hanya menggambar Chat.
 **Keadaan**
  
 - Setelah disimpan muncul snackbar "Expense saved. BCA Tabungan is now Rp6.717.500." dengan Undo.
@@ -301,6 +301,60 @@ Papan: `Tx-Detail` (+ `Tx-Detail-Transfer`, `Tx-Detail-Valas`, `Tx-Delete`) · 3
 **Catatan**
 
 - Semua angka dibaca dari view; tidak ada saldo atau total yang disimpan.
+
+## R · Scan struk
+
+Arus: **Tambah transaksi (tombol "Scan struk") atau tombol + di bilah tab → Scan struk (kamera) → Hasil scan (draf) → Simpan pengeluaran**. Dari kamera, "Isi manual" mengganti layar dengan form Tambah transaksi. Tombol "Scan struk" di form, "Isi manual" dan hasil bacaan mengganti layar sebelumnya (bukan menumpuk), jadi menyimpan atau menutup tidak mendarat di form kosong.
+
+### R1 · Scan struk (kamera)
+
+Papan: `Receipt-Scan` · 390 × 844 · rute `/tx/scan`
+
+**Tujuan.** Memotret struk lalu membacanya di perangkat.
+
+**Tata letak dan komponen**
+
+- Pratinjau kamera memenuhi layar. Header: tombol tutup (48, bulat), judul "Scan struk", tombol flash.
+- Bingkai sudut (empat siku 34 px, garis 3 px, #F5F5F5) dengan petunjuk "Masukkan seluruh struk ke dalam bingkai. Pastikan teks terbaca dan tidak buram."
+- Baris bawah: galeri (56, radius 16), pemicu foto (76, cincin putih), dan teks "Isi manual".
+
+**Keadaan**
+
+- Izin kamera belum ditanya: diminta sekali saat layar dibuka.
+- Izin ditolak: ikon, judul "Kamera belum diizinkan", penjelasan bahwa gambar dibaca di perangkat, tidak disimpan, dan tidak dikirim, tombol "Buka pengaturan", "Pilih dari galeri", dan (bila sistem masih mau bertanya) "Izinkan kamera". Setelah kembali dari pengaturan izin dibaca ulang.
+- Membaca: lapisan gelap "Membaca struk…"; ketukan lain diabaikan.
+- Gagal: kartu "Struk belum terbaca. Coba foto ulang atau isi manual." dengan "Foto ulang" dan "Isi manual". Struk dalam mata uang asing ditolak dengan kalimat sendiri ("Struk dalam mata uang asing belum bisa dibaca di sini. Isi manual saja.") dan dua tombol yang sama.
+
+**Catatan**
+
+- Pembacaan memakai ML Kit di perangkat (butuh development build, bukan Expo Go). Foto hanyalah berkas cache: dihapus segera bila pembacaan gagal, dan bila berhasil disimpan hanya selama layar hasil terbuka (untuk miniatur) lalu dihapus saat layar itu ditutup, drafnya disimpan, atau scan baru dimulai. Foto tidak pernah dikirim ke mana pun. Foto dari galeri dibaca dari salinan cache; berkas aslinya tidak disentuh.
+- Total dicari pada baris TOTAL, GRAND TOTAL, JUMLAH, TOTAL BAYAR. SUBTOTAL, TUNAI, KEMBALI, PPN, DISKON tidak pernah dianggap total. Tanggal: dd/mm/yyyy, dd-mm-yy, "28 Okt 2026"; tidak ketemu atau di masa depan berarti hari ini. Nama toko: baris bermakna paling atas yang bukan alamat atau nomor telepon.
+
+### R2 · Hasil scan (tinjau draf)
+
+Papan: `Receipt-Review` · 390 × 844 · rute `/tx/scan/review`
+
+**Tujuan.** Memeriksa hasil bacaan sebelum menjadi transaksi. Hasil scan selalu draf: tidak ada yang tersimpan sampai pengguna mengetuk "Simpan pengeluaran".
+
+**Tata letak dan komponen**
+
+- Header dengan tombol kembali dan judul "Hasil scan". Baris keterangan "Dibaca di perangkat. Gambar tidak disimpan dan tidak dikirim. Periksa dulu sebelum menyimpan." dengan miniatur foto struk 56 × 72 di kirinya (ikon struk bila berkasnya sudah tidak ada).
+- Kartu draf bergaris putus-putus: tag "DRAF · PENGELUARAN" dan "Belum tersimpan", nama toko, "28 Okt 2026 · dari struk" (atau "· hari ini"), lalu "Total, pilih yang benar": chip untuk setiap kandidat total yang skornya berdekatan (terbaik dulu, terpilih = putih dengan centang) dan "Ketik sendiri".
+- Baris Kategori (tebakan dari nama toko, atau "Pilih kategori"), Akun (akun yang terakhir dipakai, dengan "Saldo setelah Rp…") dan Tanggal; masing-masing membuka lembar pilihan yang sama dengan form manual. Nama toko bisa diubah langsung.
+- Kotak info bila ada pengeluaran yang mirip (akun dan jumlah sama, selisih tanggal paling banyak satu hari): "Mirip dengan transaksi 28 Okt: Rp48.000, Sumber Rejeki. Tetap boleh disimpan."
+- Tombol "Rapikan dengan AI" dengan catatan "Hanya teks hasil bacaan yang dikirim ke Gemini, bukan gambar." Mengetuknya membuka dialog "Kirim teks struk ke Google?" (dikirim: teks hasil bacaan, nama akun dan kategori, tanggal hari ini; tidak dikirim: gambar struk, saldo, riwayat transaksi; ditanya setiap kali) dengan "Jangan kirim" dan "Kirim". Setelah "Kirim" kartu draf berlabel "Disesuaikan AI · …", nama toko dirapikan, dan kategori yang diusulkan tampil dengan tanda centang ("Groceries ✓"). Bila AI belum diatur, tombol membuka layar setup AI.
+- Bilah bawah: "Batal" dan "Simpan pengeluaran".
+
+**Keadaan**
+
+- Validasi memakai `validate.ts` yang sama dengan form manual (kategori wajib, saldo, tanggal, akun Valas ditolak). Kesalahan muncul setelah Simpan diketuk; saldo kurang muncul langsung.
+- Menyimpan memakai fungsi simpan yang sama dengan form manual dengan `source = 'scan'`; setelah itu snackbar "Expense saved…" dengan Undo. Saldo selalu dibaca dari view, tidak pernah disimpan.
+- Keluar tanpa menyimpan membuang drafnya.
+
+**Catatan**
+
+- Papan `Receipt-Consent` (dialog persetujuan) dan `Receipt-Review-AI` (hasil sesudah dirapikan) adalah bagian dari layar ini. AI hanya mengusulkan nama toko, kategori, dan akun; nominal total dan tanggal tidak pernah disentuh, kolom yang sudah diubah pengguna tidak ditimpa, dan tidak ada yang tersimpan sebelum "Simpan pengeluaran". Akun hanya dipakai bila namanya persis sama dengan salah satu akun; kategori boleh cocok lewat alias atau salah ketik kecil; nama yang tidak dikenal diabaikan.
+- Teks hasil bacaan disimpan di memori (bukan di disk) selama layar ini terbuka, hanya supaya bisa dikirim bila pengguna setuju. Nomor panjang (8 digit atau lebih: telepon, kartu, NPWP) diganti `#` sebelum dikirim.
 
 ## D · Akun
  

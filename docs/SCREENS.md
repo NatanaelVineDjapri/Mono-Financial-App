@@ -1,6 +1,6 @@
 # MONO Finance — screens to build
 
-33 things to build: 28 full screens and 5 sheets. Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
+35 things to build: 30 full screens and 5 sheets (the table below lists 27 of the screens; the numbers 25 to 27 belong to the optional import screens, described in DESIGN.md section N and PAGES.md N1 to N5). Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
 
 ## Full screens
 
@@ -31,6 +31,8 @@
 | 23 | Valas account detail | `/account/[id]` (type forex) | Valas-Detail | One pocket per currency with rupiah value, Add and Exchange, activity with currency chips |
 | 24 | Exchange rates | `/settings/rates` | Rates | Auto-update switch (off by default), update now, rates in use, manual rate, failure state, attribution |
 | 28 | Transaction detail | `/tx/[id]` | Tx-Detail | Read-only view of one record, reached by tapping a row in Transactions, Account detail, Overview or Budget category. Variants: Tx-Detail-Transfer (from and to with balance after each), Tx-Detail-Valas (currency, rupiah value, rate used). Edit opens Tx-Add pre-filled; Delete opens the Tx-Delete dialog |
+| 29 | Scan a receipt (camera) | `/tx/scan` | Receipt-Scan | Viewfinder with corner frame, flash, gallery, shutter, "Isi manual" (replaces this screen with `/tx/add`). Camera permission denied: explanation with "Buka pengaturan" and "Pilih dari galeri". Reading ("Membaca struk…") and failure ("Struk belum terbaca. Coba foto ulang atau isi manual.", also for a foreign-currency receipt) are states of this screen. Entry: the Scan choice of the + menu, and the "Scan struk" button in the header of Add transaction |
+| 30 | Scan result (review) | `/tx/scan/review` | Receipt-Review | The draft expense a scan produced: shop, date, total chips (every close candidate, best first, plus "Ketik sendiri"), category, account with "Saldo setelah", a notice for a similar expense, Batal and "Simpan pengeluaran". Saved through the same function as the manual form with `source = 'scan'`. "Rapikan dengan AI" (boards Receipt-Consent and Receipt-Review-AI): a consent dialog every time, then a suggested shop name, category and account from Gemini (the chat's key and rules); never the total or the date |
 
 ## Sheets and dialogs
 
@@ -49,7 +51,7 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 
 ## Entry points worth getting right
 
-- The **gold + button in the middle of the tab bar** opens three round icon buttons on an arc around it, from every tab: **Scan** a receipt, **AI chat** and **Manual** (the form). The Overview has no chat bar (removed on purpose). Scan and the form are placeholders until they are built.
+- The **gold + button in the middle of the tab bar** opens three round icon buttons on an arc around it, from every tab: **Scan** a receipt, **AI chat** and **Manual** (the form). The Overview has no chat bar (removed on purpose). Scan opens `/tx/scan`; the same screen is reached from the "Scan struk" button in the header of Add transaction (which replaces the form, so saving or closing does not land on an empty form).
 - The gold + button in the middle of the tab bar opens the AI chat from every tab (as the AI chat choice of its menu); `/ai-setup` opens instead until a key is saved and tested.
 - The chat header has no "Catat manual" button; the form is reached from the + menu, and a failed chat message offers "Catat manual". The form has a "Chat" button back.
 - Add transaction is also reached from Account detail and the empty states.
@@ -59,4 +61,5 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 
 - 4.3b Transaction filters sheet: built. Filter state lives in the Transactions zustand store; the same SQL params feed the list and the stats ring. Ring limit mode only when the range is the current full month and no account/category/amount filter is active.
 - 4.4 Budgets tab, Budget-Create, Budget-Category: built. Spent and remaining are always derived; allocation check blocks saving when the sum of category allocations exceeds the monthly limit.
+- Receipt scan (29, 30): built. On-device OCR (ML Kit, development build only), pure `parse.ts` with tests, draft review, `source = 'scan'` (schema migration v1 to v2). The optional Gemini tidy-up (Receipt-Consent, Receipt-Review-AI) is built too, in `src/features/ai_chat/receiptTidy.ts`. Differences from the boards: on the review the shop, total, category, account and date can all be changed. The picture stays in the cache only while the review is open (for its thumbnail) and is deleted when it closes.
 - 4.6 Overview: built. Account carousel uses BankCard (brand art); the Main board still shows the old monochrome cards and is out of date on that point.

@@ -18,3 +18,8 @@ export const MAX_TRANSACTIONS = 10;
 export const MAX_OUTPUT_TOKENS = 1024; // thinking tokens share this budget
 export const PING_MAX_OUTPUT_TOKENS = 16;
 export const SERVER_RETRY_DELAY_MS = 1000;
+
+// "Rapikan dengan AI" on a scanned receipt (receiptTidy.ts): the reply is three short fields.
+export const TIDY_MAX_OUTPUT_TOKENS = 256;
+export const TIDY_MAX_LINES = 60; // lines of receipt text sent
+export const TIDY_MAX_LINE_CHARS = 80;

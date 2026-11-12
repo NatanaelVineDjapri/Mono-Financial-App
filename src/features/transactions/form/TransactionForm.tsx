@@ -8,7 +8,7 @@
 // form; a short balance appears as soon as the amount makes it so. Save is disabled while an
 // error is showing, and tapping it on an invalid form reveals what is wrong instead of saving.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -47,6 +47,7 @@ import {
     formNotesOptionalLabel,
     notesPlaceholder,
     saveButtonLabel,
+    scanReceiptTitle,
     savingLabel,
     TRANSFER_IN_FIRST_LINK,
     txFieldErrorMessage,
@@ -85,6 +86,8 @@ export interface TransactionFormProps {
   initialAccountId?: number; // preselect this account (from Account detail's Add and Transfer)
   onCancel: () => void;
   onChat?: () => void;
+  // Add mode: "Scan struk" in the header, to fill the form from a photo of a receipt instead.
+  onScan?: () => void;
   onSubmit: (values: TxFormValues) => Promise<SubmitResult>;
 }
 
@@ -119,7 +122,7 @@ function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: 
   };
 }
 
-export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, onCancel, onChat, onSubmit }: TransactionFormProps) {
+export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, onCancel, onChat, onScan, onSubmit }: TransactionFormProps) {
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
 
@@ -227,6 +230,12 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
             {mode === 'draft' ? aiEditTitle() : mode === 'edit' ? editTransactionTitle() : addTransactionTitle()}
           </Text>
           {mode === 'draft' && draft && <DraftProgressText index={draft.index} total={draft.total} />}
+          {mode === 'add' && onScan && (
+            <Pressable onPress={onScan} accessibilityRole="button" accessibilityLabel={scanReceiptTitle()} android_ripple={undefined} style={styles.scanPill} testID="tx-scan">
+              <Icon name="scan" size={18} color={MonoColors.text} />
+              <Text style={styles.scanPillText}>{scanReceiptTitle()}</Text>
+            </Pressable>
+          )}
         </View>
       </View>
       {/* one segment for one draft would only be a white line: the bar is for two or more */}
@@ -396,6 +405,9 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 12 },
   headerRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { ...MonoText.titleM, color: MonoColors.text, flex: 1 },
+  // The board's header pill (the Chat button of Tx-Add): 44 high, outlined, icon and label.
+  scanPill: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: MonoColors.textDisabled, borderRadius: 16 },
+  scanPillText: { ...MonoText.chip, color: MonoColors.text },
   content: { padding: 16, gap: 20 },
   bar: { paddingTop: 12, paddingHorizontal: 16, gap: 8, borderTopWidth: 1, borderTopColor: BAR_BORDER, backgroundColor: MonoColors.bg },
   barRow: { flexDirection: 'row', gap: 12 },

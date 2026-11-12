@@ -23,7 +23,10 @@ const PATTERN = new RegExp(`\\b(${WORDS.join('|')})\\b`, 'i');
 const ALLOWED = [
   'i18n/',
   'features/ai_chat/prompt.ts',
+  'features/ai_chat/receiptTidy.ts',
   'features/more/backupStatus.ts',
+  // Category names the scan looks for in the person's own list (Indonesian ones included).
+  'features/receipt/draft.ts',
   '__tests__/',
   '.test.',
 ];

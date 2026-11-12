@@ -19,7 +19,10 @@
         "foregroundImage": "./assets/brand/mono-appicon-padded.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.monofinance"
+      "package": "com.anonymous.monofinance",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "server",
@@ -38,7 +41,23 @@
       "expo-font",
       "expo-sqlite",
       "expo-asset",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MONO memakai kamera hanya untuk memotret struk yang kamu scan. Gambarnya dibaca di perangkat, tidak disimpan, dan tidak dikirim ke mana pun.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MONO membaca foto struk yang kamu pilih. Gambarnya dibaca di perangkat, tidak disimpan, dan tidak dikirim ke mana pun.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

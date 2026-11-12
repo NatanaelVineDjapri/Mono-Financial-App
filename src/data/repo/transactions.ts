@@ -4,7 +4,7 @@
 import type { Db } from '../db/types';
 
 export type TxKind = 'income' | 'expense' | 'transfer';
-export type TxSource = 'manual' | 'ai' | 'recurring';
+export type TxSource = 'manual' | 'ai' | 'recurring' | 'scan';
 
 export interface NewTransaction {
   kind: TxKind;
@@ -412,4 +412,42 @@ export async function listCategoryTotalsForFilter(
 
 export function listCategoryTotals(db: Db, period: string, kind: 'income' | 'expense'): Promise<CategoryTotalRow[]> {
   return listCategoryTotalsForFilter(db, kind, { period });
+}
+
+// The rupiah account the person used most recently for an income or an expense (not a transfer),
+// the scan's default account. Null when there is none or when that account is archived.
+export async function getLastUsedAccountId(db: Db): Promise<number | null> {
+  const row = await db.getFirstAsync<{ account_id: number }>(
+    `select t.account_id
+       from transactions t
+       join accounts a on a.id = t.account_id
+      where t.kind in ('income', 'expense') and t.currency = 'IDR' and a.archived = 0 and a.type <> 'forex'
+      order by t.created_at desc, t.id desc
+      limit 1`,
+  );
+  return row?.account_id ?? null;
+}
+
+export interface SimilarExpense {
+  id: number;
+  occurred_on: string;
+  description: string;
+  amount: number;
+}
+
+// An expense that looks like the one about to be saved: the same account and amount, on the same
+// day or the day before or after. The nearest date (then the latest record) wins. A hint only.
+export async function findSimilarExpense(
+  db: Db,
+  q: { accountId: number; amount: number; date: string; from: string; to: string },
+): Promise<SimilarExpense | null> {
+  return db.getFirstAsync<SimilarExpense>(
+    `select id, occurred_on, description, amount
+       from transactions
+      where kind = 'expense' and currency = 'IDR' and account_id = $accountId and amount = $amount
+        and occurred_on between $from and $to
+      order by abs(julianday(occurred_on) - julianday($date)), id desc
+      limit 1`,
+    { $accountId: q.accountId, $amount: q.amount, $date: q.date, $from: q.from, $to: q.to },
+  );
 }

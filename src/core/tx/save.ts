@@ -54,7 +54,7 @@ function cleanText(text: string): string {
 
 // One new row, written inside a transaction the caller owns. Throws the domain's errors
 // (nothing is caught here), so a batch can roll back as a whole. `source` says where the record
-// came from: the form ('manual') or the chat ('ai').
+// came from: the form ('manual'), the chat ('ai') or a scanned receipt ('scan').
 export async function writeNewTransaction(txn: Db, values: TxFormValues, now: string, source: TxSource = 'manual'): Promise<number> {
   const accountId = values.accountId as number;
   if (values.type === 'transfer') {
@@ -87,13 +87,14 @@ export async function writeNewTransaction(txn: Db, values: TxFormValues, now: st
   return (values.type === 'income' ? await addIncome(txn, input, now) : await addExpense(txn, input, now)).id;
 }
 
-// A new record. `values` has passed validateTx; `now` is an ISO instant with offset.
-export async function saveNewTransaction(db: Db, values: TxFormValues, now: string): Promise<SaveOutcome<SavedTransaction>> {
+// A new record. `values` has passed validateTx; `now` is an ISO instant with offset. `source` is where
+// it came from: the form (the default), or a scanned receipt ('scan').
+export async function saveNewTransaction(db: Db, values: TxFormValues, now: string, source: TxSource = 'manual'): Promise<SaveOutcome<SavedTransaction>> {
   const accountId = values.accountId as number;
   let id = 0;
   try {
     await db.withExclusiveTransactionAsync(async txn => {
-      id = await writeNewTransaction(txn, values, now);
+      id = await writeNewTransaction(txn, values, now, source);
     });
   } catch (error) {
     return failure(error, now.slice(0, 10));

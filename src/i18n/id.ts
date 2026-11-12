@@ -2808,3 +2808,52 @@ export function receiptScanAgainLabel(): string {
 export function receiptLoadError(): string {
   return 'Akun dan kategori tidak bisa dimuat.';
 }
+
+// ---- Receipt scan: "Rapikan dengan AI" and its consent dialog ----
+export function receiptAiButton(): string {
+  return 'Rapikan dengan AI';
+}
+
+export function receiptAiBusy(): string {
+  return 'Merapikan…';
+}
+
+export function receiptAiNote(): string {
+  return 'Hanya teks hasil bacaan yang dikirim ke Gemini, bukan gambar.';
+}
+
+export function receiptAiAdjusted(): string {
+  return 'Disesuaikan AI';
+}
+
+export function receiptAiNothingChanged(): string {
+  return 'AI tidak menemukan yang perlu dirapikan.';
+}
+
+export function receiptCategoryByAi(name: string): string {
+  return `${name} ✓`;
+}
+
+export function receiptConsentTitle(): string {
+  return 'Kirim teks struk ke Google?';
+}
+
+export function receiptConsentLead(): string {
+  return 'Dikirim lewat kunci Gemini-mu: ';
+}
+
+export function receiptConsentStrong(): string {
+  return 'teks hasil bacaan';
+}
+
+export function receiptConsentRest(): string {
+  return ' (nama toko dan item), nama akun dan kategori, dan tanggal hari ini.\n\nTidak dikirim: gambar struk, saldo, riwayat transaksi. Kamu akan ditanya setiap kali.';
+}
+
+export function receiptConsentCancel(): string {
+  return 'Jangan kirim';
+}
+
+export function receiptConsentConfirm(): string {
+  return 'Kirim';
+}

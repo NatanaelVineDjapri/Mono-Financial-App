@@ -50,6 +50,11 @@ export type IconName =
   // The + menu: AI chat and receipt scan (Manual uses 'pencil').
   | 'chat'
   | 'scan'
+  // The receipt camera: flash, and the gallery.
+  | 'flash'
+  | 'image'
+  // "Rapikan dengan AI"
+  | 'spark'
   // The transaction form's transfer banner.
   | 'info'
   // Account form: the type tiles (Bank uses 'bank', Savings 'savings').
@@ -111,6 +116,9 @@ const PATHS: Partial<Record<IconName, string>> = {
   info: 'M12 3 a9 9 0 1 0 0.001 0 Z M12 11 V16.5 M12 7.5 V7.6',
   chat: 'M4 5 H20 V16 H11 L6 20 V16 H4 Z M8 9.5 H16 M8 12.5 H13',
   scan: 'M4 8 V4 H8 M16 4 H20 V8 M20 16 V20 H16 M8 20 H4 V16 M4 12 H20',
+  flash: 'M13 3 L5 14 H11 L10 21 L18 10 H12 Z',
+  spark: 'M12 3 L13.8 8.2 L19 10 L13.8 11.8 L12 17 L10.2 11.8 L5 10 L10.2 8.2 Z M18 16 L18.8 18.2 L21 19 L18.8 19.8 L18 22 L17.2 19.8 L15 19 L17.2 18.2 Z',
+  image: 'M4 5 H20 V19 H4 Z M4 17 L9 12 L13 16 L16 13 L20 17 M9 9.5 a1.5 1.5 0 1 0 0.001 0 Z',
   trash: 'M4 7 H20 M9 7 V4 H15 V7 M6 7 L7 20 H17 L18 7 M10 11 V16 M14 11 V16',
   target: 'M12 3 a9 9 0 1 0 0.001 0 Z M12 8 a4 4 0 1 0 0.001 0 Z M12 12 V12.1',
   'file-text': 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19 M9 13 H16 M9 17 H15',

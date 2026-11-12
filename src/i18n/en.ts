@@ -2812,3 +2812,52 @@ export function receiptScanAgainLabel(): string {
 export function receiptLoadError(): string {
   return 'Your accounts and categories could not be loaded.';
 }
+
+// ---- Receipt scan: "Rapikan dengan AI" and its consent dialog ----
+export function receiptAiButton(): string {
+  return 'Tidy up with AI';
+}
+
+export function receiptAiBusy(): string {
+  return 'Tidying up…';
+}
+
+export function receiptAiNote(): string {
+  return 'Only the recognized text is sent to Gemini, not the picture.';
+}
+
+export function receiptAiAdjusted(): string {
+  return 'Adjusted by AI';
+}
+
+export function receiptAiNothingChanged(): string {
+  return 'The AI found nothing to tidy up.';
+}
+
+export function receiptCategoryByAi(name: string): string {
+  return `${name} ✓`;
+}
+
+export function receiptConsentTitle(): string {
+  return 'Send the receipt text to Google?';
+}
+
+export function receiptConsentLead(): string {
+  return 'Sent with your own Gemini key: ';
+}
+
+export function receiptConsentStrong(): string {
+  return 'the recognized text';
+}
+
+export function receiptConsentRest(): string {
+  return ' (shop name and items), account and category names, and today\'s date.\n\nNot sent: the receipt picture, balances, transaction history. You will be asked every time.';
+}
+
+export function receiptConsentCancel(): string {
+  return 'Don\'t send';
+}
+
+export function receiptConsentConfirm(): string {
+  return 'Send';
+}

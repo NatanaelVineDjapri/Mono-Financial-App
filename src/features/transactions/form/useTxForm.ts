@@ -18,6 +18,7 @@ import {
   undoTransactionChanges,
 } from '@/core/tx/save';
 import type { TxFormValues } from '@/core/tx/validate';
+import type { TxSource } from '@/data/repo/transactions';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getTxFormData, type TxEditRecord, type TxFormData } from '@/domain/txForm';
@@ -36,15 +37,16 @@ export function useTxFormData(editId?: number) {
   });
 }
 
-// Add: save, close, then "Expense saved. BCA Tabungan is now Rp6.717.500." with Undo.
-export function useAddSubmit(data: TxFormData | undefined) {
+// Add: save, close, then "Expense saved. BCA Tabungan is now Rp6.717.500." with Undo. `source` is where
+// the record came from: the form itself (default), or a reviewed receipt scan ('scan').
+export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'manual') {
   const db = useDb();
   const queryClient = useQueryClient();
   const router = useRouter();
 
   return useCallback(
     async (values: TxFormValues): Promise<SubmitResult> => {
-      const result = await saveNewTransaction(db, values, nowIso());
+      const result = await saveNewTransaction(db, values, nowIso(), source);
       if (!result.ok) return result;
       const saved = result.value;
 
@@ -72,7 +74,7 @@ export function useAddSubmit(data: TxFormData | undefined) {
       });
       return { ok: true };
     },
-    [db, queryClient, router, data],
+    [db, queryClient, router, data, source],
   );
 }
 

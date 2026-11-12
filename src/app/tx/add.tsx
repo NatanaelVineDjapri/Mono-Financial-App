@@ -47,6 +47,7 @@ export default function AddTransactionScreen() {
       initialAccountId={account ? Number(account) : undefined}
       onCancel={() => router.back()}
       onChat={() => router.replace(aiEntryRoute(aiConfigured) as never)}
+      onScan={() => router.replace('/tx/scan' as never)}
       onSubmit={onSubmit}
     />
   );

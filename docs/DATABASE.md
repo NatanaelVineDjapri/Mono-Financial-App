@@ -22,7 +22,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `accounts` | bank, tunai, e-wallet, tabungan, valas (`forex`) | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. Akun valas selalu `opening_balance = 0`, saldo awalnya ada di kantong. Nama unik tanpa membedakan huruf besar kecil. |
 | `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan. |
 | `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)`. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
-| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring). Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
+| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring, scan). Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
 | `monthly_limits` | batas total per bulan | `repeat = 1` berarti bulan berikutnya dibuat dari baris ini. |
 | `budgets` | batas per kategori pengeluaran per bulan | `UNIQUE(category_id, month)`. Jumlah semua anggaran tidak boleh melebihi batas bulan itu. |
 | `goals` | target per akun atau total aset | Progres diturunkan dari saldo. |
@@ -30,7 +30,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `recurring_events` | konfirmasi atau lewati per tanggal jatuh tempo | PK `(recurring_id, due_on)`. Menghapus transaksinya menghapus event, jadi bulan itu jatuh tempo lagi. |
 | `backup_log` | riwayat cadangan di perangkat | Tidak ikut berkas cadangan dan tidak disentuh restore. |
 
-`source = 'ai'` untuk catatan dari chat AI (draf disimpan lewat save.ts, tanpa jalur khusus).
+`source = 'ai'` untuk catatan dari chat AI (draf disimpan lewat save.ts, tanpa jalur khusus). `source = 'scan'` untuk catatan dari scan struk (draf yang sudah diperiksa disimpan lewat fungsi yang sama dengan form manual). CHECK `source` ada di `transactions` sejak **schema v2** (migrasi 1 ke 2); `mono_schema_v1.sql` tetap berisi `('manual','ai','recurring')`, dan database baru dibuat dari berkas itu lalu langsung dimigrasi ke versi terbaru.
 
 ### Relasi
 
@@ -141,6 +141,8 @@ Urutan restore di sisi database:
 - Tiap migrasi satu fungsi dan satu transaksi SQLite. Langkah yang gagal dibatalkan dan aplikasi tetap di versi lama.
 - Sebelum migrasi, aplikasi menulis cadangan pengaman. View dan trigger dibuang lalu dibuat ulang tiap kali, karena tidak menyimpan data.
 - Berkas cadangan mencatat `schema_version`-nya sendiri. Versi lebih lama dimigrasi di memori sebelum restore. Versi lebih baru ditolak.
+- **Migrasi 1 ke 2** (`src/data/db/migrations/v2_scan_source.ts`): `transactions.source` menerima `'scan'`. SQLite tidak bisa mengubah CHECK di tempat, jadi tabel dibangun ulang dalam satu transaksi: baris `transactions` dan `recurring_events` diparkir di tabel sementara (karena `recurring_events.transaction_id` berstatus `ON DELETE CASCADE` dan akan ikut terhapus), semua view dan trigger dibuang lalu dibuat ulang dari SQL aslinya di `sqlite_master`, tabel dibuat ulang dengan SQL lama yang hanya CHECK-nya diganti, lalu data dikembalikan. Jumlah baris dan `PRAGMA foreign_key_check` diperiksa; selisih apa pun membatalkan semuanya. Diuji pada database berisi data contoh (angka view sama sebelum dan sesudah, 17 view dan 23 trigger kembali dengan SQL yang sama, cascade tetap jalan). Tidak ada view atau trigger yang menyebut `source`, jadi tidak ada yang perlu diubah di sana.
+- Batas versi cadangan (`SUPPORTED_SCHEMA_VERSION` di `src/data/backup/validate.ts`) naik ke 2.
 
 ## 9. Pilihan yang sengaja diambil (silakan digugat)
 
