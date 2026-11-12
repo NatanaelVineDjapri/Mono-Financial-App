@@ -1,6 +1,6 @@
 # MONO Finance — screens to build
 
-35 things to build: 30 full screens and 5 sheets (the table below lists 27 of the screens; the numbers 25 to 27 belong to the optional import screens, described in DESIGN.md section N and PAGES.md N1 to N5). Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
+36 things to build: 30 full screens and 6 sheets (screens 25 to 27 are the optional automatic-import screens, described in DESIGN.md section N and PAGES.md N1 to N5; Import-Setup and Import-Settings share screen 25). Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
 
 ## Full screens
 
@@ -30,6 +30,9 @@
 | 22 | Create / edit fixed expense | `/recurring/edit` | Recurring-Edit | |
 | 23 | Valas account detail | `/account/[id]` (type forex) | Valas-Detail | One pocket per currency with rupiah value, Add and Exchange, activity with currency chips |
 | 24 | Exchange rates | `/settings/rates` | Rates | Auto-update switch (off by default), update now, rates in use, manual rate, failure state, attribution |
+| 25 | Auto import settings | `/settings/import` | Import-Setup, Import-Settings | Not set up: Import-Setup (what is read and not read, "Aktifkan akses notifikasi"). Set up: link "N transaksi menunggu tinjauan" (zero until the queue exists), notification access status and last read time, two groups of apps: **"Didukung penuh"** (apps with a parser of their own; empty until there are real samples) and **"Aplikasi terdeteksi"** (every other app that posted a notification: name, switch, destination account; read by the general parser, always tagged "Ditebak"), and "Kalau ada masalah" (access off, service stopped, battery saver). An app can only be switched on with a rupiah account. Gmail is postponed and not drawn. The permission guide (Import-Permission) is a sheet and is shown only while access is off. Entry: Settings, Asisten, Impor otomatis |
+| 26 | Review detected transactions | `/import/review` | Import-Review | **Not built yet** (next stage). Queue with Tolak, Ubah, Simpan; incomplete items and "Perlu dicek" (type unclear: Pemasukan or Pengeluaran must be chosen, Simpan disabled); tag "Ditebak" on every item from the general parser |
+| 27 | Edit a detected transaction | `/import/edit/[id]` | Import-Review-Edit | **Not built yet** (next stage). Like Tx-Add, guessed fields tagged "Ditebak", remember-category switch |
 | 28 | Transaction detail | `/tx/[id]` | Tx-Detail | Read-only view of one record, reached by tapping a row in Transactions, Account detail, Overview or Budget category. Variants: Tx-Detail-Transfer (from and to with balance after each), Tx-Detail-Valas (currency, rupiah value, rate used). Edit opens Tx-Add pre-filled; Delete opens the Tx-Delete dialog |
 | 29 | Scan a receipt (camera) | `/tx/scan` | Receipt-Scan | Viewfinder with corner frame, flash, gallery, shutter, "Isi manual" (replaces this screen with `/tx/add`). Camera permission denied: explanation with "Buka pengaturan" and "Pilih dari galeri". Reading ("Membaca struk…") and failure ("Struk belum terbaca. Coba foto ulang atau isi manual.", also for a foreign-currency receipt) are states of this screen. Entry: the Scan choice of the + menu, and the "Scan struk" button in the header of Add transaction |
 | 30 | Scan result (review) | `/tx/scan/review` | Receipt-Review | The draft expense a scan produced: shop, date, total chips (every close candidate, best first, plus "Ketik sendiri"), category, account with "Saldo setelah", a notice for a similar expense, Batal and "Simpan pengeluaran". Saved through the same function as the manual form with `source = 'scan'`. "Rapikan dengan AI" (boards Receipt-Consent and Receipt-Review-AI): a consent dialog every time, then a suggested shop name, category and account from Gemini (the chat's key and rules); never the total or the date |
@@ -38,6 +41,7 @@
 
 | Sheet | Opens from | Board |
 |---|---|---|
+| Notification access guide | Import-Setup, Import-Settings (access off) | Import-Permission |
 | Transaction filters | Transactions | Tx-Filters |
 | Edit AI draft one by one | AI chat | AI-Draft-Edit |
 | Confirm a fixed expense when due | Overview card, Fixed expenses | Recurring-Confirm |
@@ -61,5 +65,6 @@ DS-Foundations, DS-Components, Flows, Handoff, Database. Their content is in `DE
 
 - 4.3b Transaction filters sheet: built. Filter state lives in the Transactions zustand store; the same SQL params feed the list and the stats ring. Ring limit mode only when the range is the current full month and no account/category/amount filter is active.
 - 4.4 Budgets tab, Budget-Create, Budget-Category: built. Spent and remaining are always derived; allocation check blocks saving when the sum of category allocations exceeds the monthly limit.
+- Automatic import from notifications (25, foundation): built. Native listener with the allowlist in Kotlin (`modules/notification-listener/`), table `import_app_settings` (migration v3), detected-apps recorder (name and time only), settings screen, permission guide, Settings screen with the Asisten group, and the dev sample recorder `/dev/import-sampler`. Not built: parsers (general and per institution), the review queue and screens 26 and 27. Gmail is postponed.
 - Receipt scan (29, 30): built. On-device OCR (ML Kit, development build only), pure `parse.ts` with tests, draft review, `source = 'scan'` (schema migration v1 to v2). The optional Gemini tidy-up (Receipt-Consent, Receipt-Review-AI) is built too, in `src/features/ai_chat/receiptTidy.ts`. Differences from the boards: on the review the shop, total, category, account and date can all be changed. The picture stays in the cache only while the review is open (for its thumbnail) and is deleted when it closes.
 - 4.6 Overview: built. Account carousel uses BankCard (brand art); the Main board still shows the old monochrome cards and is out of date on that point.

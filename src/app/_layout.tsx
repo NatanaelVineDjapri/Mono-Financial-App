@@ -19,6 +19,7 @@ import { SplashBrand } from '@/components/SplashBrand';
 import { ToastHost } from '@/components/ToastHost';
 import { DbProvider, useDb } from '@/data/db/DbProvider';
 import { getSetting } from '@/data/repo/settings';
+import { ImportSync } from '@/features/import/ImportSync';
 import { initialLanguage, useLanguage } from '@/i18n/lang';
 import { navTheme } from '@/theme/tokens';
 
@@ -108,6 +109,7 @@ export default function RootLayout() {
             <SplashBrand />
             <DbProvider>
               <HiddenAmountsInit />
+              <ImportSync />
               <LanguageGate>
               {/* A real Stack (not Slot) so the (tabs) navigator stays mounted underneath
                   every sibling route (account/[id], budget/*, tx/[id], ai-chat, dev) — pushed

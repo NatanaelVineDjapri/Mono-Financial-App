@@ -2857,3 +2857,244 @@ export function receiptConsentCancel(): string {
 export function receiptConsentConfirm(): string {
   return 'Kirim';
 }
+
+// ---- Automatic import from notifications: Settings entry, Import-Setup, Import-Settings, Import-Permission, dev sampler ----
+export function settingsAssistantGroup(): string {
+  return 'Asisten';
+}
+
+export function importAutoTitle(): string {
+  return 'Impor otomatis';
+}
+
+export function importAutoRowHint(): string {
+  return 'Siapkan transaksi dari notifikasi bank dan e-wallet';
+}
+
+export function importAutoRowValue(count: number): string {
+  return count === 0 ? 'Mati' : `${count} aplikasi aktif`;
+}
+
+export function importIntro(): string {
+  return 'Kurangi catat manual. MONO bisa menyiapkan transaksi dari notifikasi bank atau e-wallet-mu. Kamu tinjau dulu; tidak ada yang tersimpan sebelum kamu menekan Simpan.';
+}
+
+export function importNotifTitle(): string {
+  return 'Notifikasi Android';
+}
+
+export function importPillOff(): string {
+  return 'Belum aktif';
+}
+
+export function importPillOn(): string {
+  return 'Aktif';
+}
+
+export function importNotifDesc(): string {
+  return 'Membaca notifikasi dari aplikasi bank dan e-wallet yang kamu pilih. Diproses di ponsel, tanpa internet.';
+}
+
+export function importEnableAccess(): string {
+  return 'Aktifkan akses notifikasi';
+}
+
+export function importReadsHeader(): string {
+  return 'Yang dibaca MONO';
+}
+
+export function importReads1(): string {
+  return 'Hanya notifikasi dari aplikasi yang kamu pilih.';
+}
+
+export function importReads2(): string {
+  return 'Nominal, jenis, waktu, merchant, dan nama bank atau e-wallet.';
+}
+
+export function importNotReadHeader(): string {
+  return 'Yang tidak dibaca atau disimpan';
+}
+
+export function importNotRead1(): string {
+  return 'Notifikasi lain, dari aplikasi yang tidak kamu pilih.';
+}
+
+export function importNotRead2(): string {
+  return 'Isi lengkap pesan. Yang disimpan hanya hasil bacanya.';
+}
+
+export function importNotRead3(): string {
+  return 'Kata sandi atau PIN. MONO tidak pernah memintanya.';
+}
+
+export function importOptionalNote(): string {
+  return 'Opsional dan mati secara default. Kamu bisa mematikannya kapan saja; transaksi yang sudah kamu simpan tetap ada.';
+}
+
+export function importPendingLink(count: number): string {
+  return count === 0 ? 'Belum ada transaksi yang menunggu tinjauan' : `${count} transaksi menunggu tinjauan`;
+}
+
+export function importPendingSub(): string {
+  return 'Belum ada yang tersimpan';
+}
+
+export function importAccessRow(): string {
+  return 'Akses notifikasi';
+}
+
+export function importLastRead(dateTime: string): string {
+  return `Terakhir membaca ${dateTime}`;
+}
+
+export function importNeverRead(): string {
+  return 'Belum ada notifikasi yang dibaca';
+}
+
+export function importAccessOn(): string {
+  return 'Aktif';
+}
+
+export function importAccessOff(): string {
+  return 'Mati';
+}
+
+export function importFullGroup(): string {
+  return 'Didukung penuh';
+}
+
+export function importFullEmpty(): string {
+  return 'Belum ada. Aplikasi masuk ke sini setelah punya pembaca khusus yang diuji dengan teks asli.';
+}
+
+export function importDetectedGroup(): string {
+  return 'Aplikasi terdeteksi';
+}
+
+export function importDetectedHelp(): string {
+  return 'Dibaca dengan pembacaan umum. Hasilnya selalu perlu kamu periksa.';
+}
+
+export function importDetectedEmpty(): string {
+  return 'Belum ada aplikasi yang terdeteksi. Setelah aplikasi bank atau e-wallet-mu mengirim notifikasi, namanya muncul di sini.';
+}
+
+export function importAppToAccount(name: string): string {
+  return `Ke akun ${name}`;
+}
+
+export function importAppUnmapped(): string {
+  return 'Belum dipetakan ke akun';
+}
+
+export function importAppSwitchLabel(appName: string, on: boolean): string {
+  return `${appName}, ${on ? 'aktif' : 'mati'}`;
+}
+
+export function importOnlyEnabledNote(): string {
+  return 'Hanya aplikasi yang menyala di atas yang dibaca. Tiap aplikasi dihubungkan ke satu akun MONO.';
+}
+
+export function importProblemsHeader(): string {
+  return 'Kalau ada masalah';
+}
+
+export function importProblemAccessOffTitle(): string {
+  return 'Akses notifikasi mati.';
+}
+
+export function importProblemAccessOffBody(): string {
+  return 'MONO tidak bisa membaca notifikasi baru.';
+}
+
+export function importOpenGuide(): string {
+  return 'Buka panduan izin';
+}
+
+export function importProblemStoppedTitle(): string {
+  return 'MONO berhenti membaca.';
+}
+
+export function importProblemStoppedBody(): string {
+  return 'Android menghentikan layanan notifikasi MONO.';
+}
+
+export function importRestartService(): string {
+  return 'Hidupkan ulang';
+}
+
+export function importBatteryNote(): string {
+  return 'Beberapa ponsel menghentikan MONO di latar belakang untuk hemat baterai. Atur MONO ke "Tanpa pembatasan" di pengaturan baterai agar notifikasi tidak terlewat.';
+}
+
+export function importOpenBattery(): string {
+  return 'Buka pengaturan baterai';
+}
+
+export function importNativeMissing(): string {
+  return 'Pembaca notifikasi belum ada di build ini. Pasang ulang aplikasi dari build terbaru.';
+}
+
+export function importAppError(code: string): string {
+  return code === 'needs_account' ? 'Pilih akun MONO tujuan dulu. Tanpa akun, aplikasi tetap mati.' : code === 'account_missing' ? 'Akun itu tidak ditemukan atau sudah diarsipkan.' : code === 'account_not_rupiah' ? 'Impor hanya bisa ke akun rupiah, bukan akun Valas.' : code === 'unknown_app' ? 'Aplikasi ini belum terdeteksi.' : 'Tidak bisa mengubah pengaturan. Tidak ada yang berubah.';
+}
+
+export function importGuideTitle(): string {
+  return 'Aktifkan akses notifikasi';
+}
+
+export function importGuideSubtitle(): string {
+  return 'Satu langkah tambahan di Android 13 ke atas';
+}
+
+export function importGuideLead(): string {
+  return 'MONO hanya membaca notifikasi dari aplikasi bank dan e-wallet yang kamu pilih. Karena MONO dipasang di luar Play Store, Android 13 ke atas meminta satu langkah tambahan:';
+}
+
+export function importGuideStepTitle(step: number): string {
+  return ['Buka Info aplikasi MONO', 'Ketuk titik tiga di pojok kanan atas', 'Buka Akses notifikasi', 'Nyalakan MONO'][step - 1] ?? '';
+}
+
+export function importGuideStepSub(step: number): string {
+  return ['Tekan lama ikon MONO, lalu pilih Info aplikasi.', 'Pilih "Izinkan setelan terbatas".', 'Di pengaturan Android: Notifikasi, Akses notifikasi perangkat.', 'Setujui peringatan Android. Kembali ke MONO setelah itu.'][step - 1] ?? '';
+}
+
+export function importGuideNote(): string {
+  return 'Izin ini bisa kamu cabut kapan saja. MONO tidak membaca notifikasi dari aplikasi yang tidak kamu pilih.';
+}
+
+export function importGuideOpen(): string {
+  return 'Buka pengaturan Android';
+}
+
+export function importGuideLater(): string {
+  return 'Nanti saja';
+}
+
+export function importGuideDirect(): string {
+  return 'Langsung ke Akses notifikasi';
+}
+
+export function importSamplerTitle(): string {
+  return 'Perekam sampel notifikasi';
+}
+
+export function importSamplerHint(): string {
+  return 'Hanya di memori. Menampilkan teks mentah notifikasi dari aplikasi yang kamu aktifkan, supaya bisa kamu salin sebagai sampel nyata. Tidak ditulis ke database.';
+}
+
+export function importSamplerEmpty(): string {
+  return 'Belum ada notifikasi. Nyalakan satu aplikasi di Impor otomatis, lalu pancing notifikasinya.';
+}
+
+export function importSamplerCopy(): string {
+  return 'Salin';
+}
+
+export function importSamplerCopied(): string {
+  return 'Tersalin';
+}
+
+export function importSamplerClear(): string {
+  return 'Kosongkan';
+}

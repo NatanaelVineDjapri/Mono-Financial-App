@@ -1,6 +1,7 @@
 import type { Db } from '../types';
 
 import { addScanSource } from './v2_scan_source';
+import { addImportAppSettings } from './v3_import_app_settings';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -9,8 +10,10 @@ export type Migration = (db: Db) => Promise<void>;
 // (CLAUDE.md: src/data/db/mono_schema_v1.sql) is the baseline; a database created from it is
 // brought up to date by these, on creation as well as on every later open (open.ts).
 //   1 -> 2: transactions.source also accepts 'scan' (receipt scan).
+//   2 -> 3: import_app_settings (which apps' notifications may be read for automatic import).
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
+  2: addImportAppSettings,
 };
 
 // Brings `db` from its current meta.schema_version up to the newest version this build

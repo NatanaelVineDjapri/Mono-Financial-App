@@ -963,7 +963,7 @@ Papan: `Rates` · 390 × 860
 - Layanan: satu permintaan GET `https://open.er-api.com/v6/latest/USD` (semua kurs dalam satu respons), kurs rupiah per X = rates.IDR ÷ rates[X]. Simpan hasilnya sebagai `rate_e4` dengan `source = 'api'`. Respons di-cache minimal satu jam (disarankan sehari). Sudah dicek pada 4 Nov 2026: respons berisi `result: "success"`, IDR, dan ke-12 mata uang yang didukung; diperbarui sekali sehari (`time_next_update_utc`). Cek lagi saat membangun, dan perlakukan `result` selain `success` sebagai gagal.
 ## N · Impor otomatis (opsional)
  
-Dua sumber opsional mengisi satu antrean tinjauan: notifikasi Android dari aplikasi bank dan e-wallet yang dipilih pengguna (di ponsel, tanpa internet, tanpa login) dan Gmail (login Google di ponsel, izin baca saja, tanpa server). Keduanya mati secara default dan berdiri sendiri. Tidak ada yang tersimpan sebagai transaksi sebelum pengguna menekan Simpan, dan yang disimpan hanya hasil bacanya, bukan isi pesan. Contoh di papan (Kopi Kenangan, Indomaret, nama@gmail.com) terpisah dari data contoh utama.
+**Status: hanya sumber notifikasi yang dikerjakan; Gmail ditunda** (kartu dan bagian Gmail di papan belum dibuat). Dua sumber opsional mengisi satu antrean tinjauan: notifikasi Android dari aplikasi bank dan e-wallet yang dipilih pengguna (di ponsel, tanpa internet, tanpa login) dan Gmail (login Google di ponsel, izin baca saja, tanpa server). Keduanya mati secara default dan berdiri sendiri. Tidak ada yang tersimpan sebagai transaksi sebelum pengguna menekan Simpan, dan yang disimpan hanya hasil bacanya, bukan isi pesan. Contoh di papan (Kopi Kenangan, Indomaret, nama@gmail.com) terpisah dari data contoh utama.
  
 ### N1 · Impor otomatis, belum diatur
  
@@ -991,9 +991,12 @@ Papan: `Import-Settings` · 390 × 1400
 **Tata letak dan komponen**
  
 - Tautan "4 transaksi menunggu tinjauan" ke antrean.
-- Bagian Notifikasi Android: status akses, waktu terakhir membaca, dan satu baris per aplikasi (BCA mobile, GoPay, Jago, DANA) dengan saklar dan akun MONO tujuannya. Aplikasi yang belum dipetakan ke akun tetap mati.
+- Bagian Notifikasi Android: status akses, waktu terakhir membaca, lalu dua kelompok aplikasi, masing-masing satu baris per aplikasi dengan saklar dan akun MONO tujuannya. Aplikasi yang belum dipetakan ke akun tetap mati (menyalakan saklar tanpa akun membuka pemilih akun dulu).
+  - **"Didukung penuh"**: aplikasi yang punya parser khusus, diuji dengan teks sampel asli. Awalnya kosong.
+  - **"Aplikasi terdeteksi"**: aplikasi lain yang pernah mengirim notifikasi (yang disimpan hanya paket, nama, dan waktu; tidak ada teks). Bantuan: "Dibaca dengan pembacaan umum. Hasilnya selalu perlu kamu periksa." Hasilnya selalu bertanda "Ditebak". Papan belum menggambar kelompok ini; dibuat dengan baris dan saklar yang sama seperti baris aplikasi di atas.
 - Bagian Gmail: akun Google, waktu sinkron terakhir, izin (hanya baca; token tersimpan di ponsel dan tidak ikut cadangan), tombol Sinkronkan dan Putuskan, catatan bahwa memutus tidak mengubah transaksi yang sudah disimpan.
-- Bagian "Kalau ada masalah": akses notifikasi mati (tautan ke panduan), "Perlu hubungkan ulang" (login Google kedaluwarsa atau dicabut), tidak ada internet, dan penghemat baterai yang menghentikan MONO.
+- Bagian "Kalau ada masalah": akses notifikasi mati (tautan ke panduan), MONO berhenti membaca (tombol "Hidupkan ulang"), dan penghemat baterai yang menghentikan MONO (tautan ke pengaturan baterai). "Perlu hubungkan ulang" dan "tidak ada internet" menyangkut Gmail dan ditunda.
+- Tautan "N transaksi menunggu tinjauan" menampilkan nol sampai antrean tinjauan dibuat.
 **Keadaan**
  
 - Pesan masalah memakai bingkai merah 1,5 px, ikon peringatan, dan kata-kata; bukan warna saja.

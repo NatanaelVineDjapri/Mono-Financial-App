@@ -7,13 +7,13 @@ const real = migrations[1];
 describe('runMigrations', () => {
   test('a database already at the newest version is left alone', async () => {
     const db = openTestDb();
-    await expect(runMigrations(db, 2)).resolves.toBe(2);
+    await expect(runMigrations(db, 3)).resolves.toBe(3);
   });
 
   test('the real migrations take a v1 database to the newest version', async () => {
     const db = openTestDb();
-    await expect(runMigrations(db, 1)).resolves.toBe(2);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '2' });
+    await expect(runMigrations(db, 1)).resolves.toBe(3);
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '3' });
   });
 
   test('runs a registered migration, bumps schema_version, and commits', async () => {
@@ -27,9 +27,9 @@ describe('runMigrations', () => {
     };
     try {
       const finalVersion = await runMigrations(db, 1);
-      expect(finalVersion).toBe(2);
+      expect(finalVersion).toBe(3); // the swapped-in 1 -> 2, then the real 2 -> 3
       expect(ran).toBe(true);
-      expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '2' });
+      expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '3' });
       expect(await db.getFirstAsync("select 1 from accounts where name = 'Migrated'")).not.toBeNull();
     } finally {
       migrations[1] = real;

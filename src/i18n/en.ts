@@ -2861,3 +2861,244 @@ export function receiptConsentCancel(): string {
 export function receiptConsentConfirm(): string {
   return 'Send';
 }
+
+// ---- Automatic import from notifications: Settings entry, Import-Setup, Import-Settings, Import-Permission, dev sampler ----
+export function settingsAssistantGroup(): string {
+  return 'Assistant';
+}
+
+export function importAutoTitle(): string {
+  return 'Automatic import';
+}
+
+export function importAutoRowHint(): string {
+  return 'Prepare transactions from bank and e-wallet notifications';
+}
+
+export function importAutoRowValue(count: number): string {
+  return count === 0 ? 'Off' : `${count} ${count === 1 ? 'app' : 'apps'} on`;
+}
+
+export function importIntro(): string {
+  return 'Cut down on typing. MONO can prepare transactions from your bank or e-wallet notifications. You review them first; nothing is saved until you tap Save.';
+}
+
+export function importNotifTitle(): string {
+  return 'Android notifications';
+}
+
+export function importPillOff(): string {
+  return 'Not on yet';
+}
+
+export function importPillOn(): string {
+  return 'On';
+}
+
+export function importNotifDesc(): string {
+  return 'Reads notifications from the bank and e-wallet apps you choose. Processed on your phone, with no internet.';
+}
+
+export function importEnableAccess(): string {
+  return 'Turn on notification access';
+}
+
+export function importReadsHeader(): string {
+  return 'What MONO reads';
+}
+
+export function importReads1(): string {
+  return 'Only notifications from the apps you choose.';
+}
+
+export function importReads2(): string {
+  return 'Amount, type, time, merchant, and the bank or e-wallet name.';
+}
+
+export function importNotReadHeader(): string {
+  return 'What is not read or kept';
+}
+
+export function importNotRead1(): string {
+  return 'Other notifications, from apps you did not choose.';
+}
+
+export function importNotRead2(): string {
+  return 'The full message text. Only what was read from it is kept.';
+}
+
+export function importNotRead3(): string {
+  return 'Passwords or PINs. MONO never asks for them.';
+}
+
+export function importOptionalNote(): string {
+  return 'Optional and off by default. You can turn it off any time; transactions you already saved stay.';
+}
+
+export function importPendingLink(count: number): string {
+  return count === 0 ? 'No transactions waiting for review' : `${count} ${count === 1 ? 'transaction' : 'transactions'} waiting for review`;
+}
+
+export function importPendingSub(): string {
+  return 'Nothing is saved yet';
+}
+
+export function importAccessRow(): string {
+  return 'Notification access';
+}
+
+export function importLastRead(dateTime: string): string {
+  return `Last read ${dateTime}`;
+}
+
+export function importNeverRead(): string {
+  return 'No notification read yet';
+}
+
+export function importAccessOn(): string {
+  return 'On';
+}
+
+export function importAccessOff(): string {
+  return 'Off';
+}
+
+export function importFullGroup(): string {
+  return 'Fully supported';
+}
+
+export function importFullEmpty(): string {
+  return 'None yet. An app is listed here once it has its own reader, tested with real texts.';
+}
+
+export function importDetectedGroup(): string {
+  return 'Detected apps';
+}
+
+export function importDetectedHelp(): string {
+  return 'Read with the general reader. You always need to check the result.';
+}
+
+export function importDetectedEmpty(): string {
+  return 'No apps detected yet. Once your bank or e-wallet app sends a notification, its name shows up here.';
+}
+
+export function importAppToAccount(name: string): string {
+  return `To account ${name}`;
+}
+
+export function importAppUnmapped(): string {
+  return 'Not linked to an account yet';
+}
+
+export function importAppSwitchLabel(appName: string, on: boolean): string {
+  return `${appName}, ${on ? 'on' : 'off'}`;
+}
+
+export function importOnlyEnabledNote(): string {
+  return 'Only the apps switched on above are read. Each app is linked to one MONO account.';
+}
+
+export function importProblemsHeader(): string {
+  return 'If something is wrong';
+}
+
+export function importProblemAccessOffTitle(): string {
+  return 'Notification access is off.';
+}
+
+export function importProblemAccessOffBody(): string {
+  return 'MONO cannot read new notifications.';
+}
+
+export function importOpenGuide(): string {
+  return 'Open the permission guide';
+}
+
+export function importProblemStoppedTitle(): string {
+  return 'MONO stopped reading.';
+}
+
+export function importProblemStoppedBody(): string {
+  return 'Android stopped the MONO notification service.';
+}
+
+export function importRestartService(): string {
+  return 'Restart it';
+}
+
+export function importBatteryNote(): string {
+  return 'Some phones stop MONO in the background to save battery. Set MONO to "Unrestricted" in the battery settings so notifications are not missed.';
+}
+
+export function importOpenBattery(): string {
+  return 'Open battery settings';
+}
+
+export function importNativeMissing(): string {
+  return 'The notification reader is not in this build. Reinstall the app from the latest build.';
+}
+
+export function importAppError(code: string): string {
+  return code === 'needs_account' ? 'Choose the MONO account first. Without an account the app stays off.' : code === 'account_missing' ? 'That account was not found or is archived.' : code === 'account_not_rupiah' ? 'Import only goes to a rupiah account, not a Valas account.' : code === 'unknown_app' ? 'This app has not been detected yet.' : 'Could not change the setting. Nothing changed.';
+}
+
+export function importGuideTitle(): string {
+  return 'Turn on notification access';
+}
+
+export function importGuideSubtitle(): string {
+  return 'One extra step on Android 13 and up';
+}
+
+export function importGuideLead(): string {
+  return 'MONO only reads notifications from the bank and e-wallet apps you choose. Because MONO is installed outside the Play Store, Android 13 and up asks for one extra step:';
+}
+
+export function importGuideStepTitle(step: number): string {
+  return ['Open the MONO app info', 'Tap the three dots at the top right', 'Open Notification access', 'Turn MONO on'][step - 1] ?? '';
+}
+
+export function importGuideStepSub(step: number): string {
+  return ['Long-press the MONO icon, then choose App info.', 'Choose "Allow restricted settings".', 'In Android settings: Notifications, Device notification access.', 'Accept the Android warning. Come back to MONO afterwards.'][step - 1] ?? '';
+}
+
+export function importGuideNote(): string {
+  return 'You can take this permission back any time. MONO does not read notifications from apps you did not choose.';
+}
+
+export function importGuideOpen(): string {
+  return 'Open Android settings';
+}
+
+export function importGuideLater(): string {
+  return 'Not now';
+}
+
+export function importGuideDirect(): string {
+  return 'Go straight to Notification access';
+}
+
+export function importSamplerTitle(): string {
+  return 'Notification sampler';
+}
+
+export function importSamplerHint(): string {
+  return 'Memory only. Shows the raw text of notifications from the apps you switched on, so you can copy them as real samples. Nothing is written to the database.';
+}
+
+export function importSamplerEmpty(): string {
+  return 'No notifications yet. Switch an app on in Automatic import, then trigger one.';
+}
+
+export function importSamplerCopy(): string {
+  return 'Copy';
+}
+
+export function importSamplerCopied(): string {
+  return 'Copied';
+}
+
+export function importSamplerClear(): string {
+  return 'Clear';
+}

@@ -29,6 +29,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `recurring` | templat pengeluaran tetap | Tidak mengubah apa pun sampai pengguna mengonfirmasi. |
 | `recurring_events` | konfirmasi atau lewati per tanggal jatuh tempo | PK `(recurring_id, due_on)`. Menghapus transaksinya menghapus event, jadi bulan itu jatuh tempo lagi. |
 | `backup_log` | riwayat cadangan di perangkat | Tidak ikut berkas cadangan dan tidak disentuh restore. |
+| `import_app_settings` | aplikasi yang notifikasinya boleh dibaca untuk impor otomatis | Hanya metadata (paket, nama, akun tujuan, tingkat dukungan, waktu terlihat); aktif wajib punya akun rupiah. Tidak ikut cadangan, dikosongkan saat restore. Lihat bagian 11. |
 
 `source = 'ai'` untuk catatan dari chat AI (draf disimpan lewat save.ts, tanpa jalur khusus). `source = 'scan'` untuk catatan dari scan struk (draf yang sudah diperiksa disimpan lewat fungsi yang sama dengan form manual). CHECK `source` ada di `transactions` sejak **schema v2** (migrasi 1 ke 2); `mono_schema_v1.sql` tetap berisi `('manual','ai','recurring')`, dan database baru dibuat dari berkas itu lalu langsung dimigrasi ke versi terbaru.
 
@@ -165,12 +166,28 @@ Urutan restore di sisi database:
 - Layanan kurs yang dipilih pemilik (API gratis) belum dipanggil dari aplikasi. Dicek pada 4 Nov 2026: `https://open.er-api.com/v6/latest/USD` mengembalikan `result: "success"`, IDR, dan ke-12 mata uang yang didukung, diperbarui sekali sehari. Saat membangun, ulangi satu permintaan nyata sebelum mengandalkannya.
 - Pada penukaran, kedua jumlah diketik pengguna sesuai struk bank atau tempat penukaran. Kurs yang tampil di formulir dihitung dari keduanya dan hanya informasi; selisih dengan kurs tersimpan juga tidak disimpan.
 
-## 11. Impor otomatis (direncanakan, belum ada di `mono_schema_v1.sql`)
+## 11. Impor otomatis dari notifikasi
 
-**Bagian ini menjelaskan rencana, bukan skema yang sudah berjalan.** Seperti disebut di bagian 1 dokumen ini: kalau dokumen dan berkas SQL berbeda, berkas SQL yang menang — sampai fitur ini diimplementasikan, keempat tabel dan satu perubahan CHECK di bawah ini TIDAK ADA di `mono_schema_v1.sql`. Rincian lengkap dan alasannya ada di `docs/IMPORT_PLAN.md`; ringkasan di sini:
+Cakupan sekarang: **sumber notifikasi saja**; Gmail ditunda. Rencana lengkap ada di `docs/IMPORT_PLAN.md`. Bagian ini mencatat apa yang SUDAH ada di skema dan apa yang belum.
 
-- **Empat tabel baru:** `import_candidates` (antrean kandidat belum diputuskan), `import_seen_keys` (kunci dedup yang sudah diputuskan, supaya kejadian yang sama tidak muncul lagi), `import_sources` (pemetaan aplikasi notifikasi/pengirim Gmail → akun MONO, plus `unparsed_count`/`last_unparsed_at` untuk melacak notifikasi yang gagal diparsing), `import_merchant_categories` (ingatan merchant → kategori, diisi hanya dari pilihan pemilik).
-- **Satu perubahan pada tabel yang ada:** CHECK `transactions.source` bertambah nilai `'import'` (sebelumnya `'manual'`, `'ai'`, `'recurring'`).
-- **Keputusan pemilik: diterapkan langsung ke `mono_schema_v1.sql`, tanpa migrasi** (belum ada data pengguna asli untuk dijaga). `meta.schema_version` tetap `'1'`. Mekanisme migrasi di `src/data/db/migrations/` tetap kosong sampai ada data asli yang perlu dijaga lewat upgrade terkelola.
-- **Penjaga:** tidak ada trigger baru — CHECK level-baris sudah cukup untuk keempat tabel ini. Penjaga lintas-baris (saldo, tanggal) tetap lewat jalur domain yang sama dengan transaksi manual saat kandidat dikonfirmasi.
-- **Dampak ke cadangan (bagian 7 dokumen ini, setelah diimplementasikan):** daftar tabel cadangan bertambah dari sebelas jadi **empat belas** — `import_sources`, `import_merchant_categories`, `import_seen_keys` masuk; `import_candidates` TIDAK (status antrean berjalan, sama seperti `backup_log`). Status koneksi Gmail disimpan sebagai baris `settings` berawalan `import_gmail_*`, dan baris-baris itu DIKECUALIKAN secara eksplisit dari data cadangan (meski tabel `settings` sendiri tetap tercadangkan) — supaya status "tersambung" tidak pernah bertahan lebih lama dari tokennya sendiri, yang memang tidak pernah masuk cadangan sama sekali (hidup di `expo-secure-store`). Setelah restore, status Gmail otomatis kembali "Belum terhubung".
+### Sudah ada: `import_app_settings` (migrasi v3)
+
+Satu baris per aplikasi yang pernah mengirim notifikasi. **Hanya metadata aplikasi**, tidak ada kolom isi pesan, judul, atau teks, dan tidak akan ada.
+
+| Kolom | Arti |
+|---|---|
+| `package` (PK) | nama paket Android, mis. `com.bca.mobile` |
+| `app_name` | nama aplikasi yang tampil |
+| `enabled` | 0 atau 1: apakah notifikasinya boleh dibaca |
+| `account_id` | akun MONO tujuan (FK ke `accounts`, RESTRICT), boleh kosong selama `enabled = 0` |
+| `supported_level` | `'full'` (punya parser khusus) atau `'generic'` (dibaca parser umum, selalu "Ditebak") |
+| `last_seen_at` | kapan aplikasi itu terakhir mengirim notifikasi (ISO WIB) |
+
+- **Aktivasi wajib punya akun:** `CHECK (enabled = 0 OR account_id IS NOT NULL)`. Tanpa akun tujuan, aplikasi tetap mati. Domain (`src/domain/importApps.ts`) memeriksa lebih dulu dengan alasan yang jelas; CHECK adalah penjaga terakhir.
+- **Akun Valas ditolak:** trigger `trg_import_app_idr_ins` dan `trg_import_app_idr_upd` memunculkan `import_needs_idr_account` (impor selalu rupiah, seperti pengeluaran tetap).
+- **Cadangan:** tabel ini **tidak diekspor** (pemetaan paket khusus perangkat) tetapi **dikosongkan saat restore**, karena kalau tidak, menghapus `accounts` gagal oleh FK. Setelah restore, aplikasi dinyalakan lagi; allowlist native disinkronkan ulang dari database setiap app dibuka.
+- Daftar tabel cadangan tetap sebelas.
+
+### Belum ada (tahap berikutnya)
+
+`import_queue` (antrean tinjauan), `merchant_category_memory` (ingatan merchant ke kategori), dan nilai `'import'` pada CHECK `transactions.source` (nanti lewat migrasi v4, digabung dengan `'scan'`). Antrean tidak akan punya kolom isi pesan atau judul asli, hanya field hasil baca.

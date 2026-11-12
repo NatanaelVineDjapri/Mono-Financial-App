@@ -14,6 +14,7 @@ import { setClockOverride } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 import { loadNovemberData } from '@/dev/loadNovemberData';
+import { importSamplerTitle } from '@/i18n';
 import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
 import { resetDatabase } from '@/dev/resetDatabase';
 import { MonoColors } from '@/theme/tokens';
@@ -95,6 +96,10 @@ function DevToolsContent() {
 
         <Link href="/dev/gallery" asChild>
           <Button label="Galeri dev" variant="secondary" />
+        </Link>
+
+        <Link href="/dev/import-sampler" asChild>
+          <Button label={importSamplerTitle()} variant="secondary" />
         </Link>
       </View>
     </View>

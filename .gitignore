@@ -48,3 +48,7 @@ example
 
 # incoming update drops (not part of the repo)
 _incoming/
+
+# Gradle output of local Expo modules (modules/*/android)
+modules/**/android/build/
+modules/**/android/.cxx/

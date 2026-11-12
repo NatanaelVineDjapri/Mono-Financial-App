@@ -30,6 +30,16 @@ export function today(): string {
   return `${wib.getUTCFullYear()}-${pad(wib.getUTCMonth() + 1)}-${pad(wib.getUTCDate())}`;
 }
 
+// Any instant given in milliseconds, as an ISO string with the WIB offset (the native listener
+// reports times as epoch milliseconds). Does not use the dev clock override: it converts a given
+// instant, it does not ask what time it is.
+export function isoFromMillis(ms: number): string {
+  const wib = new Date(ms + WIB_OFFSET_MS);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const date = `${wib.getUTCFullYear()}-${pad(wib.getUTCMonth() + 1)}-${pad(wib.getUTCDate())}`;
+  return `${date}T${pad(wib.getUTCHours())}:${pad(wib.getUTCMinutes())}:${pad(wib.getUTCSeconds())}+07:00`;
+}
+
 // "Now" as an ISO instant with the WIB offset ("2026-10-28T12:41:09+07:00"): what the domain
 // functions take as `now` (created_at, and the date their future-date check compares with).
 export function nowIso(): string {
