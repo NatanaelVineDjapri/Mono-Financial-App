@@ -29,6 +29,17 @@ describe('ProgressBar', () => {
     expect(result.queryByText(/Over/)).toBeNull();
   });
 
+  test('capAtFull (a goal past its target): full in the accent colour, no overflow, no "over" row, real percentage in the label', async () => {
+    const result = await render(<ProgressBar valueBp={36743_83} label="Total assets" overAmount={11000000000} capAtFull testID="bar" />);
+    expect(result.queryByTestId('bar-overflow')).toBeNull();
+    expect(result.queryByText(/Over|Lebih/)).toBeNull();
+    const bar = result.getByRole('progressbar');
+    expect(bar.props.accessibilityValue).toMatchObject({ now: 100 });
+    expect(bar.props.accessibilityLabel).toBe('Total assets, 36743,83% used');
+    const fill = Object.assign({}, ...[result.getByTestId('bar-fill').props.style].flat(Infinity).filter(Boolean));
+    expect(fill.width).toBe('100%');
+  });
+
   test('11600 bp with overAmount: overflow segment, over row and full label appear', async () => {
     const result = await render(<ProgressBar valueBp={11600} label="Belanja" overAmount={112000} testID="bar" />);
     const bar = result.getByRole('progressbar');

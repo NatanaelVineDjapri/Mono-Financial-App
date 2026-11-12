@@ -73,6 +73,10 @@ export interface ProgressBarProps {
   accessibilityLabel?: string;
   // Draw the fill as a moving wave instead of a flat bar. See the header comment.
   wavy?: boolean;
+  // Going past 100% is good news here (a goal that reached its target), not an over-limit: the bar
+  // stops at full in the accent colour, with no red stripes and no "Over by" row. The label still
+  // carries the real percentage. Budgets never set this.
+  capAtFull?: boolean;
   style?: ViewStyle;
   testID?: string;
 }
@@ -133,10 +137,11 @@ function WaveFill({ width }: { width: number }) {
   );
 }
 
-export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: labelOverride, wavy = false, style, testID }: ProgressBarProps) {
+export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: labelOverride, wavy = false, capAtFull = false, style, testID }: ProgressBarProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const [fillWidth, setFillWidth] = useState(0);
-  const bp = Math.max(0, valueBp);
+  const realBp = Math.max(0, valueBp);
+  const bp = capAtFull ? Math.min(realBp, 10000) : realBp;
   const overBp = Math.max(0, bp - 10000);
   const isOver = overBp > 0;
   const drawnOverBp = Math.min(overBp, MAX_DRAWN_OVER_BP);
@@ -145,7 +150,7 @@ export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: la
   const overFraction = drawnOverBp / scaleBp;
   const isWavy = wavy && Platform.OS !== 'web';
 
-  const usedPct = pct(bp);
+  const usedPct = pct(realBp);
   const showOverRow = isOver && overAmount != null;
   const overNominalText = showOverRow ? shown(rp(overAmount!, false), hidden) : undefined;
   const accessibilityLabel = labelOverride ?? progressAccessibilityLabel(label, usedPct, showOverRow ? overNominalText : undefined);

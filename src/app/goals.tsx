@@ -97,6 +97,7 @@ function GoalCard({ goal, accountName, onPress }: GoalCardProps) {
             <ProgressBar
               valueBp={percentBp}
               label={goal.name}
+              capAtFull
               style={styles.progress}
               testID={`goal-progress-${goal.id}`}
             />
