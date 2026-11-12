@@ -20,6 +20,17 @@ class ImportStore(context: Context) {
     prefs.edit().putStringSet(KEY_ALLOWED, packages.filter { it.isNotBlank() }.toSet()).apply()
   }
 
+  /**
+   * Development only: let system apps through too. An emulator has no banking apps, and
+   * `adb shell cmd notification post` posts as a system package; with this on it can be seen,
+   * switched on and read like any other app. JS only ever turns it on from the dev sampler.
+   */
+  fun devAllowSystem(): Boolean = prefs.getBoolean(KEY_DEV_SYSTEM, false)
+
+  fun setDevAllowSystem(allow: Boolean) {
+    prefs.edit().putBoolean(KEY_DEV_SYSTEM, allow).apply()
+  }
+
   fun lastReadAt(): Long = prefs.getLong(KEY_LAST_READ, 0L)
 
   fun markRead(at: Long) {
@@ -70,6 +81,7 @@ class ImportStore(context: Context) {
     private const val KEY_ALLOWED = "allowed_packages"
     private const val KEY_LAST_READ = "last_read_at"
     private const val KEY_SEEN = "seen_apps"
+    private const val KEY_DEV_SYSTEM = "dev_allow_system"
     private const val MIN_INTERVAL_MS = 60_000L
     private const val MAX_APPS = 100
     private const val MAX_LISTED = 50

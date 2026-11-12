@@ -3098,3 +3098,11 @@ export function importSamplerCopied(): string {
 export function importSamplerClear(): string {
   return 'Kosongkan';
 }
+
+export function importSamplerSystemLabel(): string {
+  return 'Izinkan aplikasi sistem (khusus dev)';
+}
+
+export function importSamplerSystemHint(): string {
+  return 'Untuk emulator: notifikasi dari adb datang dari aplikasi sistem. Nyalakan ini, pancing satu notifikasi, nyalakan aplikasinya di Impor otomatis, lalu pancing lagi.';
+}

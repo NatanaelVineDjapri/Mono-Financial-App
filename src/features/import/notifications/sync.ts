@@ -12,6 +12,8 @@ import { sanitizeSeenApps } from './allowlist';
 import * as native from './native';
 
 export async function syncImportApps(db: Db): Promise<{ recorded: number; allowed: string[] }> {
+  // The dev-only "allow system apps" flag never stays on in a release build.
+  if (!__DEV__) native.setDevAllowSystemApps(false);
   const seen = sanitizeSeenApps(native.getSeenApps());
   const recorded = await recordSeenApps(
     db,

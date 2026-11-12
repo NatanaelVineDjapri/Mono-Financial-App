@@ -72,6 +72,11 @@ class NotificationListenerModule : Module() {
     }
 
     // ---- the allowlist and what the service remembers
+    // Development only (the dev sampler): treat system apps like any other app, for the emulator.
+    Function("setDevAllowSystemApps") { allow: Boolean -> store.setDevAllowSystem(allow) }
+
+    Function("getDevAllowSystemApps") { store.devAllowSystem() }
+
     Function("setAllowedPackages") { packages: List<String> -> store.setAllowed(packages) }
 
     Function("getAllowedPackages") { store.allowed().toList() }

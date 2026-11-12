@@ -3102,3 +3102,11 @@ export function importSamplerCopied(): string {
 export function importSamplerClear(): string {
   return 'Clear';
 }
+
+export function importSamplerSystemLabel(): string {
+  return 'Allow system apps (dev only)';
+}
+
+export function importSamplerSystemHint(): string {
+  return 'For the emulator: notifications from adb come from a system app. Turn this on, trigger one, switch the app on in Automatic import, then trigger again.';
+}

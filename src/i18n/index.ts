@@ -689,3 +689,5 @@ export const importSamplerEmpty = pick(en.importSamplerEmpty, id.importSamplerEm
 export const importSamplerCopy = pick(en.importSamplerCopy, id.importSamplerCopy);
 export const importSamplerCopied = pick(en.importSamplerCopied, id.importSamplerCopied);
 export const importSamplerClear = pick(en.importSamplerClear, id.importSamplerClear);
+export const importSamplerSystemLabel = pick(en.importSamplerSystemLabel, id.importSamplerSystemLabel);
+export const importSamplerSystemHint = pick(en.importSamplerSystemHint, id.importSamplerSystemHint);

@@ -82,6 +82,7 @@ Kategori dari memori per merchant lalu aturan kata kunci lokal, kosong bila tida
 - **Antrean memori hilang bila proses mati.** Disengaja: tidak ada teks di disk. Dampaknya satu-dua notifikasi bisa terlewat.
 - **Daftar "Aplikasi terdeteksi" bisa panjang**: semua aplikasi non-sistem yang pernah memberi notifikasi tercatat (hanya nama). Diurutkan terbaru dulu dan dibatasi 50 baris.
 - **Modul native tidak terbukti di sini.** Kotlin dan allowlist native hanya bisa dibuktikan di perangkat setelah build ulang. Karena itu ada filter kedua di JS, diuji di Jest.
+- **Emulator tidak punya aplikasi bank.** Notifikasi dari `adb shell cmd notification post` datang dari paket sistem (`com.android.shell`), yang dibuang filter native. Saklar khusus dev "Izinkan aplikasi sistem" di `/dev/import-sampler` (tersimpan di SharedPreferences, mati secara default, build produksi hanya bisa mematikannya, dan mematikannya setiap app dibuka) melewatkannya supaya fitur bisa dites di emulator.
 - **Perekam sampel** memegang teks mentah di memori. Dibatasi `__DEV__`, hanya paket yang diaktifkan, tidak ditulis ke DB maupun disk.
 
 ## 8. Urutan kerja

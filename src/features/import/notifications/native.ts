@@ -32,6 +32,8 @@ interface NativeListenerModule {
   isIgnoringBatteryOptimizations(): boolean;
   openBatterySettings(): void;
   requestRebind(): void;
+  setDevAllowSystemApps(allow: boolean): void;
+  getDevAllowSystemApps(): boolean;
   setAllowedPackages(packages: string[]): void;
   getAllowedPackages(): string[];
   getSeenApps(): NativeSeenApp[];
@@ -62,6 +64,11 @@ export const openAppInfo = () => safe(m => m.openAppInfo(), undefined);
 export const isIgnoringBatteryOptimizations = () => safe(m => m.isIgnoringBatteryOptimizations(), true);
 export const openBatterySettings = () => safe(m => m.openBatterySettings(), undefined);
 export const requestRebind = () => safe(m => m.requestRebind(), undefined);
+// Development only: let system apps through (an emulator has no banking apps). A production build
+// can only ever switch it OFF (the flag survives in SharedPreferences when a release build is
+// installed over a dev build, so the app turns it off at start).
+export const setDevAllowSystemApps = (allow: boolean) => safe(m => m.setDevAllowSystemApps(__DEV__ ? allow : false), undefined);
+export const getDevAllowSystemApps = () => (__DEV__ ? safe(m => m.getDevAllowSystemApps(), false) : false);
 export const setAllowedPackages = (packages: readonly string[]) => safe(m => m.setAllowedPackages([...packages]), undefined);
 export const getAllowedPackages = () => safe(m => m.getAllowedPackages(), [] as string[]);
 export const getSeenApps = () => safe(m => m.getSeenApps(), [] as NativeSeenApp[]);

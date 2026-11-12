@@ -42,7 +42,7 @@ class NotificationListener : NotificationListenerService() {
         packageName = sbn.packageName ?: "",
         ownPackage = packageName,
         allowed = store.allowed(),
-        isSystemApp = info?.let { isSystem(it) } ?: false,
+        isSystemApp = (info?.let { isSystem(it) } ?: false) && !store.devAllowSystem(),
         isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
         isGroupSummary = (notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0,
       )
