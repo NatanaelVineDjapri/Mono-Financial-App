@@ -490,14 +490,14 @@ Papan: `More` · 390 × 930
  
 **Tata letak dan komponen**
  
-- Judul dan kartu status cadangan: "Disimpan hanya di perangkat ini", cadangan terakhir 21 Okt 2026 20:14 WIB, dan ikon unduh di kanan yang membuka Backup.
+- Judul dan strip status cadangan: "Tersimpan hanya di ponsel ini", baris keadaan cadangan, dan tombol unduh di kanan. Mengetuk strip membuka Backup; tombol unduh (48 × 48, "Buat cadangan sekarang") langsung membuat cadangan lewat fungsi yang sama dengan layar Backup (lembar bagikan), lalu snackbar "Cadangan tersimpan." dan strip ikut diperbarui.
 - Grup Money: Financial goals, Fixed expenses ("1 due today"), Reports, Categories.
 - Grup Data and app: Backup and restore, Settings.
 - Footer lockup MONO dengan "Version 1.0.0 · Works offline · No account, no sync".
 **Keadaan**
 
 - More adalah layar yang didorong dari avatar di Overview (tanpa bar bawah), dengan panah kembali berlabel "Overview". Layar anaknya juga tanpa bar bawah.
-- Kartu cadangan punya tiga keadaan: belum ada cadangan, cadangan lebih dari 30 hari (ikon peringatan dan jumlah hari), dan baru (tanggal dan jam cadangan terakhir). Ikon dan kalimat selalu ada; warna tidak pernah satu-satunya sinyal.
+- Strip cadangan punya tiga keadaan, dihitung dari `backup_log` dan `transactions` (bukan teks tetap): **belum pernah** ("Belum ada cadangan", ikon peringatan, bingkai 1,5 px #737373); **baru** (kurang dari 7 hari: "Cadangan terakhir 3 hari lalu" dan "N transaksi berubah sejak itu", baris kedua hilang kalau 0, bingkai biasa); **basi** (7 hari atau lebih: "Cadangan terakhir 9 hari lalu", ikon peringatan, bingkai 1,5 px #737373). Waktu relatif dalam bahasa Indonesia: "hari ini", "kemarin", "3 hari lalu", "2 minggu lalu", "2 bulan lalu" (dihitung per hari kalender di zona waktu pengguna). Ambang 7 hari satu konstanta (`BACKUP_STALE_AFTER_DAYS`) yang sama dengan pengingat cadangan. Ikon dan kalimat selalu ada; warna tidak pernah satu-satunya sinyal, dan bingkai penekanan bukan merah (ini bukan kerugian). Transaksi yang dihapus sejak cadangan terakhir tidak ikut terhitung (tidak ada jejaknya).
 - "Pengeluaran tetap" menampilkan "<n> jatuh tempo" hanya bila ada pengeluaran tetap yang jatuh tempo hari ini atau terlewat.
 
 **Catatan**

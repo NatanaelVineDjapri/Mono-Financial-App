@@ -1,43 +1,54 @@
-import { backupState, daysSince, formatBackupTime, OLD_AFTER_DAYS, zoneOf } from '../backupStatus';
+// The backup strip's state: none, recent (under 7 days) or stale (7 days or more), counted in
+// calendar days in the zone; the relative wording; and the one shared threshold.
+import { BACKUP_STALE_AFTER_DAYS, isBackupStale } from '@/core/backupPolicy';
+
+import { backupState, daysSince, formatBackupTime, relativeParts, zoneOf } from '../backupStatus';
 
 // 28 Oct 2026, 12.41 WIB
 const NOW = new Date('2026-10-28T12:41:09+07:00').getTime();
 const DAY = 86400000;
+const daysAgo = (n: number) => new Date(NOW - n * DAY).toISOString();
 
-describe('formatBackupTime', () => {
-  test('"21 Okt 2026, 20.14 WIB": Indonesian month, a dot between hour and minute, the zone', () => {
-    expect(formatBackupTime('2026-10-21T20:14:00+07:00')).toBe('21 Okt 2026, 20.14 WIB');
+describe('the shared threshold', () => {
+  test('seven days, one constant, and the strip reads it from there', () => {
+    expect(BACKUP_STALE_AFTER_DAYS).toBe(7);
+    expect(isBackupStale(6)).toBe(false);
+    expect(isBackupStale(7)).toBe(true);
+    expect(isBackupStale(8)).toBe(true);
   });
 
-  test('a UTC instant is shown in WIB, and across midnight the date moves', () => {
-    expect(formatBackupTime('2026-10-21T13:14:00Z')).toBe('21 Okt 2026, 20.14 WIB');
-    expect(formatBackupTime('2026-10-21T18:30:00Z')).toBe('22 Okt 2026, 01.30 WIB');
-  });
-
-  test('Indonesian short month names', () => {
-    expect(formatBackupTime('2026-05-03T09:05:00+07:00')).toBe('3 Mei 2026, 09.05 WIB');
-    expect(formatBackupTime('2026-08-17T09:05:00+07:00')).toBe('17 Agu 2026, 09.05 WIB');
-    expect(formatBackupTime('2026-12-31T23:59:00+07:00')).toBe('31 Des 2026, 23.59 WIB');
-  });
-
-  test('the zone of the timezone setting, WIB when it is unknown or missing', () => {
-    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Asia/Makassar')).toBe('21 Okt 2026, 21.14 WITA');
-    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Asia/Jayapura')).toBe('21 Okt 2026, 22.14 WIT');
-    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Europe/Paris')).toBe('21 Okt 2026, 20.14 WIB');
-    expect(zoneOf(null).label).toBe('WIB');
+  test(`the strip turns stale exactly when the policy says so (day ${BACKUP_STALE_AFTER_DAYS - 1} recent, day ${BACKUP_STALE_AFTER_DAYS} stale)`, () => {
+    expect(backupState(daysAgo(BACKUP_STALE_AFTER_DAYS - 1), 0, NOW).kind).toBe('recent');
+    expect(backupState(daysAgo(BACKUP_STALE_AFTER_DAYS), 0, NOW).kind).toBe('stale');
   });
 });
 
-describe('formatBackupTime in English', () => {
-  test('English month names and a colon in the time, the same 24 hour clock and zone', () => {
-    expect(formatBackupTime('2026-10-21T20:14:00+07:00', null, 'en')).toBe('21 Oct 2026, 20:14 WIB');
-    expect(formatBackupTime('2026-05-03T09:05:00+07:00', null, 'en')).toBe('3 May 2026, 09:05 WIB');
-    expect(formatBackupTime('2026-08-17T09:05:00+07:00', 'Asia/Makassar', 'en')).toBe('17 Aug 2026, 10:05 WITA');
-    expect(formatBackupTime('2026-12-31T23:59:00+07:00', null, 'en')).toBe('31 Dec 2026, 23:59 WIB');
+describe('backupState', () => {
+  test('never backed up: "none"', () => {
+    expect(backupState(null, 0, NOW)).toEqual({ kind: 'none' });
+    expect(backupState('not a date', 0, NOW)).toEqual({ kind: 'none' });
   });
 
-  test('the state carries the language it was asked in', () => {
-    expect(backupState('2026-10-21T20:14:00+07:00', NOW, null, 'en')).toEqual({ kind: 'recent', whenText: '21 Oct 2026, 20:14 WIB' });
+  test('3 days ago: recent, with the days and how many transactions changed since', () => {
+    expect(backupState('2026-10-25T20:14:00+07:00', 5, NOW)).toEqual({ kind: 'recent', days: 3, changed: 5 });
+  });
+
+  test('9 days ago: stale', () => {
+    expect(backupState('2026-10-19T20:14:00+07:00', 0, NOW)).toEqual({ kind: 'stale', days: 9, changed: 0 });
+  });
+
+  test('today and yesterday are recent', () => {
+    expect(backupState('2026-10-28T08:00:00+07:00', 0, NOW)).toMatchObject({ kind: 'recent', days: 0 });
+    expect(backupState('2026-10-27T08:00:00+07:00', 0, NOW)).toMatchObject({ kind: 'recent', days: 1 });
+  });
+
+  test('a backup dated in the future (a clock set back) counts as today', () => {
+    expect(backupState('2026-11-02T10:00:00+07:00', 0, NOW)).toEqual({ kind: 'recent', days: 0, changed: 0 });
+  });
+
+  test('the count of changed transactions is never negative or fractional', () => {
+    expect(backupState('2026-10-25T20:14:00+07:00', -3, NOW)).toMatchObject({ changed: 0 });
+    expect(backupState('2026-10-25T20:14:00+07:00', 2.9, NOW)).toMatchObject({ changed: 2 });
   });
 });
 
@@ -47,35 +58,71 @@ describe('daysSince counts calendar days in the zone', () => {
     expect(daysSince('2026-10-27T23:50:00+07:00', NOW)).toBe(1);
   });
 
-  test('a backup at 23.50 and a look at 00.10 the next morning is one day', () => {
+  test('a backup at 23.50 and a look at 00.10 the next morning is one day, not twenty minutes', () => {
     const lookedAt = new Date('2026-10-29T00:10:00+07:00').getTime();
     expect(daysSince('2026-10-28T23:50:00+07:00', lookedAt)).toBe(1);
   });
+
+  test('the wording follows the calendar across midnight: "hari ini" at 23.59, "kemarin" a minute later', () => {
+    const backup = '2026-10-28T20:00:00+07:00';
+    expect(relativeParts(daysSince(backup, new Date('2026-10-28T23:59:00+07:00').getTime())).unit).toBe('today');
+    expect(relativeParts(daysSince(backup, new Date('2026-10-29T00:00:00+07:00').getTime())).unit).toBe('yesterday');
+  });
+
+  test('the zone of the timezone setting decides where midnight is', () => {
+    // 23.30 WIB is already the next day in WIT (UTC+9)
+    const backup = '2026-10-28T20:00:00+07:00';
+    const looked = new Date('2026-10-28T23:30:00+07:00').getTime();
+    expect(daysSince(backup, looked, 'Asia/Jakarta')).toBe(0);
+    expect(daysSince(backup, looked, 'Asia/Jayapura')).toBe(1);
+  });
 });
 
-describe('backupState', () => {
-  test('never backed up: "none"', () => {
-    expect(backupState(null, NOW)).toEqual({ kind: 'none' });
-    expect(backupState('not a date', NOW)).toEqual({ kind: 'none' });
+describe('relativeParts: the unit and the number', () => {
+  test.each([
+    [0, 'today', 0],
+    [1, 'yesterday', 1],
+    [2, 'days', 2],
+    [3, 'days', 3],
+    [9, 'days', 9],
+    [13, 'days', 13],
+    [14, 'weeks', 2],
+    [21, 'weeks', 3],
+    [59, 'weeks', 8],
+    [60, 'months', 2],
+    [180, 'months', 6],
+    [364, 'months', 12],
+    [365, 'years', 1],
+    [800, 'years', 2],
+  ])('%s days: %s %s', (days, unit, n) => {
+    expect(relativeParts(days)).toEqual({ unit, n });
   });
 
-  test('recent: the date and time of the last backup', () => {
-    expect(backupState('2026-10-21T20:14:00+07:00', NOW)).toEqual({ kind: 'recent', whenText: '21 Okt 2026, 20.14 WIB' });
-    expect(backupState('2026-10-28T08:00:00+07:00', NOW)).toMatchObject({ kind: 'recent' });
+  test('a negative or fractional day count is cleaned up', () => {
+    expect(relativeParts(-4)).toEqual({ unit: 'today', n: 0 });
+    expect(relativeParts(3.9)).toEqual({ unit: 'days', n: 3 });
+  });
+});
+
+describe('formatBackupTime (for the Backup screen\'s list)', () => {
+  test('"21 Okt 2026, 20.14 WIB": Indonesian month, a dot between hour and minute, the zone', () => {
+    expect(formatBackupTime('2026-10-21T20:14:00+07:00')).toBe('21 Okt 2026, 20.14 WIB');
   });
 
-  test(`exactly ${OLD_AFTER_DAYS} days is still recent; ${OLD_AFTER_DAYS + 1} is old`, () => {
-    const thirty = new Date(NOW - 30 * DAY).toISOString();
-    const thirtyOne = new Date(NOW - 31 * DAY).toISOString();
-    expect(backupState(thirty, NOW).kind).toBe('recent');
-    expect(backupState(thirtyOne, NOW)).toEqual({ kind: 'old', days: 31 });
+  test('a UTC instant is shown in WIB, and across midnight the date moves', () => {
+    expect(formatBackupTime('2026-10-21T13:14:00Z')).toBe('21 Okt 2026, 20.14 WIB');
+    expect(formatBackupTime('2026-10-21T18:30:00Z')).toBe('22 Okt 2026, 01.30 WIB');
   });
 
-  test('old: the number of days', () => {
-    expect(backupState('2026-09-13T10:00:00+07:00', NOW)).toEqual({ kind: 'old', days: 45 });
+  test('the zone of the timezone setting, WIB when it is unknown or missing', () => {
+    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Asia/Makassar')).toBe('21 Okt 2026, 21.14 WITA');
+    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Asia/Jayapura')).toBe('21 Okt 2026, 22.14 WIT');
+    expect(formatBackupTime('2026-10-21T13:14:00Z', 'Europe/Paris')).toBe('21 Okt 2026, 20.14 WIB');
+    expect(zoneOf(null).label).toBe('WIB');
   });
 
-  test('a backup dated in the future (a clock set back) is not called old', () => {
-    expect(backupState('2026-11-02T10:00:00+07:00', NOW).kind).toBe('recent');
+  test('in English: English month names and a colon', () => {
+    expect(formatBackupTime('2026-10-21T20:14:00+07:00', null, 'en')).toBe('21 Oct 2026, 20:14 WIB');
+    expect(formatBackupTime('2026-05-03T09:05:00+07:00', 'Asia/Makassar', 'en')).toBe('3 May 2026, 10:05 WITA');
   });
 });

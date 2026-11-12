@@ -1,12 +1,16 @@
-// The Backup status card on More (PAGES.md M): three states, so the risk of losing data is always
-// visible. Pure: the time of the newest `backup_log` row and "now" go in, the state comes out.
+// The backup status strip on More (DESIGN.md section I, PAGES.md M): where the data lives and how
+// safe it is, always in view. Pure: the time of the newest `backup_log` row, how many transactions
+// were created or changed since then, and "now" go in; the state comes out. Nothing is stored: it
+// is worked out again every time the screen gets focus.
+//
 //   none    no backup was ever made
-//   old     the last one is more than 30 days ago ("45 hari lalu")
-//   recent  the date and time of the last one ("21 Okt 2026, 20.14 WIB")
-// Times are shown in the zone of the `timezone` setting (default WIB). Nothing is stored: the
-// state is read again every time the screen gets focus.
-
-export const OLD_AFTER_DAYS = 30;
+//   recent  the last one is less than BACKUP_STALE_AFTER_DAYS days old (shows how many
+//           transactions changed since, when there are any)
+//   stale   the last one is BACKUP_STALE_AFTER_DAYS days old or more
+//
+// The threshold is src/core/backupPolicy.ts, shared with the backup reminder. Days are calendar
+// days in the zone of the `timezone` setting (default WIB).
+import { isBackupStale } from '../../core/backupPolicy';
 
 const ZONES: Record<string, { label: string; offsetHours: number }> = {
   'Asia/Jakarta': { label: 'WIB', offsetHours: 7 },
@@ -28,14 +32,12 @@ export function zoneOf(timezone: string | null | undefined): { label: string; of
   return (timezone ? ZONES[timezone] : undefined) ?? DEFAULT_ZONE;
 }
 
-export type BackupState =
-  | { kind: 'none' }
-  | { kind: 'old'; days: number }
-  | { kind: 'recent'; whenText: string };
+export type BackupState = { kind: 'none' } | { kind: 'recent'; days: number; changed: number } | { kind: 'stale'; days: number; changed: number };
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-// "21 Okt 2026, 20.14 WIB" (id) or "21 Oct 2026, 20:14 WIB" (en)
+// "21 Okt 2026, 20.14 WIB" (id) or "21 Oct 2026, 20:14 WIB" (en): the full time of a backup, for the
+// Backup screen's list (the strip itself only says how long ago).
 export function formatBackupTime(iso: string, timezone?: string | null, language: 'id' | 'en' = 'id'): string {
   const zone = zoneOf(timezone);
   const local = new Date(new Date(iso).getTime() + zone.offsetHours * HOUR_MS);
@@ -50,9 +52,24 @@ export function daysSince(iso: string, nowMs: number, timezone?: string | null):
   return startOfDay(nowMs) - startOfDay(new Date(iso).getTime());
 }
 
-export function backupState(lastBackupIso: string | null, nowMs: number, timezone?: string | null, language: 'id' | 'en' = 'id'): BackupState {
+export function backupState(lastBackupIso: string | null, changedSince: number, nowMs: number, timezone?: string | null): BackupState {
   if (!lastBackupIso || Number.isNaN(new Date(lastBackupIso).getTime())) return { kind: 'none' };
-  const days = daysSince(lastBackupIso, nowMs, timezone);
-  if (days > OLD_AFTER_DAYS) return { kind: 'old', days };
-  return { kind: 'recent', whenText: formatBackupTime(lastBackupIso, timezone, language) };
+  // A backup dated in the future (a clock set back) counts as today.
+  const days = Math.max(0, daysSince(lastBackupIso, nowMs, timezone));
+  const changed = Math.max(0, Math.floor(changedSince));
+  return { kind: isBackupStale(days) ? 'stale' : 'recent', days, changed };
+}
+
+export type RelativeUnit = 'today' | 'yesterday' | 'days' | 'weeks' | 'months' | 'years';
+
+// "hari ini", "kemarin", "3 hari lalu", "2 minggu lalu", "2 bulan lalu": which unit and how many.
+// Under two weeks it counts days, under two months weeks, under a year months.
+export function relativeParts(days: number): { unit: RelativeUnit; n: number } {
+  const d = Math.max(0, Math.floor(days));
+  if (d === 0) return { unit: 'today', n: 0 };
+  if (d === 1) return { unit: 'yesterday', n: 1 };
+  if (d < 14) return { unit: 'days', n: d };
+  if (d < 60) return { unit: 'weeks', n: Math.floor(d / 7) };
+  if (d < 365) return { unit: 'months', n: Math.floor(d / 30) };
+  return { unit: 'years', n: Math.floor(d / 365) };
 }

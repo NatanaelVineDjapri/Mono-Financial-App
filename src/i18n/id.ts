@@ -2394,26 +2394,6 @@ export function moreBackLabel(): string {
   return 'Kembali ke Overview';
 }
 
-export function moreBackupPrivate(): string {
-  return 'Disimpan hanya di perangkat ini';
-}
-
-export function moreBackupLast(whenText: string): string {
-  return `Cadangan terakhir ${whenText}`;
-}
-
-export function moreBackupNone(): string {
-  return 'Belum ada cadangan';
-}
-
-export function moreBackupDaysAgo(days: number): string {
-  return `Cadangan terakhir ${days} hari lalu`;
-}
-
-export function moreBackupActionLabel(): string {
-  return 'Cadangkan sekarang';
-}
-
 export function moreGroupMoney(): string {
   return 'UANG';
 }
@@ -3105,4 +3085,41 @@ export function importSamplerSystemLabel(): string {
 
 export function importSamplerSystemHint(): string {
   return 'Untuk emulator: notifikasi dari adb datang dari aplikasi sistem. Nyalakan ini, pancing satu notifikasi, nyalakan aplikasinya di Impor otomatis, lalu pancing lagi.';
+}
+
+// ---- Backup status strip on More, and the "Buat cadangan" flow ----
+export function backupStripTitle(): string {
+  return 'Tersimpan hanya di ponsel ini';
+}
+
+export function backupNoneLine(): string {
+  return 'Belum ada cadangan';
+}
+
+export function backupLastLine(unit: string, n: number): string {
+  return `Cadangan terakhir ${unit === 'today' ? 'hari ini' : unit === 'yesterday' ? 'kemarin' : unit === 'days' ? `${n} hari lalu` : unit === 'weeks' ? `${n} minggu lalu` : unit === 'months' ? `${n} bulan lalu` : `${n} tahun lalu`}`;
+}
+
+export function backupChangedLine(count: number): string {
+  return `${count} transaksi berubah sejak itu`;
+}
+
+export function backupStripLabel(title: string, line: string, changed: string): string {
+  return `${title}. ${line}.${changed ? ` ${changed}.` : ''} Ketuk untuk membuka cadangan.`;
+}
+
+export function backupNowLabel(): string {
+  return 'Buat cadangan sekarang';
+}
+
+export function backupSavedToast(): string {
+  return 'Cadangan tersimpan.';
+}
+
+export function backupFailedToast(): string {
+  return 'Cadangan gagal dibuat. Tidak ada yang berubah.';
+}
+
+export function backupShareTitle(): string {
+  return 'Simpan cadangan MONO';
 }

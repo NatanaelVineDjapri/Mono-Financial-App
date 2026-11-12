@@ -170,6 +170,7 @@ Three goals with computed progress and needed pace; Goal-Edit with source (one a
 Period selector, cash flow (savings rate), six-month trend with table, spending by category with shares, net worth month-end table, CSV export (transactions, account balances).
  
 **I. Backup and restore**
+*Backup status strip (on More, above the groups; not on the main board):* a card on `#151516`, radius 20, 1 px `#272728`, 20 px line icons, every touch target at least 48. Title "Tersimpan hanya di ponsel ini", then the state, worked out from `backup_log` and `transactions`, never fixed text: **none** ("Belum ada cadangan", warning icon, 1.5 px `#737373` frame, emphasis and not red); **recent**, under 7 days ("Cadangan terakhir 3 hari lalu" and, when above zero, "N transaksi berubah sejak itu", where the count is the transactions created or edited after the newest backup's time; resting frame); **stale**, 7 days or more ("Cadangan terakhir 9 hari lalu", warning icon, the 1.5 px frame). Relative time is Indonesian by calendar day in the time zone setting: hari ini, kemarin, N hari lalu, N minggu lalu, N bulan lalu. **The 7-day threshold is one constant, `BACKUP_STALE_AFTER_DAYS` in `src/core/backupPolicy.ts`, shared by this strip and the backup reminder (Settings, Data); never write the number twice.** Tapping the strip opens Backup; the download button (accessibility label "Buat cadangan sekarang") runs the same "Create backup" function as the Backup screen (share sheet), then the snackbar "Cadangan tersimpan." and the strip refreshes. There are no amounts, so hidden-amounts mode does not touch it.
 Local-only banner, last backup, "Create backup now", contents list, restore entry, recent backups. *Restore confirm:* file info, comparison of this device versus file, warning, safety-backup switch, required tick, disabled Replace until ticked. *Invalid file:* explicit checklist (readable JSON ✓, MONO marker ✓, schema version ✕, totals skipped), data untouched.
  
 **J. Settings**
@@ -347,7 +348,7 @@ Own formatter on purpose: Hermes `Intl` support differs by device. Fonts are bun
 | Charts | `victory-native` `CartesianChart`, main series gold, others differ by lightness and dash, value table beneath |
 | Account cards | `BankCard` (background PNG + `idn-finlogos` Logo + text), style from `accounts.icon` (bank slug), fallback by `accounts.type` |
 | Switch | `MonoSwitch` (Pressable, role switch) |
-| More row | `MoreRow`: min height 64, icon tile 40 (radius 14, `#1D1D1E` fill, 1 px `#2A2A2B` border), title 15/20 600, subtitle 13/18 `#8A8A8A`, chevron, 1 px `#272728` separators inside a `card`. The Backup status card above the groups has three states (none, older than 30 days, recent), each with an icon and a sentence |
+| More row | `MoreRow`: min height 64, icon tile 40 (radius 14, `#1D1D1E` fill, 1 px `#2A2A2B` border), title 15/20 600, subtitle 13/18 `#8A8A8A`, chevron, 1 px `#272728` separators inside a `card`. The Backup status strip above the groups has three states (none, recent, stale at 7 days or more; see section I), each with an icon or a sentence |
  
 ### SQLite schema v1
  

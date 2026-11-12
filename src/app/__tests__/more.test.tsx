@@ -3,12 +3,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { MoreData } from '@/features/more/useMoreData';
 import { useMoreData } from '@/features/more/useMoreData';
+import { useCreateBackup } from '@/features/backup/useCreateBackup';
 import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
 import { languageChoiceEnabled, useLanguage } from '@/i18n/lang';
 
 import MoreScreen from '../more';
 
 jest.mock('@/features/more/useMoreData');
+jest.mock('@/features/backup/useCreateBackup');
+const mockUseCreateBackup = useCreateBackup as jest.MockedFunction<typeof useCreateBackup>;
+const mockCreateBackup = jest.fn(async () => true);
 jest.mock('@/features/settings/useLanguageSetting');
 jest.mock('@/i18n/lang', () => ({ ...jest.requireActual('@/i18n/lang'), languageChoiceEnabled: jest.fn(() => true) }));
 const mockUseMoreData = useMoreData as jest.MockedFunction<typeof useMoreData>;
@@ -33,7 +37,7 @@ jest.mock('expo-constants', () => ({
 }));
 
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 34 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
-const RECENT: MoreData = { backup: { kind: 'recent', whenText: '21 Okt 2026, 20.14 WIB' }, dueCount: 0 };
+const RECENT: MoreData = { backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0 };
 
 function renderMore(data: MoreData = RECENT) {
   mockUseMoreData.mockReturnValue(data);
@@ -46,6 +50,8 @@ const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).fil
 beforeEach(() => {
   jest.clearAllMocks();
   mockVersion = '1.0.0';
+  mockCreateBackup.mockResolvedValue(true);
+  mockUseCreateBackup.mockReturnValue({ create: mockCreateBackup, busy: false });
   (languageChoiceEnabled as jest.Mock).mockReturnValue(true);
   mockUseLanguageSetting.mockImplementation(() => ({ language: useLanguage.getState().language, change: mockChangeLanguage }));
 });
@@ -94,7 +100,7 @@ describe('structure', () => {
   });
 
   test('no amount of money is shown, so hidden-amounts mode has nothing to hide', async () => {
-    const screen = await renderMore({ backup: { kind: 'recent', whenText: '21 Okt 2026, 20.14 WIB' }, dueCount: 2 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 4 }, dueCount: 2 });
     expect(screen.queryByText(/Rp/)).toBeNull();
   });
 
@@ -154,11 +160,12 @@ describe('language', () => {
 
   test('in English the whole screen reads English: title, groups, rows, card and footer', async () => {
     useLanguage.setState({ language: 'en' });
-    const screen = await renderMore({ backup: { kind: 'recent', whenText: '21 Oct 2026, 20:14 WIB' }, dueCount: 1 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 2 }, dueCount: 1 });
     for (const text of [
       'More',
       'Stored only on this device',
-      'Last backup 21 Oct 2026, 20:14 WIB',
+      'Last backup 3 days ago',
+      '2 transactions changed since then',
       'MONEY',
       'Financial goals',
       'Targets measured from real balances',
@@ -176,6 +183,7 @@ describe('language', () => {
     }
     expect(screen.getByRole('button', { name: 'Back to Overview' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Back up now' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Stored only on this device\. Last backup 3 days ago\. 2 transactions changed since then\. Tap to open backups\./ })).toBeTruthy();
     expect(screen.queryByText(/Cadangan|Pengaturan|Kategori|Laporan/)).toBeNull();
   });
 });
@@ -193,49 +201,97 @@ describe('the back arrow', () => {
   });
 });
 
-describe('the backup status card (three states)', () => {
-  test('never backed up: "Belum ada cadangan" with a warning icon', async () => {
+describe('the backup status strip (three states, worked out from the backup log)', () => {
+  const frame = (screen: Awaited<ReturnType<typeof renderMore>>) => flat(screen.getByTestId('backup-card').props.style);
+
+  test('never backed up: the title, "Belum ada cadangan" with a warning icon and a 1.5 px emphasis frame', async () => {
     const screen = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
-    expect(screen.getByText('Disimpan hanya di perangkat ini')).toBeTruthy();
+    expect(screen.getByText('Tersimpan hanya di ponsel ini')).toBeTruthy();
     expect(screen.getByText('Belum ada cadangan')).toBeTruthy();
     expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
+    expect(frame(screen)).toMatchObject({ borderWidth: 1.5, borderColor: '#737373' });
   });
 
-  test('older than 30 days: the number of days, with a warning icon', async () => {
-    const screen = await renderMore({ backup: { kind: 'old', days: 45 }, dueCount: 0 });
-    expect(screen.getByText('Cadangan terakhir 45 hari lalu')).toBeTruthy();
-    expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
-  });
-
-  test('recent: the date and time, and no warning icon', async () => {
-    const screen = await renderMore();
-    expect(screen.getByText('Cadangan terakhir 21 Okt 2026, 20.14 WIB')).toBeTruthy();
+  test('a recent backup: how long ago, how many transactions changed since, no warning and the resting frame', async () => {
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0 });
+    expect(screen.getByText('Cadangan terakhir 3 hari lalu')).toBeTruthy();
+    expect(screen.getByText('5 transaksi berubah sejak itu')).toBeTruthy();
     expect(screen.queryByTestId('backup-warning-icon', HIDDEN)).toBeNull();
+    expect(frame(screen)).toMatchObject({ borderWidth: 1, borderColor: '#272728' });
   });
 
-  test('every state has an icon or a sentence of its own: colour is never the only signal', async () => {
-    for (const backup of [{ kind: 'none' }, { kind: 'old', days: 31 }] as const) {
+  test('nothing changed since: the second line is gone', async () => {
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0 });
+    expect(screen.queryByTestId('backup-changed')).toBeNull();
+    expect(screen.queryByText(/berubah sejak itu/)).toBeNull();
+  });
+
+  test('a stale backup (7 days or more): how long ago, with a warning icon and the emphasis frame', async () => {
+    const screen = await renderMore({ backup: { kind: 'stale', days: 9, changed: 0 }, dueCount: 0 });
+    expect(screen.getByText('Cadangan terakhir 9 hari lalu')).toBeTruthy();
+    expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
+    expect(frame(screen)).toMatchObject({ borderWidth: 1.5, borderColor: '#737373' });
+  });
+
+  test.each([
+    [0, 'Cadangan terakhir hari ini'],
+    [1, 'Cadangan terakhir kemarin'],
+    [6, 'Cadangan terakhir 6 hari lalu'],
+    [14, 'Cadangan terakhir 2 minggu lalu'],
+    [70, 'Cadangan terakhir 2 bulan lalu'],
+  ])('%s days: "%s"', async (days, text) => {
+    const screen = await renderMore({ backup: { kind: days >= 7 ? 'stale' : 'recent', days, changed: 0 }, dueCount: 0 });
+    expect(screen.getByText(text)).toBeTruthy();
+  });
+
+  test('a warning is an icon and words, never a colour alone, and it is not red (this is not a loss)', async () => {
+    for (const backup of [{ kind: 'none' }, { kind: 'stale', days: 9, changed: 0 }] as const) {
       const screen = await renderMore({ backup, dueCount: 0 });
       expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
       expect(screen.getByTestId('backup-line').props.children).toBeTruthy();
+      expect(frame(screen).borderColor).not.toBe('#FF6B6B');
     }
   });
 
-  test('the way to back up is a download icon button, at least 44 × 44, that opens /backup', async () => {
-    const screen = await renderMore();
-    const action = screen.getByRole('button', { name: 'Cadangkan sekarang' });
-    const style = flat(action.props.style);
-    expect(style.minHeight).toBeGreaterThanOrEqual(44);
-    expect(style.minWidth).toBeGreaterThanOrEqual(44);
-    expect(screen.queryByText('Cadangkan')).toBeNull(); // an icon, not a word
-    await fireEvent.press(action);
-    expect(mockPush).toHaveBeenCalledWith('/backup');
+  test('a screen reader hears the whole strip as one button', async () => {
+    const none = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
+    expect(none.getByTestId('backup-open').props.accessibilityLabel).toBe('Tersimpan hanya di ponsel ini. Belum ada cadangan. Ketuk untuk membuka cadangan.');
+    const recent = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0 });
+    expect(recent.getByTestId('backup-open').props.accessibilityLabel).toBe(
+      'Tersimpan hanya di ponsel ini. Cadangan terakhir 3 hari lalu. 5 transaksi berubah sejak itu. Ketuk untuk membuka cadangan.',
+    );
   });
 
-  test('the card has the same side padding (16) and gap (14) as the rows, so its text starts where theirs does', async () => {
+  test('tapping the strip opens /backup', async () => {
     const screen = await renderMore();
-    expect(flat(screen.getByTestId('backup-card').props.style)).toMatchObject({ paddingHorizontal: 16, gap: 14 });
-    expect(flat(screen.getByTestId('more-goals').props.style)).toMatchObject({ paddingHorizontal: 16, gap: 14 });
+    await fireEvent.press(screen.getByTestId('backup-open'));
+    expect(mockPush).toHaveBeenCalledWith('/backup');
+    expect(mockCreateBackup).not.toHaveBeenCalled();
+  });
+
+  test('the download button (48 × 48, "Buat cadangan sekarang") makes a backup right away and goes nowhere', async () => {
+    const screen = await renderMore();
+    const action = screen.getByRole('button', { name: 'Buat cadangan sekarang' });
+    expect(flat(action.props.style)).toMatchObject({ width: 48, height: 48 });
+    expect(screen.queryByText('Buat cadangan sekarang')).toBeNull(); // an icon, not a word
+    await fireEvent.press(action);
+    expect(mockCreateBackup).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  test('while a backup is being made the button is disabled and cannot start a second one', async () => {
+    mockUseCreateBackup.mockReturnValue({ create: mockCreateBackup, busy: true });
+    const screen = await renderMore();
+    const action = screen.getByRole('button', { name: 'Buat cadangan sekarang' });
+    expect(action.props.accessibilityState).toMatchObject({ disabled: true, busy: true });
+    await fireEvent.press(action);
+    expect(mockCreateBackup).not.toHaveBeenCalled();
+  });
+
+  test('the strip is 20 round, at least 64 high, on the #151516 surface, and its text starts at the rows\' 16', async () => {
+    const screen = await renderMore();
+    expect(frame(screen)).toMatchObject({ borderRadius: 20, minHeight: 64, backgroundColor: '#151516', paddingLeft: 16 });
+    expect(flat(screen.getByTestId('more-goals').props.style)).toMatchObject({ paddingHorizontal: 16 });
   });
 
   test('the lock sits on the same 40 tile as the icons of the rows (radius 14, raised fill, 1 px border)', async () => {
@@ -245,11 +301,6 @@ describe('the backup status card (three states)', () => {
     expect(lock).toMatchObject({ width: 40, height: 40, borderRadius: 14, borderWidth: 1 });
     expect(lock.backgroundColor).toBeTruthy();
     expect(lock).toEqual(goals); // the very same tile
-  });
-
-  test('the card is 20 round, 14 high padding and at least 64 high', async () => {
-    const screen = await renderMore();
-    expect(flat(screen.getByTestId('backup-card').props.style)).toMatchObject({ paddingVertical: 14, minHeight: 64, borderRadius: 20 });
   });
 });
 
@@ -299,6 +350,6 @@ describe('the screen reads fresh data each time it is shown', () => {
     const before = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
     expect(before.getByText('Belum ada cadangan')).toBeTruthy();
     const after = await renderMore();
-    expect(after.getByText('Cadangan terakhir 21 Okt 2026, 20.14 WIB')).toBeTruthy();
+    expect(after.getByText('Cadangan terakhir 3 hari lalu')).toBeTruthy();
   });
 });

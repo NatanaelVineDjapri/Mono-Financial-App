@@ -2397,26 +2397,6 @@ export function moreBackLabel(): string {
   return 'Back to Overview';
 }
 
-export function moreBackupPrivate(): string {
-  return 'Stored only on this device';
-}
-
-export function moreBackupLast(whenText: string): string {
-  return `Last backup ${whenText}`;
-}
-
-export function moreBackupNone(): string {
-  return 'No backup yet';
-}
-
-export function moreBackupDaysAgo(days: number): string {
-  return `Last backup ${days} days ago`;
-}
-
-export function moreBackupActionLabel(): string {
-  return 'Back up now';
-}
-
 export function moreGroupMoney(): string {
   return 'MONEY';
 }
@@ -3109,4 +3089,41 @@ export function importSamplerSystemLabel(): string {
 
 export function importSamplerSystemHint(): string {
   return 'For the emulator: notifications from adb come from a system app. Turn this on, trigger one, switch the app on in Automatic import, then trigger again.';
+}
+
+// ---- Backup status strip on More, and the "Buat cadangan" flow ----
+export function backupStripTitle(): string {
+  return 'Stored only on this device';
+}
+
+export function backupNoneLine(): string {
+  return 'No backup yet';
+}
+
+export function backupLastLine(unit: string, n: number): string {
+  return `Last backup ${unit === 'today' ? 'today' : unit === 'yesterday' ? 'yesterday' : unit === 'days' ? `${n} days ago` : unit === 'weeks' ? `${n} ${n === 1 ? 'week' : 'weeks'} ago` : unit === 'months' ? `${n} ${n === 1 ? 'month' : 'months'} ago` : `${n} ${n === 1 ? 'year' : 'years'} ago`}`;
+}
+
+export function backupChangedLine(count: number): string {
+  return `${count} ${count === 1 ? 'transaction' : 'transactions'} changed since then`;
+}
+
+export function backupStripLabel(title: string, line: string, changed: string): string {
+  return `${title}. ${line}.${changed ? ` ${changed}.` : ''} Tap to open backups.`;
+}
+
+export function backupNowLabel(): string {
+  return 'Back up now';
+}
+
+export function backupSavedToast(): string {
+  return 'Backup saved.';
+}
+
+export function backupFailedToast(): string {
+  return 'The backup could not be made. Nothing changed.';
+}
+
+export function backupShareTitle(): string {
+  return 'Save the MONO backup';
 }

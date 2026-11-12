@@ -57,7 +57,8 @@
           "photosPermission": "MONO membaca foto struk yang kamu pilih. Gambarnya dibaca di perangkat, tidak disimpan, dan tidak dikirim ke mana pun.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
