@@ -388,10 +388,9 @@ describe('Overview', () => {
 
     const image = result.getByTestId('overview-backdrop', { includeHiddenElements: true });
     const style = flat(image);
-    // Scaled uniformly to the screen width (936:1681), shifted up, pinned to the left edge.
-    expect(style).toMatchObject({ position: 'absolute', left: 0, width: 750 });
-    expect(style.height).toBeCloseTo((750 * 1681) / 936, 5);
-    expect(style.top).toBeLessThan(0);
+    // Drawn (no image file): pinned to the top-left, as wide as the container, 400:280 of the screen width.
+    expect(style).toMatchObject({ position: 'absolute', top: 0, left: 0, right: 0 });
+    expect(style.height).toBeCloseTo((750 * 280) / 400, 5);
     expect(image.props.pointerEvents).toBe('none');
     expect(image.props.importantForAccessibility).toBe('no-hide-descendants');
   });
