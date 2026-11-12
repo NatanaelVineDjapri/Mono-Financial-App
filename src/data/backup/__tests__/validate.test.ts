@@ -34,11 +34,11 @@ describe('validateBackup', () => {
 
   test('a newer schema version is rejected', async () => {
     const file = await validFile();
-    expect(await validateBackup(JSON.stringify({ ...file, schema_version: 2 }), sha256Hex)).toEqual({
+    expect(await validateBackup(JSON.stringify({ ...file, schema_version: 3 }), sha256Hex)).toEqual({
       ok: false,
       reason: 'newer_schema_version',
-      fileVersion: 2,
-      supportedVersion: 1,
+      fileVersion: 3,
+      supportedVersion: 2,
     });
   });
 

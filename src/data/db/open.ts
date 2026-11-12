@@ -53,8 +53,9 @@ export async function initializeSchema(db: Db, loadSchemaSql: () => Promise<stri
   );
 
   if (!metaTable) {
+    // The bundled schema is the v1 baseline: a new database is created from it and then brought
+    // up to date by the same migrations an existing one gets (so it never starts one version behind).
     await db.execAsync(await loadSchemaSql());
-    return;
   }
 
   const versionRow = await db.getFirstAsync<{ value: string }>("select value from meta where key = 'schema_version'");

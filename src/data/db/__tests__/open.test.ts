@@ -22,7 +22,8 @@ describe('initializeSchema', () => {
     await initializeSchema(db, loadSchemaSql);
 
     const version = await db.getFirstAsync<{ value: string }>("select value from meta where key = 'schema_version'");
-    expect(version?.value).toBe('1');
+    // Created from the v1 baseline, then brought up to date by the migrations.
+    expect(version?.value).toBe('2');
   });
 
   test('a second call finds the existing schema and does not try to recreate it', async () => {

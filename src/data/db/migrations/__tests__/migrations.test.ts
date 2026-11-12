@@ -1,10 +1,19 @@
 import { openTestDb } from '../../openTestDb';
 import { migrations, runMigrations } from '../index';
 
+// The real migration is put back after each test that swaps in its own.
+const real = migrations[1];
+
 describe('runMigrations', () => {
-  test('with no migrations registered, the version is unchanged', async () => {
+  test('a database already at the newest version is left alone', async () => {
     const db = openTestDb();
-    await expect(runMigrations(db, 1)).resolves.toBe(1);
+    await expect(runMigrations(db, 2)).resolves.toBe(2);
+  });
+
+  test('the real migrations take a v1 database to the newest version', async () => {
+    const db = openTestDb();
+    await expect(runMigrations(db, 1)).resolves.toBe(2);
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '2' });
   });
 
   test('runs a registered migration, bumps schema_version, and commits', async () => {
@@ -23,7 +32,7 @@ describe('runMigrations', () => {
       expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '2' });
       expect(await db.getFirstAsync("select 1 from accounts where name = 'Migrated'")).not.toBeNull();
     } finally {
-      delete migrations[1];
+      migrations[1] = real;
     }
   });
 
@@ -40,7 +49,7 @@ describe('runMigrations', () => {
       expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '1' });
       expect(await db.getFirstAsync("select 1 from accounts where name = 'Should roll back'")).toBeNull();
     } finally {
-      delete migrations[1];
+      migrations[1] = real;
     }
   });
 });

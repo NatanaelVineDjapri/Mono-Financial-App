@@ -5,7 +5,7 @@
 import { BACKUP_TABLES, canonicalDataJson } from './export';
 import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 
-const SUPPORTED_SCHEMA_VERSION = 1;
+const SUPPORTED_SCHEMA_VERSION = 2;
 
 export type ValidationFailure =
   | { ok: false; reason: 'not_json' }
