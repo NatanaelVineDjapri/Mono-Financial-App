@@ -9,7 +9,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { today as todayLocal } from '@/core/clock';
 import type { TxType } from '@/core/tx/validate';
-import { aiEntryRoute, useAiConfigured } from '@/features/ai_chat/aiEntry';
 import { TransactionForm } from '@/features/transactions/form/TransactionForm';
 import { useAddSubmit, useTxFormData } from '@/features/transactions/form/useTxForm';
 import { retryLabel, txDetailLoadError } from '@/i18n';
@@ -22,7 +21,6 @@ export default function AddTransactionScreen() {
   const router = useRouter();
   const { type, account } = useLocalSearchParams<{ type?: string; account?: string }>();
   const initialType = TYPES.find(t => t === type);
-  const aiConfigured = useAiConfigured();
   const { data, isLoading, isError, refetch } = useTxFormData();
   const onSubmit = useAddSubmit(data);
   // The date is read once per visit: the form judges "later than today" against one fixed day.
@@ -46,7 +44,6 @@ export default function AddTransactionScreen() {
       initialType={initialType}
       initialAccountId={account ? Number(account) : undefined}
       onCancel={() => router.back()}
-      onChat={() => router.replace(aiEntryRoute(aiConfigured) as never)}
       onSetRates={() => router.push('/settings/rates' as never)}
       onSubmit={onSubmit}
     />

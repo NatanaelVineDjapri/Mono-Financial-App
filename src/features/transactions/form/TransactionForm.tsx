@@ -99,7 +99,6 @@ export interface TransactionFormProps {
   allowForex?: boolean;
   // "Atur kurs" in the missing-rate error: opens the Rates screen.
   onSetRates?: () => void;
-  // Add mode: "Scan struk" in the header, to fill the form from a photo of a receipt instead.
   onSubmit: (values: TxFormValues) => Promise<SubmitResult>;
 }
 

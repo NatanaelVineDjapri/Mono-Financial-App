@@ -22,7 +22,6 @@ import { aiEntryRoute, useAiConfigured } from '@/features/ai_chat/aiEntry';
 import {
   addMenuAiAccessibilityLabel,
   addMenuManualAccessibilityLabel,
-  addMenuScanAccessibilityLabel,
   addTransactionLabel,
   closeAddMenuLabel,
   tabLabel,
@@ -77,12 +76,6 @@ function CustomTabBar({ state, navigateToTab }: BottomTabBarProps) {
     open();
   };
   const menuItems: TabFabMenuItem[] = [
-    {
-      key: 'scan',
-      accessibilityLabel: addMenuScanAccessibilityLabel(),
-      icon: 'scan',
-      onPress: choose(() => router.push('/tx/scan' as never)),
-    },
     {
       key: 'ai',
       accessibilityLabel: addMenuAiAccessibilityLabel(),
