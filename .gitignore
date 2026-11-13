@@ -52,3 +52,6 @@ _incoming/
 # Gradle output of local Expo modules (modules/*/android)
 modules/**/android/build/
 modules/**/android/.cxx/
+
+# Gradle caches of local Expo modules
+modules/**/android/.gradle/
