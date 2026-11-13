@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { nowIso, today } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
+import { autoUpdateRates } from '@/domain/fx';
 import { activityKindLabel } from '@/i18n';
 
 import type { CreateForexAccountInput, PocketInput } from './forexAccount';
@@ -33,13 +34,28 @@ export function useValasActions() {
   const db = useDb();
   const queryClient = useQueryClient();
 
+  // A pocket just added has no rate yet. When "Perbarui otomatis" is on, ask for the rates right away
+  // (autoUpdateRates only does so for a currency with no rate, and obeys the switch and the 429 lockout),
+  // and never wait for it: the screen shows "No rate yet" until it lands, and a failure keeps things as they are.
+  const fillMissingRates = useCallback(async () => {
+    try {
+      const outcome = await autoUpdateRates(db, nowIso());
+      if (outcome.status === 'updated') await invalidateAfterWrite(queryClient);
+    } catch {
+      // The rate can still be set by hand or refreshed on the Rates screen.
+    }
+  }, [db, queryClient]);
+
   const create = useCallback(
     async (input: CreateForexAccountInput) => {
       const result = await saveNewValasAccount(db, input, nowIso());
-      if (result.ok) await invalidateAfterWrite(queryClient);
+      if (result.ok) {
+        await invalidateAfterWrite(queryClient);
+        void fillMissingRates();
+      }
       return result;
     },
-    [db, queryClient],
+    [db, queryClient, fillMissingRates],
   );
 
   const rename = useCallback(
@@ -56,10 +72,13 @@ export function useValasActions() {
     async (accountId: number, currency: string, openingMinor = 0) => {
       const pocket: PocketInput = { currency, openingMinor };
       const result = await saveNewPocket(db, accountId, pocket, today(), nowIso());
-      if (result.ok) await invalidateAfterWrite(queryClient);
+      if (result.ok) {
+        await invalidateAfterWrite(queryClient);
+        void fillMissingRates();
+      }
       return result;
     },
-    [db, queryClient],
+    [db, queryClient, fillMissingRates],
   );
 
   const archivePocket = useCallback(
