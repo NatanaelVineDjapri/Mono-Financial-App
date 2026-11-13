@@ -3,6 +3,7 @@
 // first, so at most one copy of the data lingers there; the latest one stays until the next backup
 // because the app that received it may still be reading it when the share sheet closes.
 import { File, Paths } from 'expo-file-system';
+import { requireOptionalNativeModule } from 'expo';
 
 import { backupShareTitle } from '@/i18n';
 
@@ -25,6 +26,7 @@ function clearOldBackups(): void {
 // would take the whole More screen down with it; loaded here, the failure is just a backup that
 // could not be shared, and createBackup reports it.
 function loadSharing(): typeof import('expo-sharing') {
+  if (!requireOptionalNativeModule('ExpoSharing')) throw new Error('sharing_unavailable');
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- deliberately lazy, see above
   return require('expo-sharing');
 }

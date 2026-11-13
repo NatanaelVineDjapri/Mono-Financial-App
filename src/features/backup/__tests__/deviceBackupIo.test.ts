@@ -2,6 +2,7 @@
 // files are cleared out of the cache (and nothing else), the new one is written, and the share sheet
 // is only opened when sharing is possible.
 import * as Sharing from 'expo-sharing';
+import { requireOptionalNativeModule } from 'expo';
 
 import { deviceBackupIo } from '../deviceBackupIo';
 
@@ -48,12 +49,15 @@ jest.mock('expo-file-system', () => {
   };
 });
 jest.mock('expo-sharing', () => ({ isAvailableAsync: jest.fn(), shareAsync: jest.fn() }));
+jest.mock('expo', () => ({ requireOptionalNativeModule: jest.fn() }));
 
 const isAvailable = Sharing.isAvailableAsync as jest.Mock;
 const shareAsync = Sharing.shareAsync as jest.Mock;
+const hasNativeSharing = requireOptionalNativeModule as jest.Mock;
 
 beforeEach(() => {
   mockFiles.clear();
+  hasNativeSharing.mockReturnValue({});
   isAvailable.mockReset().mockResolvedValue(true);
   shareAsync.mockReset().mockResolvedValue(undefined);
 });
