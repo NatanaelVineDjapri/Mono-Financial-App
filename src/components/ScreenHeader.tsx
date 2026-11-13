@@ -17,6 +17,7 @@ import { MonoText } from '@/theme/typography';
 
 export interface ScreenHeaderProps {
   title: string;
+  left?: ReactNode;
   right?: ReactNode;
   // Per-screen spacing overrides (e.g. Transactions' 12 below). The default 20 at the sides
   // lines the right-hand buttons up with the cards' edge, and the default 16 below the
@@ -25,10 +26,11 @@ export interface ScreenHeaderProps {
   testID?: string;
 }
 
-export function ScreenHeader({ title, right, style, testID }: ScreenHeaderProps) {
+export function ScreenHeader({ title, left, right, style, testID }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   return (
     <View testID={testID} style={[styles.header, style, { paddingTop: insets.top + 12 }]}>
+      {left}
       <Text style={styles.title} accessibilityRole="header">
         {title}
       </Text>

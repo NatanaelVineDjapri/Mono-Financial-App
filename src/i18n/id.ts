@@ -570,6 +570,9 @@ export function chooseMonthTitle(): string {
   return 'Choose month';
 }
 
+export function goalChooseMonthTitle(): string { return 'Pilih bulan'; }
+export function goalChooseMonthSubtitle(): string { return 'Pilih bulan target'; }
+
 // Under the month sheet's title: the year of the months listed, or the span when the
 // list crosses years.
 export function chooseMonthSubtitle(newestYear: string, oldestYear: string): string {
@@ -993,15 +996,15 @@ export function noDueExpensesMessage(): string {
   return 'Tidak ada yang jatuh tempo.';
 }
 
-export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
-  return `${name}, due ${date}, ${amountFormatted}`;
-}
 export function recurringAllLabel(): string { return 'Semua'; }
 export function recurringOverdueOverview(days: number): string { return `Terlewat ${days} hari`; }
 export function recurringNextOverview(name: string, date: string): string { return `Berikutnya: ${name} · ${date}`; }
 export function recurringOthersWaiting(count: number): string { return `+ ${count} lainnya menunggu`; }
 export function recurringReviewAndRecord(): string { return 'Tinjau dan catat'; }
 
+export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
+  return `${name}, due ${date}, ${amountFormatted}`;
+}
 
 // ---------------------------------------------------------------- Overview rebuild (R3)
 // DESIGN.md "A. Overview", PAGES.md A1/A2.
@@ -2547,108 +2550,116 @@ export function languageSelectorLabel(): string {
 
 // Goals list screen & edit form (DESIGN.md "G. Goals").
 export function goalNeededPaceLabel(amountFormatted: string): string {
-  return `Needed pace, estimate`;
+  return 'Laju yang dibutuhkan, perkiraan';
 }
 
 export function goalNeededPaceValue(amountFormatted: string): string {
-  return `${amountFormatted} / month`;
+  return `${amountFormatted} / bulan`;
 }
 
 export function goalAccountLinkedLabel(accountName: string): string {
-  return `Linked account: ${accountName}`;
+  return `Akun tertaut: ${accountName}`;
 }
 
 export function goalNotLinkedLabel(): string {
-  return 'Not linked to an account yet';
+  return 'Belum tertaut ke akun';
 }
 
 export function goalCalculatedLabel(): string {
-  return 'Calculated: all accounts added together';
+  return 'Dihitung: semua akun dijumlahkan';
 }
 
 export function goalsEmptyTitle(): string {
-  return 'No goals yet';
+  return 'Belum ada target';
 }
 
 export function goalsEmptyBody(): string {
-  return 'Add a goal to track your progress toward a target.';
+  return 'Buat satu untuk melacak tabunganmu.';
 }
 
 export function addGoalLabel(): string {
-  return 'Add goal';
+  return 'Tambah target';
 }
 
 export function goalsFooterNote(): string {
-  return 'Progress is never typed in. It is computed from the accounts a goal is linked to, so it matches your records.';
+  return 'Kemajuan tidak pernah diketik. Dihitung dari akun yang tertaut, jadi selalu sama dengan catatanmu.';
+}
+
+export function goalNoTargetDate(): string { return 'Tanpa tanggal target'; }
+export function goalBackLabel(): string { return 'Kembali ke Lainnya'; }
+export function goalBackText(): string { return 'Lainnya'; }
+export function goalPastDueLabel(): string { return 'Tanggal target sudah lewat'; }
+export function goalTargetAccessibilityLabel(name: string, current: string, target: string, progress: string): string {
+  return `${name}, ${current} dari ${target}, ${progress} tercapai, ketuk untuk mengubah`;
 }
 
 // Goal edit form.
 export function newGoalTitle(): string {
-  return 'New goal';
+  return 'Target baru';
 }
 
 export function editGoalTitle(): string {
-  return 'Edit goal';
+  return 'Ubah target';
 }
 
 export function goalNameLabel(): string {
-  return 'NAME';
+  return 'Nama';
 }
 
 export function goalNamePlaceholder(): string {
-  return 'e.g. Emergency fund';
+  return 'Contoh: Dana darurat';
 }
 
 export function goalProgressSourceLabel(): string {
-  return 'PROGRESS IS CALCULATED FROM';
+  return 'Kemajuan dihitung dari';
 }
 
 export function goalModeOneAccountLabel(): string {
-  return 'One account';
+  return 'Satu akun';
 }
 
 export function goalModeOneAccountSub(): string {
-  return 'Balance of a linked account';
+  return 'Saldo satu akun tertaut';
 }
 
 export function goalModeTotalAssetsLabel(): string {
-  return 'Total assets';
+  return 'Total aset';
 }
 
 export function goalModeTotalAssetsSub(): string {
-  return 'All accounts added together';
+  return 'Semua akun dijumlahkan';
 }
 
 export function goalLinkedAccountLabel(): string {
-  return 'LINKED ACCOUNT';
+  return 'Akun tertaut';
 }
 
 export function goalCurrentBalanceNote(amountFormatted: string): string {
-  return `Current balance ${amountFormatted} — read from your records, not typed in.`;
+  return `Saldo sekarang ${amountFormatted} · dibaca dari catatanmu, bukan diketik.`;
 }
 
 export function goalTargetAmountLabel(): string {
-  return 'TARGET AMOUNT';
+  return 'Jumlah target';
 }
 
 export function goalTargetDateLabel2(): string {
-  return 'TARGET DATE, OPTIONAL';
+  return 'Tanggal target, opsional';
 }
 
 export function goalPreviewLabel(): string {
-  return 'PREVIEW FROM STORED RECORDS';
+  return 'Pratinjau dari catatan tersimpan';
 }
 
 export function goalPreviewSavedSoFar(): string {
-  return 'Saved so far';
+  return 'Terkumpul sejauh ini';
 }
 
 export function goalPreviewRemaining(): string {
-  return 'Remaining';
+  return 'Sisa';
 }
 
 export function goalPreviewMonthsLeft(monthsLeft: number, dateFormatted: string): string {
-  return `Months left, to ${dateFormatted}`;
+  return `Bulan tersisa, sampai ${dateFormatted}`;
 }
 
 export function goalPreviewMonthsLeftValue(monthsLeft: number): string {
@@ -2656,15 +2667,23 @@ export function goalPreviewMonthsLeftValue(monthsLeft: number): string {
 }
 
 export function goalPreviewNeededPace(): string {
-  return 'Needed pace, estimate';
+  return 'Laju yang dibutuhkan, perkiraan';
 }
 
 export function goalDeleteNote(): string {
-  return 'Deleting a goal never changes accounts or transactions.';
+  return 'Menghapus target tidak mengubah akun atau transaksi.';
 }
 
+export function goalDeleteLabel(): string { return 'Hapus target'; }
+export function goalDeleteConfirmTitle(name: string): string { return `Hapus target ${name}?`; }
+export function goalDeleteConfirmBody(): string { return 'Akun dan transaksi tidak berubah.'; }
+export function goalDeletedToast(): string { return 'Target dihapus.'; }
+export function goalAchievedPreview(): string { return 'Target ini sudah tercapai dengan saldo sekarang.'; }
+export function goalChooseDate(): string { return 'Pilih tanggal'; }
+export function goalMonthlyValue(amountFormatted: string): string { return `${amountFormatted} / bulan`; }
+
 export function saveGoalLabel(): string {
-  return 'Save goal';
+  return 'Simpan target';
 }
 
 export function goalLinkAccountPickerTitle(): string {
@@ -2672,23 +2691,23 @@ export function goalLinkAccountPickerTitle(): string {
 }
 
 export function goalNameTooLong(): string {
-  return 'Name must be 40 characters or fewer.';
+  return 'Nama maksimal 40 karakter.';
 }
 
 export function goalNameRequired(): string {
-  return 'Name is required.';
+  return 'Nama target wajib diisi.';
 }
 
 export function goalAmountRequired(): string {
-  return 'Target amount must be greater than zero.';
+  return 'Jumlah target harus lebih dari nol.';
 }
 
 export function goalAccountRequired(): string {
-  return 'Choose an account to link.';
+  return 'Pilih akun yang akan ditautkan.';
 }
 
 export function goalLinkCTA(): string {
-  return 'Link an account or log contributions to start tracking.';
+  return 'Tautkan akun atau catat setoran untuk mulai melacak.';
 }
 
 // ---- Receipt scan (/tx/scan, /tx/scan/review): the camera, its error states and the review ----

@@ -512,7 +512,7 @@ Papan: `Goals` · 390 × 1040
  
 **Tata letak dan komponen**
  
-- Tiga target. Tiap kartu: nama, tanggal target, sumber (akun tertaut), jumlah saat ini dari target, persen selesai, sisa, bar progres, dan "Needed pace" per bulan.
+- Tiap target berupa kartu yang bisa diketuk: nama, tanggal target atau tanpa tanggal, sumber (akun tertaut/semua akun/belum tertaut), jumlah saat ini dari target, persen selesai, sisa, bar progres 0–100%, dan "Laju yang dibutuhkan, perkiraan".
 - Total assets: Rp8.880.000 dari Rp30.000.000 (29,60%), sisa Rp21.120.000, Rp2.640.000 per bulan, target 30 Jun 2027.
 - Emergency fund: Rp6.842.500 dari Rp15.000.000 (45,62%), terhubung ke BCA Tabungan, Rp582.679 per bulan, target 31 Des 2027.
 - Travel fund: Rp0 dari Rp8.000.000 (0,00%), belum tertaut dan tanpa tanggal.
@@ -523,6 +523,7 @@ Papan: `Goals` · 390 × 1040
 **Catatan**
  
 - Tempo hanya perkiraan dan diberi label demikian.
+- Progres dihitung dari saldo view dan di-clamp maksimal 100%. Bulan tersisa adalah bulan penuh (minimal 1); laju = `ceil(sisa / bulan)`. Jika saldo sudah mencapai target, tampilkan "Tercapai" dan sembunyikan sisa/laju. Tanggal lewat menampilkan status, tanpa laju. Target tanpa tanggal tidak menampilkan laju.
 ### G2 · Buat / ubah target
  
 Papan: `Goal-Edit` · 390 × 844
@@ -540,6 +541,7 @@ Papan: `Goal-Edit` · 390 × 844
 **Keadaan**
  
 - Pratinjau berubah saat target atau tanggal diubah.
+- Simpan nonaktif sampai nama, target, akun (mode satu akun), dan tanggal valid. Hapus target meminta konfirmasi "Hapus target <nama>? Akun dan transaksi tidak berubah.".
 **Catatan**
  
 - Pratinjau mencegah target yang tidak realistis disimpan tanpa disadari.

@@ -572,6 +572,9 @@ export function chooseMonthTitle(): string {
   return 'Choose month';
 }
 
+export function goalChooseMonthTitle(): string { return 'Choose month'; }
+export function goalChooseMonthSubtitle(): string { return 'Choose target month'; }
+
 // Under the month sheet's title: the year of the months listed, or the span when the
 // list crosses years.
 export function chooseMonthSubtitle(newestYear: string, oldestYear: string): string {
@@ -995,15 +998,15 @@ export function noDueExpensesMessage(): string {
   return 'Nothing is due.';
 }
 
-export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
-  return `${name}, due ${date}, ${amountFormatted}`;
-}
 export function recurringAllLabel(): string { return 'All'; }
 export function recurringOverdueOverview(days: number): string { return `${days} days overdue`; }
 export function recurringNextOverview(name: string, date: string): string { return `Next: ${name} · ${date}`; }
 export function recurringOthersWaiting(count: number): string { return `+ ${count} more waiting`; }
 export function recurringReviewAndRecord(): string { return 'Review and record'; }
 
+export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
+  return `${name}, due ${date}, ${amountFormatted}`;
+}
 
 // ---------------------------------------------------------------- Overview rebuild (R3)
 // DESIGN.md "A. Overview", PAGES.md A1/A2.
@@ -2553,6 +2556,14 @@ export function goalNeededPaceLabel(amountFormatted: string): string {
   return `Needed pace, estimate`;
 }
 
+export function goalNoTargetDate(): string { return 'No target date'; }
+export function goalBackLabel(): string { return 'Back to More'; }
+export function goalBackText(): string { return 'More'; }
+export function goalPastDueLabel(): string { return 'Target date has passed'; }
+export function goalTargetAccessibilityLabel(name: string, current: string, target: string, progress: string): string {
+  return `${name}, ${current} of ${target}, ${progress} achieved, tap to edit`;
+}
+
 export function goalNeededPaceValue(amountFormatted: string): string {
   return `${amountFormatted} / month`;
 }
@@ -2665,6 +2676,14 @@ export function goalPreviewNeededPace(): string {
 export function goalDeleteNote(): string {
   return 'Deleting a goal never changes accounts or transactions.';
 }
+
+export function goalDeleteLabel(): string { return 'Delete goal'; }
+export function goalDeleteConfirmTitle(name: string): string { return `Delete ${name}?`; }
+export function goalDeleteConfirmBody(): string { return 'Accounts and transactions do not change.'; }
+export function goalDeletedToast(): string { return 'Goal deleted.'; }
+export function goalAchievedPreview(): string { return 'This goal is already achieved with the current balance.'; }
+export function goalChooseDate(): string { return 'Choose date'; }
+export function goalMonthlyValue(amountFormatted: string): string { return `${amountFormatted} / month`; }
 
 export function saveGoalLabel(): string {
   return 'Save goal';

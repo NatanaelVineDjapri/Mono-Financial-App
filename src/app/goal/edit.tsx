@@ -5,8 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Alert,
     KeyboardAvoidingView,
+    Modal,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -21,14 +21,19 @@ import { Card } from '@/components/Card';
 import { Field } from '@/components/Field';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
+import { HeaderButton } from '@/components/HeaderButton';
+import { AccountLogo } from '@/components/AccountLogo';
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { showToast } from '@/components/toast-store';
 import { formatShortDate } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
-import { listAccounts } from '@/data/repo/accounts';
+import { listAccountsForForm } from '@/data/repo/accounts';
 import type { GoalMode } from '@/data/repo/goals';
 import { useGoalById, useGoalMutations } from '@/features/goals/useGoals';
+import { GoalMonthSheet } from '@/features/goals/GoalMonthSheet';
+import { guessAccountLogo } from '@/features/accounts/logos';
 import {
     cancelLabel,
     closeLabel,
@@ -37,6 +42,13 @@ import {
     goalAmountRequired,
     goalCurrentBalanceNote,
     goalDeleteNote,
+    goalDeleteLabel,
+    goalDeleteConfirmTitle,
+    goalDeleteConfirmBody,
+    goalDeletedToast,
+    goalAchievedPreview,
+    goalChooseDate,
+    goalMonthlyValue,
     goalLinkedAccountLabel,
     goalModeOneAccountLabel,
     goalModeOneAccountSub,
@@ -47,6 +59,7 @@ import {
     goalNameRequired,
     goalNameTooLong,
     goalPreviewLabel,
+    goalPreviewMonthsLeft,
     goalPreviewNeededPace,
     goalPreviewRemaining,
     goalPreviewSavedSoFar,
@@ -54,8 +67,9 @@ import {
     goalTargetAmountLabel,
     goalTargetDateLabel2,
     newGoalTitle,
-    saveGoalLabel
-} from '@/i18n/id';
+    saveGoalLabel,
+    undoLabel,
+} from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -132,6 +146,8 @@ export default function GoalEditScreen() {
   const [accountId, setAccountId] = useState<number | null>(null);
   const [targetAmount, setTargetAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
+  const [monthSheetOpen, setMonthSheetOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const initializedRef = useRef(false);
 
   // Errors
@@ -153,7 +169,7 @@ export default function GoalEditScreen() {
   // Accounts list for picker
   const { data: accounts = [] } = useQuery({
     queryKey: [...queryKeys.accounts, 'for-goal'],
-    queryFn: () => listAccounts(db, { includeArchived: false }),
+    queryFn: () => listAccountsForForm(db),
   });
 
   const selectedAccount = useMemo(
@@ -216,21 +232,27 @@ export default function GoalEditScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, mode, accountId, targetAmount, targetDate, isEditing, goalId]);
 
-  const onDelete = useCallback(() => {
-    Alert.alert('Delete goal', `Delete "${name.trim()}"? This never changes accounts or transactions.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          if (goalId != null) await remove.mutateAsync(goalId);
-          router.back();
-        },
-      },
-    ]);
-  }, [name, goalId, remove, router]);
+  const onDelete = useCallback(() => setDeleteDialogOpen(true), []);
+  const confirmDelete = useCallback(async () => {
+    if (goalId == null) return;
+    const deleted = { name: name.trim(), mode, accountId, targetAmount, targetDate: targetDate || null };
+    setDeleteDialogOpen(false);
+    await remove.mutateAsync(goalId);
+    showToast(goalDeletedToast(), {
+      actionLabel: undoLabel(),
+      onAction: () => { void create.mutateAsync(deleted); },
+    });
+    router.back();
+  }, [accountId, create, goalId, mode, name, remove, router, targetAmount, targetDate]);
 
   const saving = create.isPending || update.isPending;
+
+  const onMonthSelect = (month: string) => {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const lastDay = new Date(year, monthNumber, 0).getDate();
+    setTargetDate(`${month}-${String(lastDay).padStart(2, '0')}`);
+    setMonthSheetOpen(false);
+  };
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior="padding">
@@ -241,9 +263,7 @@ export default function GoalEditScreen() {
         </IconButton>
         <Text style={styles.headerTitle}>{isEditing ? editGoalTitle() : newGoalTitle()}</Text>
         {isEditing && (
-          <IconButton label="Delete goal" onPress={onDelete}>
-            <Icon name="trash" color={MonoColors.negative} />
-          </IconButton>
+          <HeaderButton icon="trash" label={goalDeleteLabel()} onPress={onDelete} testID="goal-delete" />
         )}
       </View>
 
@@ -297,6 +317,7 @@ export default function GoalEditScreen() {
                 style={[styles.accountRow, accountId === acc.id && styles.accountRowSelected]}
                 testID={`goal-account-${acc.id}`}
               >
+                <AccountLogo iconKey={acc.icon ?? guessAccountLogo(acc.name, acc.type)} type={acc.type} />
                 <Text style={styles.accountName}>{acc.name}</Text>
                 <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
               </Pressable>
@@ -321,36 +342,48 @@ export default function GoalEditScreen() {
         />
 
         {/* Target date */}
-        <Field
-          label={goalTargetDateLabel2()}
-          placeholder="31 Dec 2027"
-          value={targetDate}
-          onChangeText={setTargetDate}
-          testID="goal-target-date"
-        />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{goalTargetDateLabel2()}</Text>
+          <Pressable
+            onPress={() => setMonthSheetOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={goalTargetDateLabel2()}
+            style={styles.dateField}
+            testID="goal-target-date"
+          >
+            <Text style={[styles.dateFieldText, !targetDate && styles.dateFieldPlaceholder]}>
+              {targetDate ? formatShortDate(targetDate) : goalChooseDate()}
+            </Text>
+            <Icon name="calendar" size={20} color={MonoColors.textSecond} />
+          </Pressable>
+        </View>
 
         {/* Preview */}
         {previewCurrent != null && targetAmount > 0 && (
           <Card style={styles.previewCard}>
             <Text style={styles.sectionLabel}>{goalPreviewLabel()}</Text>
             <PreviewRow label={goalPreviewSavedSoFar()} value={shown(rp(previewCurrent), hidden)} />
-            {previewRemaining != null && (
+            {previewRemaining === 0 ? (
+              <View style={styles.achievedPreview}>
+                <Icon name="check" size={16} color={MonoColors.text} />
+                <Text style={styles.achievedPreviewText}>{goalAchievedPreview()}</Text>
+              </View>
+            ) : previewRemaining != null && (
               <PreviewRow
                 label={goalPreviewRemaining()}
                 value={shown(rp(previewRemaining), hidden)}
-                valueColor={MonoColors.negative}
               />
             )}
-            {ml != null && targetDate && (
+            {previewRemaining !== 0 && ml != null && targetDate && (
               <PreviewRow
-                label={`Months left, to ${formatShortDate(targetDate)}`}
+                label={goalPreviewMonthsLeft(ml, formatShortDate(targetDate))}
                 value={String(ml)}
               />
             )}
-            {pace != null && (
+            {previewRemaining !== 0 && pace != null && (
               <PreviewRow
                 label={goalPreviewNeededPace()}
-                value={`${shown(rp(pace), hidden)} / month`}
+                value={goalMonthlyValue(shown(rp(pace), hidden))}
               />
             )}
           </Card>
@@ -377,6 +410,24 @@ export default function GoalEditScreen() {
           testID="goal-save"
         />
       </View>
+      <GoalMonthSheet
+        visible={monthSheetOpen}
+        selected={(targetDate || new Date().toISOString().slice(0, 7)).slice(0, 7)}
+        onSelect={onMonthSelect}
+        onClose={() => setMonthSheetOpen(false)}
+      />
+      <Modal transparent visible={deleteDialogOpen} animationType="fade" onRequestClose={() => setDeleteDialogOpen(false)}>
+        <View style={styles.dialogScrim}>
+          <View style={styles.dialog} accessibilityViewIsModal>
+            <Text style={styles.dialogTitle}>{goalDeleteConfirmTitle(name.trim())}</Text>
+            <Text style={styles.dialogBody}>{goalDeleteConfirmBody()}</Text>
+            <View style={styles.dialogActions}>
+              <Button label={cancelLabel()} variant="secondary" onPress={() => setDeleteDialogOpen(false)} style={styles.dialogButton} />
+              <Button label={goalDeleteLabel()} onPress={() => void confirmDelete()} style={styles.dialogButton} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -406,32 +457,33 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
 
   header: {
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
+    paddingLeft: 8,
+    paddingRight: 16,
     paddingBottom: 4,
   },
   headerTitle: { ...MonoText.titleM, color: MonoColors.text, flex: 1, paddingHorizontal: 4 },
 
-  content: { paddingHorizontal: 16, gap: 20, paddingTop: 8 },
+  content: { paddingHorizontal: 16, gap: 16, paddingTop: 4 },
 
-  section: { gap: 10 },
+  section: { gap: 8 },
   sectionLabel: {
     ...MonoText.label,
     color: MonoColors.textMeta,
-    textTransform: 'uppercase',
   },
 
-  modeTiles: { flexDirection: 'row', gap: 10 },
+  modeTiles: { flexDirection: 'row', gap: 8 },
   modeTile: {
     flex: 1,
-    padding: 14,
+    padding: 10,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: MonoColors.border,
     backgroundColor: MonoColors.card,
-    gap: 4,
+    gap: 2,
   },
   modeTileSelected: {
     borderColor: MonoColors.text,
@@ -451,28 +503,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 52,
-    paddingHorizontal: 14,
+    minHeight: 56,
+    paddingHorizontal: 10,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: MonoColors.border,
     backgroundColor: MonoColors.card,
   },
   accountRowSelected: { borderColor: MonoColors.text },
-  accountName: { ...MonoText.body, color: MonoColors.text, flex: 1 },
+  accountName: { ...MonoText.body, color: MonoColors.text, flex: 1, marginLeft: 10 },
   balanceNote: { ...MonoText.caption, color: MonoColors.accent, lineHeight: 18 },
 
   error: { ...MonoText.bodyS, color: MonoColors.negative },
 
-  previewCard: { gap: 10 },
+  previewCard: { gap: 6, padding: 16 },
+  dateField: { minHeight: 48, borderWidth: 1, borderColor: MonoColors.border, borderRadius: radius.md, backgroundColor: MonoColors.card, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dateFieldText: { ...MonoText.body, color: MonoColors.text },
+  dateFieldPlaceholder: { color: MonoColors.textDisabled },
   previewRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BAR_BORDER,
+    paddingBottom: 8,
+    paddingTop: 2,
   },
   previewLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
   previewValue: { ...MonoText.figureRow, color: MonoColors.text },
+  achievedPreview: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
+  achievedPreviewText: { ...MonoText.bodyS, color: MonoColors.text, flex: 1 },
 
   deleteNoteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   deleteNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
@@ -481,10 +542,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: BAR_BORDER,
     backgroundColor: MonoColors.bg,
   },
   barBtn: { flex: 1 },
+  dialogScrim: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, backgroundColor: 'rgba(0,0,0,0.62)' },
+  dialog: { width: '100%', maxWidth: 360, borderWidth: 1.5, borderColor: MonoColors.textDisabled, borderRadius: 16, backgroundColor: '#151516', padding: 20, gap: 12 },
+  dialogTitle: { ...MonoText.titleM, color: MonoColors.text },
+  dialogBody: { ...MonoText.body, color: MonoColors.textSecond },
+  dialogActions: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  dialogButton: { flex: 1 },
 });

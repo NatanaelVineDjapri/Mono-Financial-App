@@ -7,7 +7,7 @@
 | # | Screen | Route | Board | Also covers |
 |---|---|---|---|---|
 | 1 | Welcome (first launch, mascot video) | `/welcome` | Welcome | Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup |
-| 2 | Overview (tab) | `/(tabs)/index` | Main | Empty state: Overview-Empty. Account card carousel, fixed-expenses card, greeting "Selamat datang, Nael" |
+| 2 | Overview (tab) | `/(tabs)/index` | Main | Empty state: Overview-Empty. Account card carousel, fixed-expenses card with three states, greeting "Selamat datang, Nael". Its due data is the same listDue source as `/recurring` and More |
 | 3 | Transactions (tab) | `/(tabs)/transactions` | Transactions | Filters sheet (see sheets). The centre + button of the tab bar opens the add menu (scan, AI chat, manual) |
 | 4 | Accounts (tab) | `/(tabs)/accounts` | Accounts | Wallet-style card stack (total as top card, one card open). Variants: Accounts-Open, Accounts-Valas |
 | 5 | Budgets (tab) | `/(tabs)/budgets` | Budgets | Monthly limit, per-category bars, over-limit state |
@@ -17,8 +17,8 @@
 | 9 | Create / edit account | `/account/edit`, `/account/edit?id=` | Account-Edit | Opening balance locked after first transaction. Type "Valas": Valas-Edit (name, one opening balance per currency, "Add currency") |
 | 10 | Create / edit budget | `/budget/edit` | Budget-Create | Allocation check against the monthly limit |
 | 11 | Category spending review | `/budget/category/[id]` | Budget-Category | |
-| 12 | Goals | `/goals` | Goals | Progress is derived, never typed |
-| 13 | Create / edit goal | `/goal/edit` | Goal-Edit | |
+| 12 | Target | `/goals` | Goals | Progres dari view saldo, maksimal 100%; state tercapai, tanggal lewat, tanpa tautan, empty state, dan hapus target |
+| 13 | Target baru / Ubah target | `/goal/edit` | Goal-Edit | Sumber satu akun/total aset, preview langsung, validasi, state tercapai, serta tombol hapus di header saat mode ubah |
 | 14 | Categories | `/categories` | Categories | Transfer is virtual, not listed |
 | 15 | Reports | `/reports` | Reports | Charts with exact-value tables |
 | 16 | Backup & restore | `/backup` | Backup | Create backup, share, recent backups |

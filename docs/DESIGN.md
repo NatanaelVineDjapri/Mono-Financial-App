@@ -165,6 +165,11 @@ Month selector, summary, September comparison, six categories sorted by usage, o
  
 **G. Goals**
 Three goals with computed progress and needed pace; Goal-Edit with source (one account or all accounts), target, date and a preview from stored records.
+Goal-Edit uses one horizontal screen inset of 16 throughout: labels, tiles, fields, preview and bottom actions share the same left/right guide; child components do not add a separate horizontal inset. Content starts 4px below the header, blocks use 16px spacing, and labels sit 8px above their fields.
+Outlined header action buttons align to the content edge (16px inset) and measure 48×48 with a 16px radius. Only unboxed icon controls, such as back arrows, may use an 8px header inset.
+The edit-mode delete header action is a neutral outlined 48×48 icon button, never red. Its confirmation dialog uses a 1.5px `#737373` outline for destructive emphasis; red remains reserved for outgoing money and errors.
+Target account picker: `AccountLogo` renders a 36px tile with a `#F5F5F5` background from the optional `accounts.icon` key, with a type-icon fallback.
+Goal cards use IBM Plex Sans 22/28 tabular for current amounts (never Newsreader); the needed-pace value is `#F5F5F5`, not gold. Progress is clamped to 100%, uses full calendar months and `ceil(remaining / months)` as an estimate; achieved goals hide remaining and pace.
  
 **H. Reports**
 Period selector, cash flow (savings rate), six-month trend with table, spending by category with shares, net worth month-end table, CSV export (transactions, account balances).

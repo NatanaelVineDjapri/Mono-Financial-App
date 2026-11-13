@@ -297,11 +297,10 @@ CREATE VIEW v_goal_progress AS
 SELECT g.id, g.name, g.mode, g.account_id, g.target_amount, g.target_date,
        CASE g.mode WHEN 'account' THEN (SELECT balance FROM v_account_balance WHERE id = g.account_id)
                    ELSE (SELECT net_worth FROM v_net_worth) END AS current_amount,
-       MAX(g.target_amount - CASE g.mode WHEN 'account' THEN (SELECT balance FROM v_account_balance WHERE id = g.account_id)
-                                         ELSE (SELECT net_worth FROM v_net_worth) END, 0) AS remaining,
-       (CASE g.mode WHEN 'account' THEN (SELECT balance FROM v_account_balance WHERE id = g.account_id)
-                    ELSE (SELECT net_worth FROM v_net_worth) END * 20000 + g.target_amount)
-         / (2 * g.target_amount) AS progress_bp
+        MAX(g.target_amount - CASE g.mode WHEN 'account' THEN COALESCE((SELECT balance FROM v_account_balance WHERE id = g.account_id), 0)
+                                          ELSE COALESCE((SELECT net_worth FROM v_net_worth), 0) END, 0) AS remaining,
+        MIN(10000, MAX(0, ((CASE g.mode WHEN 'account' THEN COALESCE((SELECT balance FROM v_account_balance WHERE id = g.account_id), 0)
+                                      ELSE COALESCE((SELECT net_worth FROM v_net_worth), 0) END * 10000) + g.target_amount / 2) / g.target_amount)) AS progress_bp
 FROM goals g;
 
 -- Statement-style activity with running balance per pocket (Account detail screen). A forex account
