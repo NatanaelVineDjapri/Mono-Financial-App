@@ -30,9 +30,9 @@ describe('getOverviewData', () => {
     expect(data.previous).toEqual({ income: 7000000, expense: 1000000, net: 6000000 });
     expect(data.expenseChangeBp).toBe(5800); // +58,00%
     expect(data.incomeChangeBp).toBe(714); // +7,14%
-    expect(data.cashFlow.map(m => m.period)).toEqual(['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']);
+    expect(data.cashFlow.map(m => m.period)).toEqual(['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']);
     expect(data.cashFlow[0]).toMatchObject({ income: 0, expense: 0, net: 0 }); // a month with no records is zero, not missing
-    expect(data.cashFlow[5]).toMatchObject({ income: 7500000, expense: 1580000 });
+    expect(data.cashFlow[11]).toMatchObject({ income: 7500000, expense: 1580000 });
   });
 
   test('top categories: largest first, shares sum to 100,00%', async () => {

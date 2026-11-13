@@ -5,20 +5,20 @@
 // accountShares() in src/domain/overview.ts. Hidden mode masks amounts and shares.
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-// eslint-disable-next-line import/no-unresolved -- library not yet installed, see package.json
 import { LineChart } from 'react-native-gifted-charts';
 
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { niceScale } from '@/core/chartScale';
+import { axisLabel, millionsCallout, niceScale } from '@/core/chartScale';
 import { monthAbbrev } from '@/core/date';
-import { pct, rp, shown, shownPct } from '@/core/money';
+import { pct, rp, shown, shownCompact, shownPct } from '@/core/money';
 import type { NetWorthMonth } from '@/domain/net-worth';
 import type { AccountShareRow } from '@/domain/overview';
 import {
     byAccountCaption,
+    goalLineLabel,
     monthEndValuesNote,
     netWorthHistoryAccessibilityLabel,
     netWorthHistoryTitle,
@@ -74,6 +74,9 @@ function RangeSwitch({ value, onChange }: { value: Range; onChange: (range: Rang
 }
 
 export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCardProps) {
+  // The React Compiler freezes the data it memoizes, and gifted-charts writes a marker onto its input while
+  // cloning it ("Cannot add new property 'isActiveClone'"), so this component opts out of the compiler.
+  'use no memo';
   const hidden = useHideAmounts(s => s.hidden);
   const [range, setRange] = useState<Range>('1Y');
   if (history.length < 2) return null;
@@ -98,6 +101,9 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
   const goalData = goalTarget
     ? points.map(() => ({
         value: goalTarget,
+        // white dots on the goal line (the library's default is blue)
+        dataPointColor: MonoColors.text,
+        dataPointRadius: 2,
       }))
     : undefined;
 
@@ -110,16 +116,24 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
         <RangeSwitch value={range} onChange={setRange} />
       </View>
 
+      <View style={styles.callouts}>
+        {goalTarget != null ? <Text style={styles.callout}>{goalLineLabel(shownCompact(millionsCallout(goalTarget), hidden))}</Text> : <View />}
+        <Text style={styles.lastLabel}>{shownCompact(millionsCallout(points[points.length - 1].netWorth), hidden)}</Text>
+      </View>
+
       <View accessible accessibilityRole="image" accessibilityLabel={netWorthHistoryAccessibilityLabel(valuesText)}>
         <LineChart
           data={lineData}
           data2={goalData}
+          // Every point has a value, so there is nothing to interpolate; this also skips the library's clone.
+          interpolateMissingValues={false}
           height={CHART_HEIGHT}
           spacing={points.length > 1 ? (300 - PAD_X * 2) / (points.length - 1) : 150}
           initialSpacing={PAD_X}
           endSpacing={PAD_X}
           color={MonoColors.accent}
           color2={MonoColors.textDisabled}
+          dataPointsColor2={MonoColors.text}
           thickness={2}
           strokeDashArray2={[4, 4]}
           startFillColor="transparent"
@@ -136,6 +150,7 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
           rulesColor={MonoColors.border}
           rulesType="solid"
           noOfSections={scale.ticks.length - 1}
+          yAxisLabelTexts={scale.ticks.map(t => axisLabel(t, scale.top))}
           maxValue={scale.top}
           hideYAxisText={hidden}
           backgroundColor="transparent"
@@ -193,6 +208,9 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
 
 
 const styles = StyleSheet.create({
+  callouts: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  callout: { ...MonoText.caption, color: MonoColors.textSecond },
+  lastLabel: { ...MonoText.caption, fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text },
   card: { marginHorizontal: 16, gap: 12 },
   rangeRow: { flexDirection: 'row', alignItems: 'center' },
   rangeButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },

@@ -8,6 +8,7 @@ declare module 'react-native-gifted-charts' {
     label?: string;
     frontColor?: string;
     spacing?: number;
+    labelWidth?: number;
     labelTextStyle?: TextStyle;
   }
 
@@ -23,6 +24,10 @@ declare module 'react-native-gifted-charts' {
 
   export interface BarChartProps {
     data: BarData[];
+    yAxisLabelTexts?: string[];
+    initialSpacing?: number;
+    endSpacing?: number;
+    disableScroll?: boolean;
     height?: number;
     barWidth?: number;
     spacing?: number;
@@ -45,6 +50,9 @@ declare module 'react-native-gifted-charts' {
   export interface LineChartProps {
     data: LineData[];
     data2?: LineData[];
+    interpolateMissingValues?: boolean;
+    dataPointsColor2?: string;
+    yAxisLabelTexts?: string[];
     height?: number;
     spacing?: number;
     initialSpacing?: number;

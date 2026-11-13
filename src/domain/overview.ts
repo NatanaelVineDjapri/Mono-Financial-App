@@ -11,7 +11,7 @@ import { getNetWorth, getNetWorthHistory, type NetWorthMonth } from './net-worth
 import { listPeriodFlow } from './reports';
 import { getMonthStartDay } from './transactionsList';
 
-export const CASH_FLOW_MONTHS = 6;
+export const CASH_FLOW_MONTHS = 12;
 
 export interface OverviewFlow {
   income: number;

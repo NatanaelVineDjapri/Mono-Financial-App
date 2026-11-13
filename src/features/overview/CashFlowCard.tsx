@@ -3,13 +3,12 @@
 // for rendering with paired bars per month. Hidden mode masks the figures in the label and
 // the table (through <Amount>).
 import { StyleSheet, Text, View } from 'react-native';
-// eslint-disable-next-line import/no-unresolved -- library not yet installed, see package.json
 import { BarChart } from 'react-native-gifted-charts';
 
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { niceScale } from '@/core/chartScale';
+import { axisLabel, niceScale } from '@/core/chartScale';
 import { monthAbbrev } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import type { OverviewMonthFlow } from '@/domain/overview';
@@ -20,7 +19,7 @@ import {
     cashFlowValuesText,
     expensesCardLabel,
     incomeCardLabel,
-    lastSixMonthsLabel,
+    lastTwelveMonthsLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -28,10 +27,13 @@ import { MonoText } from '@/theme/typography';
 import { EXPENSE_BAR } from './palette';
 
 const CHART_HEIGHT = 130;
-const BAR_WIDTH = 14;
-const BAR_SPACING = 3;
+const BAR_WIDTH = 8.5; // twelve months share one row: no scrolling
+const BAR_SPACING = 2; // between the two bars of a month
+const PAIR_GAP = 6; // between months
 
 export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
+  // Opts out of the React Compiler, which freezes the data it memoizes; see NetWorthHistoryCard.
+  'use no memo';
   const hidden = useHideAmounts(s => s.hidden);
   const scale = niceScale(Math.max(...months.flatMap(m => [m.income, m.expense])));
   
@@ -43,16 +45,18 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
   const barData = months.flatMap((m, i) => [
     {
       value: m.income,
-      label: i === 0 ? monthAbbrev(m.period) : '',
+      // the month sits under the pair: the label box is as wide as the two bars and is centred
+      label: monthAbbrev(m.period).charAt(0), // the initial only; the table below has the full month
+      labelWidth: BAR_WIDTH * 2 + BAR_SPACING,
       frontColor: MonoColors.accent,
       spacing: BAR_SPACING,
-      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond, textAlign: 'center' as const },
     },
     {
       value: m.expense,
       frontColor: EXPENSE_BAR,
-      label: monthAbbrev(m.period),
-      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+      label: '',
+      spacing: PAIR_GAP,
     },
   ]);
 
@@ -70,7 +74,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
         </View>
       </View>
       <Text style={styles.caption}>
-        {scale.top >= 1_000_000 ? `${lastSixMonthsLabel()} · ${axisInMillionsLabel()}` : lastSixMonthsLabel()}
+        {scale.top >= 1_000_000 ? `${lastTwelveMonthsLabel()} · ${axisInMillionsLabel()}` : lastTwelveMonthsLabel()}
       </Text>
 
       <View accessible accessibilityRole="image" accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}>
@@ -78,7 +82,10 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           data={barData}
           height={CHART_HEIGHT}
           barWidth={BAR_WIDTH}
-          spacing={BAR_SPACING}
+          spacing={PAIR_GAP}
+          initialSpacing={4}
+          endSpacing={0}
+          disableScroll
           barBorderRadius={3}
           hideRules={false}
           rulesColor={MonoColors.border}
@@ -89,6 +96,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
           hideYAxisText={hidden}
           noOfSections={scale.ticks.length - 1}
+          yAxisLabelTexts={scale.ticks.map(t => axisLabel(t, scale.top))}
           maxValue={scale.top}
           backgroundColor="transparent"
           disablePress
@@ -99,6 +107,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
       <ChartTable
         columns={[{ label: incomeCardLabel() }, { label: expensesCardLabel() }]}
         rows={months.map(m => ({ label: monthAbbrev(m.period), values: [m.income, m.expense] }))}
+        collapsedByDefault={months.length > 6}
         testID="overview-cash-flow-table"
       />
     </Card>

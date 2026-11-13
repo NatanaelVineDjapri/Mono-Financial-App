@@ -1004,8 +1004,8 @@ export function cashFlowTitle(): string {
   return 'Cash flow';
 }
 
-export function lastSixMonthsLabel(): string {
-  return 'Last 6 months';
+export function lastTwelveMonthsLabel(): string {
+  return 'Last 12 months';
 }
 
 export function cashFlowAccessibilityLabel(valuesText: string): string {

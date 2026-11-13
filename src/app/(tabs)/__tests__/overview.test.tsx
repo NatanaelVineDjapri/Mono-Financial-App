@@ -250,7 +250,7 @@ describe('Overview', () => {
     const result = await renderScreen();
     const cash = within(result.getByTestId('overview-cash-flow'));
     for (const tick of ['0', '4', '8']) expect(cash.getByText(tick, { includeHiddenElements: true })).toBeTruthy(); // the axis is decorative: the table has the exact values
-    expect(cash.getByText('Last 6 months · axis in Rp million')).toBeTruthy();
+    expect(cash.getByText('Last 12 months · axis in Rp million')).toBeTruthy();
     const worth = within(result.getByTestId('overview-net-worth-history'));
     for (const tick of ['0', '10', '20', '30']) expect(worth.getByText(tick, { includeHiddenElements: true })).toBeTruthy();
     expect(worth.getByText('Goal · Rp30 jt')).toBeTruthy();
