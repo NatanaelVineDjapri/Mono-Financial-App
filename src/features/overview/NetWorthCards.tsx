@@ -1,42 +1,40 @@
 // "Net worth history" (a line over the last six month ends, the goal as a dashed line, and
 // the exact-value table) and "Where your money is" (one stacked bar by account, with a row
-// per slice). Both draw with react-native-svg / plain Views; every figure is read from the
-// views (v_net_worth_by_month, account balances) and the shares come from
-// accountShares() in src/domain/overview.ts. Hidden mode masks the amounts and shares.
+// per slice). Line chart uses react-native-gifted-charts LineChart for rendering.
+// All figures read from views (v_net_worth_by_month, account balances) and shares from
+// accountShares() in src/domain/overview.ts. Hidden mode masks amounts and shares.
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Path } from 'react-native-svg';
+// eslint-disable-next-line import/no-unresolved -- library not yet installed, see package.json
+import { LineChart } from 'react-native-gifted-charts';
 
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { labelIndexes, millionsCallout, niceScale } from '@/core/chartScale';
+import { niceScale } from '@/core/chartScale';
 import { monthAbbrev } from '@/core/date';
-import { pct, rp, shown, shownCompact, shownPct } from '@/core/money';
+import { pct, rp, shown, shownPct } from '@/core/money';
 import type { NetWorthMonth } from '@/domain/net-worth';
 import type { AccountShareRow } from '@/domain/overview';
 import {
-  byAccountCaption,
-  goalLineLabel,
-  monthEndValuesNote,
-  netWorthHistoryAccessibilityLabel,
-  netWorthHistoryTitle,
-  rangeAllLabel,
-  rangeOneYearLabel,
-  rangeSixMonthsLabel,
-  whereMoneyAccessibilityLabel,
-  whereYourMoneyIsTitle,
+    byAccountCaption,
+    monthEndValuesNote,
+    netWorthHistoryAccessibilityLabel,
+    netWorthHistoryTitle,
+    rangeAllLabel,
+    rangeOneYearLabel,
+    rangeSixMonthsLabel,
+    whereMoneyAccessibilityLabel,
+    whereYourMoneyIsTitle
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 import { SHARE_COLORS } from './palette';
-import { PlotArea } from './PlotArea';
 
-const CHART_HEIGHT = 140; // the plot, gridlines included
-const X_LABELS_MAX = 6;
-const PAD_X = 10; // keeps the end dots clear of the plot's edges
+const CHART_HEIGHT = 140;
+const PAD_X = 10;
 
 type Range = '6M' | '1Y' | 'All';
 const RANGES: { key: Range; months: number | null; label: () => string }[] = [
@@ -47,7 +45,7 @@ const RANGES: { key: Range; months: number | null; label: () => string }[] = [
 
 export interface NetWorthHistoryCardProps {
   history: NetWorthMonth[];
-  goalTarget?: number; // the total-assets goal, drawn as a dashed line
+  goalTarget?: number;
 }
 
 function RangeSwitch({ value, onChange }: { value: Range; onChange: (range: Range) => void }) {
@@ -83,9 +81,25 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
   const months = RANGES.find(r => r.key === range)?.months ?? null;
   const points = months == null ? history : history.slice(-months);
   const scale = niceScale(Math.max(goalTarget ?? 0, ...points.map(p => p.netWorth)));
-  const last = points[points.length - 1];
   const valuesText = points.map(p => `${monthAbbrev(p.month)} ${shown(rp(p.netWorth), hidden)}`).join(', ');
-  const xLabels = labelIndexes(points.length, X_LABELS_MAX);
+
+  // Transform data for LineChart
+  const lineData = points.map((p, i) => ({
+    value: p.netWorth,
+    label: monthAbbrev(p.month),
+    dataPointRadius: i === points.length - 1 ? 4.5 : 2,
+    dataPointColor: i === points.length - 1 ? MonoColors.card : MonoColors.accent,
+    dataPointStrokeColor: MonoColors.accent,
+    dataPointStrokeWidth: i === points.length - 1 ? 2 : 0,
+    labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+  }));
+
+  // Goal line data (if provided)
+  const goalData = goalTarget
+    ? points.map(() => ({
+        value: goalTarget,
+      }))
+    : undefined;
 
   return (
     <Card style={styles.card} testID="overview-net-worth-history">
@@ -97,51 +111,38 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
       </View>
 
       <View accessible accessibilityRole="image" accessibilityLabel={netWorthHistoryAccessibilityLabel(valuesText)}>
-        <PlotArea
+        <LineChart
+          data={lineData}
+          data2={goalData}
           height={CHART_HEIGHT}
-          ticks={scale.ticks}
-          hidden={hidden}
-          footer={plotWidth => (
-            <View style={styles.xRow}>
-              {xLabels.map(i => (
-                <Text
-                  key={points[i].month}
-                  style={[styles.xLabel, { left: pointX(i, points.length, plotWidth) - X_LABEL_HALF_WIDTH, width: X_LABEL_HALF_WIDTH * 2 }]}
-                >
-                  {monthAbbrev(points[i].month)}
-                </Text>
-              ))}
-            </View>
-          )}
-        >
-          {(plotWidth, yOf) => {
-            const line = points
-              .map((p, i) => `${i === 0 ? 'M' : 'L'}${pointX(i, points.length, plotWidth).toFixed(1)} ${yOf(p.netWorth).toFixed(1)}`)
-              .join(' ');
-            const lastX = pointX(points.length - 1, points.length, plotWidth);
-            return (
-              <>
-                <Svg width={plotWidth} height={CHART_HEIGHT} style={StyleSheet.absoluteFill}>
-                  {goalTarget != null && (
-                    <Line x1={0} x2={plotWidth} y1={yOf(goalTarget)} y2={yOf(goalTarget)} stroke={MonoColors.textDisabled} strokeWidth={1} strokeDasharray="4 4" />
-                  )}
-                  <Path d={line} stroke={MonoColors.accent} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  {points.map((p, i) => (
-                    <Circle key={p.month} cx={pointX(i, points.length, plotWidth)} cy={yOf(p.netWorth)} r={i === points.length - 1 ? 4.5 : 2} fill={i === points.length - 1 ? MonoColors.card : MonoColors.accent} stroke={MonoColors.accent} strokeWidth={i === points.length - 1 ? 2 : 0} />
-                  ))}
-                </Svg>
-                {goalTarget != null && (
-                  <Text style={[styles.callout, styles.goalLabel, { top: yOf(goalTarget) - 17 }]}>
-                    {goalLineLabel(shownCompact(millionsCallout(goalTarget), hidden))}
-                  </Text>
-                )}
-                <Text style={[styles.callout, styles.lastLabel, { top: yOf(last.netWorth) - 22, right: Math.max(0, plotWidth - lastX - 14) }]}>
-                  {shownCompact(millionsCallout(last.netWorth), hidden)}
-                </Text>
-              </>
-            );
-          }}
-        </PlotArea>
+          spacing={points.length > 1 ? (300 - PAD_X * 2) / (points.length - 1) : 150}
+          initialSpacing={PAD_X}
+          endSpacing={PAD_X}
+          color={MonoColors.accent}
+          color2={MonoColors.textDisabled}
+          thickness={2}
+          strokeDashArray2={[4, 4]}
+          startFillColor="transparent"
+          startOpacity={0}
+          endOpacity={0}
+          hideDataPoints={false}
+          textColor={MonoColors.textSecond}
+          textFontSize={12}
+          xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
+          yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
+          yAxisThickness={0}
+          xAxisThickness={0}
+          hideRules={false}
+          rulesColor={MonoColors.border}
+          rulesType="solid"
+          noOfSections={scale.ticks.length - 1}
+          maxValue={scale.top}
+          hideYAxisText={hidden}
+          backgroundColor="transparent"
+          disableScroll
+          isAnimated={false}
+          curved
+        />
       </View>
 
       <ChartTable
@@ -152,11 +153,6 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
       <Text style={styles.caption}>{monthEndValuesNote()}</Text>
     </Card>
   );
-}
-
-// x of the i-th of n points inside a plot `width` wide (edge padding so the end dots fit).
-function pointX(i: number, n: number, width: number): number {
-  return n === 1 ? width / 2 : PAD_X + (i * (width - PAD_X * 2)) / (n - 1);
 }
 
 export interface WhereYourMoneyCardProps {
@@ -195,7 +191,6 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
   );
 }
 
-const X_LABEL_HALF_WIDTH = 20;
 
 const styles = StyleSheet.create({
   card: { marginHorizontal: 16, gap: 12 },
@@ -204,11 +199,6 @@ const styles = StyleSheet.create({
   rangeText: { ...MonoText.bodyS, color: MonoColors.textMeta },
   rangeTextSelected: { ...MonoText.bodyStrong, fontSize: 13, color: MonoColors.text },
   rangeUnderline: { position: 'absolute', bottom: 8, width: 18, height: 2, borderRadius: 1, backgroundColor: MonoColors.text },
-  xRow: { height: 22, marginTop: 6 },
-  xLabel: { ...MonoText.caption, position: 'absolute', top: 0, textAlign: 'center', color: MonoColors.textSecond },
-  callout: { ...MonoText.caption, position: 'absolute', color: MonoColors.textSecond },
-  goalLabel: { right: 0 },
-  lastLabel: { fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text },
   header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, rowGap: 4 },
   title: { ...MonoText.titleM, color: MonoColors.text },
   caption: { ...MonoText.caption, color: MonoColors.textMeta },

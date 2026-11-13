@@ -1,8 +1,10 @@
 // "Cash flow": six months of income (gold) against expenses (#737373) as paired bars, with
-// the exact-value table beneath (CLAUDE.md rule 7). The bars are decorative: one
-// accessible node carries every figure. Hidden mode masks the figures in the label and the
-// table (through <Amount>).
+// the exact-value table beneath (CLAUDE.md rule 7). Uses react-native-gifted-charts BarChart
+// for rendering with paired bars per month. Hidden mode masks the figures in the label and
+// the table (through <Amount>).
 import { StyleSheet, Text, View } from 'react-native';
+// eslint-disable-next-line import/no-unresolved -- library not yet installed, see package.json
+import { BarChart } from 'react-native-gifted-charts';
 
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
@@ -12,31 +14,47 @@ import { monthAbbrev } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import type { OverviewMonthFlow } from '@/domain/overview';
 import {
-  axisInMillionsLabel,
-  cashFlowAccessibilityLabel,
-  cashFlowTitle,
-  cashFlowValuesText,
-  expensesCardLabel,
-  incomeCardLabel,
-  lastSixMonthsLabel,
+    axisInMillionsLabel,
+    cashFlowAccessibilityLabel,
+    cashFlowTitle,
+    cashFlowValuesText,
+    expensesCardLabel,
+    incomeCardLabel,
+    lastSixMonthsLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 import { EXPENSE_BAR } from './palette';
-import { PlotArea } from './PlotArea';
 
-const CHART_HEIGHT = 130; // the plot, gridlines included
-const PAD_TOP = 10; // PlotArea's own headroom above the top gridline
+const CHART_HEIGHT = 130;
 const BAR_WIDTH = 14;
+const BAR_SPACING = 3;
 
 export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
   const hidden = useHideAmounts(s => s.hidden);
   const scale = niceScale(Math.max(...months.flatMap(m => [m.income, m.expense])));
-  const height = (value: number) => (value > 0 ? Math.max(2, Math.round((value / scale.top) * (CHART_HEIGHT - PAD_TOP))) : 0);
+  
   const valuesText = months
     .map(m => cashFlowValuesText(monthAbbrev(m.period), shown(rp(m.income), hidden), shown(rp(m.expense), hidden)))
     .join('; ');
+
+  // Transform data for paired bars: income (gold) + expense (grey) per month
+  const barData = months.flatMap((m, i) => [
+    {
+      value: m.income,
+      label: i === 0 ? monthAbbrev(m.period) : '',
+      frontColor: MonoColors.accent,
+      spacing: BAR_SPACING,
+      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+    },
+    {
+      value: m.expense,
+      frontColor: EXPENSE_BAR,
+      label: monthAbbrev(m.period),
+      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+    },
+  ]);
 
   return (
     <Card style={styles.card} testID="overview-cash-flow">
@@ -51,34 +69,31 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           <Text style={styles.legendText}>{expensesCardLabel()}</Text>
         </View>
       </View>
-      <Text style={styles.caption}>{scale.top >= 1_000_000 ? `${lastSixMonthsLabel()} · ${axisInMillionsLabel()}` : lastSixMonthsLabel()}</Text>
+      <Text style={styles.caption}>
+        {scale.top >= 1_000_000 ? `${lastSixMonthsLabel()} · ${axisInMillionsLabel()}` : lastSixMonthsLabel()}
+      </Text>
 
       <View accessible accessibilityRole="image" accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}>
-        <PlotArea
+        <BarChart
+          data={barData}
           height={CHART_HEIGHT}
-          ticks={scale.ticks}
-          hidden={hidden}
-          footer={() => (
-            <View style={styles.monthRow}>
-              {months.map(m => (
-                <Text key={m.period} style={styles.month}>
-                  {monthAbbrev(m.period)}
-                </Text>
-              ))}
-            </View>
-          )}
-        >
-          {() => (
-            <View style={styles.columns}>
-              {months.map(m => (
-                <View key={m.period} style={styles.column}>
-                  <View style={[styles.bar, { height: height(m.income), backgroundColor: MonoColors.accent }]} />
-                  <View style={[styles.bar, { height: height(m.expense), backgroundColor: EXPENSE_BAR }]} />
-                </View>
-              ))}
-            </View>
-          )}
-        </PlotArea>
+          barWidth={BAR_WIDTH}
+          spacing={BAR_SPACING}
+          barBorderRadius={3}
+          hideRules={false}
+          rulesColor={MonoColors.border}
+          rulesType="solid"
+          xAxisThickness={0}
+          yAxisThickness={0}
+          yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
+          xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
+          hideYAxisText={hidden}
+          noOfSections={scale.ticks.length - 1}
+          maxValue={scale.top}
+          backgroundColor="transparent"
+          disablePress
+          isAnimated={false}
+        />
       </View>
 
       <ChartTable
@@ -98,9 +113,4 @@ const styles = StyleSheet.create({
   swatch: { width: 8, height: 8, borderRadius: 2 },
   legendText: { ...MonoText.caption, color: MonoColors.textSecond, marginRight: 6 },
   caption: { ...MonoText.caption, color: MonoColors.textMeta },
-  columns: { flex: 1, flexDirection: 'row', alignItems: 'flex-end' },
-  column: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 3 },
-  bar: { width: BAR_WIDTH, borderTopLeftRadius: 3, borderTopRightRadius: 3 },
-  monthRow: { flexDirection: 'row', paddingTop: 6 },
-  month: { ...MonoText.caption, flex: 1, textAlign: 'center', color: MonoColors.textSecond },
 });
