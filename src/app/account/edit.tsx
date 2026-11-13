@@ -1,22 +1,28 @@
 // Create or edit an account (Account-Edit), at /account/edit (new) and /account/edit?id= (an
 // existing account; the pencil on Account detail). The route only wires data and navigation: the
 // form is src/features/accounts/form/AccountForm.tsx and its rules are
-// src/core/account/validate.ts. A Valas account has its own form, built later.
+// src/core/account/validate.ts. The Valas account has its own form (src/features/valas): ?kind=valas
+// creates it, ?id= of the Valas account changes it.
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { ComingSoonScreen } from '@/components/ComingSoonScreen';
 import { today as todayLocal } from '@/core/clock';
 import type { AccountFormValues, AccountValidationContext, PlainAccountType } from '@/core/account/validate';
 import { AccountForm } from '@/features/accounts/form/AccountForm';
 import { useAccountFormData, useChangeAccountSubmit, useCreateAccountSubmit } from '@/features/accounts/form/useAccountForm';
-import { accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, txDetailLoadError, valasDetailComingLater } from '@/i18n';
+import { ValasFormScreen } from '@/features/valas/ValasFormScreen';
+import { accountNotFoundMessage, backLabel, retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-export default function AccountEditScreen() {
+export default function AccountEditRoute() {
+  const { kind } = useLocalSearchParams<{ kind?: string }>();
+  return kind === 'valas' ? <ValasFormScreen /> : <AccountEditScreen />;
+}
+
+function AccountEditScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const editId = id ? Number(id) : undefined;
@@ -62,10 +68,18 @@ export default function AccountEditScreen() {
     );
   }
   if (data.edit?.type === 'forex') {
-    return <ComingSoonScreen title={editAccountLabel()} message={valasDetailComingLater()} />;
+    return <ValasFormScreen editId={editId} />;
   }
 
-  return <AccountForm mode={editId != null ? 'edit' : 'add'} initial={initial} context={context} onCancel={() => router.back()} onSubmit={editId != null ? change : create} />;
+  return <AccountForm
+      mode={editId != null ? 'edit' : 'add'}
+      initial={initial}
+      context={context}
+      valasExists={data.hasValas}
+      onChooseValas={editId == null ? () => router.replace({ pathname: '/account/edit', params: { kind: 'valas' } } as never) : undefined}
+      onCancel={() => router.back()}
+      onSubmit={editId != null ? change : create}
+    />;
 }
 
 const styles = StyleSheet.create({

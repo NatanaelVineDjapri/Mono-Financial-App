@@ -27,8 +27,22 @@ export function minutesSince(at: string, now: Date = new Date()): number {
 // the last success (or there has never been one). The caller decides when to check this
 // (e.g. once per app open) — it is not part of refreshRates' own throttle, which applies
 // the same way to a manual tap or an automatic check.
-export function shouldAutoUpdate(lastSuccessAt: string | null, enabled: boolean, now: Date = new Date()): boolean {
+//
+// `nextUpdateAt` is the service's own "rates change again at": asking before it returns the same
+// numbers, so an automatic check waits for it (a manual tap never does).
+//
+// `hasUnratedCurrency` is a pocket added since the last fetch: it has no rate at all, and a day's
+// wait or the service's next-update time would leave it unusable, so that one asks immediately.
+export function shouldAutoUpdate(
+  lastSuccessAt: string | null,
+  enabled: boolean,
+  now: Date = new Date(),
+  nextUpdateAt: string | null = null,
+  hasUnratedCurrency = false,
+): boolean {
   if (!enabled) return false;
+  if (hasUnratedCurrency) return true;
+  if (nextUpdateAt && now.getTime() < new Date(nextUpdateAt).getTime()) return false;
   if (!lastSuccessAt) return true;
   return now.getTime() - new Date(lastSuccessAt).getTime() >= AUTO_UPDATE_INTERVAL_MS;
 }

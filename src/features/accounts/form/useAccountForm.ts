@@ -15,11 +15,13 @@ import type { AccountFormValues } from '@/core/account/validate';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getAccountEditData, listAccountNames, type AccountEditData } from '@/domain/accountDetail';
+import { getForexAccountId } from '@/features/valas/forexAccount';
 import { accountChangesSavedMessage, accountCreatedMessage } from '@/i18n';
 
 import type { AccountSubmitResult } from './AccountForm';
 
 export interface AccountFormData {
+  hasValas: boolean; // the one Valas account exists: a second cannot be made
   names: { id: number; name: string }[];
   edit: AccountEditData | null;
 }
@@ -29,8 +31,8 @@ export function useAccountFormData(editId?: number) {
   return useQuery({
     queryKey: [...queryKeys.accounts, 'form', editId ?? 'new'],
     queryFn: async (): Promise<AccountFormData> => {
-      const [names, edit] = await Promise.all([listAccountNames(db), editId != null ? getAccountEditData(db, editId) : Promise.resolve(null)]);
-      return { names, edit };
+      const [names, edit, valasId] = await Promise.all([listAccountNames(db), editId != null ? getAccountEditData(db, editId) : Promise.resolve(null), getForexAccountId(db)]);
+      return { names, edit, hasValas: valasId != null };
     },
     // The form must open on this moment's data, not a cached copy.
     staleTime: 0,

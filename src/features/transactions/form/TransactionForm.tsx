@@ -8,7 +8,7 @@
 // form; a short balance appears as soon as the amount makes it so. Save is disabled while an
 // error is showing, and tapping it on an invalid form reveals what is wrong instead of saving.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -17,7 +17,7 @@ import { IconButton } from '@/components/IconButton';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatShortDate } from '@/core/date';
-import { rp, shown } from '@/core/money';
+import { money, rp, shown, toIdr } from '@/core/money';
 import { dayBefore } from '@/core/tx/calendar';
 import {
     balanceAfter,
@@ -25,6 +25,7 @@ import {
     visibleErrors,
     type TxFieldError,
     type TxFieldKey,
+    type FormPocket,
     type TxFormValues,
     type TxType,
 } from '@/core/tx/validate';
@@ -47,17 +48,25 @@ import {
     formNotesOptionalLabel,
     notesPlaceholder,
     saveButtonLabel,
-    scanReceiptTitle,
     savingLabel,
     TRANSFER_IN_FIRST_LINK,
     txFieldErrorMessage,
     txKindLabel,
-    typeLockedHint
+    txValasFieldError,
+    typeLockedHint,
+    valasAmountTitle,
+    valasAmountToMoveTitle,
+    valasPocketFromLabel,
+    valasPocketToLabel,
+    valasYouReceive,
+    valasYouSend,
 } from '@/i18n';
 import { DraftProgressBar, DraftProgressText, SourceQuote } from '@/features/ai_chat/ui/DraftEditChrome';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
+import { exchangeSummary } from '@/features/valas/rates';
+import { BalanceAfterLine, BudgetNote, CurrencyAmountCard, ExchangeSummaryCard, LiveValueLine, PocketChips } from '@/features/valas/txParts';
 import { AccountField, AmountCard, CategoryRow, DateRow, ErrorLine, TextBox, TransferAccounts, type ErrorView } from './formParts';
 import { AccountSheet, CategorySheet, DateSheet, type AccountSheetRole } from './formSheets';
 
@@ -86,14 +95,22 @@ export interface TransactionFormProps {
   initialAccountId?: number; // preselect this account (from Account detail's Add and Transfer)
   onCancel: () => void;
   onChat?: () => void;
+  // The Valas account can be used (through a pocket). Default: yes, except in the AI chat's draft editor.
+  allowForex?: boolean;
+  // "Atur kurs" in the missing-rate error: opens the Rates screen.
+  onSetRates?: () => void;
   // Add mode: "Scan struk" in the header, to fill the form from a photo of a receipt instead.
-  onScan?: () => void;
   onSubmit: (values: TxFormValues) => Promise<SubmitResult>;
 }
 
 type SheetName = AccountSheetRole | 'category' | 'date' | null;
 
-function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: string, initialType?: TxType, initialAccountId?: number, draft?: DraftModeProps): TxFormValues {
+// The pockets of a Valas account, in currency order.
+function pocketsOfAccount(pockets: readonly FormPocket[], accountId: number | null | undefined): FormPocket[] {
+  return accountId == null ? [] : pockets.filter(p => p.accountId === accountId);
+}
+
+function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: string, allowForex: boolean, initialType?: TxType, initialAccountId?: number, draft?: DraftModeProps): TxFormValues {
   if (mode === 'draft' && draft) return draft.initialValues;
   if (mode === 'edit' && data.record) {
     const r = data.record;
@@ -103,30 +120,48 @@ function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: 
       categoryId: r.categoryId,
       accountId: r.accountId,
       toAccountId: r.toAccountId,
+      currency: r.currency,
+      toCurrency: r.toCurrency ?? undefined,
+      amountTo: r.amountTo,
       date: r.date,
       description: r.description,
       note: r.note,
     };
   }
-  const preselected = data.accounts.find(a => a.id === initialAccountId && a.type !== 'forex');
-  const firstRupiah = preselected ?? data.accounts.find(a => a.type !== 'forex');
-  return {
-    type: initialType ?? 'expense',
+  const preselected = data.accounts.find(a => a.id === initialAccountId && (allowForex || a.type !== 'forex'));
+  const first = preselected ?? data.accounts.find(a => a.type !== 'forex');
+  const type = initialType ?? 'expense';
+  const base: TxFormValues = {
+    type,
     amount: 0,
     categoryId: null,
-    accountId: firstRupiah?.id ?? null,
+    accountId: first?.id ?? null,
     toAccountId: null,
     date: today,
     description: '',
     note: '',
   };
+  if (!allowForex || first?.type !== 'forex') return base;
+  // The Valas account was chosen (from its detail): start on its first pocket; an exchange starts on
+  // a swap between two of its pockets.
+  const own = pocketsOfAccount(data.pockets, first.id);
+  const currency = own[0]?.currency;
+  if (type === 'transfer') return { ...base, currency, toAccountId: first.id, toCurrency: own[1]?.currency };
+  return { ...base, currency };
 }
 
-export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, onCancel, onChat, onScan, onSubmit }: TransactionFormProps) {
+// "Balance after" for a Valas pocket, in the pocket's own currency.
+function balanceAfterPocket(pocket: FormPocket, amount: number, direction: 'in' | 'out'): number {
+  const safe = Number.isSafeInteger(amount) && amount > 0 ? amount : 0;
+  return direction === 'in' ? pocket.balance + safe : pocket.balance - safe;
+}
+
+export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, allowForex: allowForexProp, onSetRates, onCancel, onChat, onSubmit }: TransactionFormProps) {
+  const allowForex = allowForexProp ?? mode !== 'draft';
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
 
-  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, initialType, initialAccountId, draft));
+  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, allowForex, initialType, initialAccountId, draft));
   const [touched, setTouched] = useState<ReadonlySet<TxFieldKey>>(new Set());
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -150,8 +185,8 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   }, [sheet]);
 
   const errors = useMemo(
-    () => validateTx(values, { today, accounts: data.accounts, categories: data.categories }),
-    [values, today, data.accounts, data.categories],
+    () => validateTx(values, { today, accounts: data.accounts, categories: data.categories, allowForex, pockets: data.pockets, rates: data.rates }),
+    [values, today, data.accounts, data.categories, data.pockets, data.rates, allowForex],
   );
   const visible = useMemo(() => visibleErrors(errors, touched, submitted), [errors, touched, submitted]);
 
@@ -159,6 +194,42 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const toAccount = data.accounts.find(a => a.id === values.toAccountId);
   const isTransfer = values.type === 'transfer';
   const kindCategories = useMemo(() => data.categories.filter(c => c.kind === values.type), [data.categories, values.type]);
+
+  // Valas: the pocket each side uses, the currency it is in, and what the typed amount is worth.
+  const accountPockets = useMemo(() => pocketsOfAccount(data.pockets, values.accountId), [data.pockets, values.accountId]);
+  const toPockets = useMemo(() => pocketsOfAccount(data.pockets, values.toAccountId), [data.pockets, values.toAccountId]);
+  const fromForex = account?.type === 'forex' && allowForex;
+  const toForex = toAccount?.type === 'forex' && allowForex;
+  const srcCurrency = fromForex ? (values.currency ?? '') : 'IDR';
+  const dstCurrency = isTransfer ? (toForex ? (values.toCurrency ?? '') : 'IDR') : srcCurrency;
+  const srcPocket = fromForex ? accountPockets.find(p => p.currency === srcCurrency) : undefined;
+  const dstPocket = toForex ? toPockets.find(p => p.currency === dstCurrency) : undefined;
+  const exchange = isTransfer && !!account && !!toAccount && srcCurrency !== dstCurrency && srcCurrency !== '' && dstCurrency !== '';
+  const srcRate = srcCurrency !== 'IDR' ? data.rates[srcCurrency] : undefined;
+  const typedValueIdr = srcPocket && srcRate != null && values.amount > 0 ? toIdr(values.amount, srcRate, srcPocket.minorFactor) : null;
+  const categoryName = data.categories.find(c => c.id === values.categoryId)?.name ?? '';
+  const sideOf = (currency: string, pocket: FormPocket | undefined) => ({ currency, amount: 0, minorFactor: pocket?.minorFactor ?? 1 });
+  const summary = useMemo(
+    () =>
+      exchange
+        ? exchangeSummary(
+            { ...sideOf(srcCurrency, srcPocket), amount: values.amount },
+            { ...sideOf(dstCurrency, dstPocket), amount: values.amountTo ?? 0 },
+            data.rates,
+          )
+        : null,
+    [exchange, srcCurrency, dstCurrency, srcPocket, dstPocket, values.amount, values.amountTo, data.rates],
+  );
+
+  // Picking an account sets the currency that goes with it: a rupiah account is rupiah, a Valas
+  // account starts on its first pocket (or keeps the one already chosen).
+  const currencyFor = (accountId: number, current: string | undefined, avoid?: string): string | undefined => {
+    const picked = data.accounts.find(a => a.id === accountId);
+    if (!picked || picked.type !== 'forex') return undefined;
+    const own = pocketsOfAccount(data.pockets, accountId);
+    if (current && current !== avoid && own.some(p => p.currency === current)) return current;
+    return own.find(p => p.currency !== avoid)?.currency ?? own[0]?.currency;
+  };
 
   const rpFormat = useCallback((n: number) => shown(rp(n), hidden), [hidden]);
 
@@ -177,6 +248,13 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const errorView = (field: TxFieldKey): ErrorView | undefined => {
     const error: TxFieldError | undefined = visible.find(e => e.field === field);
     if (!error) return undefined;
+    // The Valas errors are worded in their own function (a pocket's currency, its rate, an exchange).
+    if (error.code === 'pocket_required' || error.code === 'missing_rate' || error.code === 'amount_to_required' || error.code === 'same_pocket' || (error.code === 'insufficient_balance' && error.currency)) {
+      const cur = error.currency ?? '';
+      const factor = error.minorFactor ?? 100;
+      const valas = txValasFieldError({ ...error, type: values.type }, n => shown(money(n, cur, factor), hidden));
+      return { text: valas.text, linkText: valas.linkText, onLinkPress: valas.linkText ? onSetRates : undefined };
+    }
     const message = txFieldErrorMessage({ ...error, type: values.type }, rpFormat, formatShortDate);
     const link = message.linkText === TRANSFER_IN_FIRST_LINK && values.accountId != null;
     return { text: message.text, linkText: message.linkText, onLinkPress: link ? () => switchToTransferInto(values.accountId as number) : undefined };
@@ -230,12 +308,6 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
             {mode === 'draft' ? aiEditTitle() : mode === 'edit' ? editTransactionTitle() : addTransactionTitle()}
           </Text>
           {mode === 'draft' && draft && <DraftProgressText index={draft.index} total={draft.total} />}
-          {mode === 'add' && onScan && (
-            <Pressable onPress={onScan} accessibilityRole="button" accessibilityLabel={scanReceiptTitle()} android_ripple={undefined} style={styles.scanPill} testID="tx-scan">
-              <Icon name="scan" size={18} color={MonoColors.text} />
-              <Text style={styles.scanPillText}>{scanReceiptTitle()}</Text>
-            </Pressable>
-          )}
         </View>
       </View>
       {/* one segment for one draft would only be a white line: the bar is for two or more */}
@@ -245,14 +317,59 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
         {mode === 'draft' && draft && <SourceQuote text={draft.sourceMessage} />}
         <Segmented options={segmentOptions} value={values.type} onChange={v => changeType(v as TxType)} testID="tx-type" />
 
-        <AmountCard
-          value={values.amount}
-          onChange={amount => set({ amount })}
-          onBlur={() => touch('amount')}
-          label={isTransfer ? 'amountToMove' : 'amount'}
-          quickAdds={QUICK_ADDS}
-          error={errorView('amount')}
-        />
+        {exchange ? (
+          <>
+            <CurrencyAmountCard
+              key={`send-${srcCurrency}`}
+              currency={srcCurrency}
+              minorFactor={srcPocket?.minorFactor ?? 100}
+              value={values.amount}
+              onChange={amount => set({ amount })}
+              onBlur={() => touch('amount')}
+              title={valasYouSend()}
+              error={errorView('amount')}
+              testID="tx-amount"
+            >
+              <BalanceAfterLine balance={srcPocket ? srcPocket.balance - values.amount : null} currency={srcCurrency} minorFactor={srcPocket?.minorFactor ?? 100} />
+            </CurrencyAmountCard>
+            <CurrencyAmountCard
+              key={`receive-${dstCurrency}`}
+              currency={dstCurrency}
+              minorFactor={dstPocket?.minorFactor ?? 1}
+              value={values.amountTo ?? 0}
+              onChange={amountTo => set({ amountTo })}
+              onBlur={() => touch('amountTo')}
+              title={valasYouReceive()}
+              error={errorView('amountTo')}
+              testID="tx-amount-to"
+            />
+          </>
+        ) : fromForex && srcPocket ? (
+          <CurrencyAmountCard
+            key={srcCurrency}
+            currency={srcCurrency}
+            minorFactor={srcPocket.minorFactor}
+            value={values.amount}
+            onChange={amount => set({ amount })}
+            onBlur={() => touch('amount')}
+            title={isTransfer ? valasAmountToMoveTitle(srcCurrency) : valasAmountTitle(srcCurrency)}
+            error={errorView('amount')}
+          >
+            <LiveValueLine currency={srcCurrency} valueIdr={typedValueIdr} rateE4={srcRate ?? null} />
+            <BalanceAfterLine balance={balanceAfterPocket(srcPocket, values.amount, values.type === 'income' ? 'in' : 'out')} currency={srcCurrency} minorFactor={srcPocket.minorFactor} />
+          </CurrencyAmountCard>
+        ) : (
+          <AmountCard
+            value={values.amount}
+            onChange={amount => set({ amount })}
+            onBlur={() => touch('amount')}
+            label={isTransfer ? 'amountToMove' : 'amount'}
+            quickAdds={QUICK_ADDS}
+            error={errorView('amount')}
+          />
+        )}
+        {exchange && summary && <ExchangeSummaryCard summary={summary} />}
+        {values.type === 'expense' && fromForex && <BudgetNote category={categoryName} valueIdr={values.categoryId != null ? typedValueIdr : null} />}
 
         {!isTransfer && (
           <CategoryRow
@@ -271,25 +388,52 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
           <TransferAccounts
             from={account}
             to={toAccount}
-            fromAfter={balanceAfter(account, values.amount, 'out')}
-            toAfter={balanceAfter(toAccount, values.amount, 'in')}
+            fromAfter={fromForex ? null : balanceAfter(account, values.amount, 'out')}
+            toAfter={toForex ? null : balanceAfter(toAccount, exchange ? (values.amountTo ?? 0) : values.amount, 'in')}
             onPressFrom={() => setSheet('from')}
             onPressTo={() => setSheet('to')}
             onSwap={() => {
-              set({ accountId: values.toAccountId, toAccountId: values.accountId });
+              set({ accountId: values.toAccountId, toAccountId: values.accountId, currency: values.toCurrency, toCurrency: values.currency, amount: values.amountTo ?? values.amount, amountTo: values.amount });
               touch('toAccount');
             }}
-            fromError={errorView('account')}
-            toError={errorView('toAccount')}
+            fromError={fromForex ? undefined : errorView('account')}
+            toError={toForex ? undefined : errorView('toAccount')}
             placeholder={chooseAccountPlaceholder()}
           />
         ) : (
           <AccountField
             account={account}
-            balanceAfter={balanceAfter(account, values.amount, values.type === 'income' ? 'in' : 'out')}
+            balanceAfter={fromForex ? null : balanceAfter(account, values.amount, values.type === 'income' ? 'in' : 'out')}
             onPress={() => setSheet('account')}
-            error={errorView('account')}
+            error={fromForex ? undefined : errorView('account')}
             placeholder={chooseAccountPlaceholder()}
+          />
+        )}
+
+        {fromForex && (
+          <PocketChips
+            pockets={accountPockets}
+            selected={values.currency}
+            label={isTransfer ? valasPocketFromLabel() : undefined}
+            onSelect={currency => {
+              set({ currency });
+              touch('account');
+            }}
+            error={errorView('account')}
+            testID="tx-pocket-chips"
+          />
+        )}
+        {isTransfer && toForex && (
+          <PocketChips
+            pockets={toPockets}
+            selected={values.toCurrency}
+            label={valasPocketToLabel()}
+            onSelect={toCurrency => {
+              set({ toCurrency });
+              touch('toAccount');
+            }}
+            error={errorView('toAccount')}
+            testID="tx-pocket-chips-to"
           />
         )}
 
@@ -355,12 +499,14 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
         role={sheet === 'from' || sheet === 'to' ? sheet : 'account'}
         accounts={accountsForSheet}
         selectedId={sheetSelected}
+        allowForex={allowForex}
         onSelect={id => {
           if (sheet === 'to') {
-            set({ toAccountId: id });
+            // A Valas pocket on the receiving side differs from the sending one when both are Valas.
+            set({ toAccountId: id, toCurrency: currencyFor(id, values.toCurrency, values.accountId === id ? srcCurrency : undefined) });
             touch('toAccount');
           } else {
-            set({ accountId: id });
+            set({ accountId: id, currency: currencyFor(id, values.currency) });
             touch('account');
           }
           setSheet(null);
@@ -406,8 +552,6 @@ const styles = StyleSheet.create({
   headerRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { ...MonoText.titleM, color: MonoColors.text, flex: 1 },
   // The board's header pill (the Chat button of Tx-Add): 44 high, outlined, icon and label.
-  scanPill: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: MonoColors.textDisabled, borderRadius: 16 },
-  scanPillText: { ...MonoText.chip, color: MonoColors.text },
   content: { padding: 16, gap: 20 },
   bar: { paddingTop: 12, paddingHorizontal: 16, gap: 8, borderTopWidth: 1, borderTopColor: BAR_BORDER, backgroundColor: MonoColors.bg },
   barRow: { flexDirection: 'row', gap: 12 },

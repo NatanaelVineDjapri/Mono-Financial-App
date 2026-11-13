@@ -4,6 +4,7 @@
 import type { AccountType } from '../data/repo/accounts';
 import type { TxSource } from '../data/repo/transactions';
 import type { GuardCode } from '../domain/errors';
+import { CURRENCY_NAMES_ID } from './currencyNamesId';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
 // real shortfall) instead of generic. Filled in by the domain layer, never guessed from
@@ -30,6 +31,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   pocket_not_empty: () => 'Empty the pocket first.',
   account_type_locked: () => 'This account type can no longer be changed.',
   recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
+  forex_account_exists: () => 'Akun Valas sudah ada. Tambahkan mata uangnya ke akun itu.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -152,7 +154,7 @@ export function accountsTransferNote(): string {
 }
 
 export function accountsIncompleteNote(): string {
-  return 'Incomplete: some currencies are missing exchange rates.';
+  return 'Belum lengkap: ada mata uang yang belum punya kurs.';
 }
 
 export function accountsNoLoginNote(): string {
@@ -163,15 +165,15 @@ export function accountsNoLoginNote(): string {
 // is an estimate, not a warning) — distinct from accountsIncompleteNote above, which is
 // for when a pocket has NO rate at all and the total is genuinely missing data.
 export function accountsForexEstimateNote(dateTimeFormatted: string): string {
-  return `Foreign currency uses your latest rates (${dateTimeFormatted}), so the total is an estimate.`;
+  return `Mata uang asing memakai kurs terbaru (${dateTimeFormatted}), jadi total ini perkiraan.`;
 }
 
 export function exchangeRatesLabel(): string {
-  return 'Exchange rates';
+  return 'Kurs';
 }
 
 export function exchangeRatesUpdatedLabel(dateTimeFormatted: string): string {
-  return `updated ${dateTimeFormatted}`;
+  return `diperbarui ${dateTimeFormatted}`;
 }
 
 // The Accounts card stack's own strip/open accessibility labels (Fase 4.2c step 3) —
@@ -1518,10 +1520,6 @@ export function typeLockedHint(): string {
   return 'The type of a transfer cannot be changed.';
 }
 
-export function editValasUnsupportedMessage(): string {
-  return 'Valas transactions cannot be edited here yet.';
-}
-
 export function couldNotSaveMessage(): string {
   return "Couldn't save. Nothing was changed.";
 }
@@ -1724,10 +1722,6 @@ export function accountNotFoundMessage(): string {
 
 export function accountDetailLoadError(): string {
   return 'Could not load this account.';
-}
-
-export function valasDetailComingLater(): string {
-  return 'The Valas account detail is coming later.';
 }
 
 export function newAccountTitle(): string {
@@ -3122,4 +3116,520 @@ export function backupFailedToast(): string {
 
 export function backupShareTitle(): string {
   return 'Simpan cadangan MONO';
+}
+
+export function currencyName(code: string): string {
+  return CURRENCY_NAMES_ID[code] ?? code;
+}
+
+export function ratesTitle(): string {
+  return 'Kurs';
+}
+
+export function ratesAutoTitle(): string {
+  return 'Perbarui otomatis';
+}
+
+export function ratesAutoHelp(): string {
+  return 'Sehari sekali saat MONO terbuka dan online. Nyala secara default.';
+}
+
+export function ratesAutoSwitchLabel(on: boolean): string {
+  return on ? 'Perbarui otomatis, nyala' : 'Perbarui otomatis, mati';
+}
+
+export function ratesUpdateNow(): string {
+  return 'Perbarui kurs sekarang';
+}
+
+export function ratesUpdating(): string {
+  return 'Memperbarui kurs…';
+}
+
+export function ratesLastUpdated(dateTime: string): string {
+  return `Terakhir diperbarui ${dateTime}`;
+}
+
+export function ratesNeverUpdated(): string {
+  return 'Belum pernah diperbarui';
+}
+
+export function ratesInUseHeader(): string {
+  return 'Kurs yang dipakai';
+}
+
+export function ratesSourceApi(): string {
+  return 'Exchange Rate API';
+}
+
+export function ratesSourceManual(): string {
+  return 'Kamu ketik sendiri';
+}
+
+export function ratesRowSub(source: string, dateTime: string): string {
+  return `${source} · ${dateTime}`;
+}
+
+export function ratesRowNoRate(): string {
+  return 'Belum ada kurs';
+}
+
+export function ratesRowSetRate(): string {
+  return 'Atur kurs';
+}
+
+export function ratesRowPer(rate: string, symbol: string): string {
+  return `${rate} per ${symbol}1`;
+}
+
+export function ratesRowLabel(code: string, name: string, detail: string): string {
+  return `${code}, ${name}, ${detail}. Ketuk untuk mengetik kurs sendiri.`;
+}
+
+export function ratesNoCurrencies(): string {
+  return 'Belum ada mata uang. Tambahkan mata uang ke akun Valas, lalu kursnya muncul di sini.';
+}
+
+export function ratesFailTitle(): string {
+  return 'Kurs tidak bisa diperbarui.';
+}
+
+export function ratesFailOffline(dateTime: string | null): string {
+  return dateTime ? `Tidak ada internet. MONO tetap memakai kurs ${dateTime}. Tidak ada yang berubah atau hilang.` : 'Tidak ada internet. Belum ada kurs tersimpan; ketik sendiri kursnya.';
+}
+
+export function ratesFailLimited(minutes: number): string {
+  return `Layanan kurs meminta kita menunggu. Coba lagi nanti; tombolnya aktif lagi dalam ${minutes} menit. Kurs yang tersimpan tidak berubah.`;
+}
+
+export function ratesFailInvalid(): string {
+  return 'Layanan kurs mengirim jawaban yang tidak bisa dipakai. MONO tetap memakai kurs yang tersimpan.';
+}
+
+export function ratesCooldown(minutes: number): string {
+  return `Kurs baru saja diperbarui. Coba lagi dalam ${minutes} menit.`;
+}
+
+export function ratesNoPockets(): string {
+  return 'Belum ada mata uang yang dipegang, jadi tidak ada kurs yang perlu diambil.';
+}
+
+export function ratesUpdatedToast(): string {
+  return 'Kurs diperbarui';
+}
+
+export function ratesHowHeader(): string {
+  return 'Cara kurs dipakai';
+}
+
+export function ratesHowBody(): string {
+  return 'Total akun dan kekayaan bersih menilai tiap kantong dengan kurs di atas, ditandai ≈. Tiap transaksi menyimpan nilai rupiah pada hari dicatat, jadi anggaran dan laporan tidak berubah saat kurs berubah.';
+}
+
+export function ratesPrivacy(): string {
+  return 'Yang dikirim ke layanan hanya satu permintaan tanpa isi. Catatan, saldo, dan nama akunmu tidak pernah ikut.';
+}
+
+export function ratesAttribution(): string {
+  return 'Kurs oleh Exchange Rate API';
+}
+
+export function ratesManualTitle(code: string): string {
+  return `Kurs ${code} sendiri`;
+}
+
+export function ratesManualSubtitle(name: string): string {
+  return `${name}. Dipakai sampai pembaruan berikutnya.`;
+}
+
+export function ratesManualLabel(symbol: string): string {
+  return `Rupiah per ${symbol}1`;
+}
+
+export function ratesManualInvalid(): string {
+  return 'Isi kurs rupiah yang masuk akal, misalnya 16.250 atau 16.250,5.';
+}
+
+export function ratesManualSave(): string {
+  return 'Simpan kurs';
+}
+
+export function ratesManualSaved(code: string): string {
+  return `Kurs ${code} disimpan`;
+}
+
+export function ratesCloseLabel(): string {
+  return 'Tutup';
+}
+
+export function setRateFirst(code: string): string {
+  return `Belum ada kurs untuk ${code}. Atur kurs dulu.`;
+}
+
+export function setRateButton(): string {
+  return 'Atur kurs';
+}
+
+export function valasFormTitleNew(): string {
+  return 'Akun Valas baru';
+}
+
+export function valasFormTitleEdit(): string {
+  return 'Ubah akun Valas';
+}
+
+export function valasTypeTile(): string {
+  return 'Valas · mata uang asing';
+}
+
+export function valasExistsHint(): string {
+  return 'Kamu sudah punya akun Valas. Tambahkan mata uangnya di akun itu.';
+}
+
+export function valasNameLabel(): string {
+  return 'Nama akun';
+}
+
+export function valasNamePlaceholder(): string {
+  return 'Valas';
+}
+
+export function valasCurrenciesLabel(): string {
+  return 'Mata uang';
+}
+
+export function valasCurrencyNone(): string {
+  return 'Belum ada mata uang. Tambahkan minimal satu.';
+}
+
+export function valasOpeningLabel(code: string): string {
+  return `Saldo awal ${code}`;
+}
+
+export function valasRemoveCurrency(code: string): string {
+  return `Hapus ${code} dari daftar`;
+}
+
+export function valasAddCurrency(): string {
+  return 'Tambah mata uang';
+}
+
+export function valasOpeningDateLabel(date: string): string {
+  return `Saldo awal per ${date}`;
+}
+
+export function valasOpeningHelp(): string {
+  return 'Saldo awal tiap mata uang dihitung pada tanggal ini. Akun Valas sendiri tidak punya saldo awal.';
+}
+
+export function valasCreateButton(): string {
+  return 'Buat akun';
+}
+
+export function valasSaveButton(): string {
+  return 'Simpan';
+}
+
+export function valasSavingLabel(): string {
+  return 'Menyimpan…';
+}
+
+export function valasCreatedToast(name: string): string {
+  return `Akun ${name} dibuat`;
+}
+
+export function valasSavedToast(): string {
+  return 'Perubahan disimpan';
+}
+
+export function valasPocketArchivedToast(code: string): string {
+  return `Kantong ${code} diarsipkan`;
+}
+
+export function valasPocketAddedToast(code: string): string {
+  return `Kantong ${code} ditambahkan`;
+}
+
+export function valasAmountInvalid(): string {
+  return 'Isi saldo awal dengan angka, misalnya 250,00.';
+}
+
+export function valasPocketsNeedAmount(): string {
+  return 'Periksa saldo awal yang ditandai.';
+}
+
+export function valasForexError(code: string): string {
+  switch (code) {
+    case 'name_invalid':
+      return 'Nama akun wajib diisi, maksimal 40 huruf.';
+    case 'no_pockets':
+      return 'Tambahkan minimal satu mata uang.';
+    case 'duplicate_currency':
+      return 'Mata uang itu sudah ada di akun Valas.';
+    case 'unsupported_currency':
+      return 'Mata uang itu belum didukung.';
+    case 'amount_invalid':
+      return 'Saldo awal tidak valid.';
+    case 'not_forex_account':
+      return 'Ini bukan akun Valas.';
+    default:
+      return 'Tidak bisa menyimpan. Tidak ada yang berubah.';
+  }
+}
+
+export function valasAddSheetTitle(): string {
+  return 'Tambah mata uang';
+}
+
+export function valasAddSheetSubtitle(): string {
+  return 'Pilih mata uang yang mau kamu simpan.';
+}
+
+export function valasSearchPlaceholder(): string {
+  return 'Cari mata uang';
+}
+
+export function valasAlreadyAdded(): string {
+  return 'Sudah ditambahkan';
+}
+
+export function valasSearchEmpty(): string {
+  return 'Tidak ada mata uang yang cocok.';
+}
+
+export function valasNeedRateNote(): string {
+  return 'Kurs dibutuhkan untuk menampilkan nilai rupiah. Perbarui kurs di layar Kurs, atau ketik sendiri di sana.';
+}
+
+export function valasCurrencyRowLabel(code: string, name: string, added: boolean): string {
+  return added ? `${code}, ${name}, sudah ditambahkan` : `${code}, ${name}`;
+}
+
+export function valasDetailCaption(): string {
+  return 'Akun multi-mata uang · nilai hari ini';
+}
+
+export function valasDetailApproxNote(dateTime: string): string {
+  return `Perkiraan dari kurs ${dateTime}.`;
+}
+
+export function valasDetailIncomplete(): string {
+  return 'Nilai rupiah belum lengkap: ada mata uang yang belum punya kurs.';
+}
+
+export function valasNoPocketsTotal(): string {
+  return 'Belum ada mata uang';
+}
+
+export function valasPocketsHeader(): string {
+  return 'Kantong mata uang';
+}
+
+export function valasPocketsEmpty(): string {
+  return 'Belum ada kantong mata uang. Tambahkan satu.';
+}
+
+export function valasPocketLabel(code: string, name: string, amount: string, detail: string): string {
+  return `${code}, ${name}, ${amount}, ${detail}`;
+}
+
+export function valasPocketArchive(code: string): string {
+  return `Arsipkan ${code}`;
+}
+
+export function valasPocketArchiveBlocked(code: string): string {
+  return `Kantong ${code} masih berisi uang. Kosongkan dulu sebelum diarsipkan.`;
+}
+
+export function valasButtonAdd(): string {
+  return 'Tambah';
+}
+
+export function valasButtonExchange(): string {
+  return 'Tukar';
+}
+
+export function valasActivityTitle(month: string): string {
+  return `Aktivitas ${month}`;
+}
+
+export function valasFilterAll(): string {
+  return 'Semua';
+}
+
+export function valasActivityEmpty(): string {
+  return 'Belum ada aktivitas bulan ini.';
+}
+
+export function valasActivityFilterEmpty(code: string): string {
+  return `Tidak ada aktivitas ${code} bulan ini.`;
+}
+
+export function valasRatesLink(dateTime: string | null): string {
+  return dateTime ? `Kurs · ${dateTime}` : 'Kurs';
+}
+
+export function valasFrozenNote(): string {
+  return 'Setiap transaksi menyimpan nilai rupiah pada hari dicatat, jadi anggaran dan laporan tidak berubah saat kurs berubah.';
+}
+
+export function valasViewAll(): string {
+  return 'Lihat semua transaksi akun ini';
+}
+
+export function valasActivityRowLabel(title: string, kind: string, date: string, amount: string, value: string): string {
+  return `${title}, ${kind}, ${date}, ${amount}${value}`;
+}
+
+export function valasActivityValue(value: string): string {
+  return `, senilai ${value}`;
+}
+
+export function valasFieldError(code: string): string {
+  switch (code) {
+    case 'name_invalid':
+      return 'Nama akun wajib diisi, maksimal 40 huruf.';
+    case 'name_taken':
+      return 'Kamu sudah punya akun dengan nama ini.';
+    case 'no_pockets':
+      return 'Tambahkan minimal satu mata uang.';
+    case 'amount_invalid':
+      return 'Isi saldo awal dengan angka, misalnya 250,00.';
+    case 'future_date':
+      return 'Tanggalnya tidak boleh di masa depan.';
+    default:
+      return 'Periksa isian ini.';
+  }
+}
+
+export function valasPocketBalanceLabel(code: string, amount: string): string {
+  return `Saldo ${code} sekarang ${amount}`;
+}
+
+export function valasPocketsEditHeader(): string {
+  return 'Kantong yang ada';
+}
+
+export function valasArchiveHelp(): string {
+  return 'Kantong hanya bisa diarsipkan saat saldonya tepat 0. Mata uang yang diarsipkan bisa ditambahkan lagi nanti.';
+}
+
+export function valasPocketFieldLabel(): string {
+  return 'Mata uang';
+}
+
+export function valasPocketChipLabel(code: string, name: string, balance: string): string {
+  return `${code}, ${name}, saldo ${balance}`;
+}
+
+export function valasAmountTitle(code: string): string {
+  return `Jumlah dalam ${code}`;
+}
+
+export function valasAmountToMoveTitle(code: string): string {
+  return `Jumlah yang dipindah (${code})`;
+}
+
+export function valasAmountAccessibility(code: string): string {
+  return `Jumlah dalam ${code}`;
+}
+
+export function valasLiveValue(value: string, ratePer: string): string {
+  return `≈ ${value} · ${ratePer}`;
+}
+
+export function valasBalanceAfter(amount: string): string {
+  return `Saldo setelahnya: ${amount}`;
+}
+
+export function valasBudgetNote(category: string, value: string): string {
+  return `Dihitung ke anggaran ${category} sebesar sekitar ${value}, nilai pada hari dicatat. Nilainya tetap walau kurs berubah.`;
+}
+
+export function valasYouSend(): string {
+  return 'Kamu kirim';
+}
+
+export function valasYouReceive(): string {
+  return 'Kamu terima';
+}
+
+export function valasExchangeTitle(): string {
+  return 'Tukar mata uang';
+}
+
+export function valasExchangeRateYours(): string {
+  return 'Kurs kamu';
+}
+
+export function valasExchangeRateLatest(): string {
+  return 'Kurs tersimpan terbaru';
+}
+
+export function valasExchangeDifference(): string {
+  return 'Selisih';
+}
+
+export function valasExchangeNoLatest(): string {
+  return 'Belum ada kurs untuk dibandingkan.';
+}
+
+export function valasExchangeNote(): string {
+  return 'MONO menyimpan kedua jumlah dan menghitung kurs sendiri. Kekayaan bersih hanya bergerak sebesar selisih itu.';
+}
+
+export function valasCrossRate(from: string, perUnit: string, to: string): string {
+  return `1 ${from} = ${perUnit} ${to}`;
+}
+
+export function valasDifferenceText(percent: string, amount: string): string {
+  return `${percent} (${amount})`;
+}
+
+export function valasEnterBoth(): string {
+  return 'Isi jumlah kirim dan terima untuk melihat kurs.';
+}
+
+export function valasGoToRates(): string {
+  return 'Atur kurs';
+}
+
+export function txValasFieldError(error: { code: string; currency?: string; balance?: number; shortfall?: number; type?: string }, moneyFormat: (n: number) => string): TxErrorMessage {
+  const code = error.currency ?? '';
+  switch (error.code) {
+    case 'pocket_required':
+      return { text: 'Pilih mata uang yang dipakai.' };
+    case 'missing_fx_rate':
+    case 'missing_rate':
+      return { text: `Belum ada kurs untuk ${code}. Atur kurs dulu.`, linkText: 'Atur kurs' };
+    case 'amount_to_required':
+      return { text: 'Isi jumlah yang kamu terima.' };
+    case 'same_pocket':
+      return { text: 'Pilih dua mata uang yang berbeda.' };
+    case 'insufficient_balance': {
+      const has = moneyFormat(error.balance ?? 0);
+      const wanted = moneyFormat((error.balance ?? 0) + (error.shortfall ?? 0));
+      const short = moneyFormat(error.shortfall ?? 0);
+      const what = error.type === 'transfer' ? 'Penukaran' : 'Pengeluaran';
+      return { text: `Kantong ${code} hanya punya ${has}. ${what} ini ${wanted}. Kurang ${short}.` };
+    }
+    default:
+      return { text: 'Periksa isian ini.' };
+  }
+}
+
+export function valasSheetMeta(value: string): string {
+  return `≈ ${value} · pilih mata uangnya setelah ini`;
+}
+
+export function valasPocketFromLabel(): string {
+  return 'Mata uang yang dikirim';
+}
+
+export function valasPocketToLabel(): string {
+  return 'Mata uang yang diterima';
+}
+
+export function settingsRatesRowHint(): string {
+  return 'Kurs untuk menilai uang asing di akun Valas. Pembaruan otomatis nyala secara default.';
 }

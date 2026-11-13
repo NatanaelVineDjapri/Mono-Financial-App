@@ -9,6 +9,10 @@ import { MonoColors } from '@/theme/tokens';
 import AccountDetailScreen from '../[id]';
 
 jest.mock('@/features/accounts/detail/useAccountDetail');
+// The Valas account has its own screen (tested with src/features/valas); here only that the route hands over.
+jest.mock('@/features/valas/ValasDetailScreen', () => ({
+  ValasDetailScreen: ({ accountId }: { accountId: number }) => jest.requireActual('react').createElement(jest.requireActual('react-native').Text, null, 'valas-detail-' + accountId),
+}));
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -182,10 +186,10 @@ describe('Account detail', () => {
     await act(async () => useHideAmounts.getState().setHidden(false));
   });
 
-  test('a Valas account says its detail comes later; an unknown one says it is gone; a load error offers Try again', async () => {
+  test('a Valas account opens the Valas detail; an unknown one says it is gone; a load error offers Try again', async () => {
     mockData({ ...BCA, type: 'forex' });
     const valas = await renderScreen();
-    expect(valas.getByText('The Valas account detail is coming later.')).toBeTruthy();
+    expect(valas.getByText('valas-detail-1')).toBeTruthy();
     expect(valas.queryByRole('button', { name: 'Edit account' })).toBeNull();
 
     mockData(null);

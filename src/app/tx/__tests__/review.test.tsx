@@ -26,7 +26,7 @@ const VALAS: FormAccount = { id: 4, name: 'Valas', type: 'forex', icon: null, ba
 const NAMES = ['Food & drink', 'Transport', 'Shopping', 'Bills', 'Health', 'Leisure', 'Housing', 'Education', 'Gifts', 'Other'];
 const CATEGORIES: FormCategory[] = [...NAMES.map((name, i) => ({ id: i + 1, name, kind: 'expense' as const })), { id: 11, name: 'Salary', kind: 'income' as const }];
 const SHOPPING = 3;
-const DATA: TxFormData = { accounts: [BCA, CASH, VALAS], categories: CATEGORIES, record: null };
+const DATA: TxFormData = { accounts: [BCA, CASH, VALAS], categories: CATEGORIES, pockets: [], rates: {}, record: null };
 
 const PARSED: ParsedReceipt = {
   merchant: 'Toko Sumber Rejeki',

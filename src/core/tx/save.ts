@@ -9,10 +9,12 @@
 import { DomainError, UnexpectedDbError } from '../../domain/errors';
 import { addExpense, addIncome, addTransfer, deleteTransaction, updateTransaction } from '../../domain/transactions';
 import type { Db } from '../../data/db/types';
+import { getLatestRate } from '../../data/repo/fx';
 import { getPocketBalanceNow } from '../../data/repo/transactionDetail';
-import type { TransactionRow, TxSource } from '../../data/repo/transactions';
+import { getTransaction, type TransactionRow, type TxSource } from '../../data/repo/transactions';
 import { txDbErrorMessage } from '../../i18n';
 import { formatShortDate } from '../date';
+import { toIdr } from '../money';
 import type { TxFormValues, TxType } from './validate';
 
 export type SaveOutcome<T> = { ok: true; value: T } | { ok: false; message: string };
@@ -41,12 +43,23 @@ export interface SavedTransaction {
   id: number;
   type: TxType;
   accountId: number;
-  accountBalanceAfter: number; // read from the view after the commit
+  currency: string; // the pocket the account side used ('IDR' for a rupiah account)
+  accountBalanceAfter: number; // read from the view after the commit, in `currency`
   toAccountId: number | null;
+  toCurrency: string | null;
   toAccountBalanceAfter: number | null;
 }
 
 const IDR = 'IDR';
+
+// The pocket currency a form's values mean: a rupiah account is always IDR, a Valas pocket is the chosen one.
+function sideCurrencies(values: TxFormValues): { currency: string; toCurrency: string; amountTo: number } {
+  const currency = values.currency ?? IDR;
+  const toCurrency = values.type === 'transfer' ? (values.toCurrency ?? IDR) : currency;
+  // Same currency: what arrives is what left. Different currencies (an exchange): what was typed.
+  const amountTo = currency === toCurrency ? values.amount : (values.amountTo ?? 0);
+  return { currency, toCurrency, amountTo };
+}
 
 function cleanText(text: string): string {
   return text.trim();
@@ -57,14 +70,17 @@ function cleanText(text: string): string {
 // came from: the form ('manual'), the chat ('ai') or a scanned receipt ('scan').
 export async function writeNewTransaction(txn: Db, values: TxFormValues, now: string, source: TxSource = 'manual'): Promise<number> {
   const accountId = values.accountId as number;
+  const { currency, toCurrency, amountTo } = sideCurrencies(values);
   if (values.type === 'transfer') {
     return (
       await addTransfer(
         txn,
         {
           accountId,
-          currency: IDR,
+          currency,
           toAccountId: values.toAccountId as number,
+          toCurrency,
+          amountTo,
           amount: values.amount,
           occurredOn: values.date,
           description: cleanText(values.description),
@@ -76,7 +92,7 @@ export async function writeNewTransaction(txn: Db, values: TxFormValues, now: st
   }
   const input = {
     accountId,
-    currency: IDR,
+    currency,
     categoryId: values.categoryId as number,
     amount: values.amount,
     occurredOn: values.date,
@@ -101,13 +117,23 @@ export async function saveNewTransaction(db: Db, values: TxFormValues, now: stri
   }
 
   const toAccountId = values.type === 'transfer' ? values.toAccountId : null;
+  const { currency, toCurrency } = sideCurrencies(values);
   const [accountBalanceAfter, toAccountBalanceAfter] = await Promise.all([
-    getPocketBalanceNow(db, accountId, IDR),
-    toAccountId != null ? getPocketBalanceNow(db, toAccountId, IDR) : Promise.resolve(null),
+    getPocketBalanceNow(db, accountId, currency),
+    toAccountId != null ? getPocketBalanceNow(db, toAccountId, toCurrency) : Promise.resolve(null),
   ]);
   return {
     ok: true,
-    value: { id, type: values.type, accountId, accountBalanceAfter: accountBalanceAfter ?? 0, toAccountId, toAccountBalanceAfter },
+    value: {
+      id,
+      type: values.type,
+      accountId,
+      currency,
+      accountBalanceAfter: accountBalanceAfter ?? 0,
+      toAccountId,
+      toCurrency: toAccountId != null ? toCurrency : null,
+      toAccountBalanceAfter,
+    },
   };
 }
 
@@ -123,18 +149,22 @@ export async function undoNewTransaction(db: Db, id: number): Promise<SaveOutcom
 
 type UpdatePatch = Parameters<typeof updateTransaction>[2];
 
-function patchFromValues(values: TxFormValues): UpdatePatch {
+// `amountIdr` is the rupiah value frozen on the record. It is left out (kept) when the record's own
+// amount, currency and account did not change, so editing a note never re-values an old record at today's
+// rate; when they did change it is frozen again from the latest rate (rupiah is its own value).
+function patchFromValues(values: TxFormValues, amountIdr: number | undefined): UpdatePatch {
   const transfer = values.type === 'transfer';
+  const { currency, toCurrency, amountTo } = sideCurrencies(values);
   return {
     ...(transfer ? {} : { kind: values.type as 'income' | 'expense' }),
     accountId: values.accountId as number,
-    currency: IDR,
+    currency,
     toAccountId: transfer ? (values.toAccountId as number) : null,
-    toCurrency: transfer ? IDR : null,
+    toCurrency: transfer ? toCurrency : null,
     categoryId: transfer ? null : (values.categoryId as number),
     amount: values.amount,
-    amountTo: transfer ? values.amount : null,
-    amountIdr: values.amount,
+    amountTo: transfer ? amountTo : null,
+    ...(amountIdr === undefined ? {} : { amountIdr }),
     occurredOn: values.date,
     description: cleanText(values.description),
     note: transfer ? null : cleanText(values.note) || null,
@@ -145,7 +175,20 @@ function patchFromValues(values: TxFormValues): UpdatePatch {
 export async function saveTransactionChanges(db: Db, id: number, values: TxFormValues, now: string): Promise<SaveOutcome<null>> {
   try {
     await db.withExclusiveTransactionAsync(async txn => {
-      await updateTransaction(txn, id, patchFromValues(values), now);
+      const { currency } = sideCurrencies(values);
+      let amountIdr: number | undefined = values.amount; // rupiah
+      if (currency !== IDR) {
+        const before = await getTransaction(txn, id);
+        const unchanged = before != null && before.currency === currency && before.amount === values.amount && before.account_id === values.accountId;
+        if (unchanged) amountIdr = undefined;
+        else {
+          const rate = await getLatestRate(txn, currency);
+          if (!rate) throw new DomainError('missing_fx_rate', { currency });
+          const factor = await txn.getFirstAsync<{ minor_factor: number }>('select minor_factor from currencies where code = $code', { $code: currency });
+          amountIdr = toIdr(values.amount, rate.rate_e4, factor?.minor_factor ?? 100);
+        }
+      }
+      await updateTransaction(txn, id, patchFromValues(values, amountIdr), now);
     });
     return { ok: true, value: null };
   } catch (error) {

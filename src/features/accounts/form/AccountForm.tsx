@@ -48,6 +48,8 @@ import {
   openingBalanceLabel,
   saveButtonLabel,
   savingLabel,
+  valasExistsHint,
+  valasTypeTile,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -66,11 +68,15 @@ export interface AccountFormProps {
   mode: 'add' | 'edit';
   initial: AccountFormValues;
   context: AccountValidationContext;
+  // A new account only: the "Valas · mata uang asing" tile, which leaves for the Valas form. There
+  // is one Valas account; when it exists the tile is off and says why.
+  onChooseValas?: () => void;
+  valasExists?: boolean;
   onCancel: () => void;
   onSubmit: (values: AccountFormValues) => Promise<AccountSubmitResult>;
 }
 
-export function AccountForm({ mode, initial, context, onCancel, onSubmit }: AccountFormProps) {
+export function AccountForm({ mode, initial, context, onChooseValas, valasExists = false, onCancel, onSubmit }: AccountFormProps) {
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
   const [values, setValues] = useState<AccountFormValues>(initial);
@@ -168,7 +174,28 @@ export function AccountForm({ mode, initial, context, onCancel, onSubmit }: Acco
                 </Pressable>
               );
             })}
+            {mode === 'add' && !!onChooseValas && (
+              <Pressable
+                onPress={valasExists ? undefined : onChooseValas}
+                disabled={valasExists}
+                accessibilityRole="button"
+                accessibilityLabel={valasTypeTile()}
+                accessibilityHint={valasExists ? valasExistsHint() : undefined}
+                accessibilityState={{ disabled: valasExists }}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.typeTile, styles.typeTileWide, valasExists && styles.typeTileOff, pressed && !valasExists && styles.pressed]}
+                testID="account-type-forex"
+              >
+                <Icon name="banknote" size={20} color={MonoColors.textSecond} />
+                <Text style={styles.typeText}>{valasTypeTile()}</Text>
+              </Pressable>
+            )}
           </View>
+          {mode === 'add' && !!onChooseValas && valasExists && (
+            <Text style={styles.help} testID="account-valas-exists">
+              {valasExistsHint()}
+            </Text>
+          )}
         </View>
 
         <View>
@@ -303,6 +330,8 @@ const styles = StyleSheet.create({
 
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeTile: { flexBasis: '48%', flexGrow: 1, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: FIELD_BORDER, backgroundColor: FIELD_FILL },
+  typeTileWide: { flexBasis: '100%' },
+  typeTileOff: { opacity: 0.6 },
   typeTileSelected: { backgroundColor: MonoColors.text, borderColor: MonoColors.text },
   typeText: { ...MonoText.bodyStrong, color: MonoColors.text },
   typeTextSelected: { ...MonoText.bodyStrong, color: MonoColors.bg },

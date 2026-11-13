@@ -21,6 +21,10 @@ export type FetchRatesSuccess = {
   ok: true;
   fetchedAt: string; // ISO 8601 with a +07:00 offset
   rates: FxRate[];
+  // When the service says its rates change next (time_next_update_unix / time_next_update_utc), as
+  // an ISO instant with the +07:00 offset; null when it did not say. Asking again before then returns
+  // the same numbers.
+  nextUpdateAt?: string | null;
 };
 
 export type FetchRatesFailure = {
@@ -30,6 +34,38 @@ export type FetchRatesFailure = {
 };
 
 export type FetchRatesResult = FetchRatesSuccess | FetchRatesFailure;
+
+// What the person is told, in three kinds (the Rates screen words each): no internet or no answer in
+// time; the service asked us to slow down (HTTP 429); or an answer we cannot use. In every case the
+// rates already stored stay as they are.
+export type FxFailureKind = 'offline' | 'rate_limited' | 'invalid';
+
+export function fxFailureKind(reason: FetchRatesFailure['reason']): FxFailureKind {
+  if (reason === 'network_error' || reason === 'timeout') return 'offline';
+  if (reason === 'rate_limited') return 'rate_limited';
+  return 'invalid';
+}
+
+const WIB_OFFSET_MS = 7 * 3600000;
+
+function isoWib(ms: number): string {
+  const wib = new Date(ms + WIB_OFFSET_MS);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${wib.getUTCFullYear()}-${pad(wib.getUTCMonth() + 1)}-${pad(wib.getUTCDate())}T${pad(wib.getUTCHours())}:${pad(wib.getUTCMinutes())}:${pad(wib.getUTCSeconds())}+07:00`;
+}
+
+// The service's own next-update time, from the unix field when it is there and otherwise from the UTC
+// string; null when neither can be read.
+export function nextUpdateFrom(body: { time_next_update_unix?: unknown; time_next_update_utc?: unknown }): string | null {
+  const unix = body.time_next_update_unix;
+  if (typeof unix === 'number' && Number.isFinite(unix) && unix > 0) return isoWib(unix * 1000);
+  const utc = body.time_next_update_utc;
+  if (typeof utc === 'string') {
+    const ms = Date.parse(utc);
+    if (!Number.isNaN(ms)) return isoWib(ms);
+  }
+  return null;
+}
 
 function nowInJakarta(): string {
   const now = new Date();
@@ -77,7 +113,7 @@ export async function fetchRates(heldCurrencies: readonly string[]): Promise<Fet
     return { ok: false, reason: 'bad_response', message: 'Response was not valid JSON.' };
   }
 
-  const parsed = body as { result?: string; rates?: Record<string, number> };
+  const parsed = body as { result?: string; rates?: Record<string, number>; time_next_update_unix?: unknown; time_next_update_utc?: unknown };
   if (parsed.result !== 'success' || !parsed.rates || typeof parsed.rates.IDR !== 'number') {
     return { ok: false, reason: 'bad_response', message: "Missing result = 'success' or rates.IDR." };
   }
@@ -95,5 +131,5 @@ export async function fetchRates(heldCurrencies: readonly string[]): Promise<Fet
     rates.push({ currency, rateE4: Math.round(idrPerUnit * 10000) });
   }
 
-  return { ok: true, fetchedAt: nowInJakarta(), rates };
+  return { ok: true, fetchedAt: nowInJakarta(), rates, nextUpdateAt: nextUpdateFrom(parsed) };
 }

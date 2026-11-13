@@ -21,7 +21,7 @@ describe('migration 2 -> 3: import_app_settings', () => {
     const before = await db.getAllAsync('select * from v_account_balance order by 1');
     const netWorth = await db.getFirstAsync('select * from v_net_worth');
 
-    await expect(runMigrations(db, 1)).resolves.toBe(3);
+    await expect(runMigrations(db, 1)).resolves.toBe(6);
 
     expect(await db.getAllAsync('select * from v_account_balance order by 1')).toEqual(before);
     expect(await db.getFirstAsync('select * from v_net_worth')).toEqual(netWorth);

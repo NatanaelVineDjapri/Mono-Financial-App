@@ -10,7 +10,7 @@ import { useCallback } from 'react';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { showToast } from '@/components/toast-store';
 import { nowIso } from '@/core/clock';
-import { rp, shown } from '@/core/money';
+import { money, rp, shown } from '@/core/money';
 import {
   saveNewTransaction,
   saveTransactionChanges,
@@ -52,12 +52,17 @@ export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'm
 
       const hidden = useHideAmounts.getState().hidden;
       const name = (id: number | null) => data?.accounts.find(a => a.id === id)?.name ?? '';
+      // A Valas pocket's balance is in its own currency (US$250,00), a rupiah account's in rupiah.
+      const fmt = (accountId: number | null, currency: string | null, balance: number) => {
+        const factor = data?.pockets.find(p => p.accountId === accountId && p.currency === currency)?.minorFactor;
+        return shown(currency && currency !== 'IDR' && factor != null ? money(balance, currency, factor) : rp(balance), hidden);
+      };
       const message = txSavedMessage(
         saved.type,
         name(saved.accountId),
-        shown(rp(saved.accountBalanceAfter), hidden),
+        fmt(saved.accountId, saved.currency, saved.accountBalanceAfter),
         saved.toAccountId != null ? name(saved.toAccountId) : undefined,
-        saved.toAccountBalanceAfter != null ? shown(rp(saved.toAccountBalanceAfter), hidden) : undefined,
+        saved.toAccountBalanceAfter != null ? fmt(saved.toAccountId, saved.toCurrency, saved.toAccountBalanceAfter) : undefined,
       );
 
       await invalidateAfterWrite(queryClient);

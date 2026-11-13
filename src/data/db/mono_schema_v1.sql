@@ -598,7 +598,7 @@ INSERT INTO settings (key, value) VALUES
   ('app_lock', '1'), ('hide_on_launch', '0'), ('block_screenshots', '1'),
   ('number_format', 'id_ID'), ('month_start_day', '1'), ('timezone', 'Asia/Jakarta'),
   ('backup_reminder', '1'), ('recurring_reminders', '1'),
-  ('ai_enabled', '0'), ('display_name', ''), ('fx_auto_update', '0');
+  ('ai_enabled', '0'), ('display_name', ''), ('fx_auto_update', '1');
 
 INSERT INTO categories (name, kind, sort_order) VALUES
   ('Food & drink','expense',1), ('Transport','expense',2), ('Shopping','expense',3), ('Bills','expense',4),

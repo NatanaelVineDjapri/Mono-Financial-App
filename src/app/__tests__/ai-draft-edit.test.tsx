@@ -14,11 +14,11 @@ import AiDraftEditScreen from '../ai-draft-edit';
 jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({ fake: 'db' }) }));
 jest.mock('@/domain/txForm', () => {
   const f = jest.requireActual('@/features/ai_chat/__tests__/fixtures');
-  return { getTxFormData: jest.fn(async () => ({ accounts: f.ACCOUNTS, categories: f.CATEGORIES, record: null })) };
+  return { getTxFormData: jest.fn(async () => ({ accounts: f.ACCOUNTS, categories: f.CATEGORIES, pockets: [], rates: {}, record: null })) };
 });
 jest.mock('@/features/transactions/form/useTxForm', () => {
   const f = jest.requireActual('@/features/ai_chat/__tests__/fixtures');
-  const data = { accounts: f.ACCOUNTS, categories: f.CATEGORIES, record: null };
+  const data = { accounts: f.ACCOUNTS, categories: f.CATEGORIES, pockets: [], rates: {}, record: null };
   const refetch = jest.fn(async () => ({}));
   return { useTxFormData: () => ({ data, isLoading: false, isError: false, refetch }) };
 });

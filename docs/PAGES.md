@@ -950,7 +950,7 @@ Papan: `Rates` · 390 × 860
  
 **Tata letak dan komponen**
  
-- Kartu: sakelar "Update automatically" (mati secara default, sehari sekali saat MONO terbuka dan online) dan baris "Update rates now" dengan waktu pembaruan terakhir.
+- Kartu: sakelar "Update automatically" (nyala secara default, sehari sekali saat MONO terbuka dan online, kecuali ada kantong yang belum punya kurs) dan baris "Update rates now" dengan waktu pembaruan terakhir.
 - "Rates in use": satu baris per mata uang yang dipegang, dengan sumber dan waktu (28 Okt, 09:00), kurs Rp16.250,00 per US$1, dan chevron. Ketuk untuk mengetik kurs sendiri; kurs manual bertahan sampai pembaruan berikutnya.
 - Kotak "Couldn't update rates." berbingkai merah dengan ikon peringatan: tidak ada internet, MONO tetap memakai kurs 28 Okt, tidak ada yang berubah atau hilang.
 - "How rates are used": total akun dan kekayaan bersih menilai kantong dengan kurs di atas (ditandai ≈), sedangkan tiap transaksi menyimpan nilai rupiah pada hari dicatat.

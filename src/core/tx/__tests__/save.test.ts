@@ -193,8 +193,17 @@ describe('the form data for editing', () => {
     expect(adding.categories.some(c => c.kind === 'income')).toBe(true);
   });
 
-  test('withoutRecord leaves a Valas record alone (its balances are not rupiah)', () => {
-    const accounts = [{ id: 1, name: 'A', type: 'bank' as const, icon: null, balance: 100, openingDate: '2026-01-01' }];
-    expect(withoutRecord(accounts, { kind: 'expense', account_id: 1, to_account_id: null, amount: 50, amount_to: null, currency: 'SGD' })).toBe(accounts);
+
+  test('withoutRecord leaves a Valas account alone but takes a rupiah side back out (an exchange into rupiah)', () => {
+    const accounts = [
+      { id: 1, name: 'A', type: 'bank' as const, icon: null, balance: 100, openingDate: '2026-01-01' },
+      { id: 2, name: 'Valas', type: 'forex' as const, icon: null, balance: 999, openingDate: '2026-01-01' },
+    ];
+    // a pure Valas expense: nothing to take out of a rupiah account
+    expect(withoutRecord(accounts, { kind: 'expense', account_id: 2, to_account_id: null, amount: 50, amount_to: null, currency: 'SGD' })).toEqual(accounts);
+    // US$ sold for Rp1.600.000 into account 1: that rupiah comes back out of account 1, and the Valas balance is untouched
+    const before = withoutRecord(accounts, { kind: 'transfer', account_id: 2, to_account_id: 1, amount: 10000, amount_to: 1600000, currency: 'USD', to_currency: 'IDR' });
+    expect(before.find(a => a.id === 1)?.balance).toBe(100 - 1600000);
+    expect(before.find(a => a.id === 2)?.balance).toBe(999);
   });
 });

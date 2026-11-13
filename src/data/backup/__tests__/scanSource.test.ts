@@ -21,10 +21,10 @@ async function fixture() {
 }
 
 describe('backups and source scan', () => {
-  test('the file records schema version 3 and the scan source', async () => {
+  test('the file records schema version 4 and the scan source', async () => {
     const { db } = await fixture();
     const file = await exportBackup(db, NOW, sha256Hex);
-    expect(file.schema_version).toBe(3);
+    expect(file.schema_version).toBe(6);
     expect((file.data.transactions as { source: string }[]).map(t => t.source)).toEqual(['scan']);
   });
 

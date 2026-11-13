@@ -1,7 +1,7 @@
 // Akun (Accounts) tab (DESIGN.md "D. Accounts" / "Account cards", PAGES.md D1/V1; Fase
 // 4.2c: "Accounts screen = card stack"). Add account opens /account/edit, Transfer opens the
 // transaction form as a transfer, and the card stack's open card opens /account/[id]. Only
-// the Exchange rates row still says "Not available yet." (its screen is a later phase).
+// the Exchange rates row opens /settings/rates.
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -12,9 +12,9 @@ import { HeaderButton } from '@/components/HeaderButton';
 import { Icon } from '@/components/Icon';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useTabBarClearance } from '@/components/TabBar';
-import { showToast } from '@/components/toast-store';
 import { formatDateTime } from '@/core/date';
-import { money } from '@/core/money';
+import { useHideAmounts } from '@/components/hide-amounts-store';
+import { money, shown } from '@/core/money';
 import type { AccountsOverview, AccountsOverviewAccount } from '@/domain/balances';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
@@ -29,7 +29,6 @@ import {
     addAccountLabel,
     exchangeRatesLabel,
     exchangeRatesUpdatedLabel,
-    notAvailableToast,
     retryLabel,
     tabLabel,
     transferAccountsLabel,
@@ -37,29 +36,28 @@ import {
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-// The Exchange rates screen is a later phase: its row shows this toast instead of navigating.
-function notAvailable() {
-  showToast(notAvailableToast());
-}
-
 // ScreenHeader's right slot: the same "Add account" as the screen's own button below.
 function AccountsHeaderAction({ onPress }: { onPress: () => void }) {
   return <HeaderButton icon="plus" label={addAccountLabel()} onPress={onPress} testID="accounts-add-button" />;
 }
 
-function forexSubline(account: AccountsOverviewAccount): string | undefined {
+// "US$250,00 · S$180,00": the native amounts. Hidden-amounts mode masks the whole line, like every
+// other figure on the card.
+function forexSubline(account: AccountsOverviewAccount, hidden: boolean): string | undefined {
   if (!account.pockets || account.pockets.length === 0) return undefined;
-  return account.pockets.map(p => money(p.balance, p.currency, p.minorFactor)).join(' · ');
+  return shown(account.pockets.map(p => money(p.balance, p.currency, p.minorFactor)).join(' · '), hidden);
 }
 
-function toCardStackAccount(account: AccountsOverviewAccount): CardStackAccount {
+function toCardStackAccount(account: AccountsOverviewAccount, hidden: boolean): CardStackAccount {
   return {
     id: account.id,
     name: account.name,
     type: account.type,
     icon: account.icon,
     balance: account.balance,
-    subline: forexSubline(account),
+    subline: forexSubline(account, hidden),
+    // A pocket with no rate: its rupiah value is unknown (never 0), so the card shows the native amounts.
+    nativeOnly: account.type === 'forex' && account.missingRates > 0,
   };
 }
 
@@ -78,11 +76,12 @@ function forexOpenNote(overview: AccountsOverview, latestFxUpdate: string | null
   return hasForex && latestFxUpdate ? accountsForexEstimateNote(formatDateTime(latestFxUpdate)) : undefined;
 }
 
-function ExchangeRatesRow({ latestFxUpdate }: { latestFxUpdate: string | null | undefined }) {
+function ExchangeRatesRow({ latestFxUpdate, onPress }: { latestFxUpdate: string | null | undefined; onPress: () => void }) {
   const updatedText = latestFxUpdate ? exchangeRatesUpdatedLabel(formatDateTime(latestFxUpdate)) : undefined;
   return (
     <Pressable
-      onPress={notAvailable}
+      onPress={onPress}
+      testID="accounts-rates-row"
       accessibilityRole="button"
       accessibilityLabel={updatedText ? `${exchangeRatesLabel()}. ${updatedText}` : exchangeRatesLabel()}
       style={styles.ratesRow}
@@ -100,6 +99,8 @@ export default function AccountsScreen() {
   const tabBarClearance = useTabBarClearance();
   const { data, isLoading, isError, refetch } = useAccountsOverview();
   const { data: latestFxUpdate } = useLatestFxUpdate();
+  const hidden = useHideAmounts(s => s.hidden);
+  const onOpenRates = useCallback(() => router.push('/settings/rates' as never), [router]);
   const onRetry = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -146,7 +147,7 @@ export default function AccountsScreen() {
 
   // GROUP_ORDER (src/domain/balances.ts) already places groups Bank, Cash, E-wallet,
   // Savings, Forex in that order — flattening keeps it, per Fase 4.2c step 2's own order.
-  const accounts = data.groups.flatMap(group => group.accounts.map(toCardStackAccount));
+  const accounts = data.groups.flatMap(group => group.accounts.map(account => toCardStackAccount(account, hidden)));
   const hasForex = data.groups.some(g => g.type === 'forex');
 
   return (
@@ -158,11 +159,12 @@ export default function AccountsScreen() {
           accountCount={data.accountCount}
           note={defaultNote(data)}
           forexNote={forexOpenNote(data, latestFxUpdate)}
+          approximate={hasForex && !data.incomplete}
           accounts={accounts}
           onOpenAccount={onOpenAccount}
           testID="accounts-card-stack"
         />
-        {hasForex && <ExchangeRatesRow latestFxUpdate={latestFxUpdate} />}
+        {hasForex && <ExchangeRatesRow latestFxUpdate={latestFxUpdate} onPress={onOpenRates} />}
         <View style={styles.buttonRow}>
           <Button label={transferAccountsLabel()} icon="transfer" onPress={onTransfer} style={styles.buttonFlex} />
           <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={onAddAccount} style={styles.buttonFlex} />

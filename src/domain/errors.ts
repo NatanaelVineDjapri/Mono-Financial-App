@@ -17,6 +17,7 @@ export const GUARD_CODES = [
   'pocket_not_empty',
   'account_type_locked',
   'recurring_needs_idr_account',
+  'forex_account_exists',
 ] as const;
 
 export type GuardCode = (typeof GUARD_CODES)[number];

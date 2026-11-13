@@ -63,3 +63,33 @@ describe('shouldAutoUpdate (24h since the last success, only when enabled)', () 
     expect(shouldAutoUpdate('2026-11-04T12:00:00+07:00', false, now)).toBe(false);
   });
 });
+
+describe('shouldAutoUpdate with a pocket that has no rate yet', () => {
+  const last = '2026-11-04T12:00:00+07:00';
+  const next = '2026-11-05T07:00:00+07:00';
+
+  test('asks immediately, even before the service next-update time', () => {
+    expect(shouldAutoUpdate(last, true, new Date('2026-11-04T12:05:00+07:00'), next, true)).toBe(true);
+  });
+
+  test('still respects the switch being off', () => {
+    expect(shouldAutoUpdate(last, false, new Date('2026-11-04T12:05:00+07:00'), next, true)).toBe(false);
+  });
+
+  test('once every pocket is rated, the usual day and next-update rules apply again', () => {
+    expect(shouldAutoUpdate(last, true, new Date('2026-11-04T12:05:00+07:00'), next, false)).toBe(false);
+  });
+});
+
+describe('shouldAutoUpdate with the service next-update time', () => {
+  const last = '2026-11-04T12:00:00+07:00';
+  test('before the service says rates change: not due, even after a day', () => {
+    expect(shouldAutoUpdate(last, true, new Date('2026-11-06T12:00:00+07:00'), '2026-11-06T13:00:00+07:00')).toBe(false);
+  });
+  test('after it, and a day old: due', () => {
+    expect(shouldAutoUpdate(last, true, new Date('2026-11-06T13:00:00+07:00'), '2026-11-06T13:00:00+07:00')).toBe(true);
+  });
+  test('no next-update time known: only the day counts', () => {
+    expect(shouldAutoUpdate(last, true, new Date('2026-11-05T12:00:00+07:00'), null)).toBe(true);
+  });
+});

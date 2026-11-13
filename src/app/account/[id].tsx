@@ -2,7 +2,7 @@
 // month. A pushed screen at /account/[id] (no tab bar), reached from the Accounts cards and the
 // Overview carousel. Edit (the pencil) opens /account/edit?id=; Add and Transfer open the
 // transaction form with this account already chosen; "View all transactions" opens the
-// Transactions tab filtered to this account. A Valas account has its own detail, built later.
+// Transactions tab filtered to this account. The Valas account has its own detail (src/features/valas).
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -17,7 +17,8 @@ import type { ActivityFilter } from '@/domain/accountDetail';
 import { ActionButtons, ActivitySection, BalanceHero, ReconCard } from '@/features/accounts/detail/AccountDetailView';
 import { useAccountActivity, useAccountDetail } from '@/features/accounts/detail/useAccountDetail';
 import { useStatsCollapsed } from '@/features/transactions/statsStore';
-import { accountDetailLoadError, accountNotFoundMessage, backLabel, editAccountLabel, retryLabel, valasDetailComingLater } from '@/i18n';
+import { ValasDetailScreen } from '@/features/valas/ValasDetailScreen';
+import { accountDetailLoadError, accountNotFoundMessage, backLabel, editAccountLabel, retryLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -61,16 +62,8 @@ export default function AccountDetailScreen() {
     );
   }
 
-  if (detail.type === 'forex') {
-    return (
-      <View style={styles.screen}>
-        {header}
-        <View style={styles.centerFill}>
-          <Text style={styles.message}>{valasDetailComingLater()}</Text>
-        </View>
-      </View>
-    );
-  }
+  // The Valas account has its own detail: one row per currency pocket, valued at the latest rate.
+  if (detail.type === 'forex') return <ValasDetailScreen accountId={accountId} />;
 
   // The Transactions tab, narrowed to this account over its whole life (opening date to today).
   const viewAll = () => {

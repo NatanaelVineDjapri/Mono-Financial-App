@@ -36,6 +36,7 @@ export interface CardStackAccount {
   icon: string | null;
   balance: number; // rupiah; for forex, the account's total rupiah value
   subline?: string; // forex only
+  nativeOnly?: boolean; // forex only: a pocket has no rate, so the card shows native amounts instead of ≈ Rp
 }
 
 export interface CardStackProps {
@@ -48,12 +49,15 @@ export interface CardStackProps {
   // detail about whichever card is actually in view.
   note: string;
   forexNote?: string;
+  // The total includes foreign money valued at the latest rates: draw it with "≈" (and not when the
+  // total is incomplete, where the note says what is missing).
+  approximate?: boolean;
   accounts: CardStackAccount[]; // already in display order (Bank, Cash, E-wallet, Savings, Valas, then stored order)
   onOpenAccount: (id: number) => void;
   testID?: string;
 }
 
-function TotalCard({ netWorth, accountCount, note }: { netWorth: number; accountCount: number; note: string }) {
+function TotalCard({ netWorth, accountCount, note, approximate }: { netWorth: number; accountCount: number; note: string; approximate?: boolean }) {
   return (
     <View style={styles.totalCard}>
       <Svg style={StyleSheet.absoluteFill}>
@@ -71,7 +75,10 @@ function TotalCard({ netWorth, accountCount, note }: { netWorth: number; account
           <Text style={styles.totalLabel}>{accountsSummaryLabel()}</Text>
           <Text style={styles.totalCount}>{accountsCountLabel(accountCount)}</Text>
         </View>
-        <Amount value={netWorth} variant="displayS" style={styles.totalAmount} />
+        <View style={styles.totalAmountRow}>
+          {!!approximate && <Text style={[MonoText.displayS, styles.totalAmount]}>{'≈ '}</Text>}
+          <Amount value={netWorth} variant="displayS" style={styles.totalAmount} />
+        </View>
         {!!note && <Text style={styles.totalNote}>{note}</Text>}
       </View>
     </View>
@@ -118,7 +125,8 @@ function StackedCard({ account, isOpen, isLast, zIndex, hidden, onToggle, onOpen
           type={account.type}
           icon={account.icon}
           balance={account.balance}
-          subline={isOpen ? account.subline : undefined}
+          subline={isOpen || account.nativeOnly ? account.subline : undefined}
+          nativeOnly={account.nativeOnly}
           liftContent={isOpen && !isLast}
           accessibilityLabel={accessibilityLabel}
           onPress={() => (isOpen ? onOpen(account.id) : onToggle(account.id))}
@@ -140,7 +148,7 @@ function defaultOpenId(accounts: CardStackAccount[]): number | undefined {
   return accounts[accounts.length - 1]?.id;
 }
 
-export function CardStack({ netWorth, accountCount, note, forexNote, accounts, onOpenAccount, testID }: CardStackProps) {
+export function CardStack({ netWorth, accountCount, note, forexNote, approximate, accounts, onOpenAccount, testID }: CardStackProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const [openId, setOpenId] = useState<number | undefined>(() => defaultOpenId(accounts));
   const openAccount = accounts.find(a => a.id === openId);
@@ -148,7 +156,7 @@ export function CardStack({ netWorth, accountCount, note, forexNote, accounts, o
 
   return (
     <View testID={testID}>
-      <TotalCard netWorth={netWorth} accountCount={accountCount} note={displayedNote} />
+      <TotalCard netWorth={netWorth} accountCount={accountCount} note={displayedNote} approximate={approximate} />
       {accounts.map((account, index) => (
         <StackedCard
           key={account.id}
@@ -177,6 +185,7 @@ const styles = StyleSheet.create({
   totalLabel: { ...MonoText.label, color: MonoColors.bg, textTransform: 'uppercase' },
   totalCount: { ...MonoText.bodyS, color: MonoColors.bg, opacity: 0.7 },
   totalAmount: { color: MonoColors.bg },
+  totalAmountRow: { flexDirection: 'row', alignItems: 'baseline' },
   totalNote: { ...MonoText.caption, color: MonoColors.bg, opacity: 0.7 },
 
   // Top shadow per card (Fase 4.2c step 2: "0 -8 16 rgba(0,0,0,.4)"). Android's

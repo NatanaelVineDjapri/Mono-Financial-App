@@ -7,6 +7,7 @@
 import type { AccountType } from '../data/repo/accounts';
 import type { TxSource } from '../data/repo/transactions';
 import type { GuardCode } from '../domain/errors';
+import { CURRENCY_NAMES_EN } from '../core/currencyList';
 
 // Extra numbers a pre-check already computed, to make a message specific (e.g. the
 // real shortfall) instead of generic. Filled in by the domain layer, never guessed from
@@ -33,6 +34,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   pocket_not_empty: () => 'Empty the pocket first.',
   account_type_locked: () => 'This account type can no longer be changed.',
   recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
+  forex_account_exists: () => 'A Valas account already exists. Add the currency to that account.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -1521,10 +1523,6 @@ export function typeLockedHint(): string {
   return 'The type of a transfer cannot be changed.';
 }
 
-export function editValasUnsupportedMessage(): string {
-  return 'Valas transactions cannot be edited here yet.';
-}
-
 export function couldNotSaveMessage(): string {
   return "Couldn't save. Nothing was changed.";
 }
@@ -1727,10 +1725,6 @@ export function accountNotFoundMessage(): string {
 
 export function accountDetailLoadError(): string {
   return 'Could not load this account.';
-}
-
-export function valasDetailComingLater(): string {
-  return 'The Valas account detail is coming later.';
 }
 
 export function newAccountTitle(): string {
@@ -3126,4 +3120,520 @@ export function backupFailedToast(): string {
 
 export function backupShareTitle(): string {
   return 'Save the MONO backup';
+}
+
+export function currencyName(code: string): string {
+  return CURRENCY_NAMES_EN[code] ?? code;
+}
+
+export function ratesTitle(): string {
+  return 'Exchange rates';
+}
+
+export function ratesAutoTitle(): string {
+  return 'Update automatically';
+}
+
+export function ratesAutoHelp(): string {
+  return 'Once a day when MONO is open and online. On by default.';
+}
+
+export function ratesAutoSwitchLabel(on: boolean): string {
+  return on ? 'Update automatically, on' : 'Update automatically, off';
+}
+
+export function ratesUpdateNow(): string {
+  return 'Update rates now';
+}
+
+export function ratesUpdating(): string {
+  return 'Updating rates…';
+}
+
+export function ratesLastUpdated(dateTime: string): string {
+  return `Last updated ${dateTime}`;
+}
+
+export function ratesNeverUpdated(): string {
+  return 'Never updated';
+}
+
+export function ratesInUseHeader(): string {
+  return 'Rates in use';
+}
+
+export function ratesSourceApi(): string {
+  return 'Exchange Rate API';
+}
+
+export function ratesSourceManual(): string {
+  return 'Typed by you';
+}
+
+export function ratesRowSub(source: string, dateTime: string): string {
+  return `${source} · ${dateTime}`;
+}
+
+export function ratesRowNoRate(): string {
+  return 'No rate yet';
+}
+
+export function ratesRowSetRate(): string {
+  return 'Set a rate';
+}
+
+export function ratesRowPer(rate: string, symbol: string): string {
+  return `${rate} per ${symbol}1`;
+}
+
+export function ratesRowLabel(code: string, name: string, detail: string): string {
+  return `${code}, ${name}, ${detail}. Tap to type your own rate.`;
+}
+
+export function ratesNoCurrencies(): string {
+  return 'No currencies yet. Add a currency to the Valas account and its rate shows up here.';
+}
+
+export function ratesFailTitle(): string {
+  return 'Couldn\'t update rates.';
+}
+
+export function ratesFailOffline(dateTime: string | null): string {
+  return dateTime ? `No internet. MONO keeps using the ${dateTime} rates. Nothing changed or was lost.` : 'No internet. No rate is stored yet; type one yourself.';
+}
+
+export function ratesFailLimited(minutes: number): string {
+  return `The rate service asked us to wait. Try again later; the button is back in ${minutes} minutes. Your stored rates did not change.`;
+}
+
+export function ratesFailInvalid(): string {
+  return 'The rate service sent an answer we cannot use. MONO keeps the rates it has stored.';
+}
+
+export function ratesCooldown(minutes: number): string {
+  return `Rates were just updated. Try again in ${minutes} minutes.`;
+}
+
+export function ratesNoPockets(): string {
+  return 'No currency is held yet, so there is no rate to fetch.';
+}
+
+export function ratesUpdatedToast(): string {
+  return 'Rates updated';
+}
+
+export function ratesHowHeader(): string {
+  return 'How rates are used';
+}
+
+export function ratesHowBody(): string {
+  return 'Account totals and net worth value each pocket at the rates above, marked ≈. Every transaction stores its rupiah value on the day it was recorded, so budgets and reports do not change when rates change.';
+}
+
+export function ratesPrivacy(): string {
+  return 'Only one request with no content goes to the service. Your notes, balances and account names never go with it.';
+}
+
+export function ratesAttribution(): string {
+  return 'Rates by Exchange Rate API';
+}
+
+export function ratesManualTitle(code: string): string {
+  return `Your own ${code} rate`;
+}
+
+export function ratesManualSubtitle(name: string): string {
+  return `${name}. Used until the next update.`;
+}
+
+export function ratesManualLabel(symbol: string): string {
+  return `Rupiah per ${symbol}1`;
+}
+
+export function ratesManualInvalid(): string {
+  return 'Enter a sensible rupiah rate, for example 16.250 or 16.250,5.';
+}
+
+export function ratesManualSave(): string {
+  return 'Save rate';
+}
+
+export function ratesManualSaved(code: string): string {
+  return `${code} rate saved`;
+}
+
+export function ratesCloseLabel(): string {
+  return 'Close';
+}
+
+export function setRateFirst(code: string): string {
+  return `There is no rate for ${code} yet. Set the rate first.`;
+}
+
+export function setRateButton(): string {
+  return 'Set rate';
+}
+
+export function valasFormTitleNew(): string {
+  return 'New Valas account';
+}
+
+export function valasFormTitleEdit(): string {
+  return 'Edit Valas account';
+}
+
+export function valasTypeTile(): string {
+  return 'Valas · foreign currency';
+}
+
+export function valasExistsHint(): string {
+  return 'You already have a Valas account. Add the currency to that account.';
+}
+
+export function valasNameLabel(): string {
+  return 'Account name';
+}
+
+export function valasNamePlaceholder(): string {
+  return 'Valas';
+}
+
+export function valasCurrenciesLabel(): string {
+  return 'Currencies';
+}
+
+export function valasCurrencyNone(): string {
+  return 'No currency yet. Add at least one.';
+}
+
+export function valasOpeningLabel(code: string): string {
+  return `${code} opening balance`;
+}
+
+export function valasRemoveCurrency(code: string): string {
+  return `Remove ${code} from the list`;
+}
+
+export function valasAddCurrency(): string {
+  return 'Add currency';
+}
+
+export function valasOpeningDateLabel(date: string): string {
+  return `Opening balance as of ${date}`;
+}
+
+export function valasOpeningHelp(): string {
+  return 'Each currency starts with its opening balance on this date. The Valas account itself has no opening balance.';
+}
+
+export function valasCreateButton(): string {
+  return 'Create account';
+}
+
+export function valasSaveButton(): string {
+  return 'Save';
+}
+
+export function valasSavingLabel(): string {
+  return 'Saving…';
+}
+
+export function valasCreatedToast(name: string): string {
+  return `${name} account created`;
+}
+
+export function valasSavedToast(): string {
+  return 'Changes saved';
+}
+
+export function valasPocketArchivedToast(code: string): string {
+  return `${code} pocket archived`;
+}
+
+export function valasPocketAddedToast(code: string): string {
+  return `${code} pocket added`;
+}
+
+export function valasAmountInvalid(): string {
+  return 'Enter the opening balance as a number, for example 250,00.';
+}
+
+export function valasPocketsNeedAmount(): string {
+  return 'Check the opening balances that are marked.';
+}
+
+export function valasForexError(code: string): string {
+  switch (code) {
+    case 'name_invalid':
+      return 'The account needs a name, 40 letters at most.';
+    case 'no_pockets':
+      return 'Add at least one currency.';
+    case 'duplicate_currency':
+      return 'That currency is already in the Valas account.';
+    case 'unsupported_currency':
+      return 'That currency is not supported yet.';
+    case 'amount_invalid':
+      return 'The opening balance is not valid.';
+    case 'not_forex_account':
+      return 'This is not the Valas account.';
+    default:
+      return 'Could not save. Nothing changed.';
+  }
+}
+
+export function valasAddSheetTitle(): string {
+  return 'Add currency';
+}
+
+export function valasAddSheetSubtitle(): string {
+  return 'Pick the currency you want to hold.';
+}
+
+export function valasSearchPlaceholder(): string {
+  return 'Search currencies';
+}
+
+export function valasAlreadyAdded(): string {
+  return 'Already added';
+}
+
+export function valasSearchEmpty(): string {
+  return 'No currency matches.';
+}
+
+export function valasNeedRateNote(): string {
+  return 'A rate is needed to show the rupiah value. Update the rates on the Exchange rates screen, or type your own there.';
+}
+
+export function valasCurrencyRowLabel(code: string, name: string, added: boolean): string {
+  return added ? `${code}, ${name}, already added` : `${code}, ${name}`;
+}
+
+export function valasDetailCaption(): string {
+  return 'Multi-currency account · value today';
+}
+
+export function valasDetailApproxNote(dateTime: string): string {
+  return `An estimate from the ${dateTime} rates.`;
+}
+
+export function valasDetailIncomplete(): string {
+  return 'The rupiah value is incomplete: a currency has no rate yet.';
+}
+
+export function valasNoPocketsTotal(): string {
+  return 'No currency yet';
+}
+
+export function valasPocketsHeader(): string {
+  return 'Currency pockets';
+}
+
+export function valasPocketsEmpty(): string {
+  return 'No currency pockets yet. Add one.';
+}
+
+export function valasPocketLabel(code: string, name: string, amount: string, detail: string): string {
+  return `${code}, ${name}, ${amount}, ${detail}`;
+}
+
+export function valasPocketArchive(code: string): string {
+  return `Archive ${code}`;
+}
+
+export function valasPocketArchiveBlocked(code: string): string {
+  return `The ${code} pocket still holds money. Empty it before archiving.`;
+}
+
+export function valasButtonAdd(): string {
+  return 'Add';
+}
+
+export function valasButtonExchange(): string {
+  return 'Exchange';
+}
+
+export function valasActivityTitle(month: string): string {
+  return `${month} activity`;
+}
+
+export function valasFilterAll(): string {
+  return 'All';
+}
+
+export function valasActivityEmpty(): string {
+  return 'No activity this month.';
+}
+
+export function valasActivityFilterEmpty(code: string): string {
+  return `No ${code} activity this month.`;
+}
+
+export function valasRatesLink(dateTime: string | null): string {
+  return dateTime ? `Exchange rates · ${dateTime}` : 'Exchange rates';
+}
+
+export function valasFrozenNote(): string {
+  return 'Every transaction stores its rupiah value on the day it was recorded, so budgets and reports do not change when rates change.';
+}
+
+export function valasViewAll(): string {
+  return 'View all transactions for this account';
+}
+
+export function valasActivityRowLabel(title: string, kind: string, date: string, amount: string, value: string): string {
+  return `${title}, ${kind}, ${date}, ${amount}${value}`;
+}
+
+export function valasActivityValue(value: string): string {
+  return `, worth ${value}`;
+}
+
+export function valasFieldError(code: string): string {
+  switch (code) {
+    case 'name_invalid':
+      return 'The account needs a name, 40 letters at most.';
+    case 'name_taken':
+      return 'You already have an account with this name.';
+    case 'no_pockets':
+      return 'Add at least one currency.';
+    case 'amount_invalid':
+      return 'Enter the opening balance as a number, for example 250,00.';
+    case 'future_date':
+      return 'The date cannot be in the future.';
+    default:
+      return 'Check this field.';
+  }
+}
+
+export function valasPocketBalanceLabel(code: string, amount: string): string {
+  return `${code} balance is now ${amount}`;
+}
+
+export function valasPocketsEditHeader(): string {
+  return 'Existing pockets';
+}
+
+export function valasArchiveHelp(): string {
+  return 'A pocket can be archived only when its balance is exactly 0. An archived currency can be added again later.';
+}
+
+export function valasPocketFieldLabel(): string {
+  return 'Currency';
+}
+
+export function valasPocketChipLabel(code: string, name: string, balance: string): string {
+  return `${code}, ${name}, balance ${balance}`;
+}
+
+export function valasAmountTitle(code: string): string {
+  return `Amount in ${code}`;
+}
+
+export function valasAmountToMoveTitle(code: string): string {
+  return `Amount to move (${code})`;
+}
+
+export function valasAmountAccessibility(code: string): string {
+  return `Amount in ${code}`;
+}
+
+export function valasLiveValue(value: string, ratePer: string): string {
+  return `≈ ${value} · ${ratePer}`;
+}
+
+export function valasBalanceAfter(amount: string): string {
+  return `Balance after: ${amount}`;
+}
+
+export function valasBudgetNote(category: string, value: string): string {
+  return `Counted toward the ${category} budget as about ${value}, the value on the day it is recorded. It stays the same if rates change.`;
+}
+
+export function valasYouSend(): string {
+  return 'You send';
+}
+
+export function valasYouReceive(): string {
+  return 'You receive';
+}
+
+export function valasExchangeTitle(): string {
+  return 'Exchange currency';
+}
+
+export function valasExchangeRateYours(): string {
+  return 'Your rate';
+}
+
+export function valasExchangeRateLatest(): string {
+  return 'Latest stored rate';
+}
+
+export function valasExchangeDifference(): string {
+  return 'Difference';
+}
+
+export function valasExchangeNoLatest(): string {
+  return 'There is no rate to compare with yet.';
+}
+
+export function valasExchangeNote(): string {
+  return 'MONO keeps both amounts and works out the rate itself. Net worth only moves by that difference.';
+}
+
+export function valasCrossRate(from: string, perUnit: string, to: string): string {
+  return `1 ${from} = ${perUnit} ${to}`;
+}
+
+export function valasDifferenceText(percent: string, amount: string): string {
+  return `${percent} (${amount})`;
+}
+
+export function valasEnterBoth(): string {
+  return 'Enter both amounts to see the rate.';
+}
+
+export function valasGoToRates(): string {
+  return 'Set rate';
+}
+
+export function txValasFieldError(error: { code: string; currency?: string; balance?: number; shortfall?: number; type?: string }, moneyFormat: (n: number) => string): TxErrorMessage {
+  const code = error.currency ?? '';
+  switch (error.code) {
+    case 'pocket_required':
+      return { text: 'Choose the currency to use.' };
+    case 'missing_fx_rate':
+    case 'missing_rate':
+      return { text: `There is no rate for ${code} yet. Set the rate first.`, linkText: 'Set the rate' };
+    case 'amount_to_required':
+      return { text: 'Enter the amount you receive.' };
+    case 'same_pocket':
+      return { text: 'Pick two different currencies.' };
+    case 'insufficient_balance': {
+      const has = moneyFormat(error.balance ?? 0);
+      const wanted = moneyFormat((error.balance ?? 0) + (error.shortfall ?? 0));
+      const short = moneyFormat(error.shortfall ?? 0);
+      const what = error.type === 'transfer' ? 'This exchange' : 'This expense';
+      return { text: `The ${code} pocket has ${has}. ${what} is ${wanted}. Short by ${short}.` };
+    }
+    default:
+      return { text: 'Check this field.' };
+  }
+}
+
+export function valasSheetMeta(value: string): string {
+  return `≈ ${value} · pick the currency next`;
+}
+
+export function valasPocketFromLabel(): string {
+  return 'Currency you send';
+}
+
+export function valasPocketToLabel(): string {
+  return 'Currency you receive';
+}
+
+export function settingsRatesRowHint(): string {
+  return 'Rates that value the foreign money in the Valas account. Automatic updates are on by default.';
 }

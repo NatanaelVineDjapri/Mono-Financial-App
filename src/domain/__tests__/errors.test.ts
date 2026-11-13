@@ -36,7 +36,7 @@ function catchCode(db: Db, action: () => Promise<unknown>): Promise<string> {
   );
 }
 
-describe('throwDomainError recognises all 13 guard codes', () => {
+describe('throwDomainError recognises all 14 guard codes', () => {
   test('future_date', async () => {
     const { db, bca, expenseCategory } = await fixture();
     const code = await catchCode(db, () =>
@@ -135,8 +135,8 @@ describe('throwDomainError recognises all 13 guard codes', () => {
     expect(code).toBe('recurring_needs_idr_account');
   });
 
-  test('all 13 codes were exercised above', () => {
-    expect(GUARD_CODES.length).toBe(13);
+  test('all 14 codes are known (forex_account_exists needs the migrated schema and is exercised in features/valas)', () => {
+    expect(GUARD_CODES.length).toBe(14);
   });
 });
 

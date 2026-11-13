@@ -31,7 +31,10 @@ export interface BankCardProps {
   type: AccountType;
   icon: string | null; // accounts.icon; null or an unrecognised slug falls back to a neutral card
   balance: number; // whole rupiah; for a Valas account, the total rupiah value
-  subline?: string; // Valas only, e.g. "US$250,00 · S$180,00"
+  subline?: string; // Valas only, e.g. "US$250,00 · S$180,00" (already passed through the hidden-amounts gate)
+  // Valas only: a pocket has no rate yet, so there is no rupiah value to show (never 0). The card shows
+  // the native amounts instead of "≈ Rp…".
+  nativeOnly?: boolean;
   // carousel: fixed 300×154 (the Overview's row; same art, same 358:184 look, cropped by cover). list: full width, 358:184 (the "open" card in the Accounts
   // card stack — CLAUDE.md/Fase 4.2c: "don't change the full look"). strip: full width,
   // 68 tall (the card stack's own *closed* card — Fase 4.2c's "potongan").
@@ -75,6 +78,7 @@ export function BankCard({
   icon,
   balance,
   subline,
+  nativeOnly = false,
   variant = "list",
   liftContent = false,
   accessibilityLabel,
@@ -182,16 +186,24 @@ export function BankCard({
               </Text>
             </View>
             <View style={styles.balanceRow}>
-              {type === "forex" && (
-                <Text style={[styles.stripApprox, { color: fg }]}>
-                  {"≈ "}
+              {nativeOnly ? (
+                <Text style={[styles.stripBalance, styles.stripNative, { color: fg }]} numberOfLines={1}>
+                  {subline}
                 </Text>
+              ) : (
+                <>
+                  {type === "forex" && (
+                    <Text style={[styles.stripApprox, { color: fg }]}>
+                      {"≈ "}
+                    </Text>
+                  )}
+                  <Amount
+                    value={balance}
+                    variant="figureS"
+                    style={{ ...styles.stripBalance, color: fg }}
+                  />
+                </>
               )}
-              <Amount
-                value={balance}
-                variant="figureS"
-                style={{ ...styles.stripBalance, color: fg }}
-              />
             </View>
           </View>
         ) : (
@@ -209,19 +221,21 @@ export function BankCard({
               <Text style={[styles.name, { color: fg }]} numberOfLines={1}>
                 {name}
               </Text>
-              <View style={styles.balanceRow}>
-                {type === "forex" && (
-                  <Text style={[styles.approx, { color: fg }]}>{"≈ "}</Text>
-                )}
-                <Amount
-                  value={balance}
-                  variant="figureM"
-                  style={{ color: fg }}
-                />
-              </View>
+              {!nativeOnly && (
+                <View style={styles.balanceRow}>
+                  {type === "forex" && (
+                    <Text style={[styles.approx, { color: fg }]}>{"≈ "}</Text>
+                  )}
+                  <Amount
+                    value={balance}
+                    variant="figureM"
+                    style={{ color: fg }}
+                  />
+                </View>
+              )}
               {!!subline && (
                 <Text
-                  style={[styles.subline, { color: fg }]}
+                  style={[styles.subline, nativeOnly && styles.sublineMain, { color: fg }]}
                   numberOfLines={1}
                 >
                   {subline}
@@ -266,6 +280,7 @@ const styles = StyleSheet.create({
   balanceRow: { flexDirection: "row", alignItems: "baseline" },
   approx: { ...MonoText.figureM },
   subline: { ...MonoText.bodyS, opacity: 0.8, marginTop: 2 },
+  sublineMain: { ...MonoText.figureM, opacity: 1, marginTop: 0 },
   accountDetails: {
     marginBottom: 18,
   },
@@ -303,6 +318,7 @@ const styles = StyleSheet.create({
   stripName: { ...MonoText.bodyStrong, flexShrink: 1 },
   stripWordmark: { ...MonoText.body, textTransform: "lowercase" },
   stripApprox: { ...MonoText.figureS },
+  stripNative: { flexShrink: 1, textAlign: "right" },
   // 16/20, 600 (Fase 4.2c step 1) — no matching shared token, so this overrides figureS's
   // size/line-height/weight locally while keeping its tabular-nums (CLAUDE.md: don't add
   // a one-off token to the shared type scale for a single component's own need).

@@ -25,6 +25,6 @@ describe('settings repo', () => {
     const db = openTestDb();
     const all = await getAllSettings(db);
     expect(all.ai_enabled).toBe('0');
-    expect(all.fx_auto_update).toBe('0');
+    expect(all.fx_auto_update).toBe('1'); // on from the start, so a new install keeps its rates current
   });
 });

@@ -1,4 +1,4 @@
-import { ATTRIBUTION_TEXT, ATTRIBUTION_URL, fetchRates } from '../fetchRates';
+import { ATTRIBUTION_TEXT, ATTRIBUTION_URL, fetchRates, fxFailureKind } from '../fetchRates';
 
 // Structurally the same shape as the real open.er-api.com response (verified against a
 // real call on 2026-11-04: result "success", rates.IDR present, all 12 supported
@@ -112,5 +112,52 @@ describe('fetchRates', () => {
   test('exposes the required attribution for the Rates screen', () => {
     expect(ATTRIBUTION_TEXT).toBe('Rates By Exchange Rate API');
     expect(ATTRIBUTION_URL).toBe('https://www.exchangerate-api.com');
+  });
+});
+
+describe('fetchRates: what the service says and how it fails', () => {
+  const realFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+  const body = (extra: Record<string, unknown> = {}) => ({ result: 'success', rates: { USD: 1, IDR: 16250, SGD: 1.3 }, ...extra });
+
+  test('the unix next-update time becomes a +07:00 instant', async () => {
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse(body({ time_next_update_unix: 1793000000 })));
+    const result = await fetchRates(['USD']);
+    expect(result.ok && result.nextUpdateAt).toBe('2026-10-26T14:33:20+07:00');
+  });
+
+  test('without the unix field the UTC string is read; unreadable or missing gives null', async () => {
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse(body({ time_next_update_utc: 'Thu, 29 Oct 2026 00:00:01 +0000' })));
+    const a = await fetchRates(['USD']);
+    expect(a.ok && a.nextUpdateAt).toBe('2026-10-29T07:00:01+07:00');
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse(body({ time_next_update_utc: 'soon' })));
+    const b = await fetchRates(['USD']);
+    expect(b.ok && b.nextUpdateAt).toBeNull();
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse(body()));
+    const c = await fetchRates(['USD']);
+    expect(c.ok && c.nextUpdateAt).toBeNull();
+  });
+
+  test('result other than success is a failure (bad_response)', async () => {
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse({ result: 'error', 'error-type': 'unsupported-code' }));
+    const result = await fetchRates(['USD']);
+    expect(result).toMatchObject({ ok: false, reason: 'bad_response' });
+  });
+
+  test('a held currency the service does not list is missing_currency', async () => {
+    global.fetch = jest.fn().mockResolvedValue(okJsonResponse(body()));
+    const result = await fetchRates(['USD', 'KRW']);
+    expect(result).toMatchObject({ ok: false, reason: 'missing_currency' });
+  });
+
+  test('failure kinds: offline, rate_limited, invalid', () => {
+    expect(fxFailureKind('network_error')).toBe('offline');
+    expect(fxFailureKind('timeout')).toBe('offline');
+    expect(fxFailureKind('rate_limited')).toBe('rate_limited');
+    expect(fxFailureKind('http_error')).toBe('invalid');
+    expect(fxFailureKind('bad_response')).toBe('invalid');
+    expect(fxFailureKind('missing_currency')).toBe('invalid');
   });
 });

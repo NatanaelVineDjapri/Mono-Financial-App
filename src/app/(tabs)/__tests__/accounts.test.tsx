@@ -119,7 +119,8 @@ describe('AccountsScreen', () => {
 
     await fireEvent.press(result.getByTestId('card-stack-card-5'));
     expect(result.getByTestId('card-stack-card-5').props.accessibilityLabel).toContain('Open account.');
-    expect(result.getByText('≈ ')).toBeTruthy();
+    // the ≈ marks both the open Valas card and the total it is part of
+    expect(result.getAllByText('≈ ')).toHaveLength(2);
     expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
     // No tag pill (Fase 4.2c step 4: "hapus tag pill 'N MATA UANG'").
     expect(result.queryByText(/CURRENC/)).toBeNull();
@@ -132,35 +133,68 @@ describe('AccountsScreen', () => {
 
     // Valas isn't open by default — the plain everyday note shows, not the estimate.
     expect(result.getByText('Every account added together. Moving money between accounts never changes this total.')).toBeTruthy();
-    expect(result.queryByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeNull();
+    expect(result.queryByText('Mata uang asing memakai kurs terbaru (28 Oct 2026, 09:00), jadi total ini perkiraan.')).toBeNull();
 
     // Bring Valas forward — the estimate note takes over.
     await fireEvent.press(result.getByTestId('card-stack-card-5'));
-    expect(result.getByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeTruthy();
+    expect(result.getByText('Mata uang asing memakai kurs terbaru (28 Oct 2026, 09:00), jadi total ini perkiraan.')).toBeTruthy();
     expect(result.queryByText('Every account added together. Moving money between accounts never changes this total.')).toBeNull();
 
     // Bring BCA forward instead — Valas collapses, and the note reverts.
     await fireEvent.press(result.getByTestId('card-stack-card-1'));
     expect(result.getByText('Every account added together. Moving money between accounts never changes this total.')).toBeTruthy();
-    expect(result.queryByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeNull();
+    expect(result.queryByText('Mata uang asing memakai kurs terbaru (28 Oct 2026, 09:00), jadi total ini perkiraan.')).toBeNull();
   });
 
   test('the Exchange rates row only appears with a forex account, and shows when it was last updated', async () => {
     mockFxUpdate('2026-10-28T09:00:00+07:00');
     mockResult({ data: SAMPLE, isLoading: false, isError: false });
     const noForex = await renderScreen();
-    expect(noForex.queryByText('Exchange rates')).toBeNull();
+    expect(noForex.queryByText('Kurs')).toBeNull();
 
     mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
     const withForex = await renderScreen();
-    expect(withForex.getByText('Exchange rates')).toBeTruthy();
-    expect(withForex.getByText('updated 28 Oct 2026, 09:00')).toBeTruthy();
+    expect(withForex.getByText('Kurs')).toBeTruthy();
+    expect(withForex.getByText('diperbarui 28 Oct 2026, 09:00')).toBeTruthy();
+    // the row opens the Rates screen
+    await fireEvent.press(withForex.getByTestId('accounts-rates-row'));
+    expect(mockPush).toHaveBeenCalledWith('/settings/rates');
+  });
+
+  test('a Valas pocket without a rate: the card shows its native amounts only, no rupiah value, and the total is incomplete', async () => {
+    const noRate: AccountsOverview = {
+      ...WITH_VALAS,
+      incomplete: true,
+      groups: WITH_VALAS.groups.map(g =>
+        g.type === 'forex' ? { ...g, subtotal: 2250000, accounts: g.accounts.map(a => ({ ...a, balance: 2250000, missingRates: 1 })) } : g,
+      ),
+    };
+    mockResult({ data: noRate, isLoading: false, isError: false });
+    const result = await renderScreen();
+    // the strip of the closed Valas card carries the native amounts instead of ≈ Rp…
+    const card = result.getByTestId('card-stack-card-5');
+    expect(card.props.accessibilityLabel).toContain('Bring card forward.');
+    expect(result.getByText('US$250,00 · S$180,00')).toBeTruthy();
+    expect(result.queryByText('Rp2.250.000')).toBeNull();
+    // incomplete: the total card is not drawn with ≈ and says what is missing
+    expect(result.getByText('Belum lengkap: ada mata uang yang belum punya kurs.')).toBeTruthy();
+    expect(result.queryAllByText('≈ ')).toHaveLength(0);
+  });
+
+  test('hidden-amounts mode masks the Valas totals and the native amounts on the card', async () => {
+    useHideAmounts.getState().setHidden(true);
+    mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
+    const result = await renderScreen();
+    await fireEvent.press(result.getByTestId('card-stack-card-5'));
+    expect(result.queryByText('US$250,00 · S$180,00')).toBeNull();
+    expect(result.queryByText(/6.312.500/)).toBeNull();
+    expect(result.queryByText(/15.192.500/)).toBeNull();
   });
 
   test('incomplete shows the warning note on the total card', async () => {
     mockResult({ data: { ...SAMPLE, incomplete: true }, isLoading: false, isError: false });
     const result = await renderScreen();
-    expect(result.getByText('Incomplete: some currencies are missing exchange rates.')).toBeTruthy();
+    expect(result.getByText('Belum lengkap: ada mata uang yang belum punya kurs.')).toBeTruthy();
   });
 
   test('a forex account with no warning shows the "estimate" note instead, once rates exist and Valas is open', async () => {
@@ -168,7 +202,7 @@ describe('AccountsScreen', () => {
     mockResult({ data: WITH_VALAS, isLoading: false, isError: false });
     const result = await renderScreen();
     await fireEvent.press(result.getByTestId('card-stack-card-5'));
-    expect(result.getByText('Foreign currency uses your latest rates (28 Oct 2026, 09:00), so the total is an estimate.')).toBeTruthy();
+    expect(result.getByText('Mata uang asing memakai kurs terbaru (28 Oct 2026, 09:00), jadi total ini perkiraan.')).toBeTruthy();
   });
 
   test('hidden mode masks the total card and every card balance', async () => {

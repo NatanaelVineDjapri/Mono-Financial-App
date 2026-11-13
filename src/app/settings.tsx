@@ -12,7 +12,7 @@ import { IconButton } from '@/components/IconButton';
 import { AiSettingsSection } from '@/features/ai_chat/AiSettingsSection';
 import { useImportApps } from '@/features/import/useImportApps';
 import { MoreRow } from '@/features/more/MoreRow';
-import { backLabel, importAutoRowHint, importAutoRowValue, importAutoTitle, moreSettingsTitle, settingsAssistantGroup } from '@/i18n';
+import { backLabel, importAutoRowHint, importAutoRowValue, importAutoTitle, moreSettingsTitle, ratesTitle, settingsAssistantGroup, settingsRatesRowHint } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -45,9 +45,9 @@ export default function SettingsScreen() {
             title={importAutoTitle()}
             sub={`${importAutoRowValue(enabledApps)}. ${importAutoRowHint()}`}
             onPress={() => router.push('/settings/import' as never)}
-            last
             testID="settings-import-row"
           />
+          <MoreRow icon="refresh" title={ratesTitle()} sub={settingsRatesRowHint()} onPress={() => router.push('/settings/rates' as never)} last testID="settings-rates-row" />
         </Card>
       </ScrollView>
     </View>

@@ -24,7 +24,7 @@ const CATEGORIES: FormCategory[] = [
 const FOOD = 1;
 const SALARY = 11;
 
-const DATA: TxFormData = { accounts: [BCA, CASH, JAGO, VALAS], categories: CATEGORIES, record: null };
+const DATA: TxFormData = { accounts: [BCA, CASH, JAGO, VALAS], categories: CATEGORIES, pockets: [], rates: {}, record: null };
 
 function renderForm(props: Partial<TransactionFormProps> = {}) {
   const onSubmit = jest.fn<Promise<SubmitResult>, [TxFormValues]>(async () => ({ ok: true }));
@@ -285,17 +285,15 @@ describe('transfer', () => {
 });
 
 describe('account sheet', () => {
-  test('lists each account with its balance now; a Valas account is disabled "coming later"', async () => {
+  test('lists each account with its balance now; the Valas account can be picked (through a currency)', async () => {
     const result = await (await renderForm()).view;
     await fireEvent.press(result.getByTestId('tx-account-button'));
     const sheet = within(result.getByTestId('tx-account-sheet'));
     expect(sheet.getByText('Balance Rp6.842.500')).toBeTruthy();
     expect(sheet.getByText('Balance Rp450.000')).toBeTruthy();
     const valas = sheet.getByTestId('tx-account-option-4');
-    expect(valas.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(sheet.getByText('Valas: coming later')).toBeTruthy();
-    await fireEvent.press(valas); // nothing happens
-    expect(within(result.getByTestId('tx-account-button')).getByText('BCA Tabungan')).toBeTruthy();
+    expect(valas.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(sheet.queryByText('Valas: coming later')).toBeNull();
   });
 });
 
@@ -368,6 +366,7 @@ describe('edit mode', () => {
     toAccountId: null,
     categoryId: FOOD,
     amount: 125000,
+    amountTo: null,
     date: '2026-10-27',
     description: 'Lunch with team',
     note: 'Makan siang',
@@ -414,6 +413,6 @@ describe('edit mode', () => {
     const result = await view;
     await typeAmount(result, '200000');
     await fireEvent.press(result.getByRole('button', { name: 'Save changes' }));
-    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 200000, categoryId: FOOD, accountId: 1, toAccountId: null, date: '2026-10-27', description: 'Lunch with team', note: 'Makan siang' });
+    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 200000, categoryId: FOOD, accountId: 1, toAccountId: null, date: '2026-10-27', description: 'Lunch with team', note: 'Makan siang', currency: 'IDR', amountTo: null });
   });
 });

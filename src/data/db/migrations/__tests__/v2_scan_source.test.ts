@@ -69,7 +69,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(rowsBefore).toHaveLength(11);
     expect(eventsBefore).toHaveLength(2);
 
-    await expect(runMigrations(db, 1)).resolves.toBe(3);
+    await expect(runMigrations(db, 1)).resolves.toBe(6);
 
     expect(await db.getAllAsync('select * from transactions order by 1, 2, 3')).toEqual(rowsBefore);
     expect(await db.getAllAsync('select * from recurring_events order by 1, 2, 3')).toEqual(eventsBefore);
@@ -79,7 +79,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(await db.getAllAsync("select * from v_period_flow where period = '2026-10'")).toEqual([
       expect.objectContaining({ income: 7500000, expense: 4257000 }),
     ]);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '3' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '6' });
   });
 
   test('every view, trigger and index comes back with the same SQL (17 views, 23 triggers)', async () => {

@@ -9,18 +9,18 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 3. **Aturan ada di database, bukan hanya di layar.** Bentuk satu baris dijaga CHECK. Aturan yang butuh baris lain (saldo tidak boleh minus, tanggal tidak boleh di masa depan, anggaran tidak melebihi batas bulanan) dijaga trigger yang melempar kode galat bernama.
 4. **Riwayat tidak boleh yatim.** Semua foreign key `ON DELETE RESTRICT`, kecuali `recurring_events` yang ikut terhapus bersama transaksinya. Akun, kategori, dan pengeluaran tetap diarsipkan, bukan dihapus.
 5. **Uang bilangan bulat.** Satuan terkecil tiap mata uang sebagai INTEGER (rupiah utuh untuk IDR, sen untuk USD atau SGD, lihat `currencies.minor_factor`). Kurs juga bilangan bulat: `rate_e4` = rupiah per 1 satuan utama × 10.000. Persen sebagai basis point (10000 = 100%), tanggal sebagai teks ISO 8601. Pembulatan setengah menjauhi nol, dilakukan di SQL.
-6. **Valas = satu akun, banyak kantong.** Hanya akun bertipe `forex` yang punya kantong (`account_currencies`), satu per mata uang. Akun lain otomatis IDR. Tiap transaksi menyimpan `amount_idr`, nilai rupiah pada hari dicatat, supaya anggaran dan laporan tidak bergeser saat kurs berubah. Saldo akun dan kekayaan bersih menilai tiap kantong dengan kurs terbaru dan ditandai perkiraan.
+6. **Valas = satu akun, banyak kantong, dan hanya satu akun forex.** Hanya akun bertipe `forex` yang punya kantong (`account_currencies`), satu per mata uang. Hanya boleh ada **satu** akun forex yang aktif (trigger `forex_account_exists`, migrasi v4); mata uang baru ditambahkan sebagai kantong baru di akun itu, bukan akun kedua. Akun lain otomatis IDR. Tiap transaksi menyimpan `amount_idr`, nilai rupiah pada hari dicatat, supaya anggaran dan laporan tidak bergeser saat kurs berubah. Saldo akun dan kekayaan bersih menilai tiap kantong dengan kurs terbaru dan ditandai perkiraan.
 
 ## 2. Tabel
 
 | Tabel | Isi | Catatan |
 |---|---|---|
 | `meta` | `schema_version`, `guards_off` | `guards_off` adalah saklar sementara saat restore. Dibuat ulang, tidak ikut cadangan. |
-| `settings` | satu baris per pengaturan | `month_start_day`, `timezone`, `ai_enabled`, `fx_auto_update` (default 0), dan lainnya. Kunci Gemini tidak ada di sini, tersimpan di secure storage. |
+| `settings` | satu baris per pengaturan | `month_start_day`, `timezone`, `ai_enabled`, `fx_auto_update` (default 1), dan lainnya. Kunci Gemini tidak ada di sini, tersimpan di secure storage. |
 | `currencies` | daftar mata uang yang didukung (13, termasuk IDR) | Seed statis: `code`, `name`, `minor_factor` (100 untuk USD, 1 untuk IDR, JPY, KRW). Tidak ikut cadangan. |
-| `fx_rates` | riwayat kurs | `currency`, `rate_e4`, `fetched_at`, `source` (api atau manual). Kurs terbaru per mata uang dibaca lewat `v_latest_fx`. IDR tidak punya kurs. |
+| `fx_rates` | riwayat kurs | `currency`, `rate_e4` (rupiah per 1 satuan mata uang dikali 10.000: US$1 = Rp16.250 adalah `162500000`), `fetched_at`, `source` (`api` atau `manual`). Baris baru tidak menimpa yang lama: riwayat tetap. Kurs terbaru per mata uang dibaca lewat `v_latest_fx`. IDR tidak punya kurs. Kurs yang hilang tidak pernah dianggap nol: `value_idr` kantong menjadi NULL dan kekayaan bersih bertanda `incomplete`. |
 | `accounts` | bank, tunai, e-wallet, tabungan, valas (`forex`) | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. Akun valas selalu `opening_balance = 0`, saldo awalnya ada di kantong. Nama unik tanpa membedakan huruf besar kecil. |
-| `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan. |
+| `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan; kantong yang diarsipkan kembali dengan saldonya bila mata uangnya ditambahkan lagi. Satu mata uang hanya satu kantong. |
 | `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)`. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
 | `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring, scan). Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
 | `monthly_limits` | batas total per bulan | `repeat = 1` berarti bulan berikutnya dibuat dari baris ini. |
@@ -71,6 +71,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `missing_fx_rate` | transaksi valas tanpa kurs tersimpan untuk mata uangnya | "Tambahkan kurs SGD dulu." |
 | `pocket_needs_forex_account` | kantong pada akun yang bukan valas | "Hanya akun Valas yang punya kantong." |
 | `pocket_not_empty` | mengarsipkan kantong yang masih berisi | "Kosongkan kantong dulu." |
+| `forex_account_exists` | membuat akun forex kedua (atau mengubah akun lain menjadi forex, atau memulihkan arsip) selama masih ada akun forex yang aktif | "Akun Valas sudah ada. Tambahkan mata uangnya ke akun itu." |
 | `account_type_locked` | mengubah tipe akun dari atau menjadi valas | "Tipe akun tidak bisa diubah." |
 | `recurring_needs_idr_account` | pengeluaran tetap pada akun valas | "Pengeluaran tetap hanya untuk akun rupiah." |
 
@@ -142,6 +143,9 @@ Urutan restore di sisi database:
 - Tiap migrasi satu fungsi dan satu transaksi SQLite. Langkah yang gagal dibatalkan dan aplikasi tetap di versi lama.
 - Sebelum migrasi, aplikasi menulis cadangan pengaman. View dan trigger dibuang lalu dibuat ulang tiap kali, karena tidak menyimpan data.
 - Berkas cadangan mencatat `schema_version`-nya sendiri. Versi lebih lama dimigrasi di memori sebelum restore. Versi lebih baru ditolak.
+- **Migrasi 5 ke 6** (`src/data/db/migrations/v6_fx_auto_update_on.ts`): pengaturan `fx_auto_update` (sakelar "Perbarui otomatis") yang masih bernilai `'0'` dari seed lama diubah menjadi `'1'` sekali, karena bawaannya sekarang nyala. Setelah build ini setiap perubahan sakelar ditulis eksplisit oleh `setFxAutoUpdate`, jadi `'0'` berikutnya adalah pilihan orangnya sendiri dan tidak disentuh lagi. Batas versi cadangan (`SUPPORTED_SCHEMA_VERSION`) naik ke 6.
+- **Migrasi 3 ke 4** (`src/data/db/migrations/v4_one_forex_account.ts`): dua trigger `trg_one_forex_ins` dan `trg_one_forex_upd` yang menolak akun forex aktif kedua dengan kode `forex_account_exists`. Hanya menambah trigger (tidak ada tabel yang dibangun ulang). Berhenti bekerja saat `meta.guards_off = 1`, jadi restore tidak terhalang.
+- **Migrasi 4 ke 5** (`src/data/db/migrations/v5_more_currencies.ts`): tabel `currencies` (daftar acuan statis, tidak ikut cadangan) diisi semua mata uang asing yang dilayani Exchange Rate API dan masih berlaku (151, dengan satuan terkecil ISO 4217: 1, 100 atau 1000). `insert or ignore`, jadi dua belas yang lama tidak berubah. Daftar dan alasan yang dikecualikan (IRR, CLF, XDR, CNH, SLL, ZWL, HRK, dan kode non-ISO) ada di `src/core/currencyList.ts`.
 - **Migrasi 1 ke 2** (`src/data/db/migrations/v2_scan_source.ts`): `transactions.source` menerima `'scan'`. SQLite tidak bisa mengubah CHECK di tempat, jadi tabel dibangun ulang dalam satu transaksi: baris `transactions` dan `recurring_events` diparkir di tabel sementara (karena `recurring_events.transaction_id` berstatus `ON DELETE CASCADE` dan akan ikut terhapus), semua view dan trigger dibuang lalu dibuat ulang dari SQL aslinya di `sqlite_master`, tabel dibuat ulang dengan SQL lama yang hanya CHECK-nya diganti, lalu data dikembalikan. Jumlah baris dan `PRAGMA foreign_key_check` diperiksa; selisih apa pun membatalkan semuanya. Diuji pada database berisi data contoh (angka view sama sebelum dan sesudah, 17 view dan 23 trigger kembali dengan SQL yang sama, cascade tetap jalan). Tidak ada view atau trigger yang menyebut `source`, jadi tidak ada yang perlu diubah di sana.
 - Batas versi cadangan (`SUPPORTED_SCHEMA_VERSION` di `src/data/backup/validate.ts`) naik ke 2.
 
@@ -190,4 +194,4 @@ Satu baris per aplikasi yang pernah mengirim notifikasi. **Hanya metadata aplika
 
 ### Belum ada (tahap berikutnya)
 
-`import_queue` (antrean tinjauan), `merchant_category_memory` (ingatan merchant ke kategori), dan nilai `'import'` pada CHECK `transactions.source` (nanti lewat migrasi v4, digabung dengan `'scan'`). Antrean tidak akan punya kolom isi pesan atau judul asli, hanya field hasil baca.
+`import_queue` (antrean tinjauan), `merchant_category_memory` (ingatan merchant ke kategori), dan nilai `'import'` pada CHECK `transactions.source` (nanti lewat migrasi v6, digabung dengan `'scan'`). Antrean tidak akan punya kolom isi pesan atau judul asli, hanya field hasil baca.

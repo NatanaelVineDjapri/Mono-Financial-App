@@ -11,7 +11,7 @@ export function isLanguage(value: unknown): value is Language {
 
 export const DEFAULT_LANGUAGE: Language = 'en';
 
-// The language choice (More → Language) is switched off for now: the app is English only. The
+// The language choice (More → Language) is switched off for now: the app starts in DEFAULT_LANGUAGE. The
 // Indonesian dictionary, the selector and the saved choice are all still in place; set this to
 // true to bring the choice back. While it is false, a language saved earlier is ignored.
 export const LANGUAGE_CHOICE_ENABLED = false;
@@ -21,7 +21,7 @@ export function languageChoiceEnabled(): boolean {
   return LANGUAGE_CHOICE_ENABLED;
 }
 
-// The language to start in, given what was saved: the saved one when the choice is on, else English.
+// The language to start in, given what was saved: the saved one when the choice is on, else DEFAULT_LANGUAGE.
 export function initialLanguage(saved: unknown): Language {
   return LANGUAGE_CHOICE_ENABLED && isLanguage(saved) ? saved : DEFAULT_LANGUAGE;
 }

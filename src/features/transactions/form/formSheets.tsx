@@ -32,6 +32,7 @@ import {
   previousMonthLabel,
   txKindLabel,
   valasComingLater,
+  valasSheetMeta,
   weekdayInitials,
 } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
@@ -48,11 +49,14 @@ export interface AccountSheetProps {
   role: AccountSheetRole;
   accounts: FormAccount[];
   selectedId: number | null;
+  // The Valas account can be picked (through one of its pockets). Off for the AI chat's draft editor,
+  // which never writes to Valas.
+  allowForex?: boolean;
   onSelect: (id: number) => void;
   onClose: () => void;
 }
 
-export function AccountSheet({ visible, role, accounts, selectedId, onSelect, onClose }: AccountSheetProps) {
+export function AccountSheet({ visible, role, accounts, selectedId, allowForex = false, onSelect, onClose }: AccountSheetProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const title = role === 'from' ? pickFromTitle() : role === 'to' ? pickToTitle() : pickAccountTitle();
   return (
@@ -61,7 +65,8 @@ export function AccountSheet({ visible, role, accounts, selectedId, onSelect, on
         <SheetHeader visible={visible} icon="bank" title={title} subtitle={pickAccountSubtitle()} onClose={onClose} closeTestID="tx-account-sheet-close" />
         <ScrollView style={styles.scroll} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
           {accounts.map(account => {
-            const forex = account.type === 'forex';
+            const forex = account.type === 'forex' && !allowForex; // off, unless Valas is allowed here
+            const valas = account.type === 'forex' && allowForex;
             const selected = account.id === selectedId;
             return (
               <Pressable
@@ -78,7 +83,7 @@ export function AccountSheet({ visible, role, accounts, selectedId, onSelect, on
                 <BankTile icon={account.icon} type={account.type} size={36} />
                 <View style={styles.rowText}>
                   <Text style={styles.rowName}>{account.name}</Text>
-                  <Text style={styles.rowMeta}>{forex ? valasComingLater() : balanceNowLabel(shown(rp(account.balance), hidden))}</Text>
+                  <Text style={styles.rowMeta}>{forex ? valasComingLater() : valas ? valasSheetMeta(shown(rp(account.balance), hidden)) : balanceNowLabel(shown(rp(account.balance), hidden))}</Text>
                 </View>
                 {selected && <Icon name="check" size={20} color={MonoColors.text} />}
               </Pressable>

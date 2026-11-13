@@ -1,20 +1,17 @@
 // Edit transaction (/tx/[id]/edit): the same form as Add, filled with the record. Save updates
 // that same row (no new one), then goes back to its detail with "Changes saved." and an Undo. A
-// transfer keeps being a transfer and an income or expense never becomes one. A Valas record
-// cannot be edited here yet (the Valas form is separate work).
+// transfer keeps being a transfer and an income or expense never becomes one. A Valas record is
+// edited through its pocket; its rupiah value is frozen again only if its amount, currency or account changes.
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { ComingSoonScreen } from '@/components/ComingSoonScreen';
 import { today as todayLocal } from '@/core/clock';
 import { TransactionForm } from '@/features/transactions/form/TransactionForm';
 import { useEditSubmit, useTxFormData } from '@/features/transactions/form/useTxForm';
 import {
   backLabel,
-  editTransactionTitle,
-  editValasUnsupportedMessage,
   retryLabel,
   txDetailLoadError,
   txNotFoundMessage,
@@ -47,11 +44,7 @@ export default function EditTransactionScreen() {
       </View>
     );
   }
-  if (!data.record.supported) {
-    return <ComingSoonScreen title={editTransactionTitle()} message={editValasUnsupportedMessage()} />;
-  }
-
-  return <TransactionForm mode="edit" data={data} today={today} onCancel={() => router.back()} onSubmit={onSubmit} />;
+  return <TransactionForm mode="edit" data={data} today={today} onCancel={() => router.back()} onSetRates={() => router.push('/settings/rates' as never)} onSubmit={onSubmit} />;
 }
 
 const styles = StyleSheet.create({
