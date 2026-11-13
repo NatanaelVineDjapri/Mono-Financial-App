@@ -4,6 +4,7 @@
 // Every figure comes from src/domain through the hooks in src/features/overview (views
 // underneath); nothing is computed here. Empty state when no accounts exist.
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -28,6 +29,9 @@ import { RecentTransactionsCard } from '@/features/overview/RecentTransactionsCa
 import { TopCategoriesCard } from '@/features/overview/TopCategoriesCard';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
+import { useDb } from '@/data/db/DbProvider';
+import { queryKeys } from '@/data/queryKeys';
+import { listRecurring } from '@/domain/recurring';
 import { useTransactionsList } from '@/features/transactions/useTransactionsList';
 import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
@@ -39,6 +43,7 @@ const NICKNAME = 'Nael';
 
 export default function OverviewScreen() {
   const router = useRouter();
+  const db = useDb();
   const savedName = useDisplayName();
   const displayName = savedName.trim() || NICKNAME;
   const greeting = useGreeting();
@@ -46,6 +51,7 @@ export default function OverviewScreen() {
   const { data: accountsData, isLoading: accountsLoading } = useAccountsOverview();
   const { data: overview } = useOverviewData();
   const { data: recurringData } = useRecurringDue();
+  const { data: recurringTemplates } = useQuery({ queryKey: [...queryKeys.recurring, 'list'], queryFn: () => listRecurring(db) });
   const { data: budget } = useBudgetOverview(null);
   const { data: goals } = useGoalProgress();
   const monthFilter = useMemo(() => ({ ...defaultTransactionFilters(), search: '' }), []);
@@ -96,9 +102,7 @@ export default function OverviewScreen() {
   }
 
   const accounts = accountsData.groups.flatMap(group => group.accounts);
-  const today = new Date().toISOString().split('T')[0];
-  const dueToday = recurringData?.filter(r => r.due_on === today) ?? [];
-  const nextDue = recurringData?.find(r => r.due_on > today);
+  const due = recurringData ?? [];
   const change: HeroChange | null =
     overview && overview.netWorthChange != null && overview.netWorthVsDate
       ? { amount: overview.netWorthChange, bp: overview.netWorthChangeBp, vsDate: overview.netWorthVsDate }
@@ -140,7 +144,7 @@ export default function OverviewScreen() {
         {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
         {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
 
-        <FixedExpensesCard dueToday={dueToday} nextDue={nextDue} onOpen={onOpenRecurring} />
+        <FixedExpensesCard due={due} templates={recurringTemplates ?? []} onOpen={onOpenRecurring} />
         {budget?.limit && <BudgetSummaryCard month={budget.month} limit={budget.limit} overCategory={overCategory} onOpen={onOpenBudgets} />}
         
         {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}

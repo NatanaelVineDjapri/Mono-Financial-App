@@ -38,6 +38,57 @@ export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): st
   return guardMessages[code](ctx);
 }
 
+// Pengeluaran tetap
+export const recurringTitle = () => 'Pengeluaran tetap';
+export const recurringIntro = () => 'Biaya rutin yang dibayar terjadwal. Tidak ada yang tercatat sebelum kamu konfirmasi.';
+export const recurringEmpty = () => 'Belum ada pengeluaran tetap. Tambahkan gym, internet, atau langganan.';
+export const recurringAdd = () => 'Tambah pengeluaran tetap';
+export const recurringMonthly = () => 'Per bulan, perkiraan';
+export const recurringDueToday = () => 'Jatuh tempo hari ini';
+export const recurringNeedsConfirmation = () => 'Perlu dikonfirmasi';
+export const recurringComingUp = () => 'Segera';
+export const recurringRecordNow = () => 'Catat sekarang';
+export const recurringSkip = () => 'Lewati bulan ini';
+export const recurringVaries = () => 'Jumlah berubah';
+export const recurringAbout = (amount: string) => `sekitar ${amount}`;
+export const recurringDay = (day: number) => `tiap tanggal ${day}`;
+export const recurringToday = () => 'Jatuh tempo hari ini';
+export const recurringOverdue = (days: number) => `Terlewat ${days} hari`;
+export const recurringReminderNote = () => 'Pengingat dikirim sehari sebelum dan saat jatuh tempo. Bulan yang terlewat menunggu di sini, terlama dulu.';
+export const recurringNewTitle = () => 'Pengeluaran tetap baru';
+export const recurringEditTitle = () => 'Ubah pengeluaran tetap';
+export const recurringName = () => 'Nama';
+export const recurringNameHint = () => 'Contoh: Gym membership';
+export const recurringAmount = () => 'Jumlah';
+export const recurringAmountVaries = () => 'Jumlah berubah tiap bulan';
+export const recurringAmountVariesHint = () => 'Nyalakan untuk tagihan seperti listrik. Jumlah di atas menjadi perkiraan dan kamu isi jumlah sebenarnya saat konfirmasi.';
+export const recurringCategory = () => 'Kategori';
+export const recurringPayFrom = () => 'Bayar dari';
+export const recurringRepeats = () => 'Berulang';
+export const recurringFirstDue = () => 'Jatuh tempo pertama';
+export const recurringEnds = () => 'Berakhir';
+export const recurringNoEnd = () => 'Tanpa batas';
+export const recurringClampHint = () => 'Tanggal 29 sampai 31 jatuh pada hari terakhir bulan yang lebih pendek.';
+export const recurringRemind = () => 'Ingatkan aku';
+export const recurringRemindHint = () => 'Notifikasi 09.00, sehari sebelum dan saat jatuh tempo';
+export const recurringStop = () => 'Hentikan pengeluaran tetap';
+export const recurringStopTitle = (name: string) => `Hentikan ${name}?`;
+export const recurringStopBody = () => 'Transaksi yang sudah tercatat tetap ada.';
+export const recurringSave = () => 'Simpan';
+export const recurringNameRequired = () => 'Masukkan nama pengeluaran tetap.';
+export const recurringAmountRequired = () => 'Masukkan jumlah di atas Rp0.';
+export const recurringAccountRequired = () => 'Pilih akun untuk membayar.';
+export const recurringEndInvalid = () => 'Tanggal berakhir tidak boleh sebelum jatuh tempo pertama.';
+export const recurringConfirmTitle = (name: string) => `Catat ${name}?`;
+export const recurringConfirmDue = (date: string) => `Jatuh tempo hari ini, ${date} · berulang tiap bulan`;
+export const recurringUsualAmount = () => 'Jumlah biasa. Ubah kalau bulan ini berbeda.';
+export const recurringDate = () => 'Tanggal';
+export const recurringAfter = (account: string, amount: string) => `${account} setelah ${amount}`;
+export const recurringRecord = () => 'Catat pengeluaran';
+export const recurringRemindTomorrow = () => 'Ingatkan besok';
+export const recurringSkipNote = (date: string) => `Dilewati berarti tidak ada yang tercatat. Jatuh tempo berikutnya ${date}.`;
+export const recurringSavedToast = (account: string, amount: string) => `Pengeluaran tersimpan. ${account} sekarang ${amount}.`;
+
 // ProgressBar (DESIGN.md section 8/16): the visible over-limit row, and the matching
 // fragment inside the full accessibility label. `nominal` is caller-formatted (rp() then
 // shown()) — this file only owns the connector words, never the number formatting.
@@ -845,11 +896,11 @@ export function allAccountsLabel(): string {
 }
 
 export function fixedExpensesLabel(): string {
-  return 'Fixed expenses';
+  return 'Pengeluaran tetap';
 }
 
 export function reviewAndRecordLabel(): string {
-  return 'Review and record';
+  return 'Tinjau dan catat';
 }
 
 export function nextDueLabel(name: string, date: string, amountFormatted: string): string {
@@ -935,16 +986,22 @@ export function privacyByDesignNote(): string {
 
 // Recurring due card (PAGES.md A1).
 export function dueTodayLabel(): string {
-  return 'Due today';
+  return 'Jatuh tempo hari ini';
 }
 
 export function noDueExpensesMessage(): string {
-  return 'No expenses due now.';
+  return 'Tidak ada yang jatuh tempo.';
 }
 
 export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
   return `${name}, due ${date}, ${amountFormatted}`;
 }
+export function recurringAllLabel(): string { return 'Semua'; }
+export function recurringOverdueOverview(days: number): string { return `Terlewat ${days} hari`; }
+export function recurringNextOverview(name: string, date: string): string { return `Berikutnya: ${name} · ${date}`; }
+export function recurringOthersWaiting(count: number): string { return `+ ${count} lainnya menunggu`; }
+export function recurringReviewAndRecord(): string { return 'Tinjau dan catat'; }
+
 
 // ---------------------------------------------------------------- Overview rebuild (R3)
 // DESIGN.md "A. Overview", PAGES.md A1/A2.

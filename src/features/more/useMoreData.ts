@@ -10,7 +10,7 @@ import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { countTransactionsChangedSince, getLastBackupAt } from '@/data/repo/backupLog';
 import { getSetting } from '@/data/repo/settings';
-import { listRecurringDue } from '@/domain/recurring';
+import { listDue } from '@/domain/recurring';
 
 import { backupState, type BackupState } from './backupStatus';
 
@@ -24,7 +24,7 @@ export function useMoreData(): MoreData {
   const { data, refetch } = useQuery({
     queryKey: [...queryKeys.settings, 'more'],
     queryFn: async () => {
-      const [lastBackupAt, timezone, due] = await Promise.all([getLastBackupAt(db), getSetting(db, 'timezone'), listRecurringDue(db)]);
+      const [lastBackupAt, timezone, due] = await Promise.all([getLastBackupAt(db), getSetting(db, 'timezone'), listDue(db)]);
       const changedSince = lastBackupAt ? await countTransactionsChangedSince(db, lastBackupAt) : 0;
       return { lastBackupAt, changedSince, timezone, dueCount: due.length };
     },

@@ -769,7 +769,7 @@ Papan: `AI-Rules` · 1280 × 1040
 - Ketukan chip klarifikasi mengisi draf secara lokal tanpa memanggil AI lagi.
 ## L · Pengeluaran tetap
  
-### L1 · Fixed expenses (daftar)
+### L1 · Pengeluaran tetap (daftar)
  
 Papan: `Recurring` · 390 × 1080
  
@@ -777,11 +777,11 @@ Papan: `Recurring` · 390 × 1080
  
 **Tata letak dan komponen**
  
-- Judul "Fixed expenses" dan satu kalimat: biaya yang dibayar terjadwal, tidak ada yang tercatat sebelum dikonfirmasi.
+- Judul "Pengeluaran tetap" dan satu kalimat: biaya yang dibayar terjadwal, tidak ada yang tercatat sebelum kamu konfirmasi.
 - Kartu ringkasan: "Per month, estimated" Rp1.201.990 (4 pengeluaran tetap, satu berupa perkiraan), jatuh tempo hari ini Rp200.000, berikutnya Internet 5 Nov.
-- Needs confirmation: kartu berbingkai 1,5 px untuk Gym membership (Health, BCA Tabungan, tiap tanggal 28, Rp200.000, tag "Due today") dengan tombol "Record now" dan "Skip this month".
+- Perlu dikonfirmasi: kartu berbingkai 1,5 px untuk Gym membership (Health, BCA Tabungan, tiap tanggal 28, Rp200.000, tag "Jatuh tempo hari ini") dengan tombol "Catat sekarang" dan "Lewati bulan ini". Bulan terlewat tetap menunggu, terlama dulu.
 - Coming up: Internet 5 Nov Rp385.000, Music subscription 12 Nov Rp54.990, Electricity token 24 Nov "about Rp562.000" dengan label Amount varies.
-- Tombol "Add fixed expense" dan catatan pengingat: notifikasi sehari sebelum dan saat jatuh tempo; bulan yang terlewat menunggu di sini, terlama dulu.
+- Tombol "Tambah pengeluaran tetap" dan catatan pengingat: notifikasi sehari sebelum dan saat jatuh tempo; notifikasi tidak memuat nominal saat Sembunyikan nominal aktif.
 - Layar anak More: tanpa bar bawah, panah kembali ke More.
 **Keadaan**
  
@@ -789,7 +789,10 @@ Papan: `Recurring` · 390 × 1080
 **Catatan**
  
 - Pengeluaran tetap adalah template: tidak mengubah saldo, kekayaan bersih, anggaran, atau laporan sampai dikonfirmasi.
-### L2 · Fixed expense — buat / ubah
+- Label "tiap tanggal N" memakai `day_of_month` dari templat — bukan hari dari `due_on` (Electricity token tanggal 31 yang jatuh pada 30 Sep tetap berlabel "tiap tanggal 31").
+- Ringkasan "Perlu dikonfirmasi" = jumlah SEMUA baris `v_recurring_due` (hari ini + terlewat), bukan hanya yang jatuh hari ini.
+- Overview, daftar `/recurring`, dan menu Lainnya memakai `listDue()` yang sama: semua baris `v_recurring_due` (hari ini dan terlewat), terlama dulu.
+### L2 · Pengeluaran tetap — buat / ubah
  
 Papan: `Recurring-Edit` · 390 × 1180
  
@@ -808,7 +811,7 @@ Papan: `Recurring-Edit` · 390 × 1180
 **Catatan**
  
 - Penghitung tanggal memakai target sentuh 44 px.
-### L3 · Fixed expense — konfirmasi saat jatuh tempo
+### L3 · Pengeluaran tetap — konfirmasi saat jatuh tempo
  
 Papan: `Recurring-Confirm` · 390 × 844
  
@@ -820,7 +823,7 @@ Papan: `Recurring-Confirm` · 390 × 844
 - Jumlah dapat diubah (Rp200.000, "Usual amount. Change it if this month differs.").
 - Ringkasan: kategori Health, Pay from BCA Tabungan, tanggal 28 Okt 2026, "BCA Tabungan after" Rp6.642.500.
 - Dampak anggaran: "Health budget goes over by Rp20.000" (Rp120.000 + Rp200.000 = Rp320.000 dari Rp300.000), tetap bisa dicatat.
-- Tombol Record expense (utama), Skip this month, dan Remind me tomorrow. Catatan: melewati tidak mencatat apa pun, jatuh tempo berikutnya 28 Nov 2026.
+- Tombol Catat pengeluaran (utama), Lewati bulan ini, dan Ingatkan besok. Catatan: melewati tidak mencatat apa pun, jatuh tempo berikutnya 28 Nov 2026. "Ingatkan besok" menjadwalkan notifikasi lokal 09.00 dan tidak mengubah event.
 **Keadaan**
  
 - Saldo tidak cukup memblokir Record seperti form manual; melebihi anggaran hanya peringatan.

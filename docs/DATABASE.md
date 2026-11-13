@@ -22,12 +22,12 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `accounts` | bank, tunai, e-wallet, tabungan, valas (`forex`) | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. Akun valas selalu `opening_balance = 0`, saldo awalnya ada di kantong. Nama unik tanpa membedakan huruf besar kecil. |
 | `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan; kantong yang diarsipkan kembali dengan saldonya bila mata uangnya ditambahkan lagi. Satu mata uang hanya satu kantong. |
 | `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)`. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
-| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, recurring, scan). Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
+| `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, **recurring**, scan). Konfirmasi pengeluaran tetap membuat expense biasa dengan `source = 'recurring'`. Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
 | `monthly_limits` | batas total per bulan | `repeat = 1` berarti bulan berikutnya dibuat dari baris ini. |
 | `budgets` | batas per kategori pengeluaran per bulan | `UNIQUE(category_id, month)`. Jumlah semua anggaran tidak boleh melebihi batas bulan itu. |
 | `goals` | target per akun atau total aset | Progres diturunkan dari saldo. |
 | `recurring` | templat pengeluaran tetap | Tidak mengubah apa pun sampai pengguna mengonfirmasi. |
-| `recurring_events` | konfirmasi atau lewati per tanggal jatuh tempo | PK `(recurring_id, due_on)`. Menghapus transaksinya menghapus event, jadi bulan itu jatuh tempo lagi. |
+| `recurring_events` | konfirmasi atau lewati per tanggal jatuh tempo | PK `(recurring_id, due_on)`; `transaction_id` menunjuk ke transaksi `source = 'recurring'` untuk event `recorded`. Menghapus transaksinya menghapus event, jadi bulan itu jatuh tempo lagi. |
 | `backup_log` | riwayat cadangan di perangkat | Tidak ikut berkas cadangan dan tidak disentuh restore. |
 | `import_app_settings` | aplikasi yang notifikasinya boleh dibaca untuk impor otomatis | Hanya metadata (paket, nama, akun tujuan, tingkat dukungan, waktu terlihat); aktif wajib punya akun rupiah. Tidak ikut cadangan, dikosongkan saat restore. Lihat bagian 11. |
 

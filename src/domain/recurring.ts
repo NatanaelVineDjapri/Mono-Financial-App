@@ -8,8 +8,8 @@ import * as accountsRepo from '../data/repo/accounts';
 import type { Db } from '../data/db/types';
 import * as repo from '../data/repo/recurring';
 import type { NewRecurring, RecurringDueRow } from '../data/repo/recurring';
-import * as txRepo from '../data/repo/transactions';
-import { throwDomainError } from './errors';
+import { addExpense } from './transactions';
+import { DomainError, throwDomainError } from './errors';
 
 export async function createRecurring(db: Db, input: NewRecurring, now: string): Promise<number> {
   try {
@@ -39,12 +39,41 @@ export function listRecurringDue(db: Db): Promise<RecurringDueRow[]> {
   return repo.listRecurringDue(db);
 }
 
+// Single source for every due-count surface: today plus undecided overdue months.
+export const listDue = listRecurringDue;
+
+export { listRecurring, monthlyRecurringEstimate } from '../data/repo/recurring';
+
+export interface RecurringSchedule {
+  dayOfMonth: number;
+  firstDueOn: string;
+  endOn?: string | null;
+}
+
+// Mirrors v_recurring_due's calendar clamp. `decidedDueOns` keeps this pure and lets callers
+// ask for the first undecided occurrence without duplicating date arithmetic in UI code.
+export function nextDue(template: RecurringSchedule, today: string, decidedDueOns: readonly string[] = []): string | null {
+  const decided = new Set(decidedDueOns);
+  const start = template.firstDueOn.slice(0, 7);
+  const end = template.endOn;
+  for (let month = start; ; ) {
+    const [year, mon] = month.split('-').map(Number);
+    const last = new Date(Date.UTC(year, mon, 0)).getUTCDate();
+    const due = `${month}-${String(Math.min(template.dayOfMonth, last)).padStart(2, '0')}`;
+    if (end && due > end) return null;
+    if (due >= template.firstDueOn && due >= today && !decided.has(due)) return due;
+    const nextMon = mon === 12 ? 1 : mon + 1;
+    month = `${mon === 12 ? year + 1 : year}-${String(nextMon).padStart(2, '0')}`;
+  }
+}
+
 export interface ConfirmRecurringInput {
   recurringId: number;
   dueOn: string;
   accountId: number;
   categoryId: number;
   amount: number; // the real amount; may differ from the template's estimate (amount_varies)
+  date?: string;
   description?: string;
 }
 
@@ -57,26 +86,14 @@ export async function confirmRecurring(db: Db, input: ConfirmRecurringInput, now
   const result: ConfirmedRecurring = { transactionId: 0, balanceAfter: 0 };
   try {
     await db.withExclusiveTransactionAsync(async txn => {
-      const pockets = await accountsRepo.listPocketBalances(txn, input.accountId);
-      const pocket = pockets.find(p => p.currency === 'IDR');
-      const balanceBefore = pocket?.balance ?? 0;
-
-      result.transactionId = await txRepo.insertTransaction(
-        txn,
-        {
-          kind: 'expense',
-          accountId: input.accountId,
-          currency: 'IDR',
-          categoryId: input.categoryId,
-          amount: input.amount,
-          amountIdr: input.amount,
-          occurredOn: input.dueOn,
-          description: input.description,
-          source: 'recurring',
-        },
-        now,
-      );
-      result.balanceAfter = balanceBefore - input.amount;
+      const account = await accountsRepo.getAccount(txn, input.accountId);
+      if (!account || account.type === 'forex') throw new DomainError('recurring_needs_idr_account');
+      const saved = await addExpense(txn, {
+        accountId: input.accountId, currency: 'IDR', categoryId: input.categoryId, amount: input.amount,
+        occurredOn: input.date ?? input.dueOn, description: input.description, source: 'recurring',
+      }, now);
+      result.transactionId = saved.id;
+      result.balanceAfter = saved.balanceAfter;
 
       await repo.recordRecurringEvent(txn, input.recurringId, input.dueOn, 'recorded', result.transactionId, now);
     });

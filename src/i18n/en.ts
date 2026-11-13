@@ -41,6 +41,56 @@ export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): st
   return guardMessages[code](ctx);
 }
 
+export const recurringTitle = () => 'Fixed expenses';
+export const recurringIntro = () => 'Scheduled recurring costs. Nothing is recorded until you confirm.';
+export const recurringEmpty = () => 'No fixed expenses yet. Add a gym, internet, or subscription.';
+export const recurringAdd = () => 'Add fixed expense';
+export const recurringMonthly = () => 'Per month, estimated';
+export const recurringDueToday = () => 'Due today';
+export const recurringNeedsConfirmation = () => 'Needs confirmation';
+export const recurringComingUp = () => 'Coming up';
+export const recurringRecordNow = () => 'Record now';
+export const recurringSkip = () => 'Skip this month';
+export const recurringVaries = () => 'Amount varies';
+export const recurringAbout = (amount: string) => `about ${amount}`;
+export const recurringDay = (day: number) => `every month on the ${day}`;
+export const recurringToday = () => 'Due today';
+export const recurringOverdue = (days: number) => `${days} days overdue`;
+export const recurringReminderNote = () => 'Reminders are sent a day before and on the due date. Missed months wait here, oldest first.';
+export const recurringNewTitle = () => 'New fixed expense';
+export const recurringEditTitle = () => 'Edit fixed expense';
+export const recurringName = () => 'Name';
+export const recurringNameHint = () => 'Example: Gym membership';
+export const recurringAmount = () => 'Amount';
+export const recurringAmountVaries = () => 'Amount varies each month';
+export const recurringAmountVariesHint = () => 'Turn this on for bills like electricity. The amount above becomes an estimate and you enter the actual amount when confirming.';
+export const recurringCategory = () => 'Category';
+export const recurringPayFrom = () => 'Pay from';
+export const recurringRepeats = () => 'Repeats';
+export const recurringFirstDue = () => 'First due date';
+export const recurringEnds = () => 'Ends';
+export const recurringNoEnd = () => 'No end date';
+export const recurringClampHint = () => 'Days 29 to 31 fall on the last day of shorter months.';
+export const recurringRemind = () => 'Remind me';
+export const recurringRemindHint = () => 'Notification at 09:00, a day before and on the due date';
+export const recurringStop = () => 'Stop fixed expense';
+export const recurringStopTitle = (name: string) => `Stop ${name}?`;
+export const recurringStopBody = () => 'Recorded transactions remain.';
+export const recurringSave = () => 'Save';
+export const recurringNameRequired = () => 'Enter a fixed expense name.';
+export const recurringAmountRequired = () => 'Enter an amount above Rp0.';
+export const recurringAccountRequired = () => 'Choose the paying account.';
+export const recurringEndInvalid = () => 'The end date cannot be before the first due date.';
+export const recurringConfirmTitle = (name: string) => `Record ${name}?`;
+export const recurringConfirmDue = (date: string) => `Due today, ${date} · repeats monthly`;
+export const recurringUsualAmount = () => 'Usual amount. Change it if this month differs.';
+export const recurringDate = () => 'Date';
+export const recurringAfter = (account: string, amount: string) => `${account} after ${amount}`;
+export const recurringRecord = () => 'Record expense';
+export const recurringRemindTomorrow = () => 'Remind me tomorrow';
+export const recurringSkipNote = (date: string) => `Skipping records nothing. The next due date is ${date}.`;
+export const recurringSavedToast = (account: string, amount: string) => `Expense saved. ${account} is now ${amount}.`;
+
 // ProgressBar (DESIGN.md section 8/16): the visible over-limit row, and the matching
 // fragment inside the full accessibility label. `nominal` is caller-formatted (rp() then
 // shown()) — this file only owns the connector words, never the number formatting.
@@ -942,12 +992,18 @@ export function dueTodayLabel(): string {
 }
 
 export function noDueExpensesMessage(): string {
-  return 'No expenses due now.';
+  return 'Nothing is due.';
 }
 
 export function recurringAccessibilityLabel(name: string, date: string, amountFormatted: string): string {
   return `${name}, due ${date}, ${amountFormatted}`;
 }
+export function recurringAllLabel(): string { return 'All'; }
+export function recurringOverdueOverview(days: number): string { return `${days} days overdue`; }
+export function recurringNextOverview(name: string, date: string): string { return `Next: ${name} · ${date}`; }
+export function recurringOthersWaiting(count: number): string { return `+ ${count} more waiting`; }
+export function recurringReviewAndRecord(): string { return 'Review and record'; }
+
 
 // ---------------------------------------------------------------- Overview rebuild (R3)
 // DESIGN.md "A. Overview", PAGES.md A1/A2.

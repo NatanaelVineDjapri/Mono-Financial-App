@@ -1,13 +1,21 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
 import { useDb } from '@/data/db/DbProvider';
 import type { RecurringDueRow } from '@/data/repo/recurring';
-import { listRecurringDue } from '@/domain/recurring';
+import { listDue } from '@/domain/recurring';
 
-export function useRecurringDue(): UseQueryResult<RecurringDueRow[]> {
+export function useDueRecurring(): UseQueryResult<RecurringDueRow[]> {
   const db = useDb();
-  return useQuery({
+  const query = useQuery({
     queryKey: ['recurring', 'due'],
-    queryFn: () => listRecurringDue(db),
+    queryFn: () => listDue(db),
+    staleTime: 0,
   });
+  const { refetch } = query;
+  useFocusEffect(useCallback(() => { void refetch(); }, [refetch]));
+  return query;
 }
+
+export const useRecurringDue = useDueRecurring;

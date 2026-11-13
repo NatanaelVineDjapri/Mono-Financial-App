@@ -85,10 +85,49 @@ export interface RecurringDueRow {
   account_id: number;
   category_id: number;
   due_on: string;
+  day_of_month: number;   // from recurring.day_of_month — the template's canonical day
+  account_name: string;
+  category_name: string;
 }
 
 export async function listRecurringDue(db: Db): Promise<RecurringDueRow[]> {
-  return db.getAllAsync<RecurringDueRow>('select * from v_recurring_due');
+  return db.getAllAsync<RecurringDueRow>(
+    `select v.*, r.day_of_month, a.name as account_name, c.name as category_name
+     from v_recurring_due v
+     join recurring r on r.id = v.recurring_id
+     join accounts a on a.id = v.account_id
+     join categories c on c.id = v.category_id
+     order by v.due_on, v.recurring_id`,
+  );
+}
+
+export async function getRecurring(db: Db, id: number): Promise<RecurringRow | null> {
+  return db.getFirstAsync<RecurringRow>('select * from recurring where id = $id', { $id: id });
+}
+
+export interface RecurringListRow extends RecurringRow {
+  account_name: string;
+  account_type: string;
+  account_balance: number;
+  category_name: string;
+}
+
+export async function listRecurring(db: Db): Promise<RecurringListRow[]> {
+  return db.getAllAsync<RecurringListRow>(
+    `select r.*, a.name as account_name, a.type as account_type, b.balance as account_balance, c.name as category_name
+     from recurring r join accounts a on a.id = r.account_id join v_account_balance b on b.id = a.id
+     join categories c on c.id = r.category_id where r.archived = 0 order by r.day_of_month, r.id`,
+  );
+}
+
+export interface RecurringMonthlyEstimate { amount: number; count: number; variesCount: number }
+
+export async function monthlyRecurringEstimate(db: Db, today: string): Promise<RecurringMonthlyEstimate> {
+  return (await db.getFirstAsync<RecurringMonthlyEstimate>(
+    `select coalesce(sum(amount), 0) as amount, count(*) as count, coalesce(sum(amount_varies), 0) as variesCount
+     from recurring where archived = 0 and first_due_on <= date($monthStart, '+1 month', '-1 day') and (end_on is null or end_on >= $monthStart)`,
+    { $monthStart: `${today.slice(0, 7)}-01` },
+  )) ?? { amount: 0, count: 0, variesCount: 0 };
 }
 
 export type RecurringEventStatus = 'recorded' | 'skipped';

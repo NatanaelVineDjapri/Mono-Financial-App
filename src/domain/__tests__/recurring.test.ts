@@ -2,7 +2,7 @@ import { createAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
 import { openTestDb } from '../../data/db/openTestDb';
 import { deleteTransaction } from '../transactions';
-import { archiveRecurring, confirmRecurring, createRecurring, listRecurringDue, skipRecurring, updateRecurring } from '../recurring';
+import { archiveRecurring, confirmRecurring, createRecurring, listRecurringDue, nextDue, skipRecurring, updateRecurring } from '../recurring';
 
 const NOW = '2026-11-03T10:00:00+07:00';
 
@@ -15,10 +15,17 @@ async function fixture() {
 }
 
 describe('domain recurring', () => {
+  test('nextDue clamps day 31, honours future first due and end date, and skips decided dates', () => {
+    expect(nextDue({ dayOfMonth: 31, firstDueOn: '2026-01-31' }, '2026-02-01')).toBe('2026-02-28');
+    expect(nextDue({ dayOfMonth: 15, firstDueOn: '2026-12-15' }, '2026-10-28')).toBe('2026-12-15');
+    expect(nextDue({ dayOfMonth: 15, firstDueOn: '2026-01-15', endOn: '2026-02-15' }, '2026-03-01')).toBeNull();
+    expect(nextDue({ dayOfMonth: 15, firstDueOn: '2026-01-15' }, '2026-02-01', ['2026-02-15'])).toBe('2026-03-15');
+  });
+
   test('a template due in the past shows up in listRecurringDue', async () => {
     const { db } = await fixture();
     const due = await listRecurringDue(db);
-    expect(due).toEqual([{ recurring_id: expect.any(Number), name: 'Gym membership', amount: 200000, amount_varies: 0, account_id: expect.any(Number), category_id: expect.any(Number), due_on: '2026-10-28' }]);
+    expect(due).toEqual([expect.objectContaining({ name: 'Gym membership', amount: 200000, amount_varies: 0, due_on: '2026-10-28', day_of_month: 28 })]);
   });
 
   test('confirming writes one expense (source=recurring) and one recorded event, and removes it from due', async () => {
