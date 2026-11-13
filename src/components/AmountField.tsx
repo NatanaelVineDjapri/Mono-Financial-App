@@ -5,8 +5,11 @@
 // the live text (via `rp`) means the cursor always lands at the end while typing, same
 // tradeoff every thousands-separated amount input has; acceptable since amounts are
 // entered start-to-end, not edited mid-string.
+import { StyleSheet, Text } from 'react-native';
+
 import { Field, type FieldProps } from '@/components/Field';
 import { rp } from '@/core/money';
+import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 export interface AmountFieldProps extends Pick<FieldProps, 'label' | 'helperText' | 'error' | 'disabled' | 'autoFocus' | 'style' | 'testID'> {
@@ -24,9 +27,17 @@ export function AmountField({ value, onChangeValue, ...rest }: AmountFieldProps)
     <Field
       {...rest}
       keyboardType="number-pad"
-      value={rp(value)}
+      value={value === 0 ? '' : rp(value).replace(/^Rp/, '')}
+      placeholder="0"
+      placeholderTextColor={MonoColors.textDisabled}
       onChangeText={text => onChangeValue(digitsOnly(text))}
       inputStyle={MonoText.figureL}
+      prefix={<Text style={styles.prefix}>Rp</Text>}
+      variant="amount"
     />
   );
 }
+
+const styles = StyleSheet.create({
+  prefix: { fontFamily: 'IBMPlexSans_400Regular', fontSize: 18, lineHeight: 24, color: MonoColors.textSecond },
+});

@@ -9,8 +9,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { CardStack, type CardStackAccount } from '@/components/CardStack';
 import { HeaderButton } from '@/components/HeaderButton';
+import { HeaderRow } from '@/components/HeaderRow';
 import { Icon } from '@/components/Icon';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { useTabBarClearance } from '@/components/TabBar';
 import { formatDateTime } from '@/core/date';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -114,7 +114,7 @@ export default function AccountsScreen() {
   if (isLoading) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
+        <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
       </View>
     );
   }
@@ -122,7 +122,7 @@ export default function AccountsScreen() {
   if (isError || !data) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
+        <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
         <View style={styles.centerFill}>
           <Text style={styles.errorText}>{accountsErrorMessage()}</Text>
           <Button label={retryLabel()} onPress={onRetry} />
@@ -134,7 +134,7 @@ export default function AccountsScreen() {
   if (data.accountCount === 0) {
     return (
       <View style={styles.screen}>
-        <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
+        <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
         <View style={styles.centerFill}>
           <Icon name="bank" size={26} color={MonoColors.textDisabled} />
           <Text style={styles.emptyTitle}>{accountsEmptyTitle()}</Text>
@@ -152,7 +152,7 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
+      <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]}>
         <CardStack
           netWorth={data.netWorth}

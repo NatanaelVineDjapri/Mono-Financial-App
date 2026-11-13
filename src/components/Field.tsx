@@ -4,6 +4,7 @@
 // Focus is a separate 2px light outline, 2px offset (section 5), drawn as an outer ring
 // so it never fights the box's own border.
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps, type TextStyle, type ViewStyle } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -19,17 +20,20 @@ export interface FieldProps extends Omit<TextInputProps, 'style' | 'testID' | 'e
   // Escape hatch for a variant with the same chrome but different type (AmountField's
   // Figure L), not for ad-hoc per-screen tweaks.
   inputStyle?: TextStyle;
+  prefix?: ReactNode;
+  variant?: 'default' | 'amount';
   testID?: string;
 }
 
-export function Field({ label, helperText, error, disabled = false, style, inputStyle, testID, onFocus, onBlur, ...rest }: FieldProps) {
+export function Field({ label, helperText, error, disabled = false, style, inputStyle, prefix, variant = 'default', testID, onFocus, onBlur, ...rest }: FieldProps) {
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={style} testID={testID}>
       {!!label && <Text style={styles.label}>{label}</Text>}
       <View style={[styles.ring, focused && !disabled && styles.ringFocused]}>
-        <View style={[styles.box, !!error && styles.boxError, disabled && styles.boxDisabled]}>
+        <View style={[styles.box, variant === 'amount' && styles.amountBox, !!error && styles.boxError, disabled && styles.boxDisabled]}>
+          {prefix}
           <TextInput
             {...rest}
             testID={testID ? `${testID}-input` : undefined}
@@ -70,9 +74,10 @@ const styles = StyleSheet.create({
     backgroundColor: MonoColors.card,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     gap: 8,
   },
+  amountBox: { minHeight: 56, borderRadius: 16, paddingHorizontal: 16, backgroundColor: '#151516' },
   boxError: { borderWidth: 1.5, borderColor: MonoColors.text },
   boxDisabled: { opacity: 0.4 },
   input: { flex: 1, paddingVertical: 12, ...MonoText.body, color: MonoColors.text },
