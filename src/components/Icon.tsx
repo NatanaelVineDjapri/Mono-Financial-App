@@ -70,7 +70,10 @@ export type IconName =
   | 'slider'
   // Categories: archive and restore.
   | 'archive'
-  | 'undo';
+  | 'undo'
+  // Backup & restore
+  | 'upload'
+  | 'file';
 
 export interface IconProps {
   name: IconName;
@@ -131,6 +134,8 @@ const PATHS: Partial<Record<IconName, string>> = {
   slider: 'M4 7 H13 M17 7 H20 M4 17 H7 M11 17 H20 M15 4.5 V9.5 M9 14.5 V19.5',
   archive: 'M3 5 H21 V9 H3 Z M5 9 V19 H19 V9 M10 13 H14',
   undo: 'M9 14 L4 9 L9 4 M4 9 H15 a5 5 0 0 1 0 10 H8',
+  upload: 'M12 16 V5 M7 10 L12 5 L17 10 M5 20 H19',
+  file: 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
 };
 

@@ -3409,9 +3409,18 @@ export function backupShareTitle(): string {
   return 'Simpan cadangan MONO';
 }
 // ---- Backup screen (I1, I2, I3) ----
-export function backupScreenTitle(): string { return 'Cadangan dan pemulihan'; }
+export function backupScreenTitle(): string { return 'Cadangan & pemulihan'; }
 
-export function backupBannerText(): string { return 'Data kamu hanya ada di perangkat ini. Jika ponsel hilang atau rusak, data akan hilang kecuali kamu punya berkas cadangan.'; }
+export function backupBannerTitle(): string { return 'Data kamu hanya ada di perangkat ini'; }
+export function backupBannerText(): string { return 'Tanpa akun, tanpa cloud. Jika ponsel hilang, data akan hilang kecuali kamu punya berkas cadangan.'; }
+
+export function backupLastCardTitle(): string { return 'Cadangan terakhir'; }
+export function backupSavedLabel(): string { return 'Tersimpan'; }
+export function backupFileLabel(): string { return 'Berkas'; }
+export function backupSizeLabel(): string { return 'Ukuran'; }
+export function backupChangesLabel(): string { return 'Perubahan sejak itu'; }
+export function backupChangesCount(n: number): string { return `${n} transaksi`; }
+export function backupNever(): string { return 'Belum pernah'; }
 
 export function backupLastFull(dateTime: string, fileName: string, sizeKb: string, changed: number): string { return `${dateTime} · ${fileName} · ${sizeKb} KB · ${changed} transaksi berubah`; }
 
@@ -3420,8 +3429,16 @@ export function backupNeverDone(): string { return 'Belum ada cadangan'; }
 export function backupCreateNow(): string { return 'Buat cadangan sekarang'; }
 
 export function backupCreating(): string { return 'Membuat cadangan…'; }
+export function backupCreateHelp(): string { return 'Membuat satu berkas JSON dan membuka lembar bagikan agar kamu bisa memilih tempat menyimpannya.'; }
 
 export function backupContentsTitle(): string { return 'Isi cadangan'; }
+export function backupAccountsLabel(): string { return 'Akun'; }
+export function backupTransactionsLabel(): string { return 'Transaksi, termasuk transfer'; }
+export function backupBudgetsGoalsCatsLabel(): string { return 'Anggaran · target · kategori'; }
+export function backupFixedExpensesLabel(): string { return 'Pengeluaran tetap'; }
+export function backupSettingsLabel(): string { return 'Pengaturan'; }
+export function backupSettingsIncluded(): string { return 'Termasuk'; }
+export function backupFormatNote(v: number): string { return `Format: cadangan MONO, versi skema ${v}. Tidak dienkripsi, jadi simpan berkas di tempat yang aman.`; }
 
 export function backupContentsAccounts(n: number): string { return `${n} akun`; }
 
@@ -3439,13 +3456,17 @@ export function backupContentsSettings(): string { return 'Pengaturan'; }
 
 export function backupContentsFormat(): string { return 'JSON, tidak dienkripsi'; }
 
-export function backupRestoreTitle(): string { return 'Pulihkan'; }
+export function backupRestoreTitle(): string { return 'Pulihkan dari cadangan'; }
+export function backupRestoreSubtitle(): string { return 'Kamu akan melihat isi berkas dan apa yang akan diganti sebelum ada perubahan.'; }
 
 export function backupChooseFile(): string { return 'Pilih berkas cadangan'; }
+export function backupSeeInvalidLink(): string { return 'Lihat contoh berkas yang tidak valid'; }
 
 export function backupRecentTitle(): string { return 'Cadangan terbaru'; }
 
 export function backupRecentEmpty(): string { return 'Belum ada cadangan di perangkat ini'; }
+export function backupRecentCaption(): string { return 'Riwayat hanya mencatat berkas yang dibuat di sini. Tempat kamu menyimpannya terserah kamu.'; }
+export function backupSampleNote(): string { return 'Data contoh: setiap jumlah dan nama berkas di layar ini adalah placeholder.'; }
 
 export function backupRecentRow(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
 

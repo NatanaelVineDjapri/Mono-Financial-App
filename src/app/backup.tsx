@@ -1,8 +1,9 @@
 // Backup and restore screen (board I, PAGES.md I1/I2/I3).
+// Matches the Claude Design / Figma board I1 layout and typography.
 // ONE create-backup path: useCreateBackup. ONE restore path: restoreBackup from data/backup/restore.
 // File picker: File.pickFileAsync() from expo-file-system (no extra dependency).
 // Restore confirm flow is an inline sheet (not a route): safety-backup switch + required tick.
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -10,7 +11,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/Card';
+import { Button } from '@/components/Button';
+import { HeaderRow } from '@/components/HeaderRow';
 import { Icon } from '@/components/Icon';
 import { MonoSwitch } from '@/components/MonoSwitch';
 import { showToast } from '@/components/toast-store';
@@ -26,27 +28,38 @@ import { getSetting } from '@/data/repo/settings';
 import { useCreateBackup } from '@/features/backup/useCreateBackup';
 import { formatBackupTime } from '@/features/more/backupStatus';
 import {
+  backupAccountsLabel,
   backupBannerText,
+  backupBannerTitle,
+  backupBudgetsGoalsCatsLabel,
+  backupChangesCount,
+  backupChangesLabel,
   backupChooseFile,
-  backupContentsAccounts,
-  backupContentsBudgets,
-  backupContentsCategories,
-  backupContentsFormat,
-  backupContentsGoals,
-  backupContentsRecurring,
-  backupContentsSettings,
   backupContentsTitle,
-  backupContentsTransactions,
+  backupCreateHelp,
   backupCreateNow,
   backupCreating,
-  backupLastFull,
-  backupNeverDone,
+  backupFileLabel,
+  backupFixedExpensesLabel,
+  backupFormatNote,
+  backupLastCardTitle,
+  backupNever,
+  backupRecentCaption,
   backupRecentEmpty,
-  backupRecentRow,
   backupRecentTitle,
+  backupRestoreSubtitle,
   backupRestoreTitle,
+  backupSampleNote,
+  backupSavedLabel,
   backupScreenTitle,
+  backupSeeInvalidLink,
+  backupSettingsIncluded,
+  backupSettingsLabel,
+  backupSizeLabel,
+  backupTransactionsLabel,
   cancelLabel,
+  moreBackLabel,
+  moreBackText,
   restoreCheckChecksum,
   restoreCheckCounts,
   restoreCheckJson,
@@ -75,20 +88,30 @@ import {
   restoreSuccessToast,
   restoreWarning,
 } from '@/i18n';
+import { useLanguage } from '@/i18n/lang';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 // ---- Types ----
 
-interface BackupLogRow { id: number; created_at: string; file_name: string; size_bytes: number; tx_count: number; kind: string }
-interface CountsRow { n: number }
+interface BackupLogRow {
+  id: number;
+  created_at: string;
+  file_name: string;
+  size_bytes: number;
+  tx_count: number;
+  kind: string;
+}
+
+interface CountsRow {
+  n: number;
+}
 
 interface ScreenData {
   lastBackupAt: string | null;
   changedSince: number;
   timezone: string | null;
   recentLogs: BackupLogRow[];
-  // counts for the contents section (live from the DB)
   accountCount: number;
   txCount: number;
   budgetCount: number;
@@ -97,7 +120,6 @@ interface ScreenData {
   recurringCount: number;
 }
 
-// A picked file before it is validated
 interface PendingFile {
   uri: string;
   name: string;
@@ -105,14 +127,11 @@ interface PendingFile {
   raw: string;
 }
 
-// What to show when the file is valid and we are in the confirm flow
 interface ValidPending {
   pending: PendingFile;
   file: BackupFile;
-  changedAfter: number; // transactions added after the backup's exported_at
+  changedAfter: number;
 }
-
-// ---- Helpers ----
 
 function kb(bytes: number): string {
   return Math.round(bytes / 1024).toString();
@@ -120,12 +139,7 @@ function kb(bytes: number): string {
 
 // ---- Sub-components ----
 
-function SectionTitle({ children }: { children: string }) {
-  return <Text style={s.sectionTitle} accessibilityRole="header">{children}</Text>;
-}
-
 function InfoRow({ label, pass }: { label: string; pass: boolean | null }) {
-  // pass=null = skipped (grey), true = check, false = x
   const icon = pass === null ? 'minus' : pass ? 'check' : 'close';
   const color = pass === null ? MonoColors.textDisabled : pass ? MonoColors.text : MonoColors.negative;
   return (
@@ -136,7 +150,7 @@ function InfoRow({ label, pass }: { label: string; pass: boolean | null }) {
   );
 }
 
-// ---- Restore: invalid file panel ----
+// ---- Restore: invalid file panel (PAGES.md I3) ----
 
 function InvalidPanel({
   pending,
@@ -157,14 +171,13 @@ function InvalidPanel({
   const isRefs = isChecksum && failure.reason !== 'broken_reference';
 
   const fileVersion = failure.reason === 'newer_schema_version' ? failure.fileVersion : 0;
-  // ponytail: supportedVersion comes from ValidationFailure.supportedVersion, only present for newer_schema_version
   const supportedVersion = failure.reason === 'newer_schema_version' ? failure.supportedVersion : 8;
 
   return (
     <Animated.View entering={FadeIn} exiting={FadeOut} style={StyleSheet.absoluteFill}>
-      <View style={[StyleSheet.absoluteFill, s.sheetBackdrop]} />
+      <Pressable style={[StyleSheet.absoluteFill, s.sheetBackdrop]} onPress={onBack} accessible={false} />
       <View style={s.sheetWrap}>
-        <Card style={s.sheetCard}>
+        <View style={s.sheetCard}>
           <View style={s.sheetTitleRow}>
             <Icon name="alert-circle" size={20} color={MonoColors.negative} />
             <Text style={s.sheetTitle}>{restoreInvalidTitle()}</Text>
@@ -181,65 +194,65 @@ function InvalidPanel({
           </View>
 
           <View style={s.sheetButtons}>
-            <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={cancelLabel()} android_ripple={undefined}
-              style={({ pressed }) => [s.btn, s.btnOutline, pressed && s.pressed]}>
-              <Text style={[MonoText.bodyStrong, { color: MonoColors.text }]}>{cancelLabel()}</Text>
-            </Pressable>
-            <Pressable onPress={onChooseAnother} accessibilityRole="button" accessibilityLabel={restoreChooseAnother()} android_ripple={undefined}
-              style={({ pressed }) => [s.btn, s.btnSolid, pressed && s.pressed]}>
-              <Text style={[MonoText.bodyStrong, { color: MonoColors.bg }]}>{restoreChooseAnother()}</Text>
-            </Pressable>
+            <Button
+              label={cancelLabel()}
+              variant="secondary"
+              onPress={onBack}
+              style={s.flex1}
+              testID="restore-invalid-cancel"
+            />
+            <Button
+              label={restoreChooseAnother()}
+              onPress={onChooseAnother}
+              style={s.flex1}
+              testID="restore-invalid-choose-another"
+            />
           </View>
-        </Card>
+        </View>
       </View>
     </Animated.View>
   );
 }
 
-// ---- Restore: confirm panel ----
+// ---- Restore: confirm panel (PAGES.md I2) ----
 
 function ConfirmPanel({
   valid,
   deviceCounts,
+  timezone,
   onCancel,
   onConfirm,
   restoring,
 }: {
   valid: ValidPending;
   deviceCounts: { accounts: number; transactions: number; budgets: number; goals: number; categories: number; recurring: number };
+  timezone: string | null;
   onCancel: () => void;
   onConfirm: (safetyFirst: boolean) => void;
   restoring: boolean;
 }) {
   const [safety, setSafety] = useState(true);
   const [ticked, setTicked] = useState(false);
-  const db = useDb();
+  const language = useLanguage(st => st.language);
 
   const { file, pending } = valid;
-  const [timezone, setTimezone] = useState<string | null>(null);
-  // load timezone once
-  useState(() => { void getSetting(db, 'timezone').then(setTimezone); });
-
   const exportedAt = file.exported_at;
-  const dateTime = formatBackupTime(exportedAt, timezone);
-
+  const dateTime = formatBackupTime(exportedAt, timezone, language);
   const warn = restoreWarning(valid.changedAfter, dateTime);
 
   return (
     <Animated.View entering={FadeIn} exiting={FadeOut} style={StyleSheet.absoluteFill}>
       <Pressable style={[StyleSheet.absoluteFill, s.sheetBackdrop]} onPress={restoring ? undefined : onCancel} accessible={false} />
       <View style={s.sheetWrap}>
-        <Card style={s.sheetCard}>
+        <View style={s.sheetCard}>
           <View style={s.sheetTitleRow}>
             <Icon name="database" size={20} color={MonoColors.text} />
             <Text style={s.sheetTitle}>{restoreConfirmTitle()}</Text>
           </View>
 
-          {/* File info */}
           <Text style={s.sheetMeta}>{restoreFileInfo(pending.name, dateTime, kb(pending.sizeBytes))}</Text>
           <Text style={s.sheetMeta}>{restoreFileSchemaV(file.schema_version)}</Text>
 
-          {/* Compare */}
           <Text style={s.compareHeader}>{restoreCompareHeader()}</Text>
           <Text style={s.compareRow}>{restoreCompareAccounts(deviceCounts.accounts, file.counts.accounts)}</Text>
           <Text style={s.compareRow}>{restoreCompareTransactions(deviceCounts.transactions, file.counts.transactions)}</Text>
@@ -248,19 +261,16 @@ function ConfirmPanel({
           <Text style={s.compareRow}>{restoreCompareCategories(deviceCounts.categories, file.counts.categories)}</Text>
           <Text style={s.compareRow}>{restoreCompareRecurring(deviceCounts.recurring, file.counts.recurring)}</Text>
 
-          {/* Warning */}
           <View style={s.warnBox}>
             <Icon name="alert" size={16} color={MonoColors.text} />
             <Text style={s.warnText}>{warn}</Text>
           </View>
 
-          {/* Safety backup switch */}
           <View style={s.switchRow}>
             <Text style={s.switchLabel}>{restoreSafetyBackupLabel()}</Text>
             <MonoSwitch value={safety} onValueChange={setSafety} label={restoreSafetyBackupLabel()} disabled={restoring} />
           </View>
 
-          {/* Required tick */}
           <Pressable
             onPress={() => setTicked(t => !t)}
             accessibilityRole="checkbox"
@@ -271,82 +281,83 @@ function ConfirmPanel({
             disabled={restoring}
           >
             <View style={[s.tickBox, ticked && s.tickBoxChecked]}>
-              {ticked && <Icon name="check" size={16} color={MonoColors.bg} />}
+              {ticked && <Icon name="check" size={14} color={MonoColors.bg} />}
             </View>
             <Text style={s.tickLabel}>{restoreConfirmTick()}</Text>
           </Pressable>
 
-          {/* Buttons */}
           <View style={s.sheetButtons}>
-            <Pressable onPress={restoring ? undefined : onCancel} accessibilityRole="button" accessibilityLabel={cancelLabel()}
-              android_ripple={undefined} style={({ pressed }) => [s.btn, s.btnOutline, pressed && s.pressed, restoring && s.disabled]}>
-              <Text style={[MonoText.bodyStrong, { color: MonoColors.text }]}>{cancelLabel()}</Text>
-            </Pressable>
-            <Pressable
-              onPress={!ticked || restoring ? undefined : () => onConfirm(safety)}
-              accessibilityRole="button"
-              accessibilityLabel={restoring ? restoreReplacing() : restoreReplaceButton()}
-              accessibilityState={{ disabled: !ticked || restoring, busy: restoring }}
-              android_ripple={undefined}
-              style={({ pressed }) => [s.btn, s.btnSolid, (!ticked || restoring) && s.disabled, pressed && s.pressed]}
-            >
-              <Text style={[MonoText.bodyStrong, { color: MonoColors.bg }]}>
-                {restoring ? restoreReplacing() : restoreReplaceButton()}
-              </Text>
-            </Pressable>
+            <Button
+              label={cancelLabel()}
+              variant="secondary"
+              disabled={restoring}
+              onPress={onCancel}
+              style={s.flex1}
+              testID="restore-confirm-cancel"
+            />
+            <Button
+              label={restoring ? restoreReplacing() : restoreReplaceButton()}
+              disabled={!ticked || restoring}
+              loading={restoring}
+              onPress={() => onConfirm(safety)}
+              style={s.flex1}
+              testID="restore-confirm-replace"
+            />
           </View>
-        </Card>
+        </View>
       </View>
     </Animated.View>
   );
 }
 
-// ---- Main screen ----
+// ---- Main screen (PAGES.md I1) ----
 
 export default function BackupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const db = useDb();
   const queryClient = useQueryClient();
+  const language = useLanguage(st => st.language);
   const { create: createBackup, busy: backupBusy } = useCreateBackup();
 
-  const [data, setData] = useState<ScreenData | null>(null);
-
-  // panel state
+  // Overlay state
   const [pending, setPending] = useState<PendingFile | null>(null);
   const [validPending, setValidPending] = useState<ValidPending | null>(null);
   const [invalidFailure, setInvalidFailure] = useState<ValidationFailure | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [picking, setPicking] = useState(false);
 
-  const load = useCallback(async () => {
-    const [lastBackupAt, timezone, accounts, transactions, budgets, goals, categories, recurring, logs] = await Promise.all([
-      getLastBackupAt(db),
-      getSetting(db, 'timezone'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from accounts'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from transactions'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from budgets'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from goals'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from categories'),
-      db.getFirstAsync<CountsRow>('select count(*) as n from recurring'),
-      db.getAllAsync<BackupLogRow>('select * from backup_log order by created_at desc limit 10'),
-    ]);
-    const changedSince = lastBackupAt ? await countTransactionsChangedSince(db, lastBackupAt) : 0;
-    setData({
-      lastBackupAt,
-      changedSince,
-      timezone: timezone ?? null,
-      recentLogs: logs,
-      accountCount: accounts?.n ?? 0,
-      txCount: transactions?.n ?? 0,
-      budgetCount: budgets?.n ?? 0,
-      goalCount: goals?.n ?? 0,
-      categoryCount: categories?.n ?? 0,
-      recurringCount: recurring?.n ?? 0,
-    });
-  }, [db]);
+  const { data, refetch } = useQuery({
+    queryKey: ['backup-screen'],
+    queryFn: async (): Promise<ScreenData> => {
+      const [lastBackupAt, timezone, accounts, transactions, budgets, goals, categories, recurring, logs] = await Promise.all([
+        getLastBackupAt(db),
+        getSetting(db, 'timezone'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from accounts where archived = 0'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from transactions'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from budgets'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from goals'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from categories where archived = 0'),
+        db.getFirstAsync<CountsRow>('select count(*) as n from recurring where archived = 0'),
+        db.getAllAsync<BackupLogRow>('select * from backup_log order by created_at desc limit 10'),
+      ]);
+      const changedSince = lastBackupAt ? await countTransactionsChangedSince(db, lastBackupAt) : 0;
+      return {
+        lastBackupAt,
+        changedSince,
+        timezone: timezone ?? null,
+        recentLogs: logs,
+        accountCount: accounts?.n ?? 0,
+        txCount: transactions?.n ?? 0,
+        budgetCount: budgets?.n ?? 0,
+        goalCount: goals?.n ?? 0,
+        categoryCount: categories?.n ?? 0,
+        recurringCount: recurring?.n ?? 0,
+      };
+    },
+  });
 
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  useFocusEffect(useCallback(() => { void refetch(); }, [refetch]));
 
   const handlePick = async () => {
     if (picking) return;
@@ -363,14 +374,13 @@ export default function BackupScreen() {
         raw,
       };
       setPending(p);
-      // validate
+
       const { validateBackup } = await import('@/data/backup/validate');
       const vr = await validateBackup(raw, sha256Hex);
       if (!vr.ok) {
         setInvalidFailure(vr);
         setValidPending(null);
       } else {
-        // how many device transactions are newer than the backup?
         const changedAfter = await countTransactionsChangedSince(db, vr.file.exported_at);
         setValidPending({ pending: p, file: vr.file, changedAfter });
         setInvalidFailure(null);
@@ -380,6 +390,22 @@ export default function BackupScreen() {
     } finally {
       setPicking(false);
     }
+  };
+
+  const handleDemoInvalid = () => {
+    setPending({
+      uri: 'demo://invalid',
+      name: 'mono-backup-future.json',
+      sizeBytes: 41984,
+      raw: '',
+    });
+    setInvalidFailure({
+      ok: false,
+      reason: 'newer_schema_version',
+      fileVersion: 9,
+      supportedVersion: 8,
+    });
+    setValidPending(null);
   };
 
   const dismissSheet = () => {
@@ -400,7 +426,7 @@ export default function BackupScreen() {
       await invalidateAfterWrite(queryClient);
       dismissSheet();
       showToast(restoreSuccessToast());
-      void load();
+      void refetch();
     } catch {
       showToast(restoreFailedToast());
     } finally {
@@ -420,109 +446,194 @@ export default function BackupScreen() {
   const tz = data?.timezone;
   const lastAt = data?.lastBackupAt ?? null;
   const lastLog = data?.recentLogs[0] ?? null;
-  const lastDisplay = lastAt
-    ? backupLastFull(
-        formatBackupTime(lastAt, tz),
-        lastLog?.file_name ?? '',
-        lastLog ? kb(lastLog.size_bytes) : '?',
-        data?.changedSince ?? 0,
-      )
-    : backupNeverDone();
+
+  const lastDisplayDate = lastAt
+    ? formatBackupTime(lastAt, tz, language)
+    : backupNever();
+  const lastFileName = lastLog?.file_name ?? '—';
+  const lastFileSize = lastLog ? `${kb(lastLog.size_bytes)} KB` : '—';
 
   return (
-    <View style={[s.screen, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back"
-          android_ripple={undefined} hitSlop={4} style={({ pressed }) => [s.back, pressed && s.pressed]}>
-          <Icon name="chevron-left" color={MonoColors.text} />
+    <View style={s.screen} testID="backup-screen">
+      {/* Top back button: "< More" */}
+      <View style={[s.backRow, { paddingTop: insets.top + 8 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={moreBackLabel()}
+          hitSlop={8}
+          android_ripple={undefined}
+          style={({ pressed }) => [s.backBtn, pressed && s.pressed]}
+          testID="backup-back"
+        >
+          <Icon name="chevron-left" size={20} color={MonoColors.textSecond} />
+          <Text style={s.backText}>{moreBackText()}</Text>
         </Pressable>
-        <Text style={s.headerTitle} accessibilityRole="header">{backupScreenTitle()}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: 32 + insets.bottom }]} showsVerticalScrollIndicator={false}>
-        {/* Banner */}
-        <View style={s.banner}>
-          <Icon name="lock" size={20} color={MonoColors.textMeta} />
-          <Text style={s.bannerText}>{backupBannerText()}</Text>
+      {/* Screen Title: serif "Backup & restore" */}
+      <HeaderRow title={backupScreenTitle()} withTopInset={false} />
+
+      <ScrollView
+        contentContainerStyle={[s.content, { paddingBottom: 28 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+        testID="backup-scroll"
+      >
+        {/* 1. Banner: Your data lives only on this device */}
+        <View style={s.bannerCard}>
+          <Icon name="lock" size={20} color={MonoColors.text} />
+          <View style={s.bannerTextWrap}>
+            <Text style={s.bannerTitle}>{backupBannerTitle()}</Text>
+            <Text style={s.bannerSub}>{backupBannerText()}</Text>
+          </View>
         </View>
 
-        {/* Last backup */}
-        <Card style={s.lastCard}>
-          <View style={s.lastRow}>
-            {!lastAt && <Icon name="alert" size={16} color={MonoColors.text} />}
-            <Text style={s.lastText}>{lastDisplay}</Text>
+        {/* 2. Last backup Card */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>{backupLastCardTitle()}</Text>
+
+          <View style={s.kvList}>
+            <View style={s.kvRow}>
+              <Text style={s.kvLabel}>{backupSavedLabel()}</Text>
+              <Text style={s.kvValue}>{lastDisplayDate}</Text>
+            </View>
+            <View style={s.kvRow}>
+              <Text style={s.kvLabel}>{backupFileLabel()}</Text>
+              <Text style={s.kvValueMono} numberOfLines={1} ellipsizeMode="middle">{lastFileName}</Text>
+            </View>
+            <View style={s.kvRow}>
+              <Text style={s.kvLabel}>{backupSizeLabel()}</Text>
+              <Text style={s.kvValue}>{lastFileSize}</Text>
+            </View>
+            <View style={s.kvRow}>
+              <Text style={s.kvLabel}>{backupChangesLabel()}</Text>
+              <Text style={s.kvValue}>{backupChangesCount(data?.changedSince ?? 0)}</Text>
+            </View>
           </View>
-        </Card>
 
-        {/* Create backup */}
-        <Pressable
-          onPress={backupBusy ? undefined : createBackup}
-          accessibilityRole="button"
-          accessibilityLabel={backupBusy ? backupCreating() : backupCreateNow()}
-          accessibilityState={{ busy: backupBusy }}
-          android_ripple={undefined}
-          style={({ pressed }) => [s.createBtn, pressed && s.pressed, backupBusy && s.disabled]}
-          testID="backup-create-btn"
-        >
-          <Icon name="download" size={20} color={MonoColors.bg} />
-          <Text style={s.createBtnText}>{backupBusy ? backupCreating() : backupCreateNow()}</Text>
-        </Pressable>
+          <Button
+            label={backupBusy ? backupCreating() : backupCreateNow()}
+            icon="download"
+            loading={backupBusy}
+            onPress={createBackup}
+            style={s.cardBtn}
+            testID="backup-create-btn"
+          />
 
-        {/* Contents */}
-        <SectionTitle>{backupContentsTitle()}</SectionTitle>
-        <Card>
-          <Text style={s.contentLine}>{backupContentsAccounts(data?.accountCount ?? 0)}</Text>
-          <Text style={s.contentLine}>{backupContentsTransactions(data?.txCount ?? 0)}</Text>
-          <Text style={s.contentLine}>{backupContentsBudgets(data?.budgetCount ?? 0)} · {backupContentsGoals(data?.goalCount ?? 0)}</Text>
-          <Text style={s.contentLine}>{backupContentsCategories(data?.categoryCount ?? 0)}</Text>
-          <Text style={s.contentLine}>{backupContentsRecurring(data?.recurringCount ?? 0)}</Text>
-          <Text style={s.contentLine}>{backupContentsSettings()}</Text>
-          <Text style={[s.contentLine, s.meta]}>{backupContentsFormat()}</Text>
-        </Card>
+          <Text style={s.cardCaption}>{backupCreateHelp()}</Text>
+        </View>
 
-        {/* Restore */}
-        <SectionTitle>{backupRestoreTitle()}</SectionTitle>
-        <Pressable
-          onPress={picking ? undefined : handlePick}
-          accessibilityRole="button"
-          accessibilityLabel={backupChooseFile()}
-          android_ripple={undefined}
-          style={({ pressed }) => [s.chooseBtn, pressed && s.pressed, picking && s.disabled]}
-          testID="backup-choose-file"
-        >
-          <Icon name="database" size={20} color={MonoColors.text} />
-          <Text style={s.chooseBtnText}>{backupChooseFile()}</Text>
-        </Pressable>
+        {/* 3. What a backup contains Card */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>{backupContentsTitle()}</Text>
 
-        {/* Recent backups */}
-        <SectionTitle>{backupRecentTitle()}</SectionTitle>
-        {data && data.recentLogs.length === 0 ? (
-          <Text style={s.empty}>{backupRecentEmpty()}</Text>
-        ) : (
-          <Card style={{ gap: 8 }}>
-            {(data?.recentLogs ?? []).map(log => (
-              <Text key={log.id} style={s.logRow}>
-                {backupRecentRow(log.file_name, formatBackupTime(log.created_at, tz), kb(log.size_bytes))}
+          <View style={s.tableList}>
+            <View style={s.tableRow}>
+              <Text style={s.tableLabel}>{backupAccountsLabel()}</Text>
+              <Text style={s.tableValue}>{data?.accountCount ?? 0}</Text>
+            </View>
+            <View style={s.tableRow}>
+              <Text style={s.tableLabel}>{backupTransactionsLabel()}</Text>
+              <Text style={s.tableValue}>{data?.txCount ?? 0}</Text>
+            </View>
+            <View style={s.tableRow}>
+              <Text style={s.tableLabel}>{backupBudgetsGoalsCatsLabel()}</Text>
+              <Text style={s.tableValue}>
+                {data ? `${data.budgetCount} · ${data.goalCount} · ${data.categoryCount}` : '0 · 0 · 0'}
               </Text>
-            ))}
-          </Card>
-        )}
+            </View>
+            <View style={s.tableRow}>
+              <Text style={s.tableLabel}>{backupFixedExpensesLabel()}</Text>
+              <Text style={s.tableValue}>{data?.recurringCount ?? 0}</Text>
+            </View>
+            <View style={[s.tableRow, s.tableRowLast]}>
+              <Text style={s.tableLabel}>{backupSettingsLabel()}</Text>
+              <Text style={s.tableValue}>{backupSettingsIncluded()}</Text>
+            </View>
+          </View>
+
+          <Text style={s.cardCaption}>{backupFormatNote(1)}</Text>
+        </View>
+
+        {/* 4. Restore from a backup Card */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>{backupRestoreTitle()}</Text>
+          <Text style={s.restoreSub}>{backupRestoreSubtitle()}</Text>
+
+          <Button
+            label={backupChooseFile()}
+            icon="upload"
+            variant="secondary"
+            loading={picking}
+            onPress={handlePick}
+            testID="backup-choose-file"
+          />
+
+          <Pressable
+            onPress={handleDemoInvalid}
+            accessibilityRole="button"
+            accessibilityLabel={backupSeeInvalidLink()}
+            android_ripple={undefined}
+            style={s.linkWrap}
+            testID="backup-see-invalid-link"
+          >
+            <Text style={s.linkText}>{backupSeeInvalidLink()}</Text>
+          </Pressable>
+        </View>
+
+        {/* 5. Recent backups Card */}
+        <View style={s.card}>
+          <Text style={s.cardTitle}>{backupRecentTitle()}</Text>
+
+          {data && data.recentLogs.length === 0 ? (
+            <Text style={s.emptyText}>{backupRecentEmpty()}</Text>
+          ) : (
+            <View style={s.recentList}>
+              {(data?.recentLogs ?? []).slice(0, 3).map((log, index, arr) => (
+                <View key={log.id} style={[s.recentRow, index === arr.length - 1 && s.tableRowLast]}>
+                  <Icon name="file" size={20} color={MonoColors.textSecond} />
+                  <View style={s.recentTextWrap}>
+                    <Text style={s.recentDate}>
+                      {formatBackupTime(log.created_at, tz, language).replace(/ [A-Z]{3,4}$/, '')}
+                    </Text>
+                    <Text style={s.recentMeta}>
+                      {log.file_name} · {kb(log.size_bytes)} KB
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <Text style={s.cardCaption}>{backupRecentCaption()}</Text>
+        </View>
+
+        {/* 6. Footer disclaimer */}
+        <View style={s.footerNote}>
+          <Icon name="info" size={16} color={MonoColors.textMeta} />
+          <Text style={s.footerNoteText}>{backupSampleNote()}</Text>
+        </View>
       </ScrollView>
 
-      {/* Overlay panels */}
+      {/* Overlay: Invalid file panel (I3) */}
       {pending && invalidFailure && (
         <InvalidPanel
           pending={pending}
           failure={invalidFailure}
           onBack={dismissSheet}
-          onChooseAnother={() => { dismissSheet(); void handlePick(); }}
+          onChooseAnother={() => {
+            dismissSheet();
+            void handlePick();
+          }}
         />
       )}
+
+      {/* Overlay: Confirm replacement panel (I2) */}
       {pending && validPending && (
         <ConfirmPanel
           valid={validPending}
           deviceCounts={deviceCounts}
+          timezone={tz ?? null}
           onCancel={dismissSheet}
           onConfirm={handleRestore}
           restoring={restoring}
@@ -532,50 +643,228 @@ export default function BackupScreen() {
   );
 }
 
-// ---- Styles ----
+// ---- Styles matching the Claude Design / Figma canvas ----
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingBottom: 4 },
-  back: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { ...MonoText.titleM, color: MonoColors.text, flex: 1, marginLeft: 4 },
-  content: { paddingHorizontal: 16, gap: 12 },
 
-  banner: { flexDirection: 'row', gap: 10, backgroundColor: MonoColors.surface, borderRadius: 12, padding: 14, alignItems: 'flex-start' },
-  bannerText: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
-
-  lastCard: { gap: 2 },
-  lastRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  lastText: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
-
-  createBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    backgroundColor: MonoColors.text, borderRadius: 16, minHeight: 48, paddingHorizontal: 20,
+  backRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  createBtnText: { ...MonoText.bodyStrong, color: MonoColors.bg },
-
-  sectionTitle: { ...MonoText.label, color: MonoColors.textMeta, marginTop: 4, marginLeft: 4 },
-
-  contentLine: { ...MonoText.bodyS, color: MonoColors.textSecond, lineHeight: 22 },
-  meta: { color: MonoColors.textDisabled, marginTop: 4 },
-
-  chooseBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: MonoColors.card, borderRadius: 16, minHeight: 48,
-    paddingHorizontal: 16, borderWidth: 1, borderColor: MonoColors.border,
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 40,
+    paddingRight: 8,
   },
-  chooseBtnText: { ...MonoText.bodyStrong, color: MonoColors.text },
+  backText: {
+    ...MonoText.body,
+    fontSize: 15,
+    color: MonoColors.textSecond,
+  },
 
-  empty: { ...MonoText.bodyS, color: MonoColors.textMeta, marginLeft: 4 },
-  logRow: { ...MonoText.mono, color: MonoColors.textSecond, fontSize: 12, lineHeight: 18 },
+  content: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+
+  // 1. Banner
+  bannerCard: {
+    backgroundColor: '#151516',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#272728',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  bannerTextWrap: {
+    flex: 1,
+    gap: 4,
+  },
+  bannerTitle: {
+    ...MonoText.bodyStrong,
+    fontSize: 15,
+    lineHeight: 20,
+    color: MonoColors.text,
+  },
+  bannerSub: {
+    ...MonoText.bodyS,
+    fontSize: 13,
+    lineHeight: 18,
+    color: MonoColors.textMeta,
+  },
+
+  // Cards
+  card: {
+    backgroundColor: '#151516',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#272728',
+    padding: 16,
+  },
+  cardTitle: {
+    ...MonoText.h2,
+    fontSize: 15,
+    lineHeight: 20,
+    color: MonoColors.text,
+    marginBottom: 12,
+  },
+
+  // KV list (Last backup)
+  kvList: {
+    gap: 8,
+  },
+  kvRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 24,
+  },
+  kvLabel: {
+    ...MonoText.body,
+    fontSize: 14,
+    color: MonoColors.textMeta,
+  },
+  kvValue: {
+    ...MonoText.bodyStrong,
+    fontSize: 14,
+    color: MonoColors.text,
+  },
+  kvValueMono: {
+    ...MonoText.mono,
+    fontSize: 13,
+    color: MonoColors.text,
+    maxWidth: '65%',
+  },
+
+  cardBtn: {
+    marginTop: 16,
+  },
+  cardCaption: {
+    ...MonoText.caption,
+    fontSize: 13,
+    lineHeight: 18,
+    color: MonoColors.textDisabled,
+    marginTop: 10,
+  },
+
+  // Table list (What a backup contains)
+  tableList: {
+    borderTopWidth: 1,
+    borderTopColor: '#202022',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#202022',
+  },
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
+  tableLabel: {
+    ...MonoText.body,
+    fontSize: 14,
+    color: MonoColors.textMeta,
+  },
+  tableValue: {
+    ...MonoText.bodyStrong,
+    fontSize: 14,
+    color: MonoColors.text,
+  },
+
+  // Restore card
+  restoreSub: {
+    ...MonoText.bodyS,
+    fontSize: 13,
+    lineHeight: 18,
+    color: MonoColors.textMeta,
+    marginBottom: 14,
+  },
+  linkWrap: {
+    marginTop: 14,
+    alignSelf: 'flex-start',
+  },
+  linkText: {
+    ...MonoText.bodyS,
+    fontSize: 13,
+    color: MonoColors.textSecond,
+    textDecorationLine: 'underline',
+  },
+
+  // Recent backups card
+  emptyText: {
+    ...MonoText.bodyS,
+    fontSize: 13,
+    color: MonoColors.textMeta,
+    paddingVertical: 8,
+  },
+  recentList: {
+    borderTopWidth: 1,
+    borderTopColor: '#202022',
+  },
+  recentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#202022',
+  },
+  recentTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  recentDate: {
+    ...MonoText.bodyStrong,
+    fontSize: 14,
+    color: MonoColors.text,
+  },
+  recentMeta: {
+    ...MonoText.mono,
+    fontSize: 12,
+    color: MonoColors.textMeta,
+  },
+
+  // Footer note
+  footerNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 4,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  footerNoteText: {
+    ...MonoText.caption,
+    fontSize: 12,
+    lineHeight: 16,
+    color: MonoColors.textDisabled,
+    flex: 1,
+  },
 
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.5 },
 
-  // Sheets
+  // Sheets (Invalid and Confirm)
   sheetBackdrop: { backgroundColor: 'rgba(0,0,0,0.66)' },
   sheetWrap: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 16, paddingBottom: 32 },
-  sheetCard: { gap: 12 },
+  sheetCard: {
+    backgroundColor: '#151516',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#272728',
+    padding: 16,
+    gap: 12,
+  },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sheetTitle: { ...MonoText.titleM, color: MonoColors.text, flex: 1 },
   sheetBody: { ...MonoText.bodyS, color: MonoColors.textSecond },
@@ -589,19 +878,34 @@ const s = StyleSheet.create({
   compareHeader: { ...MonoText.h2, color: MonoColors.text, marginTop: 4 },
   compareRow: { ...MonoText.bodyS, color: MonoColors.textSecond },
 
-  warnBox: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', backgroundColor: MonoColors.surface, borderRadius: 10, padding: 10, marginTop: 4 },
+  warnBox: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'flex-start',
+    backgroundColor: MonoColors.surface,
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 4,
+  },
   warnText: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
 
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
   switchLabel: { ...MonoText.body, color: MonoColors.text, flex: 1, marginRight: 12 },
 
   tickRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, minHeight: 44, paddingVertical: 8 },
-  tickBox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: MonoColors.textDisabled, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  tickBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: MonoColors.textDisabled,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
   tickBoxChecked: { backgroundColor: MonoColors.text, borderColor: MonoColors.text },
   tickLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
 
   sheetButtons: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  btn: { flex: 1, minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  btnOutline: { borderWidth: 1, borderColor: MonoColors.border, backgroundColor: MonoColors.card },
-  btnSolid: { backgroundColor: MonoColors.text },
+  flex1: { flex: 1 },
 });

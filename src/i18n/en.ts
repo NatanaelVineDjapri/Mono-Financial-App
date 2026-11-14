@@ -3412,9 +3412,18 @@ export function backupShareTitle(): string {
   return 'Save the MONO backup';
 }
 // ---- Backup screen (I1, I2, I3) ----
-export function backupScreenTitle(): string { return 'Backup and restore'; }
+export function backupScreenTitle(): string { return 'Backup & restore'; }
 
-export function backupBannerText(): string { return 'Your data only exists on this device. If you lose your phone, your data is gone unless you have a backup file.'; }
+export function backupBannerTitle(): string { return 'Your data lives only on this device'; }
+export function backupBannerText(): string { return 'No account, no cloud. If the phone is lost, so is the data, unless you keep a backup file.'; }
+
+export function backupLastCardTitle(): string { return 'Last backup'; }
+export function backupSavedLabel(): string { return 'Saved'; }
+export function backupFileLabel(): string { return 'File'; }
+export function backupSizeLabel(): string { return 'Size'; }
+export function backupChangesLabel(): string { return 'Changes since'; }
+export function backupChangesCount(n: number): string { return n === 1 ? '1 transaction' : `${n} transactions`; }
+export function backupNever(): string { return 'Never'; }
 
 export function backupLastFull(dateTime: string, fileName: string, sizeKb: string, changed: number): string { const c = changed === 1 ? '1 transaction' : `${changed} transactions`; return `${dateTime} · ${fileName} · ${sizeKb} KB · ${c} changed`; }
 
@@ -3423,8 +3432,16 @@ export function backupNeverDone(): string { return 'No backup yet'; }
 export function backupCreateNow(): string { return 'Create backup now'; }
 
 export function backupCreating(): string { return 'Creating backup…'; }
+export function backupCreateHelp(): string { return 'Creates one JSON file and opens the share sheet so you choose where to keep it.'; }
 
-export function backupContentsTitle(): string { return 'Backup contents'; }
+export function backupContentsTitle(): string { return 'What a backup contains'; }
+export function backupAccountsLabel(): string { return 'Accounts'; }
+export function backupTransactionsLabel(): string { return 'Transactions, incl. transfers'; }
+export function backupBudgetsGoalsCatsLabel(): string { return 'Budgets · goals · categories'; }
+export function backupFixedExpensesLabel(): string { return 'Fixed expenses'; }
+export function backupSettingsLabel(): string { return 'Settings'; }
+export function backupSettingsIncluded(): string { return 'Included'; }
+export function backupFormatNote(v: number): string { return `Format: MONO backup, schema version ${v}. Not encrypted, so keep the file somewhere private.`; }
 
 export function backupContentsAccounts(n: number): string { return `${n} ${n === 1 ? 'account' : 'accounts'}`; }
 
@@ -3442,13 +3459,17 @@ export function backupContentsSettings(): string { return 'Settings'; }
 
 export function backupContentsFormat(): string { return 'JSON, not encrypted'; }
 
-export function backupRestoreTitle(): string { return 'Restore'; }
+export function backupRestoreTitle(): string { return 'Restore from a backup'; }
+export function backupRestoreSubtitle(): string { return 'You will see what the file contains and what will be replaced before anything changes.'; }
 
 export function backupChooseFile(): string { return 'Choose backup file'; }
+export function backupSeeInvalidLink(): string { return 'See what an invalid file looks like'; }
 
 export function backupRecentTitle(): string { return 'Recent backups'; }
 
 export function backupRecentEmpty(): string { return 'No backups on this device yet'; }
+export function backupRecentCaption(): string { return 'History only lists files created here. Where you saved them is up to you.'; }
+export function backupSampleNote(): string { return 'Sample data: every count and file name on this screen is a placeholder.'; }
 
 export function backupRecentRow(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
 
