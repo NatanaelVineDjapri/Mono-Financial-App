@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, interpolateColor, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 
 import type { IconName } from '@/components/Icon';
 import { Icon } from '@/components/Icon';
@@ -313,6 +314,35 @@ export function TabBar({ items, activeKey, onPress, fabLabel, onFabPress, fabOpe
       testID={testID}
       style={[styles.zone, { height: TAB_BAR_ZONE_HEIGHT + insets.bottom, paddingBottom: ZONE_PADDING_BOTTOM + insets.bottom }]}
     >
+      {/* ponytail: SVG linear gradient starting at toolbar midpoint obscures bottom content; upgrade to Skia blur if dynamic mesh lighting is needed. */}
+      <View
+        testID={testID && `${testID}-ambient-shadow`}
+        style={[
+          styles.ambientShadow,
+          {
+            bottom: 0,
+            height: BAR_HEIGHT / 2 + ZONE_PADDING_BOTTOM + insets.bottom,
+          },
+        ]}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        aria-hidden
+      >
+        <Svg width="100%" height="100%">
+          <Defs>
+            <LinearGradient id="dock-bottom-darkness" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor="#000000" stopOpacity={0} />
+              <Stop offset="20%" stopColor="#000000" stopOpacity={0.2} />
+              <Stop offset="40%" stopColor="#000000" stopOpacity={0.45} />
+              <Stop offset="65%" stopColor="#000000" stopOpacity={0.65} />
+              <Stop offset="85%" stopColor="#000000" stopOpacity={0.73} />
+              <Stop offset="100%" stopColor="#000000" stopOpacity={0.75} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#dock-bottom-darkness)" />
+        </Svg>
+      </View>
       <View testID={testID && `${testID}-bar`} accessibilityRole="tablist" style={styles.bar}>
         <LabelMeasurer items={items} onMeasure={onMeasure} testID={testID && `${testID}-measure`} />
         {buttons.slice(0, half)}
@@ -344,7 +374,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BAR_BORDER,
     paddingHorizontal: BAR_PADDING_HORIZONTAL,
-    boxShadow: '0px -10px 28px rgba(0,0,0,0.55)',
+  },
+  ambientShadow: {
+    position: 'absolute',
+    left: -ZONE_MARGIN_HORIZONTAL,
+    right: -ZONE_MARGIN_HORIZONTAL,
+    pointerEvents: 'none',
   },
   // Horizontally centred over the bar; `bottom` is set per render from the safe-area inset.
   fabHost: { position: 'absolute', left: 0, right: 0, alignItems: 'center', pointerEvents: 'box-none' },

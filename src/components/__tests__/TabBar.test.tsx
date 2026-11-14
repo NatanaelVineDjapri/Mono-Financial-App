@@ -139,6 +139,20 @@ describe('TabBar', () => {
     });
   });
 
+  test('ambient shadow: soft diffused black shadow layer behind the dock', async () => {
+    const result = await renderBar({}, 20);
+    const shadow = result.getByTestId('tab-bar-ambient-shadow', { includeHiddenElements: true });
+    expect(shadow).toBeTruthy();
+    expect(shadow.props.pointerEvents).toBe('none');
+    expect(flat(shadow.props.style)).toMatchObject({
+      position: 'absolute',
+      left: -10,
+      right: -10,
+      bottom: 0,
+      height: 66,
+    });
+  });
+
   test('active slot: the light pill, 48 high; inactive slots are clear. Each is at least 44 wide', async () => {
     const result = await renderBar({ activeKey: 'budgets' });
     const active = flat(result.getByRole('tab', { name: 'Budgets' }).parent?.props.style);
