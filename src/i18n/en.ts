@@ -2487,6 +2487,217 @@ export function moreReportsSub(): string {
   return 'Cash flow, spending, net worth, CSV export';
 }
 
+// ---------------------------------------------------------------- Reports (H)
+export function reportsBackLabel(): string {
+  return 'Back to More';
+}
+
+export function reportsRangeMonth(): string {
+  return 'Month';
+}
+
+export function reportsRange3Months(): string {
+  return '3 months';
+}
+
+export function reportsRange6Months(): string {
+  return '6 months';
+}
+
+export function reportsRangeYear(): string {
+  return 'Year';
+}
+
+export function reportsPreviousPeriodLabel(): string {
+  return 'Previous period';
+}
+
+export function reportsNextPeriodLabel(): string {
+  return 'Next period';
+}
+
+export function reportsFlowCaption(rangeText: string): string {
+  return `${rangeText} · transfers excluded`;
+}
+
+export function reportsNetCashFlowLabel(): string {
+  return 'Net cash flow';
+}
+
+export function reportsSavingsRateLabel(): string {
+  return 'Savings rate';
+}
+
+export function reportsSixMonthTrendTitle(): string {
+  return 'Six-month trend';
+}
+
+export function reportsTrendCaption(): string {
+  return 'Rp million. Bars are drawn from the exact values in the table.';
+}
+
+export function reportsTrendPartialNote(monthNameText: string, cutoffText: string): string {
+  return `* ${monthNameText} to ${cutoffText}. Values rounded to Rp100.000.`;
+}
+
+export function reportsRoundedNote(): string {
+  return 'Values rounded to Rp100.000.';
+}
+
+export function reportsColumnMonth(): string {
+  return 'MONTH';
+}
+
+export function reportsColumnIncome(): string {
+  return 'INCOME';
+}
+
+export function reportsColumnExpenses(): string {
+  return 'EXPENSES';
+}
+
+export function reportsColumnNet(): string {
+  return 'NET';
+}
+
+export function reportsColumnValue(): string {
+  return 'VALUE';
+}
+
+export function reportsColumnChange(): string {
+  return 'CHANGE';
+}
+
+export function reportsColumnCategory(): string {
+  return 'CATEGORY';
+}
+
+export function reportsColumnAmount(): string {
+  return 'AMOUNT';
+}
+
+export function reportsColumnShare(): string {
+  return 'SHARE';
+}
+
+export function reportsSpendingByCategoryTitle(): string {
+  return 'Spending by category';
+}
+
+export function reportsCategoryCaption(rangeText: string, totalFormatted: string): string {
+  return `${rangeText} · total ${totalFormatted}`;
+}
+
+export function reportsSharesRoundingNote(): string {
+  return 'Shares are rounded and may not add to exactly 100%.';
+}
+
+export function reportsNoSpendingMessage(): string {
+  return 'No spending in this period.';
+}
+
+export function reportsNetWorthTitle(): string {
+  return 'Net worth';
+}
+
+export function reportsNetWorthCaption(): string {
+  return 'Month-end, Rp million · all accounts added together';
+}
+
+export function reportsFirstRecordLabel(): string {
+  return 'first record';
+}
+
+export function reportsTodayWord(): string {
+  return 'today';
+}
+
+export function reportsNetWorthUp(amountFormatted: string): string {
+  return `up ${amountFormatted}`;
+}
+
+export function reportsNetWorthDown(amountFormatted: string): string {
+  return `down ${amountFormatted}`;
+}
+
+export function reportsNetWorthFlat(): string {
+  return 'unchanged';
+}
+
+export function reportsNetWorthExactNote(
+  whenText: string,
+  changeText: string,
+  valueFormatted: string,
+  pctFormatted: string,
+  previousMonthText: string,
+): string {
+  return `Exact ${whenText}: ${valueFormatted}, ${changeText} (${pctFormatted}) from the ${previousMonthText} month-end. Changes use exact values, so they can differ from the rounded columns by 0,1. Transfers do not change net worth.`;
+}
+
+export function reportsNetWorthExactFirstNote(whenText: string, valueFormatted: string): string {
+  return `Exact ${whenText}: ${valueFormatted}. Changes use exact values, so they can differ from the rounded columns by 0,1. Transfers do not change net worth.`;
+}
+
+export function reportsExportTitle(): string {
+  return 'Export CSV';
+}
+
+export function reportsExportCaption(): string {
+  return 'Saved to this device. Nothing is uploaded.';
+}
+
+export function reportsExportTransactionsLabel(): string {
+  return 'Transactions';
+}
+
+export function reportsExportTransactionsSub(): string {
+  return 'Selected period, all accounts';
+}
+
+export function reportsExportBalancesLabel(): string {
+  return 'Account balances';
+}
+
+export function reportsExportBalancesSub(): string {
+  return 'Month-end, per account';
+}
+
+export function reportsCsvButtonLabel(): string {
+  return 'CSV';
+}
+
+export function reportsExportTransactionsAccessibility(): string {
+  return 'Export transactions as CSV';
+}
+
+export function reportsExportBalancesAccessibility(): string {
+  return 'Export account balances as CSV';
+}
+
+export function reportsCsvShareTitle(): string {
+  return 'Share CSV';
+}
+
+export function reportsCsvReadyToast(): string {
+  return 'CSV ready to share.';
+}
+
+export function reportsCsvFailedToast(): string {
+  return "Couldn't export the file.";
+}
+
+export function reportsFooterNote(): string {
+  return 'All figures on this screen are computed from your recorded transactions.';
+}
+
+export function reportsEmptyTitle(): string {
+  return 'Not enough data for a report';
+}
+
+export function reportsEmptyBody(): string {
+  return 'Keep recording for one full month, then come back.';
+}
+
 export function moreCategoriesTitle(): string {
   return 'Categories';
 }

@@ -1,4 +1,4 @@
-import { axisLabel, labelIndexes, millions, millionsCallout, niceScale } from '../chartScale';
+import { axisLabel, labelIndexes, millions, millionsCallout, millionsFixed, niceScale } from '../chartScale';
 
 describe('niceScale', () => {
   test('the cash flow board: a 7,5 million high gives 0, 4, 8', () => {
@@ -41,6 +41,18 @@ describe('millions', () => {
     [-2_500_000, '−2,5'],
     [12_000_000, '12'],
   ])('%i → %s', (value, expected) => expect(millions(value)).toBe(expected));
+});
+
+describe('millionsFixed', () => {
+  test.each([
+    [0, '0,0'],
+    [6_800_000, '6,8'],
+    [6_849_999, '6,8'],
+    [6_850_000, '6,9'], // half rounds away from zero
+    [100_000, '0,1'],
+    [-1_200_000, '−1,2'],
+    [-49_999, '0,0'], // no sign on a value that rounds to zero
+  ])('%i → %s', (value, expected) => expect(millionsFixed(value)).toBe(expected));
 });
 
 test('axisLabel: millions from Rp1 million up, thousands below', () => {

@@ -39,6 +39,15 @@ export function millions(value: number): string {
   return frac === 0 ? `${sign}${whole}` : `${sign}${whole},${frac}`;
 }
 
+// A table cell in Rp million with exactly one decimal: 0 -> "0,0", 6800000 -> "6,8",
+// -1200000 -> "−1,2". Same rounding as millions() (half away from zero, 100.000 rupiah).
+export function millionsFixed(value: number): string {
+  const tenths = Math.floor((Math.abs(value) + 50_000) / 100_000);
+  const whole = Math.floor(tenths / 10);
+  const sign = value < 0 && tenths !== 0 ? '−' : '';
+  return `${sign}${whole},${tenths % 10}`;
+}
+
 // An axis label: millions once the axis reaches Rp1 million, plain thousands below it.
 export function axisLabel(value: number, top: number): string {
   if (top >= 1_000_000) return millions(value);

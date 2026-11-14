@@ -64,6 +64,23 @@ export function formatShortDate(dateStr: string): string {
   return `${d} ${MONTHS_SHORT[m - 1]} ${y}`;
 }
 
+// "1 – 28 Oct 2026", "1 Aug – 28 Oct 2026", or full dates across a year boundary.
+// Reports' cash-flow caption and a range's category caption use it.
+export function formatDateRangeCompact(start: string, end: string): string {
+  if (start === end) return formatShortDate(start);
+  const [sy, sm, sd] = start.split('-').map(Number);
+  const [ey, em, ed] = end.split('-').map(Number);
+  if (sy === ey && sm === em) return `${sd} – ${ed} ${MONTHS_SHORT[em - 1]} ${ey}`;
+  if (sy === ey) return `${sd} ${MONTHS_SHORT[sm - 1]} – ${ed} ${MONTHS_SHORT[em - 1]} ${ey}`;
+  return `${formatShortDate(start)} – ${formatShortDate(end)}`;
+}
+
+// Last calendar day of a 'YYYY-MM' month, 'YYYY-MM-DD'. Net worth and balance exports
+// are valued at a calendar month end, regardless of settings.month_start_day.
+export function calendarMonthEnd(month: string): string {
+  return addDays(addMonths(`${month}-01`, 1), -1);
+}
+
 // "28 Oct" — day + month, no year (a transaction row's own date, inside a month section
 // that already states the year in its header).
 export function formatDayMonth(dateStr: string): string {

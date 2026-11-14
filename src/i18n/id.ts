@@ -2485,6 +2485,217 @@ export function moreReportsSub(): string {
   return 'Arus kas, pengeluaran, kekayaan bersih, ekspor CSV';
 }
 
+// ---------------------------------------------------------------- Reports (H)
+export function reportsBackLabel(): string {
+  return 'Kembali ke Lainnya';
+}
+
+export function reportsRangeMonth(): string {
+  return 'Bulan';
+}
+
+export function reportsRange3Months(): string {
+  return '3 bulan';
+}
+
+export function reportsRange6Months(): string {
+  return '6 bulan';
+}
+
+export function reportsRangeYear(): string {
+  return 'Tahun';
+}
+
+export function reportsPreviousPeriodLabel(): string {
+  return 'Periode sebelumnya';
+}
+
+export function reportsNextPeriodLabel(): string {
+  return 'Periode berikutnya';
+}
+
+export function reportsFlowCaption(rangeText: string): string {
+  return `${rangeText} · transfer tidak dihitung`;
+}
+
+export function reportsNetCashFlowLabel(): string {
+  return 'Arus kas bersih';
+}
+
+export function reportsSavingsRateLabel(): string {
+  return 'Tingkat tabungan';
+}
+
+export function reportsSixMonthTrendTitle(): string {
+  return 'Tren enam bulan';
+}
+
+export function reportsTrendCaption(): string {
+  return 'Rp juta. Batang digambar dari nilai persis di tabel.';
+}
+
+export function reportsTrendPartialNote(monthNameText: string, cutoffText: string): string {
+  return `* ${monthNameText} sampai ${cutoffText}. Nilai dibulatkan ke Rp100.000.`;
+}
+
+export function reportsRoundedNote(): string {
+  return 'Nilai dibulatkan ke Rp100.000.';
+}
+
+export function reportsColumnMonth(): string {
+  return 'BULAN';
+}
+
+export function reportsColumnIncome(): string {
+  return 'PEMASUKAN';
+}
+
+export function reportsColumnExpenses(): string {
+  return 'PENGELUARAN';
+}
+
+export function reportsColumnNet(): string {
+  return 'BERSIH';
+}
+
+export function reportsColumnValue(): string {
+  return 'NILAI';
+}
+
+export function reportsColumnChange(): string {
+  return 'PERUBAHAN';
+}
+
+export function reportsColumnCategory(): string {
+  return 'KATEGORI';
+}
+
+export function reportsColumnAmount(): string {
+  return 'JUMLAH';
+}
+
+export function reportsColumnShare(): string {
+  return 'PORSI';
+}
+
+export function reportsSpendingByCategoryTitle(): string {
+  return 'Pengeluaran per kategori';
+}
+
+export function reportsCategoryCaption(rangeText: string, totalFormatted: string): string {
+  return `${rangeText} · total ${totalFormatted}`;
+}
+
+export function reportsSharesRoundingNote(): string {
+  return 'Porsi dibulatkan dan mungkin tidak berjumlah tepat 100%.';
+}
+
+export function reportsNoSpendingMessage(): string {
+  return 'Belum ada pengeluaran pada periode ini.';
+}
+
+export function reportsNetWorthTitle(): string {
+  return 'Kekayaan bersih';
+}
+
+export function reportsNetWorthCaption(): string {
+  return 'Akhir bulan, Rp juta · semua akun digabung';
+}
+
+export function reportsFirstRecordLabel(): string {
+  return 'catatan pertama';
+}
+
+export function reportsTodayWord(): string {
+  return 'hari ini';
+}
+
+export function reportsNetWorthUp(amountFormatted: string): string {
+  return `naik ${amountFormatted}`;
+}
+
+export function reportsNetWorthDown(amountFormatted: string): string {
+  return `turun ${amountFormatted}`;
+}
+
+export function reportsNetWorthFlat(): string {
+  return 'tidak berubah';
+}
+
+export function reportsNetWorthExactNote(
+  whenText: string,
+  changeText: string,
+  valueFormatted: string,
+  pctFormatted: string,
+  previousMonthText: string,
+): string {
+  return `Tepat ${whenText}: ${valueFormatted}, ${changeText} (${pctFormatted}) dari akhir bulan ${previousMonthText}. Perubahan memakai nilai persis, jadi bisa berbeda 0,1 dari kolom yang dibulatkan. Transfer tidak mengubah kekayaan bersih.`;
+}
+
+export function reportsNetWorthExactFirstNote(whenText: string, valueFormatted: string): string {
+  return `Tepat ${whenText}: ${valueFormatted}. Perubahan memakai nilai persis, jadi bisa berbeda 0,1 dari kolom yang dibulatkan. Transfer tidak mengubah kekayaan bersih.`;
+}
+
+export function reportsExportTitle(): string {
+  return 'Ekspor CSV';
+}
+
+export function reportsExportCaption(): string {
+  return 'Disimpan di perangkat ini. Tidak diunggah.';
+}
+
+export function reportsExportTransactionsLabel(): string {
+  return 'Transaksi';
+}
+
+export function reportsExportTransactionsSub(): string {
+  return 'Periode terpilih, semua akun';
+}
+
+export function reportsExportBalancesLabel(): string {
+  return 'Saldo akun';
+}
+
+export function reportsExportBalancesSub(): string {
+  return 'Akhir bulan, per akun';
+}
+
+export function reportsCsvButtonLabel(): string {
+  return 'CSV';
+}
+
+export function reportsExportTransactionsAccessibility(): string {
+  return 'Ekspor transaksi sebagai CSV';
+}
+
+export function reportsExportBalancesAccessibility(): string {
+  return 'Ekspor saldo akun sebagai CSV';
+}
+
+export function reportsCsvShareTitle(): string {
+  return 'Bagikan CSV';
+}
+
+export function reportsCsvReadyToast(): string {
+  return 'CSV siap dibagikan.';
+}
+
+export function reportsCsvFailedToast(): string {
+  return 'Berkas tidak bisa diekspor.';
+}
+
+export function reportsFooterNote(): string {
+  return 'Semua angka di layar ini dihitung dari transaksi yang kamu catat.';
+}
+
+export function reportsEmptyTitle(): string {
+  return 'Data belum cukup untuk laporan';
+}
+
+export function reportsEmptyBody(): string {
+  return 'Terus catat selama satu bulan penuh, lalu kembali lagi.';
+}
+
 export function moreCategoriesTitle(): string {
   return 'Kategori';
 }

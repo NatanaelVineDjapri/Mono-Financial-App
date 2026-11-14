@@ -1,6 +1,8 @@
 import {
     addDays,
+    calendarMonthEnd,
     daysBetween,
+    formatDateRangeCompact,
     formatDateTime,
     formatTimeWib,
     formatDayHeader,
@@ -103,4 +105,18 @@ test('formatTimeWib shows the WIB clock time of an instant', () => {
   expect(formatTimeWib('2026-10-28T12:41:00+07:00')).toBe('12:41');
   expect(formatTimeWib('2026-10-28T05:09:00Z')).toBe('12:09');
   expect(formatTimeWib('2026-10-28T20:30:00Z')).toBe('03:30'); // past midnight in WIB
+});
+
+test('formatDateRangeCompact shares the month and year when it can', () => {
+  expect(formatDateRangeCompact('2026-10-01', '2026-10-28')).toBe('1 – 28 Oct 2026');
+  expect(formatDateRangeCompact('2026-08-01', '2026-10-28')).toBe('1 Aug – 28 Oct 2026');
+  expect(formatDateRangeCompact('2025-12-01', '2026-01-31')).toBe('1 Dec 2025 – 31 Jan 2026');
+  expect(formatDateRangeCompact('2026-10-28', '2026-10-28')).toBe('28 Oct 2026');
+});
+
+test('calendarMonthEnd gives the last calendar day, leap years included', () => {
+  expect(calendarMonthEnd('2026-10')).toBe('2026-10-31');
+  expect(calendarMonthEnd('2026-02')).toBe('2026-02-28');
+  expect(calendarMonthEnd('2024-02')).toBe('2024-02-29');
+  expect(calendarMonthEnd('2026-12')).toBe('2026-12-31');
 });
