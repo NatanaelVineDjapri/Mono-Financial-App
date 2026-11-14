@@ -1,20 +1,14 @@
 // Fixed expenses list (PAGES.md L1 / board "Recurring").
-// Header: safe-area inset + 56px back row + HeaderRow withTopInset={false}.
-// Summary card: figureM (22/28 500) amount, two stat rows.
-// Due cards: 1.5px border, #151516 bg, day_of_month label — NOT the day from due_on.
-// Confirm sheet unchanged (confirm-first model, CLAUDE.md rule 10).
+// Confirm sheet is shared via RecurringConfirmHost + openConfirmSheet (mounted in _layout).
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AmountField } from '@/components/AmountField';
 import { Button } from '@/components/Button';
 import { HeaderRow } from '@/components/HeaderRow';
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { showToast } from '@/components/toast-store';
 import { today, nowIso } from '@/core/clock';
 import { addDays, daysBetween, formatShortDate } from '@/core/date';
 import { rp, shown } from '@/core/money';
@@ -22,13 +16,13 @@ import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import type { RecurringDueRow } from '@/data/repo/recurring';
 import {
-  confirmRecurring,
   listRecurring,
   listRecurringDue,
   monthlyRecurringEstimate,
   nextDue,
   skipRecurring,
 } from '@/domain/recurring';
+import { openConfirmSheet } from '@/features/recurring/recurringConfirmStore';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 import {
@@ -36,25 +30,20 @@ import {
   moreBackText,
   recurringAbout,
   recurringAdd,
-  recurringAfter,
   recurringComingUp,
-  recurringConfirmDue,
-  recurringConfirmTitle,
-  recurringDate,
+  recurringCountLabel,
+  recurringCountWithEstimate,
   recurringDay,
   recurringEmpty,
   recurringIntro,
   recurringNeedsConfirmation,
+  recurringNoneDue,
   recurringOverdue,
-  recurringRecord,
   recurringRecordNow,
   recurringReminderNote,
-  recurringSavedToast,
   recurringSkip,
-  recurringSkipNote,
   recurringTitle,
   recurringToday,
-  recurringUsualAmount,
   recurringVaries,
 } from '@/i18n';
 
@@ -74,26 +63,23 @@ function DueTag({ dueOn }: { dueOn: string }) {
 
 function DueCard({
   due,
-  onRecord,
   onSkip,
 }: {
   due: RecurringDueRow;
-  onRecord: () => void;
   onSkip: () => void;
 }) {
   const hidden = useHideAmounts(st => st.hidden);
-  // day_of_month is the template's canonical day — not the day in due_on (the clamped actual date).
   const sub = `${due.category_name} · ${due.account_name} · ${recurringDay(due.day_of_month)}`;
-  // Show the actual due date as secondary context when it's overdue.
   const isOverdue = due.due_on < today();
   return (
-    <View style={s.dueCard} accessibilityLabel={`${due.name}, ${shown(rp(due.amount), hidden)}, ${isOverdue ? recurringOverdue(daysBetween(due.due_on, today())) : recurringToday()}`}>
+    <View
+      style={s.dueCard}
+      accessibilityLabel={`${due.name}, ${shown(rp(due.amount), hidden)}, ${isOverdue ? recurringOverdue(daysBetween(due.due_on, today())) : recurringToday()}`}
+    >
       <View style={s.dueTop}>
-        {/* icon tile */}
         <View style={s.iconTile}>
           <Icon name="flow" size={20} color={MonoColors.textSecond} />
         </View>
-        {/* name + sub */}
         <View style={s.dueMain}>
           <Text style={s.dueName}>{due.name}</Text>
           <Text style={s.dueSub}>{sub}</Text>
@@ -101,110 +87,15 @@ function DueCard({
             <Text style={s.dueDate}>Jatuh tempo {formatShortDate(due.due_on)}</Text>
           )}
         </View>
-        {/* amount + tag */}
         <View style={s.dueRight}>
           <Text style={s.dueAmount}>{shown(rp(due.amount), hidden)}</Text>
           <DueTag dueOn={due.due_on} />
         </View>
       </View>
       <View style={s.dueActions}>
-        <Button label={recurringRecordNow()} onPress={onRecord} style={s.flex} />
+        <Button label={recurringRecordNow()} onPress={() => openConfirmSheet(due)} style={s.flex} />
         <Button label={recurringSkip()} variant="secondary" onPress={onSkip} style={s.flex} />
       </View>
-    </View>
-  );
-}
-
-// ─── Confirm sheet ────────────────────────────────────────────────────────────
-
-function ConfirmSheet({ due, onClose }: { due: RecurringDueRow; onClose: () => void }) {
-  const db = useDb();
-  const qc = useQueryClient();
-  const hidden = useHideAmounts(st => st.hidden);
-  const [amount, setAmount] = useState(due.amount);
-  const [busy, setBusy] = useState(false);
-
-  const account = useQuery({
-    queryKey: [...queryKeys.accounts, due.account_id],
-    queryFn: () =>
-      db.getFirstAsync<{ name: string; balance: number }>(
-        'select name, balance from v_account_balance where id = $id',
-        { $id: due.account_id },
-      ),
-  });
-
-  const save = async () => {
-    setBusy(true);
-    try {
-      const result = await confirmRecurring(
-        db,
-        {
-          recurringId: due.recurring_id,
-          dueOn: due.due_on,
-          accountId: due.account_id,
-          categoryId: due.category_id,
-          amount,
-          date: due.due_on,
-          description: due.name,
-        },
-        nowIso(),
-      );
-      await qc.invalidateQueries();
-      showToast(recurringSavedToast(account.data?.name ?? '', shown(rp(result.balanceAfter), hidden)));
-      onClose();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const skip = async () => {
-    await skipRecurring(db, due.recurring_id, due.due_on, nowIso());
-    await qc.invalidateQueries();
-    onClose();
-  };
-
-  // nextDue: use day_of_month from the template, not the clamped due_on day
-  const following = nextDue(
-    { dayOfMonth: due.day_of_month, firstDueOn: due.due_on },
-    addDays(due.due_on, 1),
-  );
-
-  const bal = account.data?.balance ?? 0;
-  return (
-    <Modal transparent animationType="slide" onRequestClose={onClose}>
-      <View style={s.scrim}>
-        <View style={s.sheet}>
-          <Pressable onPress={onClose} style={s.sheetClose} hitSlop={8}>
-            <Icon name="close" color={MonoColors.text} />
-          </Pressable>
-          <Text style={s.sheetTitle}>{recurringConfirmTitle(due.name)}</Text>
-          <Text style={s.sub}>{recurringConfirmDue(formatShortDate(due.due_on))}</Text>
-          <AmountField label="Jumlah" value={amount} onChangeValue={setAmount} helperText={recurringUsualAmount()} />
-          <InfoRow label="Kategori" value={due.category_name} />
-          <InfoRow label="Bayar dari" value={account.data?.name ?? '…'} />
-          <InfoRow label={recurringDate()} value={formatShortDate(due.due_on)} />
-          <Text style={s.after}>{recurringAfter(account.data?.name ?? '', shown(rp(bal - amount), hidden))}</Text>
-          <Button
-            label={recurringRecord()}
-            onPress={() => void save()}
-            disabled={amount <= 0 || amount > bal}
-            loading={busy}
-          />
-          <Button label={recurringSkip()} variant="secondary" onPress={() => void skip()} />
-          <Text style={s.note}>
-            {recurringSkipNote(following ? formatShortDate(following) : '—')}
-          </Text>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={s.infoRow}>
-      <Text style={s.sub}>{label}</Text>
-      <Text style={s.infoValue}>{value}</Text>
     </View>
   );
 }
@@ -224,28 +115,23 @@ function SummaryCard({
 }) {
   const dueCount = dueRows.length;
   const dueTotal = dueRows.reduce((n, d) => n + d.amount, 0);
-
-  // "Perlu dikonfirmasi" = all due rows (today + overdue)
   const dueStr = dueCount === 0
-    ? 'Tidak ada'
+    ? recurringNoneDue()
     : `${dueCount} · ${shown(rp(dueTotal), hidden)}`;
 
-  // Next future due
   const tom = addDays(today(), 1);
   const nextItem = templates
     .map(t => ({ ...t, due: nextDue({ dayOfMonth: t.day_of_month, firstDueOn: t.first_due_on, endOn: t.end_on }, tom) }))
     .filter(x => x.due)
-    .sort((a, b) => a.due!.localeCompare(b.due!))
-  [0];
+    .sort((a, b) => a.due!.localeCompare(b.due!))[0];
   const nextStr = nextItem
     ? `${nextItem.name} · ${formatShortDate(nextItem.due!).replace(/ \d{4}$/, '')}`
     : '—';
 
-  // varies note: name the first template with amount_varies
   const variesTemplate = templates.find(t => t.amount_varies === 1);
   const sub2 = variesTemplate
-    ? `${estimate.count} pengeluaran tetap. Termasuk perkiraan untuk ${variesTemplate.name}.`
-    : `${estimate.count} pengeluaran tetap`;
+    ? recurringCountWithEstimate(estimate.count, variesTemplate.name)
+    : recurringCountLabel(estimate.count);
 
   return (
     <View style={s.summary}>
@@ -275,10 +161,9 @@ export default function RecurringScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(st => st.hidden);
-  const [selected, setSelected] = useState<RecurringDueRow | null>(null);
   const qc = useQueryClient();
 
-  const dueQ = useQuery({ queryKey: [...queryKeys.recurring, 'due'], queryFn: () => listRecurringDue(db) });
+  const dueQ = useQuery({ queryKey: [...queryKeys.recurring, 'due'], queryFn: () => listRecurringDue(db), staleTime: 0 });
   const templatesQ = useQuery({ queryKey: queryKeys.recurring, queryFn: () => listRecurring(db) });
   const estimateQ = useQuery({ queryKey: [...queryKeys.recurring, 'estimate'], queryFn: () => monthlyRecurringEstimate(db, today()) });
 
@@ -291,7 +176,6 @@ export default function RecurringScreen() {
     await qc.invalidateQueries();
   };
 
-  // Next future items (after today) for "Segera" section
   const tom = addDays(today(), 1);
   const upcoming = templates
     .map(t => ({ ...t, due: nextDue({ dayOfMonth: t.day_of_month, firstDueOn: t.first_due_on, endOn: t.end_on }, tom) }))
@@ -346,7 +230,6 @@ export default function RecurringScreen() {
               <DueCard
                 key={`${d.recurring_id}-${d.due_on}`}
                 due={d}
-                onRecord={() => setSelected(d)}
                 onSkip={() => void skipRow(d)}
               />
             ))}
@@ -380,8 +263,6 @@ export default function RecurringScreen() {
         <Button label={recurringAdd()} onPress={() => router.push('/recurring/edit' as never)} />
         <Text style={s.note}>{recurringReminderNote()}</Text>
       </ScrollView>
-
-      {selected && <ConfirmSheet due={selected} onClose={() => setSelected(null)} />}
     </View>
   );
 }
@@ -398,7 +279,6 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 12 },
   intro: { ...MonoText.bodyS, color: MonoColors.textSecond, lineHeight: 18 },
 
-  // Summary card
   summary: { backgroundColor: MonoColors.card, borderRadius: 20, padding: 16, gap: 6 },
   summaryLabel: { ...MonoText.label, color: MonoColors.textMeta, letterSpacing: 0.88 },
   summaryHero: { ...MonoText.figureM, color: MonoColors.text },
@@ -407,12 +287,10 @@ const s = StyleSheet.create({
   statLabel: { ...MonoText.bodyS, color: MonoColors.textSecond },
   statValue: { ...MonoText.bodyS, color: MonoColors.text, fontVariant: ['tabular-nums'] as never },
 
-  // Section header
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   sectionLabel: { ...MonoText.label, color: MonoColors.textMeta, letterSpacing: 0.88 },
   sectionCount: { ...MonoText.bodyS, color: MonoColors.textMeta, fontVariant: ['tabular-nums'] as never },
 
-  // Due card — #151516 bg, 1.5px border, radius 16
   dueCard: { backgroundColor: '#151516', borderColor: '#737373', borderWidth: 1.5, borderRadius: 16, padding: 14, gap: 10 },
   dueTop: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   iconTile: { width: 36, height: 36, borderRadius: 14, backgroundColor: '#1D1D1E', borderWidth: 1, borderColor: '#2A2A2B', alignItems: 'center', justifyContent: 'center' },
@@ -427,24 +305,12 @@ const s = StyleSheet.create({
   dueActions: { flexDirection: 'row', gap: 8 },
   flex: { flex: 1, height: 44 },
 
-  // Upcoming
   upcomingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: MonoColors.border, minHeight: 56 },
   upcomingRight: { alignItems: 'flex-end', gap: 2 },
 
-  // Empty state
   empty: { flex: 1, padding: 32, justifyContent: 'center', alignItems: 'center', gap: 16 },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
-  // Confirm sheet
-  scrim: { flex: 1, backgroundColor: '#000000AA', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: MonoColors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, gap: 14 },
-  sheetClose: { position: 'absolute', right: 12, top: 12, padding: 12 },
-  sheetTitle: { ...MonoText.titleM, color: MonoColors.text, paddingRight: 36 },
-  infoRow: { borderBottomWidth: 1, borderBottomColor: MonoColors.border, paddingVertical: 8, gap: 2 },
-  infoValue: { ...MonoText.body, color: MonoColors.text },
-  after: { ...MonoText.bodyStrong, color: MonoColors.text },
-
-  // Shared
   sub: { ...MonoText.bodyS, color: MonoColors.textMeta },
   note: { ...MonoText.bodyS, color: MonoColors.textMeta, textAlign: 'center' },
 });

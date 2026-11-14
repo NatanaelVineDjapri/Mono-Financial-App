@@ -30,6 +30,9 @@ const CHART_HEIGHT = 130;
 const BAR_WIDTH = 8.5; // twelve months share one row: no scrolling
 const BAR_SPACING = 2; // between the two bars of a month
 const PAIR_GAP = 6; // between months
+// The library reads `animationDuration` but its types don't declare it. Without a zero
+// duration its label timers still fire after the card has gone away.
+const NO_ANIMATION = { animationDuration: 0 };
 
 export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
   // Opts out of the React Compiler, which freezes the data it memoizes; see NetWorthHistoryCard.
@@ -101,6 +104,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           backgroundColor="transparent"
           disablePress
           isAnimated={false}
+          {...NO_ANIMATION}
         />
       </View>
 

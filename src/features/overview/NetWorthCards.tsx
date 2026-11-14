@@ -35,6 +35,9 @@ import { SHARE_COLORS } from './palette';
 
 const CHART_HEIGHT = 140;
 const PAD_X = 10;
+// The library reads `animationDuration` but its types don't declare it. Without a zero
+// duration its width/label timers still fire after the card has gone away.
+const NO_ANIMATION = { animationDuration: 0 };
 
 type Range = '6M' | '1Y' | 'All';
 const RANGES: { key: Range; months: number | null; label: () => string }[] = [
@@ -87,15 +90,31 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
   const valuesText = points.map(p => `${monthAbbrev(p.month)} ${shown(rp(p.netWorth), hidden)}`).join(', ');
 
   // Transform data for LineChart
-  const lineData = points.map((p, i) => ({
-    value: p.netWorth,
-    label: monthAbbrev(p.month),
-    dataPointRadius: i === points.length - 1 ? 4.5 : 2,
-    dataPointColor: i === points.length - 1 ? MonoColors.card : MonoColors.accent,
-    dataPointStrokeColor: MonoColors.accent,
-    dataPointStrokeWidth: i === points.length - 1 ? 2 : 0,
-    labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
-  }));
+  const lastValue = points[points.length - 1].netWorth;
+  const lineData = points.map((p, i) => {
+    const isLast = i === points.length - 1;
+    return {
+      value: p.netWorth,
+      label: monthAbbrev(p.month),
+      dataPointRadius: isLast ? 4.5 : 2,
+      dataPointColor: isLast ? MonoColors.card : MonoColors.accent,
+      dataPointStrokeColor: MonoColors.accent,
+      dataPointStrokeWidth: isLast ? 2 : 0,
+      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
+      // The latest value sits by its own point (not in a row above the chart), so it reads
+      // as part of the line. Narrow width + left shift keeps it inside the card edge.
+      ...(isLast && {
+        dataPointLabelComponent: () => (
+          <Text numberOfLines={1} style={styles.pointLabel}>
+            {shownCompact(millionsCallout(lastValue), hidden)}
+          </Text>
+        ),
+        dataPointLabelWidth: 72,
+        dataPointLabelShiftX: -44,
+        dataPointLabelShiftY: -12,
+      }),
+    };
+  });
 
   // Goal line data (if provided)
   const goalData = goalTarget
@@ -116,10 +135,11 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
         <RangeSwitch value={range} onChange={setRange} />
       </View>
 
-      <View style={styles.callouts}>
-        {goalTarget != null ? <Text style={styles.callout}>{goalLineLabel(shownCompact(millionsCallout(goalTarget), hidden))}</Text> : <View />}
-        <Text style={styles.lastLabel}>{shownCompact(millionsCallout(points[points.length - 1].netWorth), hidden)}</Text>
-      </View>
+      {goalTarget != null && (
+        <View style={styles.callouts}>
+          <Text style={styles.callout}>{goalLineLabel(shownCompact(millionsCallout(goalTarget), hidden))}</Text>
+        </View>
+      )}
 
       <View accessible accessibilityRole="image" accessibilityLabel={netWorthHistoryAccessibilityLabel(valuesText)}>
         <LineChart
@@ -156,6 +176,7 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
           backgroundColor="transparent"
           disableScroll
           isAnimated={false}
+          {...NO_ANIMATION}
           curved
         />
       </View>
@@ -210,7 +231,7 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
 const styles = StyleSheet.create({
   callouts: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   callout: { ...MonoText.caption, color: MonoColors.textSecond },
-  lastLabel: { ...MonoText.caption, fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text },
+  pointLabel: { ...MonoText.caption, fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text, textAlign: 'right' },
   card: { marginHorizontal: 16, gap: 12 },
   rangeRow: { flexDirection: 'row', alignItems: 'center' },
   rangeButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },

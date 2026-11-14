@@ -23,6 +23,27 @@ jest.mock('@/features/budgets/useBudgets');
 jest.mock('@/features/transactions/useTransactionsList');
 jest.mock('@/features/overview/useGreeting', () => ({ useGreeting: jest.fn(() => 'morning') }));
 jest.mock('@/features/settings/useDisplayName', () => ({ ...jest.requireActual('@/features/settings/useDisplayName'), useDisplayName: jest.fn(() => 'Nael') }));
+// The screen reads its template list straight from the database; the test has no provider,
+// so answer that one query with a template (the card hides itself when there are none).
+jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({}) }));
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: jest.fn(({ queryKey }: { queryKey?: unknown[] } = {}) => ({
+    data:
+      queryKey?.[0] === 'recurring'
+        ? [
+            {
+              id: 1, name: 'Gym membership', amount: 200000, amount_varies: 0,
+              account_id: 1, category_id: 1, day_of_month: 28, first_due_on: '2026-10-28',
+              end_on: null, remind: 1, archived: 0, created_at: '2026-10-01',
+              account_name: 'BCA Tabungan', account_type: 'bank', account_balance: 6842500,
+              category_name: 'Health',
+            },
+          ]
+        : undefined,
+    isLoading: false,
+  })),
+}));
 
 // A controllable window width (the Hide button's label depends on it).
 jest.mock('react-native/Libraries/Utilities/useWindowDimensions');
@@ -157,7 +178,7 @@ describe('Overview', () => {
     expect(result.getByText('Top categories')).toBeTruthy();
     expect(result.getAllByText('33,5%').length).toBeGreaterThan(0); // the ring's centre and its legend
     expect(within(result.getByTestId('overview-top-legend')).getByText('Others')).toBeTruthy(); // the ring folds categories; accounts below are never folded
-    expect(result.getByText('Fixed expenses')).toBeTruthy();
+    expect(result.getByText('Pengeluaran tetap')).toBeTruthy();
     expect(result.getByText('Recent transactions')).toBeTruthy();
     expect(result.getByText('Budget · Oct 2026')).toBeTruthy();
     expect(result.getByText('Shopping is over its limit by Rp112.000')).toBeTruthy();

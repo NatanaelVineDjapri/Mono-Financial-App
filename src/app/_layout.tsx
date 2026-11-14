@@ -21,6 +21,7 @@ import { DbProvider, useDb } from '@/data/db/DbProvider';
 import { getSetting } from '@/data/repo/settings';
 import { FxAutoUpdate } from '@/features/fx/FxAutoUpdate';
 import { ImportSync } from '@/features/import/ImportSync';
+import { RecurringConfirmHost } from '@/features/recurring/RecurringConfirmHost';
 import { initialLanguage, useLanguage } from '@/i18n/lang';
 import { navTheme } from '@/theme/tokens';
 
@@ -122,6 +123,7 @@ export default function RootLayout() {
                   off everywhere. */}
               <Stack screenOptions={{ headerShown: false }} />
               <ToastHost />
+              <RecurringConfirmHost />
               </LanguageGate>
             </DbProvider>
           </ThemeProvider>
