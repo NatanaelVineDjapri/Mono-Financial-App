@@ -11,8 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/Card';
 import { Segmented } from '@/components/Segmented';
 import { Icon } from '@/components/Icon';
-import { useCreateBackup } from '@/features/backup/useCreateBackup';
 import { BackupStatusCard } from '@/features/more/BackupStatusCard';
+import { useCreateBackup } from '@/features/backup/useCreateBackup';
 import { MoreRow } from '@/features/more/MoreRow';
 import { useMoreData } from '@/features/more/useMoreData';
 import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
@@ -53,7 +53,7 @@ export default function MoreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { backup, dueCount } = useMoreData();
-  const { create: createBackup, busy: backingUp } = useCreateBackup();
+  const { create: createBackupNow, busy: backupNowBusy } = useCreateBackup();
   const { language, change: changeLanguage } = useLanguageSetting();
   const version = Constants.expoConfig?.version ?? null;
   const go = (path: string) => () => router.push(path as never);
@@ -80,7 +80,7 @@ export default function MoreScreen() {
           {moreScreenTitle()}
         </Text>
 
-        <BackupStatusCard state={backup} onOpen={go('/backup')} onBackupNow={() => void createBackup()} busy={backingUp} />
+        <BackupStatusCard state={backup} onOpen={go('/backup')} onDownload={createBackupNow} downloadBusy={backupNowBusy} />
 
         <Text style={styles.group} accessibilityRole="header">
           {moreGroupMoney()}

@@ -7,7 +7,7 @@
 // strip has two touch targets: the whole left side opens /backup, and the download button on the
 // right makes a backup right now. Surface #151516, radius 20, 1 px #272728; both targets are 48 high.
 // There are no amounts here, so hidden-amounts mode has nothing to hide.
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { backupChangedLine, backupLastLine, backupNoneLine, backupNowLabel, backupStripLabel, backupStripTitle } from '@/i18n';
@@ -43,11 +43,11 @@ export function backupStrip(state: BackupState): BackupStrip {
 export interface BackupStatusCardProps {
   state: BackupState;
   onOpen: () => void; // the strip itself: opens /backup
-  onBackupNow: () => void; // the download button: makes a backup
-  busy?: boolean;
+  onDownload: () => void; // right-side button: creates a backup immediately
+  downloadBusy?: boolean;
 }
 
-export function BackupStatusCard({ state, onOpen, onBackupNow, busy = false }: BackupStatusCardProps) {
+export function BackupStatusCard({ state, onOpen, onDownload, downloadBusy = false }: BackupStatusCardProps) {
   const strip = backupStrip(state);
   const emphasised = state.kind !== 'recent';
   return (
@@ -76,17 +76,19 @@ export function BackupStatusCard({ state, onOpen, onBackupNow, busy = false }: B
           )}
         </View>
       </Pressable>
+
       <Pressable
-        onPress={busy ? undefined : onBackupNow}
-        disabled={busy}
+        onPress={downloadBusy ? undefined : onDownload}
+        disabled={downloadBusy}
         accessibilityRole="button"
         accessibilityLabel={backupNowLabel()}
-        accessibilityState={{ disabled: busy, busy }}
+        accessibilityState={{ disabled: downloadBusy, busy: downloadBusy }}
         android_ripple={undefined}
-        style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-        testID="backup-action"
+        hitSlop={4}
+        style={({ pressed }) => [styles.download, pressed && styles.pressed]}
+        testID="backup-download"
       >
-        {busy ? <ActivityIndicator color={MonoColors.text} /> : <Icon name="download" size={20} color={MonoColors.text} />}
+        <Icon name="download" size={20} color={MonoColors.text} />
       </Pressable>
     </View>
   );
@@ -102,5 +104,5 @@ const styles = StyleSheet.create({
   title: { ...MonoText.bodyStrong, fontSize: 14, lineHeight: 20, color: MonoColors.text },
   line: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sub: { ...MonoText.caption, color: MonoColors.textMeta, flexShrink: 1 },
-  action: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center' },
+  download: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });

@@ -3197,6 +3197,103 @@ export function backupFailedToast(): string {
 export function backupShareTitle(): string {
   return 'Simpan cadangan MONO';
 }
+// ---- Backup screen (I1, I2, I3) ----
+export function backupScreenTitle(): string { return 'Cadangan dan pemulihan'; }
+
+export function backupBannerText(): string { return 'Data kamu hanya ada di perangkat ini. Jika ponsel hilang atau rusak, data akan hilang kecuali kamu punya berkas cadangan.'; }
+
+export function backupLastFull(dateTime: string, fileName: string, sizeKb: string, changed: number): string { return `${dateTime} · ${fileName} · ${sizeKb} KB · ${changed} transaksi berubah`; }
+
+export function backupNeverDone(): string { return 'Belum ada cadangan'; }
+
+export function backupCreateNow(): string { return 'Buat cadangan sekarang'; }
+
+export function backupCreating(): string { return 'Membuat cadangan…'; }
+
+export function backupContentsTitle(): string { return 'Isi cadangan'; }
+
+export function backupContentsAccounts(n: number): string { return `${n} akun`; }
+
+export function backupContentsTransactions(n: number): string { return `${n} transaksi`; }
+
+export function backupContentsBudgets(n: number): string { return `${n} anggaran`; }
+
+export function backupContentsGoals(n: number): string { return `${n} target`; }
+
+export function backupContentsCategories(n: number): string { return `${n} kategori`; }
+
+export function backupContentsRecurring(n: number): string { return `${n} pengeluaran tetap`; }
+
+export function backupContentsSettings(): string { return 'Pengaturan'; }
+
+export function backupContentsFormat(): string { return 'JSON, tidak dienkripsi'; }
+
+export function backupRestoreTitle(): string { return 'Pulihkan'; }
+
+export function backupChooseFile(): string { return 'Pilih berkas cadangan'; }
+
+export function backupRecentTitle(): string { return 'Cadangan terbaru'; }
+
+export function backupRecentEmpty(): string { return 'Belum ada cadangan di perangkat ini'; }
+
+export function backupRecentRow(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
+
+export function restoreConfirmTitle(): string { return 'Ganti semua data?'; }
+
+export function restoreFileInfo(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
+
+export function restoreFileSchemaV(v: number): string { return `Skema v${v} · Semua pemeriksaan lolos`; }
+
+export function restoreCompareHeader(): string { return 'Perangkat ini vs berkas cadangan'; }
+
+export function restoreCompareAccounts(device: number, file: number): string { return `Akun: ${device} → ${file}`; }
+
+export function restoreCompareTransactions(device: number, file: number): string { return `Transaksi: ${device} → ${file}`; }
+
+export function restoreCompareBudgets(device: number, file: number): string { return `Anggaran: ${device} → ${file}`; }
+
+export function restoreCompareGoals(device: number, file: number): string { return `Target: ${device} → ${file}`; }
+
+export function restoreCompareCategories(device: number, file: number): string { return `Kategori: ${device} → ${file}`; }
+
+export function restoreCompareRecurring(device: number, file: number): string { return `Pengeluaran tetap: ${device} → ${file}`; }
+
+export function restoreWarning(changedAfter: number, dateTime: string): string { if (changedAfter <= 0) return 'Semua data kamu akan diganti dengan isi berkas cadangan ini. Tindakan ini tidak bisa dibatalkan.'; return `Semua data kamu akan diganti. ${changedAfter} transaksi yang ditambahkan setelah ${dateTime} akan hilang.`; }
+
+export function restoreSafetyBackupLabel(): string { return 'Simpan cadangan pengaman dulu'; }
+
+export function restoreConfirmTick(): string { return 'Saya mengerti data saat ini akan diganti.'; }
+
+export function restoreReplaceButton(): string { return 'Ganti data saya'; }
+
+export function restoreReplacing(): string { return 'Memulihkan…'; }
+
+export function restoreSuccessToast(): string { return 'Data berhasil dipulihkan.'; }
+
+export function restoreFailedToast(): string { return 'Pemulihan gagal. Data tidak berubah.'; }
+
+export function restoreSafetyFailedToast(): string { return 'Gagal menyimpan cadangan pengaman. Data tidak berubah.'; }
+
+export function restoreInvalidTitle(): string { return 'Berkas ini tidak bisa dipulihkan'; }
+
+export function restoreInvalidLead(fileName: string): string { return `${fileName} tidak lolos pemeriksaan. Data di perangkat ini tidak berubah.`; }
+
+export function restoreCheckJson(): string { return 'Bisa dibaca sebagai JSON'; }
+
+export function restoreCheckMarker(): string { return 'Bertanda cadangan MONO'; }
+
+export function restoreCheckVersion(fileV: number, supportedV: number): string { return `Versi skema ${fileV} (aplikasi ini membaca hingga v${supportedV})`; }
+
+export function restoreCheckCounts(): string { return 'Total baris sesuai'; }
+
+export function restoreCheckChecksum(): string { return 'Checksum sesuai'; }
+
+export function restoreCheckRefs(): string { return 'Referensi internal konsisten'; }
+
+export function restoreChooseAnother(): string { return 'Pilih berkas lain'; }
+
+export function restorePickError(): string { return 'Berkas tidak bisa dibuka. Coba berkas lain.'; }
+
 
 export function currencyName(code: string): string {
   return CURRENCY_NAMES_ID[code] ?? code;

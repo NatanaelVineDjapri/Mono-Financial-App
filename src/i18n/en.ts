@@ -3200,6 +3200,103 @@ export function backupFailedToast(): string {
 export function backupShareTitle(): string {
   return 'Save the MONO backup';
 }
+// ---- Backup screen (I1, I2, I3) ----
+export function backupScreenTitle(): string { return 'Backup and restore'; }
+
+export function backupBannerText(): string { return 'Your data only exists on this device. If you lose your phone, your data is gone unless you have a backup file.'; }
+
+export function backupLastFull(dateTime: string, fileName: string, sizeKb: string, changed: number): string { const c = changed === 1 ? '1 transaction' : `${changed} transactions`; return `${dateTime} · ${fileName} · ${sizeKb} KB · ${c} changed`; }
+
+export function backupNeverDone(): string { return 'No backup yet'; }
+
+export function backupCreateNow(): string { return 'Create backup now'; }
+
+export function backupCreating(): string { return 'Creating backup…'; }
+
+export function backupContentsTitle(): string { return 'Backup contents'; }
+
+export function backupContentsAccounts(n: number): string { return `${n} ${n === 1 ? 'account' : 'accounts'}`; }
+
+export function backupContentsTransactions(n: number): string { return `${n} ${n === 1 ? 'transaction' : 'transactions'}`; }
+
+export function backupContentsBudgets(n: number): string { return `${n} ${n === 1 ? 'budget' : 'budgets'}`; }
+
+export function backupContentsGoals(n: number): string { return `${n} ${n === 1 ? 'goal' : 'goals'}`; }
+
+export function backupContentsCategories(n: number): string { return `${n} ${n === 1 ? 'category' : 'categories'}`; }
+
+export function backupContentsRecurring(n: number): string { return `${n} fixed ${n === 1 ? 'expense' : 'expenses'}`; }
+
+export function backupContentsSettings(): string { return 'Settings'; }
+
+export function backupContentsFormat(): string { return 'JSON, not encrypted'; }
+
+export function backupRestoreTitle(): string { return 'Restore'; }
+
+export function backupChooseFile(): string { return 'Choose backup file'; }
+
+export function backupRecentTitle(): string { return 'Recent backups'; }
+
+export function backupRecentEmpty(): string { return 'No backups on this device yet'; }
+
+export function backupRecentRow(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
+
+export function restoreConfirmTitle(): string { return 'Replace my data?'; }
+
+export function restoreFileInfo(fileName: string, dateTime: string, sizeKb: string): string { return `${fileName} · ${dateTime} · ${sizeKb} KB`; }
+
+export function restoreFileSchemaV(v: number): string { return `Schema v${v} · Passed all checks`; }
+
+export function restoreCompareHeader(): string { return 'This device vs backup file'; }
+
+export function restoreCompareAccounts(device: number, file: number): string { return `Accounts: ${device} → ${file}`; }
+
+export function restoreCompareTransactions(device: number, file: number): string { return `Transactions: ${device} → ${file}`; }
+
+export function restoreCompareBudgets(device: number, file: number): string { return `Budgets: ${device} → ${file}`; }
+
+export function restoreCompareGoals(device: number, file: number): string { return `Goals: ${device} → ${file}`; }
+
+export function restoreCompareCategories(device: number, file: number): string { return `Categories: ${device} → ${file}`; }
+
+export function restoreCompareRecurring(device: number, file: number): string { return `Fixed expenses: ${device} → ${file}`; }
+
+export function restoreWarning(changedAfter: number, dateTime: string): string { if (changedAfter <= 0) return 'All your current data will be replaced with the backup file. This cannot be undone.'; const t = changedAfter === 1 ? '1 transaction' : `${changedAfter} transactions`; return `All your current data will be replaced. ${t} added after ${dateTime} will be lost.`; }
+
+export function restoreSafetyBackupLabel(): string { return 'Save a safety backup first'; }
+
+export function restoreConfirmTick(): string { return 'I understand my current data will be replaced.'; }
+
+export function restoreReplaceButton(): string { return 'Replace my data'; }
+
+export function restoreReplacing(): string { return 'Restoring…'; }
+
+export function restoreSuccessToast(): string { return 'Data restored successfully.'; }
+
+export function restoreFailedToast(): string { return 'Restore failed. Your data was not changed.'; }
+
+export function restoreSafetyFailedToast(): string { return 'Could not save safety backup. Your data was not changed.'; }
+
+export function restoreInvalidTitle(): string { return "This file can't be restored"; }
+
+export function restoreInvalidLead(fileName: string): string { return `${fileName} could not be verified. Your data on this device was not changed.`; }
+
+export function restoreCheckJson(): string { return 'Can be read as JSON'; }
+
+export function restoreCheckMarker(): string { return 'Has the MONO backup marker'; }
+
+export function restoreCheckVersion(fileV: number, supportedV: number): string { return `Schema version ${fileV} (this app reads up to v${supportedV})`; }
+
+export function restoreCheckCounts(): string { return 'Row counts match'; }
+
+export function restoreCheckChecksum(): string { return 'Checksum matches'; }
+
+export function restoreCheckRefs(): string { return 'Internal references are consistent'; }
+
+export function restoreChooseAnother(): string { return 'Choose another file'; }
+
+export function restorePickError(): string { return 'Could not open the file. Try another file.'; }
+
 
 export function currencyName(code: string): string {
   return CURRENCY_NAMES_EN[code] ?? code;
