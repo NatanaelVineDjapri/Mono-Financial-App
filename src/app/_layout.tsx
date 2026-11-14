@@ -8,6 +8,7 @@ import {
 import { Newsreader_400Regular } from '@expo-google-fonts/newsreader';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
+import { preventScreenCaptureAsync } from 'expo-screen-capture';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
@@ -17,15 +18,22 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { SplashBrand } from '@/components/SplashBrand';
 import { ToastHost } from '@/components/ToastHost';
+import { setNumberFormat, useNumberFormat } from '@/core/money';
 import { DbProvider, useDb } from '@/data/db/DbProvider';
 import { getSetting } from '@/data/repo/settings';
+import { useBlockScreenshots } from '@/features/ai_chat/useBlockScreenshots';
 import { FxAutoUpdate } from '@/features/fx/FxAutoUpdate';
 import { ImportSync } from '@/features/import/ImportSync';
 import { RecurringConfirmHost } from '@/features/recurring/RecurringConfirmHost';
 import { initialLanguage, useLanguage } from '@/i18n/lang';
+import { LockGate } from '@/features/lock/LockGate';
 import { navTheme } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
+
+// Block from the very first frame (splash, fonts and DB still loading). BlockScreenshotsInit
+// below releases the 'app' tag only if the person turned the setting off.
+preventScreenCaptureAsync('app').catch(() => {});
 
 // SQLite reads never go stale behind our back — every write already calls
 // invalidateAfterWrite() (src/data/queryKeys.ts), so react-query only needs to refetch
@@ -54,19 +62,32 @@ function HiddenAmountsInit() {
   return null;
 }
 
-// The UI language (settings.language, English until the person picks another). It is read before
-// anything is drawn, so a person who chose Indonesian never sees a flash of English; and the tree
-// below is drawn again when the language changes, because the text is read at render time.
+// "Block screenshots" (settings.block_screenshots, on by default) covers the whole app, not
+// just the AI screens: FLAG_SECURE also hides the app in the recent-apps preview.
+function BlockScreenshotsInit() {
+  useBlockScreenshots('app');
+  return null;
+}
+
+// The UI language and number format. They are read before anything is drawn, so a person who chose
+// Indonesian or international format never sees a flash of defaults; and the tree below is drawn
+// again when either changes, because text and figures are read at render time.
 function LanguageGate({ children }: { children: ReactNode }) {
   const db = useDb();
   const language = useLanguage(s => s.language);
+  const numberFormat = useNumberFormat(s => s.numberFormat);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getSetting(db, 'language')
-      .then(value => {
-        if (!cancelled) useLanguage.getState().setLanguage(initialLanguage(value));
+    Promise.all([getSetting(db, 'language'), getSetting(db, 'number_format')])
+      .then(([langVal, numVal]) => {
+        if (!cancelled) {
+          useLanguage.getState().setLanguage(initialLanguage(langVal));
+          if (numVal === 'en_US' || numVal === 'id_ID') {
+            setNumberFormat(numVal);
+          }
+        }
       })
       .catch(() => {})
       .finally(() => {
@@ -78,7 +99,7 @@ function LanguageGate({ children }: { children: ReactNode }) {
   }, [db]);
 
   if (!loaded) return null;
-  return <Fragment key={language}>{children}</Fragment>;
+  return <Fragment key={`${language}-${numberFormat}`}>{children}</Fragment>;
 }
 
 export default function RootLayout() {
@@ -111,6 +132,7 @@ export default function RootLayout() {
             <SplashBrand />
             <DbProvider>
               <HiddenAmountsInit />
+              <BlockScreenshotsInit />
               <ImportSync />
               <FxAutoUpdate />
               <LanguageGate>
@@ -121,9 +143,11 @@ export default function RootLayout() {
                   back on its first tab (Overview) instead of the tab the user actually came
                   from. Every screen below already draws its own header, so the native one is
                   off everywhere. */}
-              <Stack screenOptions={{ headerShown: false }} />
-              <ToastHost />
-              <RecurringConfirmHost />
+              <LockGate>
+                <Stack screenOptions={{ headerShown: false }} />
+                <ToastHost />
+                <RecurringConfirmHost />
+              </LockGate>
               </LanguageGate>
             </DbProvider>
           </ThemeProvider>

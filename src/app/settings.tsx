@@ -6,8 +6,9 @@
 // and Tentang (brand lockup, offline note, open-source licenses).
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -19,6 +20,7 @@ import { MonoSwitch } from '@/components/MonoSwitch';
 import { Sheet } from '@/components/Sheet';
 import { SheetHeader } from '@/components/SheetHeader';
 import { showToast } from '@/components/toast-store';
+import { setNumberFormat } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getLastBackupAt } from '@/data/repo/backupLog';
@@ -28,6 +30,7 @@ import { deleteKeyAndDisable, setAiEnabled } from '@/features/ai_chat/aiSettings
 import { hasKey } from '@/features/ai_chat/keystore';
 import { getRatesOverview } from '@/features/fx/ratesOverview';
 import { useImportApps } from '@/features/import/useImportApps';
+import { withLockSuspended } from '@/features/lock/useLock';
 import { formatBackupTime, zoneOf } from '@/features/more/backupStatus';
 import {
   cancelLabel,
@@ -46,6 +49,8 @@ import {
   settingsAiKeyNotSet,
   settingsAiKeySub,
   settingsAiKeyTitle,
+  settingsAppLockPromptDisable,
+  settingsAppLockPromptEnable,
   settingsAppLockSub,
   settingsAppLockTitle,
   settingsBackupSub,
@@ -76,6 +81,9 @@ import {
   settingsMonthStartSub,
   settingsMonthStartTitle,
   settingsMonthStartValue,
+  settingsNoLockMessage,
+  settingsNoLockOpenSettings,
+  settingsNoLockTitle,
   settingsNotifBackupSub,
   settingsNotifBackupTitle,
   settingsNotificationsSub,
@@ -158,6 +166,7 @@ export default function SettingsScreen() {
   // Dialog & sheet states
   const [eraseDialogOpen, setEraseDialogOpen] = useState(false);
   const [eraseBusy, setEraseBusy] = useState(false);
+  const [noLockDialogOpen, setNoLockDialogOpen] = useState(false);
   const [tzSheetOpen, setTzSheetOpen] = useState(false);
   const [monthSheetOpen, setMonthSheetOpen] = useState(false);
   const [formatSheetOpen, setFormatSheetOpen] = useState(false);
@@ -180,8 +189,40 @@ export default function SettingsScreen() {
 
   // Toggle handlers
   const onToggleAppLock = async (val: boolean) => {
-    await setSetting(db, 'app_lock', val ? '1' : '0');
-    await invalidateAfterWrite(queryClient);
+    try {
+      if (val) {
+        const hasHw = await LocalAuthentication.hasHardwareAsync();
+        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+        const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
+        if (!hasHw || !isEnrolled || enrolledLevel === LocalAuthentication.SecurityLevel.NONE) {
+          setNoLockDialogOpen(true);
+          return;
+        }
+
+        const res = await withLockSuspended(() =>
+          LocalAuthentication.authenticateAsync({
+            promptMessage: settingsAppLockPromptEnable(),
+            cancelLabel: cancelLabel(),
+            disableDeviceFallback: false,
+          }),
+        );
+        if (!res.success) return;
+      } else {
+        const res = await withLockSuspended(() =>
+          LocalAuthentication.authenticateAsync({
+            promptMessage: settingsAppLockPromptDisable(),
+            cancelLabel: cancelLabel(),
+            disableDeviceFallback: false,
+          }),
+        );
+        if (!res.success) return;
+      }
+
+      await setSetting(db, 'app_lock', val ? '1' : '0');
+      await invalidateAfterWrite(queryClient);
+    } catch {
+      // Keep switch in current state
+    }
   };
 
   const onToggleHideOnLaunch = async (val: boolean) => {
@@ -218,6 +259,9 @@ export default function SettingsScreen() {
 
   const onSelectNumberFormat = async (fmt: string) => {
     await setSetting(db, 'number_format', fmt);
+    if (fmt === 'id_ID' || fmt === 'en_US') {
+      setNumberFormat(fmt);
+    }
     await invalidateAfterWrite(queryClient);
     setFormatSheetOpen(false);
   };
@@ -283,7 +327,7 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* 1. PRIVASI */}
-        <Text style={styles.sectionHeader} accessibilityRole="header">
+        <Text style={[styles.sectionHeader, styles.sectionHeaderFirst]} accessibilityRole="header">
           {settingsGroupPrivacy()}
         </Text>
         <View style={styles.card}>
@@ -615,6 +659,23 @@ export default function SettingsScreen() {
         testID="settings-erase-dialog"
       />
 
+      {/* Dialog: No lock credentials on device */}
+      <ConfirmDialog
+        visible={noLockDialogOpen}
+        icon="alert-circle"
+        iconColor={MonoColors.accent}
+        title={settingsNoLockTitle()}
+        message={[{ text: settingsNoLockMessage() }]}
+        cancelLabel={cancelLabel()}
+        confirmLabel={settingsNoLockOpenSettings()}
+        onCancel={() => setNoLockDialogOpen(false)}
+        onConfirm={() => {
+          setNoLockDialogOpen(false);
+          void withLockSuspended(() => Linking.openSettings());
+        }}
+        testID="settings-no-lock-dialog"
+      />
+
       {/* Sheet: Timezone */}
       <Sheet
         visible={tzSheetOpen}
@@ -842,6 +903,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingTop: 20,
     paddingBottom: 8,
+  },
+  // The title row already ends with its own bottom padding, so the first group label sits right under it.
+  sectionHeaderFirst: {
+    paddingTop: 0,
   },
 
   card: {

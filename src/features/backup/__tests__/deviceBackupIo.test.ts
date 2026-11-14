@@ -4,6 +4,8 @@
 import * as Sharing from 'expo-sharing';
 import { requireOptionalNativeModule } from 'expo';
 
+import { Directory } from 'expo-file-system';
+
 import { deviceBackupIo } from '../deviceBackupIo';
 
 const mockFiles = new Map<string, { content: string | null; deleted: boolean }>();
@@ -43,7 +45,24 @@ jest.mock('expo-file-system', () => {
     mockFiles.set(f.uri, { content: 'old', deleted: false });
     return f;
   };
+  class MockDirectory {
+    static pickDirectoryAsync = jest.fn();
+    uri: string;
+    created: { name: string; mimeType: string | null }[] = [];
+    constructor(uri = 'content://downloads/') {
+      this.uri = uri;
+    }
+    createFile(name: string, mimeType: string | null) {
+      this.created.push({ name, mimeType });
+      const f = Object.create(MockFile.prototype) as InstanceType<typeof MockFile>;
+      f.name = name;
+      f.uri = `${this.uri}${name}`;
+      mockFiles.set(f.uri, { content: '', deleted: false });
+      return f;
+    }
+  }
   return {
+    Directory: MockDirectory,
     File: MockFile,
     Paths: { cache: { uri: 'file:///cache/', list: () => [listed('mono-backup-2026-10-01.json'), listed('mono-backup-2026-10-20.json'), listed('receipt.jpg'), listed('mono-backup-notes.txt')] } },
   };
@@ -82,6 +101,37 @@ describe('deviceBackupIo.write', () => {
     const second = await deviceBackupIo.write('mono-backup-2026-10-28.json', 'second!');
     expect(second.sizeBytes).toBe(7);
     expect(mockFiles.get('file:///cache/mono-backup-2026-10-28.json')?.content).toBe('second!');
+  });
+});
+
+describe('deviceBackupIo.saveToFolder', () => {
+  const pick = Directory.pickDirectoryAsync as jest.Mock;
+
+  test('writes the file into the folder the person picked, as JSON', async () => {
+    const folder = new Directory('content://downloads/');
+    pick.mockReset().mockResolvedValue(folder);
+    const result = await deviceBackupIo.saveToFolder('mono-backup-2026-10-28.json', '{"a":1}');
+    expect(result).toEqual({ sizeBytes: 7 });
+    expect((folder as unknown as { created: unknown[] }).created).toEqual([{ name: 'mono-backup-2026-10-28.json', mimeType: 'application/json' }]);
+    expect(mockFiles.get('content://downloads/mono-backup-2026-10-28.json')?.content).toBe('{"a":1}');
+  });
+
+  test('does not touch the cache folder', async () => {
+    pick.mockReset().mockResolvedValue(new Directory('content://downloads/'));
+    await deviceBackupIo.saveToFolder('mono-backup-2026-10-28.json', '{}');
+    expect([...mockFiles.values()].every(f => !f.deleted)).toBe(true); // the old cache backups are still there
+  });
+
+  test('closing the picker without a choice resolves null, whichever way the module words it', async () => {
+    pick.mockReset().mockRejectedValue(Object.assign(new Error('The file picker was cancelled by the user'), { code: 'ERR_PICKER_CANCELLED' }));
+    await expect(deviceBackupIo.saveToFolder('x.json', '{}')).resolves.toBeNull();
+    pick.mockReset().mockRejectedValue(new Error('picker cancelled'));
+    await expect(deviceBackupIo.saveToFolder('x.json', '{}')).resolves.toBeNull();
+  });
+
+  test('any other picker failure is a failure, not a cancel', async () => {
+    pick.mockReset().mockRejectedValue(new Error('no activity found'));
+    await expect(deviceBackupIo.saveToFolder('x.json', '{}')).rejects.toThrow('no activity found');
   });
 });
 

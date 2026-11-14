@@ -239,7 +239,7 @@ Confirm-first model: a fixed expense is a template, and the transaction is creat
  
 **Create a budget:** Budgets → pick category → set limit → check allocation. Within the limit: saved. Over: Save disabled, offer "Raise limit" or lower the budget, re-check.
  
-**Backup / restore:** Create backup → share sheet → file saved. Restore → choose file → validate → valid: confirm screen → data replaced and Overview recalculates; invalid: checklist, choose another file. A bad file never partly restores.
+**Backup / restore:** Create backup → pick a folder (Downloads, a card, any folder) → file saved; Share opens the share sheet instead. Restore → choose file → validate → valid: confirm screen → data replaced and Overview recalculates; invalid: checklist, choose another file. A bad file never partly restores.
  
 ## 14. Validation messages
  

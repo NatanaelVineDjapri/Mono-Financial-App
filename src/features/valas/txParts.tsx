@@ -8,7 +8,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { currencySymbol, money, pct, rateRp, rp, shown } from '@/core/money';
+import { currencySymbol, getNumberFormat, money, pct, rateRp, rp, shown } from '@/core/money';
 import type { FormPocket } from '@/core/tx/validate';
 import { ErrorLine, FIELD_BORDER, FIELD_FILL, type ErrorView } from '@/features/transactions/form/formParts';
 import {
@@ -179,13 +179,14 @@ export function BudgetNote({ category, valueIdr }: { category: string; valueIdr:
 
 // ---------------------------------------------------------------- exchange summary
 
-// 13000 -> "1,30"; 12345 -> "1,2345": four decimals at most, trailing zeros trimmed down to two.
+// 13000 -> "1,30" (id) / "1.30" (en); 12345 -> "1,2345" (id) / "1.2345" (en): four decimals at most, trailing zeros trimmed down to two.
 export function formatE4(n: number): string {
+  const isEn = getNumberFormat() === 'en_US';
   const whole = Math.floor(n / 10000);
   let frac = String(n % 10000).padStart(4, '0');
   while (frac.length > 2 && frac.endsWith('0')) frac = frac.slice(0, -1);
-  const digits = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `${digits},${frac}`;
+  const digits = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, isEn ? ',' : '.');
+  return `${digits}${isEn ? '.' : ','}${frac}`;
 }
 
 function rateTextOf(rate: RateText): string {

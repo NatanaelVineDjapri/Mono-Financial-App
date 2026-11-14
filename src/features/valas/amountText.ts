@@ -1,5 +1,6 @@
 // What a person types for an amount of foreign money, and back. Integers only (CLAUDE.md rule 1): the
 // text becomes minor units of the currency (cents for USD, whole yen for JPY), never a float.
+import { getNumberFormat } from '@/core/money';
 //
 // The keyboard may give "." or "," for the decimal mark and a person may also type a thousands mark, so
 // the LAST separator is the decimal mark when it is followed by at most as many digits as the currency
@@ -53,5 +54,6 @@ export function currencyInputText(minor: number, minorFactor: number): string {
   if (decimals === 0) return `${sign}${a}`;
   const whole = Math.floor(a / minorFactor);
   const frac = String(a % minorFactor).padStart(decimals, '0');
-  return `${sign}${whole},${frac}`;
+  const sep = getNumberFormat() === 'en_US' ? '.' : ',';
+  return `${sign}${whole}${sep}${frac}`;
 }

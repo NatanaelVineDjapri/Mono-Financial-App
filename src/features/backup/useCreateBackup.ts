@@ -1,5 +1,7 @@
 // The hook behind every "Buat cadangan" button: runs createBackup once (a second tap while it runs
 // does nothing), then tells the person with a snackbar and refreshes what shows the backup status.
+// `create()` saves into a folder the person picks; `create('share')` opens the share sheet. Closing the
+// folder picker is not a failure: no snackbar, and nothing is logged.
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
@@ -7,27 +9,29 @@ import { showToast } from '@/components/toast-store';
 import { sha256Hex } from '@/core/sha256';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
-import { backupFailedToast, backupSavedToast } from '@/i18n';
+import { backupFailedToast, backupSavedToast, backupSavedToFolderToast } from '@/i18n';
 
-import { createBackup } from './createBackup';
+import { createBackup, type BackupDestination } from './createBackup';
 import { deviceBackupIo } from './deviceBackupIo';
 
-export function useCreateBackup(): { create: () => Promise<boolean>; busy: boolean } {
+export function useCreateBackup(): { create: (destination?: BackupDestination) => Promise<boolean>; busy: boolean } {
   const db = useDb();
   const queryClient = useQueryClient();
   const running = useRef(false);
   const [busy, setBusy] = useState(false);
 
-  const create = useCallback(async (): Promise<boolean> => {
+  const create = useCallback(async (destination?: BackupDestination): Promise<boolean> => {
+    // onPress handlers pass their press event as the first argument: only 'share' means share.
+    const where: BackupDestination = destination === 'share' ? 'share' : 'folder';
     if (running.current) return false;
     running.current = true;
     setBusy(true);
     try {
-      const result = await createBackup(db, deviceBackupIo, sha256Hex);
+      const result = await createBackup(db, deviceBackupIo, sha256Hex, undefined, where);
       if (result.ok) {
         await invalidateAfterWrite(queryClient);
-        showToast(backupSavedToast());
-      } else {
+        showToast(where === 'folder' ? backupSavedToFolderToast() : backupSavedToast());
+      } else if (result.reason === 'failed') {
         showToast(backupFailedToast());
       }
       return result.ok;

@@ -6,7 +6,7 @@
 // expense is passed as a negative number, matching rp()'s own convention.
 import { Text, type TextProps, type TextStyle } from 'react-native';
 
-import { money, rp, shown } from '@/core/money';
+import { money, rp, shown, useNumberFormat } from '@/core/money';
 import { MonoColors, amountColor, type AmountKind } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 import { useHideAmounts } from './hide-amounts-store';
@@ -34,6 +34,7 @@ export function Amount({
   ...rest
 }: AmountProps) {
   const hidden = useHideAmounts(s => s.hidden);
+  useNumberFormat(s => s.numberFormat);
   const formatted = currency === 'IDR' ? rp(value, sign) : money(value, currency, minorFactor, sign);
   const display = shown(formatted, hidden);
   const color = kind ? amountColor(kind) : MonoColors.text;

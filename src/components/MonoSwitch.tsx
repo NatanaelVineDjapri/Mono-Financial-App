@@ -4,6 +4,7 @@
 // colour never the only signal) — on/off is carried by track fill, thumb position AND
 // accessibilityState together, never colour alone. hitSlop brings the touch target up to
 // the 44dp floor (same rule IconButton's comment cites) despite the visually smaller track.
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
@@ -26,7 +27,11 @@ export interface MonoSwitchProps extends Omit<PressableProps, 'style' | 'childre
 
 export function MonoSwitch({ value, onValueChange, label, disabled = false, testID, ...rest }: MonoSwitchProps) {
   const progress = useSharedValue(value ? 1 : 0);
-  progress.value = withTiming(value ? 1 : 0, { duration: DURATION });
+  // A shared value is written in an effect, never while React is rendering (Reanimated's strict mode
+  // warns about a write in render). It starts at the right end already, so the first run changes nothing.
+  useEffect(() => {
+    progress.value = withTiming(value ? 1 : 0, { duration: DURATION });
+  }, [value, progress]);
 
   const trackStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(progress.value, [0, 1], [MonoColors.surface, MonoColors.text]),

@@ -96,7 +96,15 @@ describe('BackupScreen', () => {
 
     const btn = screen.getByTestId('backup-create-btn');
     fireEvent.press(btn);
-    expect(mockCreateBackup).toHaveBeenCalled();
+    expect(mockCreateBackup).toHaveBeenCalledWith('folder'); // saves into a folder the person picks
+  });
+
+  test('the Bagikan button opens the share sheet path instead', async () => {
+    renderBackup();
+    await waitFor(() => expect(screen.getByText('mono-backup-2026-10-21.json')).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId('backup-share-btn'));
+    expect(mockCreateBackup).toHaveBeenCalledWith('share');
   });
 
   test('renders choose backup file secondary button', async () => {

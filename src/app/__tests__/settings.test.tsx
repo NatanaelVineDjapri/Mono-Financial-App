@@ -1,11 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { getAllSettings, setSetting } from '@/data/repo/settings';
 import { resetDatabase } from '@/dev/resetDatabase';
-import { deleteKeyAndDisable, setAiEnabled } from '@/features/ai_chat/aiSettings';
-import { hasKey } from '@/features/ai_chat/keystore';
+import { deleteKeyAndDisable } from '@/features/ai_chat/aiSettings';
 import SettingsScreen from '../settings';
 
 const mockBack = jest.fn();
@@ -81,6 +80,14 @@ jest.mock('@/dev/resetDatabase', () => ({
   resetDatabase: jest.fn(async () => {}),
 }));
 
+jest.mock('expo-local-authentication', () => ({
+  hasHardwareAsync: jest.fn(async () => true),
+  isEnrolledAsync: jest.fn(async () => true),
+  getEnrolledLevelAsync: jest.fn(async () => 1),
+  authenticateAsync: jest.fn(async () => ({ success: true })),
+  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC: 2 },
+}));
+
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 0 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
 
 const clients: QueryClient[] = [];
@@ -145,6 +152,46 @@ describe('SettingsScreen', () => {
     await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'block_screenshots', '0'));
   });
 
+  test('app lock: toggling off is rejected when authentication fails', async () => {
+    const LocalAuth = require('expo-local-authentication');
+    LocalAuth.authenticateAsync.mockResolvedValueOnce({ success: false });
+
+    await renderSettings();
+    const appLockSwitch = screen.getByTestId('settings-app-lock-switch');
+    await fireEvent.press(appLockSwitch);
+
+    expect(LocalAuth.authenticateAsync).toHaveBeenCalledWith(expect.objectContaining({ promptMessage: 'Matikan kunci aplikasi' }));
+    expect(setSetting).not.toHaveBeenCalledWith(expect.anything(), 'app_lock', '0');
+  });
+
+  test('app lock: toggling on without device credentials shows dialog and is rejected', async () => {
+    const LocalAuth = require('expo-local-authentication');
+    LocalAuth.hasHardwareAsync.mockResolvedValueOnce(false);
+
+    // Make initial settings have app_lock = '0'
+    const settingsRepo = require('@/data/repo/settings');
+    settingsRepo.getAllSettings.mockResolvedValueOnce({
+      app_lock: '0',
+      hide_on_launch: '0',
+      block_screenshots: '1',
+      number_format: 'id_ID',
+      month_start_day: '1',
+      timezone: 'Asia/Jakarta',
+      backup_reminder: '1',
+      recurring_reminders: '1',
+      ai_enabled: '0',
+    });
+
+    await renderSettings();
+    const appLockSwitch = screen.getByTestId('settings-app-lock-switch');
+    await fireEvent.press(appLockSwitch);
+
+    // Dialog opens
+    await waitFor(() => expect(screen.getByTestId('settings-no-lock-dialog')).toBeTruthy());
+    expect(screen.getByText('Perangkat ini belum punya kunci layar. Atur sidik jari atau PIN di pengaturan perangkat dulu.')).toBeTruthy();
+    expect(setSetting).not.toHaveBeenCalledWith(expect.anything(), 'app_lock', '1');
+  });
+
   test('opens timezone picker sheet and selects option', async () => {
     await renderSettings();
 
@@ -156,6 +203,19 @@ describe('SettingsScreen', () => {
     await fireEvent.press(makassarOpt);
 
     expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'timezone', 'Asia/Makassar');
+  });
+
+  test('opens number format picker sheet and selects option', async () => {
+    await renderSettings();
+
+    await fireEvent.press(screen.getByTestId('settings-number-format-row'));
+
+    await waitFor(() => expect(screen.getByTestId('number-format-sheet')).toBeTruthy());
+
+    const enOpt = screen.getByTestId('number-format-option-en');
+    await fireEvent.press(enOpt);
+
+    expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'number_format', 'en_US');
   });
 
   test('opens erase confirmation dialog and can cancel or confirm', async () => {

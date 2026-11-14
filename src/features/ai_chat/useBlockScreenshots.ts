@@ -15,7 +15,10 @@ export function useBlockScreenshots(tag: string): void {
   const block = setting !== '0'; // on unless the person turned it off
 
   useEffect(() => {
-    if (!block) return undefined;
+    if (!block) {
+      allowScreenCaptureAsync(tag).catch(() => {}); // also releases a tag taken before the setting loaded
+      return undefined;
+    }
     preventScreenCaptureAsync(tag).catch(() => {});
     return () => {
       allowScreenCaptureAsync(tag).catch(() => {});

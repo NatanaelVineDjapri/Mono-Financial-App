@@ -1,4 +1,4 @@
-import { currencySymbol, money, pct, rateRp, rp, shown, toIdr } from '../money';
+import { currencySymbol, money, pct, pct1, rateRp, rp, setNumberFormat, shown, shownPct, toIdr } from '../money';
 
 describe('rp', () => {
   test('formats a plain amount with thousands separators', () => {
@@ -132,5 +132,51 @@ describe('currencySymbol and rateRp', () => {
     expect(rateRp(162500000)).toBe('Rp16.250');
     expect(rateRp(156234500)).toBe('Rp15.623,45');
     expect(rateRp(333333)).toBe('Rp33,33');
+  });
+});
+
+describe('international number format (en_US)', () => {
+  afterEach(() => {
+    setNumberFormat('id_ID');
+  });
+
+  test('formats rp with comma separators', () => {
+    expect(rp(1250000, false, 'en_US')).toBe('Rp1,250,000');
+    expect(rp(-38500, false, 'en_US')).toBe('−Rp38,500');
+    expect(rp(7000000, true, 'en_US')).toBe('+Rp7,000,000');
+    expect(rp(999, false, 'en_US')).toBe('Rp999');
+  });
+
+  test('formats pct and pct1 with dot decimal separators', () => {
+    expect(pct(6810, false, 'en_US')).toBe('68.10%');
+    expect(pct(5, false, 'en_US')).toBe('0.05%');
+    expect(pct(-150, false, 'en_US')).toBe('−1.50%');
+    expect(pct1(335, false, 'en_US')).toBe('33.5%');
+    expect(pct1(-5, false, 'en_US')).toBe('−0.5%');
+  });
+
+  test('formats foreign money and rateRp with en_US separators', () => {
+    expect(money(25000, 'USD', 100, false, 'en_US')).toBe('US$250.00');
+    expect(money(500, 'JPY', 1, false, 'en_US')).toBe('¥500');
+    expect(rateRp(156234500, 'en_US')).toBe('Rp15,623.45');
+  });
+
+  test('shownPct masks with dot in en_US', () => {
+    expect(shownPct('12.34%', true, 'en_US')).toBe('••.••%');
+    expect(shownPct('12,34%', true, 'id_ID')).toBe('••,••%');
+  });
+
+  test('switches format globally via setNumberFormat', () => {
+    setNumberFormat('en_US');
+    expect(rp(1250000)).toBe('Rp1,250,000');
+    expect(pct(6810)).toBe('68.10%');
+    expect(money(25000, 'USD', 100)).toBe('US$250.00');
+    expect(rateRp(156234500)).toBe('Rp15,623.45');
+
+    setNumberFormat('id_ID');
+    expect(rp(1250000)).toBe('Rp1.250.000');
+    expect(pct(6810)).toBe('68,10%');
+    expect(money(25000, 'USD', 100)).toBe('US$250,00');
+    expect(rateRp(156234500)).toBe('Rp15.623,45');
   });
 });

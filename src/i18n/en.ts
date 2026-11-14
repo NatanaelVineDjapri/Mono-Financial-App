@@ -4167,6 +4167,24 @@ export const catIconName = (key: string): string => {
 export function settingsGroupPrivacy(): string { return 'PRIVACY'; }
 export function settingsAppLockTitle(): string { return 'App lock'; }
 export function settingsAppLockSub(): string { return 'Require fingerprint or device PIN on open'; }
+export function settingsAppLockPromptEnable(): string { return 'Turn on app lock'; }
+export function settingsAppLockPromptDisable(): string { return 'Turn off app lock'; }
+export function settingsNoLockTitle(): string { return 'No screen lock set'; }
+export function settingsNoLockMessage(): string { return 'This device has no screen lock set. Set up a fingerprint or PIN in device settings first.'; }
+export function settingsNoLockOpenSettings(): string { return 'Open settings'; }
+export function settingsNoLockCancel(): string { return 'Cancel'; }
+
+export function lockPromptMessage(): string { return 'Unlock MONO'; }
+export function lockPromptCancel(): string { return 'Cancel'; }
+export function lockSubtitle(): string { return 'Unlock with fingerprint or device PIN.'; }
+export function lockFootnote(): string { return 'Automatically locked after 30 seconds in the background.'; }
+export function lockErrorNoHardware(): string { return 'This device no longer has a screen lock set.'; }
+export function lockErrorLockout(): string { return 'Too many attempts. Try again in a moment.'; }
+export function lockErrorFailed(): string { return 'Fingerprint not recognized. Try again or use device PIN.'; }
+export function lockBtnOpenSettings(): string { return 'Open settings'; }
+export function lockBtnDisable(): string { return 'Turn off app lock'; }
+export function lockBtnUnlock(): string { return 'Unlock'; }
+export function lockScanA11y(): string { return 'Scan fingerprint'; }
 export function settingsHideOnLaunchTitle(): string { return 'Hide amounts on launch'; }
 export function settingsHideOnLaunchSub(): string { return 'Shows Rp•••••••• until you tap the eye icon'; }
 export function settingsBlockScreenshotsTitle(): string { return 'Block screenshots and preview'; }
@@ -4184,7 +4202,7 @@ export function settingsRatesSub(timeText?: string, isAuto?: boolean): string {
 export function settingsRatesValue(): string { return 'Forex'; }
 export function settingsNumberFormatTitle(): string { return 'Number format'; }
 export function settingsNumberFormatSub(isId?: boolean): string {
-  return isId ? 'Rp1.234.567 · percent 12.34%' : 'Rp1,234,567 · percent 12.34%';
+  return isId ? 'Rp1.234.567 · percent 12,34%' : 'Rp1,234,567 · percent 12.34%';
 }
 export function settingsNumberFormatId(): string { return 'Indonesia'; }
 export function settingsNumberFormatIntl(): string { return 'International'; }

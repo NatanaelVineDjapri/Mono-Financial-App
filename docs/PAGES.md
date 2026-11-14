@@ -54,7 +54,7 @@ Papan: `Flows` · 1280 × 1500
 - 1 · Peta navigasi: tabel Layar / Pemeriksaan / Blokir atau error / Hasil untuk Overview, Transactions, Accounts, Budgets, dan More beserta anak layarnya.
 - 2 · Transfer antar akun: ketuk Transfer, isi form (dari, ke, jumlah, tanggal, catatan), cek valid (akun berbeda dan jumlah ≤ saldo). Valid: tersimpan (BCA −Rp500.000, Jago Pocket +Rp500.000, kekayaan bersih tidak berubah). Tidak valid: Simpan nonaktif, selisih disebut, perbaiki, cek ulang; form mempertahankan isian.
 - 3 · Membuat anggaran: pilih kategori yang belum punya anggaran, tetapkan batas (Rp500.000, ulangi tiap bulan), cek alokasi Rp5.500.000 terhadap Rp5.000.000. Lolos: tersimpan. Melebihi Rp500.000: Simpan nonaktif sampai batas dinaikkan atau anggaran diturunkan.
-- 4 · Backup dan restore: Create backup now → share sheet → Backup saved (tanggal cadangan terakhir di More dan Overview diperbarui). Restore → pilih berkas → validasi (JSON, penanda, versi skema, total) → konfirmasi (bandingkan jumlah, cadangan pengaman, centang) → data diganti dan Overview dihitung ulang. Gagal: daftar cek menunjukkan pemeriksaan yang gagal dan data tidak tersentuh.
+- 4 · Backup dan restore: Create backup now → pilih folder (mis. Download) → Backup saved; "Bagikan" membuka share sheet (tanggal cadangan terakhir di More dan Overview diperbarui). Restore → pilih berkas → validasi (JSON, penanda, versi skema, total) → konfirmasi (bandingkan jumlah, cadangan pengaman, centang) → data diganti dan Overview dihitung ulang. Gagal: daftar cek menunjukkan pemeriksaan yang gagal dan data tidak tersentuh.
 **Keadaan**
  
 - Setiap alur disusun sebagai langkah, pemeriksaan, jalur gagal, dan hasil.
@@ -490,7 +490,7 @@ Papan: `More` · 390 × 930
  
 **Tata letak dan komponen**
  
-- Judul dan strip status cadangan: "Tersimpan hanya di ponsel ini", baris keadaan cadangan, dan tombol unduh di kanan. Mengetuk strip membuka Backup; tombol unduh (48 × 48, "Buat cadangan sekarang") langsung membuat cadangan lewat fungsi yang sama dengan layar Backup (lembar bagikan), lalu snackbar "Cadangan tersimpan." dan strip ikut diperbarui.
+- Judul dan strip status cadangan: "Tersimpan hanya di ponsel ini", baris keadaan cadangan, dan tombol unduh di kanan. Mengetuk strip membuka Backup; tombol unduh (48 × 48, "Buat cadangan sekarang") langsung membuat cadangan lewat fungsi yang sama dengan layar Backup (menyimpan ke folder yang dipilih lewat pemilih folder Android), lalu snackbar "Cadangan tersimpan di folder yang kamu pilih." dan strip ikut diperbarui. Menutup pemilih folder tanpa memilih bukan kegagalan: tidak ada snackbar dan tidak ada yang dicatat.
 - Grup Money: Financial goals, Fixed expenses ("1 due today"), Reports, Categories.
 - Grup Data and app: Backup and restore, Settings.
 - Footer lockup MONO dengan "Version 1.0.0 · Works offline · No account, no sync".
@@ -632,7 +632,7 @@ Papan: `Backup` · 390 × 1130
  
 - Banner: data hanya ada di perangkat ini; jika ponsel hilang, data hilang kecuali ada berkas cadangan.
 - Cadangan terakhir: 21 Okt 2026 20:14 WIB, mono-backup-2026-10-21.json (IBM Plex Mono), 38 KB, 8 transaksi berubah sejak itu.
-- Tombol "Create backup now" yang membuka share sheet.
+- Tombol "Create backup now" yang menyimpan berkas JSON ke folder pilihan (pemilih folder Android, mis. Download), dan tombol sekunder "Bagikan" yang membuka share sheet (Drive, Gmail, Quick Share). Berkas ke folder dicatat di `backup_log` hanya setelah benar-benar tertulis; berkas yang dibagikan dicatat setelah share sheet ditutup, karena Android tidak memberi tahu apakah tujuan dipilih.
 - Isi cadangan: 4 akun, 71 transaksi, 6 anggaran · 3 target · 14 kategori, 4 pengeluaran tetap, pengaturan. Format schema versi 1, tidak dienkripsi.
 - Pemulihan: "Choose backup file" dan tautan contoh berkas tidak valid.
 - Cadangan terbaru: tiga berkas terakhir dengan tanggal dan ukuran.

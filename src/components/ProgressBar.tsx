@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   track: {
     height: HEIGHT,
     borderRadius: HEIGHT / 2,
-    backgroundColor: MonoColors.surface,
+    backgroundColor: MonoColors.border,
     flexDirection: 'row',
     overflow: 'hidden',
   },

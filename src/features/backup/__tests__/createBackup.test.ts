@@ -24,12 +24,18 @@ async function fixture(): Promise<{ db: Db; account: number; category: number }>
   return { db, account, category };
 }
 
-function fakeIo(over: Partial<BackupIo> = {}): BackupIo & { written: { fileName: string; json: string }[]; shared: string[] } {
+function fakeIo(over: Partial<BackupIo> = {}): BackupIo & { written: { fileName: string; json: string }[]; shared: string[]; saved: { fileName: string; json: string }[] } {
   const written: { fileName: string; json: string }[] = [];
   const shared: string[] = [];
+  const saved: { fileName: string; json: string }[] = [];
   return {
     written,
     shared,
+    saved,
+    saveToFolder: async (fileName, json) => {
+      saved.push({ fileName, json });
+      return { sizeBytes: json.length };
+    },
     write: async (fileName, json) => {
       written.push({ fileName, json });
       return { uri: `file:///cache/${fileName}`, sizeBytes: json.length };
@@ -101,6 +107,57 @@ describe('createBackup', () => {
     const before = await db.getAllAsync('select * from transactions order by id');
     await createBackup(db, fakeIo(), sha256Hex, NOW);
     expect(await db.getAllAsync('select * from transactions order by id')).toEqual(before);
+  });
+});
+
+describe('createBackup into a folder', () => {
+  test('saves straight into the chosen folder: no cache file, no share sheet, then logs it', async () => {
+    const { db } = await fixture();
+    const io = fakeIo();
+    const result = await createBackup(db, io, sha256Hex, NOW, 'folder');
+
+    expect(result).toMatchObject({ ok: true, fileName: 'mono-backup-2026-10-28.json', txCount: 2, createdAt: NOW, destination: 'folder' });
+    expect(io.saved.map(s => s.fileName)).toEqual(['mono-backup-2026-10-28.json']);
+    expect(io.written).toEqual([]);
+    expect(io.shared).toEqual([]);
+    expect(await db.getFirstAsync('select file_name, tx_count, kind from backup_log')).toEqual({ file_name: 'mono-backup-2026-10-28.json', tx_count: 2, kind: 'manual' });
+    expect(await db.getFirstAsync<{ size_bytes: number }>('select size_bytes from backup_log')).toEqual({ size_bytes: io.saved[0].json.length });
+  });
+
+  test('the file saved to the folder is a real backup that a restore would accept', async () => {
+    const { db } = await fixture();
+    const io = fakeIo();
+    await createBackup(db, io, sha256Hex, NOW, 'folder');
+    const validation = await validateBackup(io.saved[0].json, sha256Hex);
+    expect(validation.ok).toBe(true);
+    expect(validation.ok && validation.file.counts.transactions).toBe(2);
+  });
+
+  test('closing the folder picker without a choice is cancelled, not failed: nothing is logged', async () => {
+    const { db } = await fixture();
+    const io = fakeIo({ saveToFolder: async () => null });
+    expect(await createBackup(db, io, sha256Hex, NOW, 'folder')).toEqual({ ok: false, reason: 'cancelled' });
+    expect(await getLastBackupAt(db)).toBeNull();
+  });
+
+  test('if the file cannot be written into the folder, it fails and nothing is logged', async () => {
+    const { db } = await fixture();
+    const io = fakeIo({
+      saveToFolder: async () => {
+        throw new Error('permission denied');
+      },
+    });
+    expect(await createBackup(db, io, sha256Hex, NOW, 'folder')).toEqual({ ok: false, reason: 'failed' });
+    expect(await getLastBackupAt(db)).toBeNull();
+  });
+
+  test('the share destination still goes through the cache file and the share sheet', async () => {
+    const { db } = await fixture();
+    const io = fakeIo();
+    const result = await createBackup(db, io, sha256Hex, NOW, 'share');
+    expect(result).toMatchObject({ ok: true, destination: 'share' });
+    expect(io.saved).toEqual([]);
+    expect(io.shared).toEqual(['file:///cache/mono-backup-2026-10-28.json']);
   });
 });
 

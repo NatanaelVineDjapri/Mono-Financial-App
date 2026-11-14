@@ -1,28 +1,53 @@
 // Money is an integer of whole rupiah; percentages are basis points (10000 = 100%).
 // Own formatter on purpose: Hermes `Intl` support differs by device. See DESIGN.md section 16.
+import { create } from 'zustand';
 
-const dots = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// ponytail: supports id_ID and en_US formatting; upgrade to locale config map when other regional formats are needed.
+export type NumberFormat = 'id_ID' | 'en_US';
 
-export function rp(v: number, sign = false): string {
-  const n = dots(Math.abs(v));
+interface NumberFormatState {
+  numberFormat: NumberFormat;
+  setNumberFormat: (numberFormat: NumberFormat) => void;
+}
+
+export const useNumberFormat = create<NumberFormatState>(set => ({
+  numberFormat: 'id_ID',
+  setNumberFormat: numberFormat => set({ numberFormat }),
+}));
+
+export function getNumberFormat(): NumberFormat {
+  return useNumberFormat.getState().numberFormat;
+}
+
+export function setNumberFormat(format: NumberFormat): void {
+  useNumberFormat.getState().setNumberFormat(format);
+}
+
+const formatThousands = (n: number, fmt = getNumberFormat()) =>
+  String(n).replace(/\B(?=(\d{3})+(?!\d))/g, fmt === 'en_US' ? ',' : '.');
+
+export function rp(v: number, sign = false, fmt = getNumberFormat()): string {
+  const n = formatThousands(Math.abs(v), fmt);
   if (v < 0) return `−Rp${n}`; // true minus sign (U+2212), not a hyphen
   return sign && v > 0 ? `+Rp${n}` : `Rp${n}`;
 }
 
-// 6810 -> "68,10%". Integer maths only. `sign` mirrors rp()'s own flag: a leading "+" on
+// 6810 -> "68,10%" or "68.10%". Integer maths only. `sign` mirrors rp()'s own flag: a leading "+" on
 // a positive value, e.g. for a month-over-month change ("+37,63%").
-export function pct(bp: number, sign = false): string {
+export function pct(bp: number, sign = false, fmt = getNumberFormat()): string {
   const a = Math.abs(bp);
-  const s = `${Math.floor(a / 100)},${String(a % 100).padStart(2, '0')}%`;
+  const sep = fmt === 'en_US' ? '.' : ',';
+  const s = `${Math.floor(a / 100)}${sep}${String(a % 100).padStart(2, '0')}%`;
   if (bp < 0) return `−${s}`; // true minus sign (U+2212)
   return sign && bp > 0 ? `+${s}` : s;
 }
 
-// 335 (permille) -> "33,5%". One decimal, integer maths only: the Overview's category
+// 335 (permille) -> "33,5%" or "33.5%". One decimal, integer maths only: the Overview's category
 // shares, rounded with largestRemainderSharesBp(values, total, 1000) so they add to 100,0%.
-export function pct1(permille: number, sign = false): string {
+export function pct1(permille: number, sign = false, fmt = getNumberFormat()): string {
   const a = Math.abs(permille);
-  const s = `${Math.floor(a / 10)},${a % 10}%`;
+  const sep = fmt === 'en_US' ? '.' : ',';
+  const s = `${Math.floor(a / 10)}${sep}${a % 10}%`;
   if (permille < 0) return `−${s}`;
   return sign && permille > 0 ? `+${s}` : s;
 }
@@ -57,20 +82,22 @@ export function currencySymbol(code: string): string {
   return SYMBOL[code] ?? `${code} `;
 }
 
-// A rate_e4 (rupiah per 1 major unit, times 10.000) as rupiah: "Rp12.500", or "Rp12.500,25"
-// when it is not a whole number (two decimals at most, half away from zero).
-export function rateRp(rateE4: number): string {
+// A rate_e4 (rupiah per 1 major unit, times 10.000) as rupiah: "Rp12.500", or "Rp12.500,25" (id)
+// / "Rp12,500.25" (en) when it is not a whole number (two decimals at most, half away from zero).
+export function rateRp(rateE4: number, fmt = getNumberFormat()): string {
   const hundredths = Math.floor((rateE4 + 50) / 100);
   const whole = Math.floor(hundredths / 100);
   const frac = hundredths % 100;
-  return frac === 0 ? rp(whole) : `${rp(whole)},${String(frac).padStart(2, '0')}`;
+  const sep = fmt === 'en_US' ? '.' : ',';
+  return frac === 0 ? rp(whole, false, fmt) : `${rp(whole, false, fmt)}${sep}${String(frac).padStart(2, '0')}`;
 }
 
-export function money(minor: number, code: string, minorFactor: number, sign = false): string {
+export function money(minor: number, code: string, minorFactor: number, sign = false, fmt = getNumberFormat()): string {
   const a = Math.abs(minor);
   const digits = String(minorFactor).length - 1; // 100 -> 2, 1 -> 0
-  const whole = dots(Math.floor(a / minorFactor));
-  const frac = digits ? ',' + String(a % minorFactor).padStart(digits, '0') : '';
+  const whole = formatThousands(Math.floor(a / minorFactor), fmt);
+  const sep = fmt === 'en_US' ? '.' : ',';
+  const frac = digits ? sep + String(a % minorFactor).padStart(digits, '0') : '';
   const body = `${SYMBOL[code] ?? code + ' '}${whole}${frac}`;
   return minor < 0 ? `−${body}` : sign && minor > 0 ? `+${body}` : body;
 }
@@ -95,8 +122,9 @@ export function shown(formatted: string, hidden: boolean): string {
 // Hidden-amounts mode also covers the Overview's percentages (month-over-month change,
 // category shares): next to a masked amount they would still leak the ratio. Same fixed
 // width idea as shown() — "••,••%" is as wide as "12,34%".
-export function shownPct(formatted: string, hidden: boolean): string {
-  return hidden ? '••,••%' : formatted;
+export function shownPct(formatted: string, hidden: boolean, fmt = getNumberFormat()): string {
+  if (!hidden) return formatted;
+  return fmt === 'en_US' ? '••.••%' : '••,••%';
 }
 
 // A chart's y-axis label ("8", "12", "500k") is an amount too: hidden mode masks it, at a

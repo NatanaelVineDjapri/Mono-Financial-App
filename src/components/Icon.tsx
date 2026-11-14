@@ -26,6 +26,7 @@ export type IconName =
   // footer note.
   | 'transfer'
   | 'lock'
+  | 'fingerprint'
   // Transactions tab (DESIGN.md "B. Transactions"): the search field and the Filters button.
   | 'search'
   | 'filter'
@@ -106,6 +107,7 @@ const PATHS: Partial<Record<IconName, string>> = {
   bank: 'M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18',
   transfer: 'M4 8 L17 8 M13 4 L17 8 L13 12 M20 16 L7 16 M11 12 L7 16 L11 20',
   lock: 'M6 11 h12 v9 h-12 Z M8 11 V7 a4 4 0 0 1 8 0 v4',
+  fingerprint: 'M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4M14 13.12c0 2.38 0 6.38-1 8.88M2 12a10 10 0 0 1 18-6M2 16a14 14 0 0 1 4-10M16 18a10 10 0 0 0 2-6 7.93 7.93 0 0 0-1-4M9 10a5 5 0 0 1 6 3c0 2 0 5-1 8M6.5 16.5c.5 2 1.5 3.5 2.5 4.5',
   filter: 'M4 5 H20 L14 13 V19 L10 21 V13 Z',
   receipt: 'M5 3 H19 V21 L16 19.5 L13 21 L10 19.5 L7 21 L5 19.5 Z M8 8 H16 M8 12 H16 M8 16 H13',
   wallet: 'M3 7 H21 V18 H3 Z M3 7 L5.5 4 H16 M16 11.5 H19.5 V14.5 H16 Z',

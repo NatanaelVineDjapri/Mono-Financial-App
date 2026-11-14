@@ -4164,6 +4164,24 @@ export const catIconName = (key: string): string => {
 export function settingsGroupPrivacy(): string { return 'PRIVASI'; }
 export function settingsAppLockTitle(): string { return 'Kunci aplikasi'; }
 export function settingsAppLockSub(): string { return 'Minta sidik jari atau PIN perangkat saat membuka'; }
+export function settingsAppLockPromptEnable(): string { return 'Aktifkan kunci aplikasi'; }
+export function settingsAppLockPromptDisable(): string { return 'Matikan kunci aplikasi'; }
+export function settingsNoLockTitle(): string { return 'Kunci layar belum diatur'; }
+export function settingsNoLockMessage(): string { return 'Perangkat ini belum punya kunci layar. Atur sidik jari atau PIN di pengaturan perangkat dulu.'; }
+export function settingsNoLockOpenSettings(): string { return 'Buka pengaturan'; }
+export function settingsNoLockCancel(): string { return 'Batal'; }
+
+export function lockPromptMessage(): string { return 'Buka MONO'; }
+export function lockPromptCancel(): string { return 'Batal'; }
+export function lockSubtitle(): string { return 'Buka dengan sidik jari atau PIN perangkat.'; }
+export function lockFootnote(): string { return 'Dikunci otomatis setelah 30 detik di latar belakang.'; }
+export function lockErrorNoHardware(): string { return 'Perangkat ini tidak punya kunci layar lagi.'; }
+export function lockErrorLockout(): string { return 'Terlalu banyak percobaan. Coba lagi sebentar.'; }
+export function lockErrorFailed(): string { return 'Sidik jari tidak dikenali. Coba lagi atau pakai PIN perangkat.'; }
+export function lockBtnOpenSettings(): string { return 'Buka pengaturan'; }
+export function lockBtnDisable(): string { return 'Matikan kunci aplikasi'; }
+export function lockBtnUnlock(): string { return 'Buka kunci'; }
+export function lockScanA11y(): string { return 'Pindai sidik jari'; }
 export function settingsHideOnLaunchTitle(): string { return 'Sembunyikan nominal saat dibuka'; }
 export function settingsHideOnLaunchSub(): string { return 'Tampil Rp•••••••• sampai kamu ketuk ikon mata'; }
 export function settingsBlockScreenshotsTitle(): string { return 'Blokir tangkapan layar dan pratinjau'; }
@@ -4181,7 +4199,7 @@ export function settingsRatesSub(timeText?: string, isAuto?: boolean): string {
 export function settingsRatesValue(): string { return 'Valas'; }
 export function settingsNumberFormatTitle(): string { return 'Format angka'; }
 export function settingsNumberFormatSub(isId?: boolean): string {
-  return isId ? 'Rp1.234.567 · persen 12,34%' : 'Rp1,234,567 · persen 12,34%';
+  return isId ? 'Rp1.234.567 · persen 12,34%' : 'Rp1,234,567 · persen 12.34%';
 }
 export function settingsNumberFormatId(): string { return 'Indonesia'; }
 export function settingsNumberFormatIntl(): string { return 'Internasional'; }

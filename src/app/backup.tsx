@@ -26,6 +26,7 @@ import { invalidateAfterWrite } from '@/data/queryKeys';
 import { countTransactionsChangedSince, getLastBackupAt } from '@/data/repo/backupLog';
 import { getSetting } from '@/data/repo/settings';
 import { useCreateBackup } from '@/features/backup/useCreateBackup';
+import { withLockSuspended } from '@/features/lock/useLock';
 import { formatBackupTime } from '@/features/more/backupStatus';
 import {
   backupAccountsLabel,
@@ -38,6 +39,7 @@ import {
   backupContentsTitle,
   backupCreateHelp,
   backupCreateNow,
+  backupShareNow,
   backupCreating,
   backupFileLabel,
   backupFixedExpensesLabel,
@@ -281,7 +283,7 @@ function ConfirmPanel({
             disabled={restoring}
           >
             <View style={[s.tickBox, ticked && s.tickBoxChecked]}>
-              {ticked && <Icon name="check" size={14} color={MonoColors.bg} />}
+              {ticked && <Icon name="check" size={16} color={MonoColors.bg} />}
             </View>
             <Text style={s.tickLabel}>{restoreConfirmTick()}</Text>
           </Pressable>
@@ -363,7 +365,9 @@ export default function BackupScreen() {
     if (picking) return;
     setPicking(true);
     try {
-      const result = await File.pickFileAsync({ mimeTypes: ['application/json', '*/*'] });
+      const result = await withLockSuspended(() =>
+        File.pickFileAsync({ mimeTypes: ['application/json', '*/*'] }),
+      );
       if (result.canceled) return;
       const picked = result.result;
       const raw = await picked.text();
@@ -515,9 +519,18 @@ export default function BackupScreen() {
             label={backupBusy ? backupCreating() : backupCreateNow()}
             icon="download"
             loading={backupBusy}
-            onPress={createBackup}
+            onPress={() => void createBackup('folder')}
             style={s.cardBtn}
             testID="backup-create-btn"
+          />
+          <Button
+            label={backupShareNow()}
+            icon="upload"
+            variant="secondary"
+            disabled={backupBusy}
+            onPress={() => void createBackup('share')}
+            style={s.cardBtn}
+            testID="backup-share-btn"
           />
 
           <Text style={s.cardCaption}>{backupCreateHelp()}</Text>
