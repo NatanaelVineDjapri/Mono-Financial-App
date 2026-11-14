@@ -6,6 +6,7 @@ import { addOneForexAccountGuard } from './v4_one_forex_account';
 import { addMoreCurrencies } from './v5_more_currencies';
 import { turnOnFxAutoUpdate } from './v6_fx_auto_update_on';
 import { clampGoalProgressView } from './v7_goal_progress_clamp';
+import { addCategoryGuards } from './v8_category_guards';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -19,6 +20,8 @@ export type Migration = (db: Db) => Promise<void>;
 //   4 -> 5: every foreign currency the rate service serves can be held (more rows in `currencies`).
 //   5 -> 6: "Perbarui otomatis" is on from the start (an older database's seeded '0' becomes '1').
 //   6 -> 7: goal progress is clamped and no longer smoothed around 50%.
+//   7 -> 8: categories are archived, never deleted: kind locked once used, last active category and a
+//           category of an active fixed expense cannot be archived; seeded categories get their icon key.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -26,6 +29,7 @@ export const migrations: Record<number, Migration> = {
   4: addMoreCurrencies,
   5: turnOnFxAutoUpdate,
   6: clampGoalProgressView,
+  7: addCategoryGuards,
 };
 
 // Brings `db` from its current meta.schema_version up to the newest version this build

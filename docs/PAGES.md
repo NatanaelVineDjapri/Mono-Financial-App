@@ -546,45 +546,80 @@ Papan: `Goal-Edit` · 390 × 844
  
 - Pratinjau mencegah target yang tidak realistis disimpan tanpa disadari.
 ### K · Kategori
- 
-Papan: `Categories` · 390 × 900
- 
-**Tujuan.** Mengelola kategori pemasukan dan pengeluaran.
- 
-**Tata letak dan komponen**
- 
-- Pengeluaran (10): Food & drink, Transport, Shopping, Bills, Health, Leisure (punya anggaran), Housing, Education, Gifts, Other.
-- Pemasukan (4): Salary, Freelance, Interest and dividends, Other income.
-- Sistem (tidak bisa diubah): Transfer, bukan pemasukan dan bukan pengeluaran.
-- Catatan: mengganti nama memperbarui transaksi lama; kategori yang dipakai dapat diarsipkan, tidak dihapus.
-**Keadaan**
- 
-- Baris kategori yang punya anggaran menampilkan label "Budget set".
-**Catatan**
- 
-- Transfer ditampilkan agar pengguna paham mengapa transfer tidak masuk laporan.
+
+Papan: `Categories`, `Category-Edit`, `Category-Edit-Existing`, `Categories-Archived`, `Category-Dialogs` · 390 lebar
+
+**Tujuan.** Mengelola kategori pemasukan dan pengeluaran: daftar, tambah, ubah, arsipkan, pulihkan. Semua teks berbahasa Indonesia ("kamu"), disimpan di `src/i18n`.
+
+**Aturan (keputusan pemilik)**
+
+1. Kategori **tidak pernah dihapus**, hanya diarsipkan (`archived = 1`) dan bisa dipulihkan.
+2. Setiap jenis (pengeluaran dan pemasukan) harus punya minimal satu kategori aktif. Yang terakhir tidak bisa diarsipkan (kode `last_active_category`).
+3. Kategori yang dipakai **pengeluaran tetap yang aktif** tidak bisa diarsipkan sampai kategorinya di templat diganti atau templatnya dihentikan (kode `category_in_active_recurring`).
+4. Jenis (`kind`) **terkunci** begitu kategori dipakai transaksi, anggaran, atau pengeluaran tetap (kode `category_kind_locked`).
+5. Anggaran kategori yang diarsipkan: data bulan ini tetap ada, tetapi tidak disalin ke bulan berikutnya (`ensureMonth` melewati kategori arsip).
+6. "Transfer" adalah baris sistem virtual (bukan baris tabel): tidak bisa diubah atau diarsipkan dan tidak muncul di pilihan.
+7. Nama: dipangkas, 1–40 karakter, unik per jenis tanpa membedakan huruf besar kecil, **termasuk** yang diarsipkan.
+
+**K1 · Daftar `/categories`**
+
+- Panah kembali "Lainnya", judul "Kategori", tombol + di header (kotak bergaris 48×48, tepi kanan sejajar kartu).
+- Bagian "Pengeluaran, N" dan "Pemasukan, N" (N = yang aktif). Baris: ubin ikon 36, nama, tag "Ada anggaran" bila ada anggaran bulan ini, chevron; ketuk membuka `/category/edit?id=`. Label: "<nama>, ada anggaran, ketuk untuk mengubah".
+- Bagian "Sistem, tidak bisa diubah": "Transfer, bukan pemasukan dan bukan pengeluaran" dengan gembok, tidak bisa diketuk. Ditampilkan agar pengguna paham mengapa transfer tidak masuk laporan.
+- Baris "Diarsipkan, N" menuju `/categories/archived`, hanya bila N >= 1. Keadaan kosong tidak mungkin (minimal satu aktif per jenis).
+
+**K2 · Form `/category/edit`**
+
+- Judul "Kategori baru" atau "Ubah kategori", tutup × 44×44. "Jenis": dua ubin Pengeluaran | Pemasukan. Mode ubah dan sudah dipakai: ubin terkunci (gembok) dengan "Jenis tidak bisa diubah karena sudah dipakai di N transaksi."
+- "Nama" dengan hitungan "0/40" dan placeholder "Contoh: Kopi"; kesalahan memakai bingkai 1,5 px, ikon peringatan, dan kalimat. Mode ubah: "Mengganti nama memperbarui transaksi lama dan laporan."
+- "Ikon": grid 5 kolom, tinggi 52, radius 14, dari registri 20 kunci (lihat DESIGN.md bagian 7). Baru: bawaan `tag`.
+- Baru: kartu pratinjau. Ubah: kartu "Pemakaian" (Transaksi, Terakhir dipakai, Anggaran bulan ini) dan tombol "Arsipkan kategori" (bingkai 1,5 px #A3A3A3, ikon arsip, bukan merah).
+- Bilah bawah: Batal (lebar 104) dan "Simpan kategori", nonaktif sampai valid (dan sampai ada perubahan di mode ubah). Perubahan belum tersimpan lalu Batal, tutup, atau tombol kembali memunculkan "Buang perubahan?" (Buang / Lanjut mengubah).
+- Setelah simpan: kembali ke daftar, snackbar "Kategori tersimpan." Setelah arsip: "Kategori diarsipkan." dengan Urungkan 4 detik.
+
+**K3 · Dialog arsip**
+
+- "Arsipkan <nama>?": "Kategori ini tidak muncul lagi di pilihan transaksi baru. N transaksi lama dan laporan tetap utuh. Anggaran bulan ini ikut tersimpan, tapi tidak dibuat lagi bulan depan. Kamu bisa memulihkannya kapan saja dari Kategori → Diarsipkan." Tombol Batal / Arsipkan (solid #F5F5F5).
+- Ditolak: dialog "Belum bisa diarsipkan" dengan alasan dan satu tombol "Mengerti". Alasan: kategori aktif terakhir di jenisnya, atau dipakai pengeluaran tetap <nama>. Penolakan ditanyakan lebih dulu, sebelum dialog konfirmasi.
+
+**K4 · Diarsipkan `/categories/archived`**
+
+- Judul "Diarsipkan" dan kalimat penjelas; bagian per jenis dengan baris redup (ubin ikon, nama, "N transaksi · tanggal"), tombol "Pulihkan" (tinggi 44, ikon urungkan). Pulihkan langsung tanpa dialog, snackbar "Kategori dipulihkan."
+- Catatan bawah dengan gembok: "Kategori tidak pernah dihapus, hanya diarsipkan, supaya riwayatmu tidak berubah." Kosong: kembali sendiri ke daftar.
+
+**Dampak ke fitur lain**
+
+- Pemilih kategori baru (Tambah transaksi, Anggaran, Pengeluaran tetap, Scan struk) hanya menampilkan kategori aktif sesuai jenis. Mengubah transaksi lama yang kategorinya sudah diarsipkan tetap menampilkan kategori itu sebagai nilai terpilih.
+- Laporan, riwayat, dan filter transaksi menampilkan kategori arsip apa adanya.
+- AI chat hanya mengirim dan memakai nama kategori yang aktif.
+- Pengingat merchant untuk impor (bila sudah ada) yang menunjuk ke kategori arsip dianggap kosong.
+
 ## H · Laporan
- 
+  
 ### H · Reports (data contoh)
- 
+  
 Papan: `Reports` · 390 × 2190
- 
+  
 **Tujuan.** Analisis periode: arus kas, tren, pengeluaran per kategori, kekayaan bersih.
- 
+  
 **Tata letak dan komponen**
- 
-- Penyeleksi periode (Month, 3 months, 6 months, Year) dan bulan terpilih.
-- Arus kas: pemasukan +Rp7.500.000, pengeluaran −Rp4.257.000, bersih +Rp3.243.000, tingkat tabungan 43,24%.
-- Tren enam bulan: grafik batang dan tabel (Rp juta, Mei sampai Okt).
-- Pengeluaran per kategori: tabel jumlah dan porsi (Food & drink 33,47%, Bills 27,01%, Shopping 19,07%, Transport 12,68%, Leisure 4,93%, Health 2,82%).
-- Kekayaan bersih akhir bulan: tabel nilai dan perubahan, dengan angka pasti hari ini Rp8.880.000.
-- Ekspor CSV: transaksi dan saldo akun, tersimpan di perangkat dan tidak diunggah.
+  
+- Penyeleksi rentang: Month, 3 months, 6 months, Year (pilihan aktif berupa pil terang), lalu stepper ‹ bulan › yang berhenti di periode berjalan.
+- Arus kas: pemasukan +Rp7.500.000, pengeluaran −Rp4.257.000, bersih +Rp3.243.000, tingkat tabungan 43,24%. Keterangan "1 – 28 Oct 2026 · transfers excluded" (transfer tidak pernah masuk angka ini).
+- Rentang hanya mengubah arus kas dan pengeluaran per kategori; tren dan kekayaan bersih selalu enam periode/bulan terakhir yang berakhir di periode terpilih.
+- Tren enam bulan: grafik batang pemasukan (emas) dan pengeluaran (abu) plus tabel MONTH / INCOME / EXPENSES / NET dalam Rp juta satu desimal (Mei sampai Okt). Bulan berjalan diberi `*` dan catatan "* October to 28 Oct. Values rounded to Rp100.000."
+- Pengeluaran per kategori: keterangan bulan dan total ("October 2026 · total Rp4.257.000"), lalu baris kategori dengan batang, jumlah, dan porsi dua desimal (Food & drink 33,47%, Bills 27,01%, Shopping 19,07%, Transport 12,68%, Leisure 4,93%, Health 2,82%). Catatan "Shares are rounded and may not add to exactly 100%."
+- Kekayaan bersih akhir bulan: tabel MONTH / VALUE / CHANGE (baris pertama "first record"), dengan angka pasti terakhir: "Exact today: Rp8.880.000, up Rp3.243.000 (+57,53%) from the September month-end…". Nilai dan perubahan dihitung dari angka persis, jadi bisa berbeda 0,1 dari kolom yang dibulatkan.
+- Ekspor CSV: transaksi ("Selected period, all accounts") dan saldo akun ("Month-end, per account"), masing-masing tombol CSV. Berkas ditulis ke cache perangkat lalu dibuka lewat share sheet; tidak ada yang diunggah.
+- Saat mode sembunyikan jumlah, semua angka uang tertutup; persentase tidak pernah disembunyikan.
 **Keadaan**
- 
-- Kurang dari satu bulan data menampilkan empty state "Not enough data for a report".
+  
+- Kurang dari satu bulan data (28 hari sejak catatan paling awal) menampilkan empty state "Not enough data for a report".
+- Rentang tanpa pengeluaran menampilkan "No spending in this period." di kartu kategori.
 **Catatan**
- 
+  
 - Setiap grafik disertai tabel dan label teks sehingga tidak bergantung pada warna.
+- Bulan berjalan dihitung sampai hari ini, bukan sampai akhir bulan, dan ditandai `*` di kedua tabel.
 ## I · Cadangan
  
 ### I1 · Backup dan restore
@@ -832,6 +867,8 @@ Papan: `Recurring-Confirm` · 390 × 844
 **Catatan**
  
 - Mengonfirmasi membuat satu transaksi pengeluaran biasa dan satu catatan peristiwa dalam satu transaksi SQLite.
+- Sheet ini dibuka dari tiga tempat lewat satu komponen `RecurringConfirmHost` (dipasang di root layout): (1) daftar `/recurring` tombol "Catat sekarang", (2) kartu Overview "Tinjau dan catat" bila tepat satu yang jatuh tempo, (3) ketukan notifikasi pengingat bila tepat satu yang jatuh tempo. Bila N > 1, entry point (2) dan (3) membuka `/recurring` dan bukan sheet.
+- Setelah catat: snackbar dengan Urungkan 4 detik; Urungkan menghapus transaksi dan event sehingga jatuh tempo kembali muncul.
 ## V · Valas (mata uang asing)
  
 Satu akun bernama Valas memegang banyak mata uang. Tiap mata uang adalah satu kantong dengan saldonya sendiri; akun hanya menampilkan total dalam rupiah, diperkirakan dari kurs terbaru dan ditandai ≈. Data contoh papan-papan ini terpisah dari data contoh lainnya: US$250,00 dan S$180,00 pada kurs US$1 = Rp16.250 dan S$1 = Rp12.500 (28 Okt 2026, 09:00), jadi Valas ≈ Rp6.312.500 dan kekayaan bersih dengan Valas ≈ Rp15.192.500.

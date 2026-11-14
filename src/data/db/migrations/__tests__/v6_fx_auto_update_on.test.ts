@@ -8,10 +8,10 @@ describe('migration 5 -> 6 (fx auto-update on from the start)', () => {
     const db = openTestDb();
     await db.runAsync("update settings set value = '0' where key = 'fx_auto_update'");
 
-    await expect(runMigrations(db, 5)).resolves.toBe(6);
+    await expect(runMigrations(db, 5)).resolves.toBe(8);
 
     expect(await db.getFirstAsync("select value from settings where key = 'fx_auto_update'")).toEqual({ value: '1' });
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '6' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '8' });
   });
 
   test('leaves other settings as they are', async () => {

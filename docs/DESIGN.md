@@ -81,6 +81,10 @@ Locale `id_ID`: dot thousands, comma decimals, no decimals for IDR, percentages 
 ## 7. Icons
  
 48 inline line icons, 24 px grid, 1.5 px stroke, round caps and joins. 20 px default, 16 px inline, 26 px in empty states.
+
+**Category icons.** `categories.icon` stores a KEY from a registry of 20 (`src/features/categories/icons.ts`): food, coffee, car, plane, bag, shirt, bolt, phone, heart, medical, film, home, book, education, gift, paw, briefcase, wallet, tag, dot. Each is one stroked path on the 24 grid, drawn 22 px with a 1.5 stroke and round caps, in gold on a 36 px tile (#1D1D1E, radius 12). An empty or unknown key falls back to `dot`; a new category starts on `tag`. The picker is a grid of 5 columns, cells 52 high with radius 14, the chosen one with a 1.5 px light frame and a #1D1D1E fill; every cell has its icon's name as its accessibility label and a selected state.
+
+**Archive dialogs.** Archiving is never destructive, so its dialog is not red: the icon and the Archive button on the form use a 1.5 px #A3A3A3 frame, the confirming button is solid #F5F5F5. A refusal is a notice with one button ("Mengerti") and the reason in a sentence.
  
 ## 8. Components
  
@@ -216,7 +220,7 @@ Confirm-first model: a fixed expense is a template, and the transaction is creat
 - *Confirm when due (bottom sheet):* "Record Gym membership?", editable amount (Rp200.000), category, pay from, date, "BCA Tabungan after Rp6.642.500", budget impact banner ("Health budget goes over by Rp20.000: Rp120.000 + Rp200.000 = Rp320.000 of Rp300.000. You can still record it."), buttons Record expense / Skip this month / Remind me tomorrow. Skipping records nothing; the next due date is 28 Nov 2026.
 - *Entry points:* More → Money → Fixed expenses; the "Fixed expenses" card on Overview; Settings → Data → "Fixed expense reminders" (amounts are left out of notifications when Hide amounts is on).
 - *Backup:* recurring and recurring_events are included (Backup shows "Fixed expenses 4", Restore compares 4 / 4).
-**More** and **Categories** (10 expense, 4 income, system Transfer row).
+**More** and **Categories** (10 expense, 4 income, system Transfer row). Categories are managed here: add, edit (rename, icon, type until it is used), archive and restore from "Diarsipkan". They are never deleted; each type keeps at least one active category; a category an active fixed expense uses cannot be archived; budgets of an archived category stay for the month and are not copied forward. See PAGES.md K.
  
 ## 12. Accounting rules
  

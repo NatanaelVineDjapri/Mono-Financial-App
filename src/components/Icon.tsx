@@ -67,7 +67,10 @@ export type IconName =
   | 'tag'
   | 'database'
   | 'download'
-  | 'slider';
+  | 'slider'
+  // Categories: archive and restore.
+  | 'archive'
+  | 'undo';
 
 export interface IconProps {
   name: IconName;
@@ -126,6 +129,8 @@ const PATHS: Partial<Record<IconName, string>> = {
   download: 'M12 4 V15 M7 10 L12 15 L17 10 M5 20 H19',
   database: 'M4 6 C4 4 20 4 20 6 C20 8 4 8 4 6 Z M4 6 V18 C4 20 20 20 20 18 V6 M4 12 C4 14 20 14 20 12',
   slider: 'M4 7 H13 M17 7 H20 M4 17 H7 M11 17 H20 M15 4.5 V9.5 M9 14.5 V19.5',
+  archive: 'M3 5 H21 V9 H3 Z M5 9 V19 H19 V9 M10 13 H14',
+  undo: 'M9 14 L4 9 L9 4 M4 9 H15 a5 5 0 0 1 0 10 H8',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
 };
 

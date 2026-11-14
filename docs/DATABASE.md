@@ -21,7 +21,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `fx_rates` | riwayat kurs | `currency`, `rate_e4` (rupiah per 1 satuan mata uang dikali 10.000: US$1 = Rp16.250 adalah `162500000`), `fetched_at`, `source` (`api` atau `manual`). Baris baru tidak menimpa yang lama: riwayat tetap. Kurs terbaru per mata uang dibaca lewat `v_latest_fx`. IDR tidak punya kurs. Kurs yang hilang tidak pernah dianggap nol: `value_idr` kantong menjadi NULL dan kekayaan bersih bertanda `incomplete`. |
 | `accounts` | bank, tunai, e-wallet, tabungan, valas (`forex`) | Tanpa kolom saldo. Hanya `opening_balance` dan `opening_date`. `icon` opsional adalah kunci registry logo akun. Akun valas selalu `opening_balance = 0`, saldo awalnya ada di kantong. Nama unik tanpa membedakan huruf besar kecil. |
 | `account_currencies` | kantong mata uang milik akun valas | PK `(account_id, currency)`, `opening_balance`, `opening_date`, `archived`. Kantong yang masih berisi tidak bisa diarsipkan; kantong yang diarsipkan kembali dengan saldonya bila mata uangnya ditambahkan lagi. Satu mata uang hanya satu kantong. |
-| `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)`. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
+| `categories` | label pemasukan dan pengeluaran | `UNIQUE(name, kind)` tanpa membedakan huruf besar kecil, arsip ikut dihitung. `icon` adalah **kunci** registri ikon (`src/features/categories/icons.ts`, 20 kunci; kosong atau tak dikenal dibaca `dot`), `archived` menandai kategori yang diarsipkan: kategori **tidak pernah dihapus**. Transfer bukan kategori, UI menampilkannya sebagai kategori virtual. |
 | `transactions` | income, expense, transfer | `description` (judul di daftar), `note` (detail opsional), `source` (manual, ai, **recurring**, scan). Konfirmasi pengeluaran tetap membuat expense biasa dengan `source = 'recurring'`. Mata uang: `currency` (kantong asal), `to_currency` dan `amount_to` (hanya transfer), `amount_idr` (nilai rupiah saat dicatat). |
 | `monthly_limits` | batas total per bulan | `repeat = 1` berarti bulan berikutnya dibuat dari baris ini. |
 | `budgets` | batas per kategori pengeluaran per bulan | `UNIQUE(category_id, month)`. Jumlah semua anggaran tidak boleh melebihi batas bulan itu. |
@@ -56,7 +56,7 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 
 ## 4. Penjaga (trigger)
 
-23 trigger, 13 kode galat. Aplikasi memetakan tiap kode ke satu pesan.
+26 trigger, 17 kode galat. Aplikasi memetakan tiap kode ke satu pesan.
 
 | Kode | Memblokir | Pesan yang disarankan |
 |---|---|---|
@@ -74,6 +74,9 @@ Dokumen ini menjelaskan database lokal MONO Finance. Sumber kebenarannya adalah 
 | `forex_account_exists` | membuat akun forex kedua (atau mengubah akun lain menjadi forex, atau memulihkan arsip) selama masih ada akun forex yang aktif | "Akun Valas sudah ada. Tambahkan mata uangnya ke akun itu." |
 | `account_type_locked` | mengubah tipe akun dari atau menjadi valas | "Tipe akun tidak bisa diubah." |
 | `recurring_needs_idr_account` | pengeluaran tetap pada akun valas | "Pengeluaran tetap hanya untuk akun rupiah." |
+| `category_kind_locked` | mengubah jenis kategori yang sudah dipakai transaksi, anggaran, atau pengeluaran tetap (migrasi v8) | "Jenis tidak bisa diubah karena kategori ini sudah dipakai." |
+| `last_active_category` | mengarsipkan kategori aktif terakhir dari jenisnya (migrasi v8) | "Harus ada minimal satu kategori pengeluaran aktif. Tambah kategori lain dulu, lalu arsipkan yang ini." |
+| `category_in_active_recurring` | mengarsipkan kategori yang dipakai pengeluaran tetap yang aktif (migrasi v8) | "Dipakai pengeluaran tetap <nama>. Ganti kategorinya dulu." |
 
 Semua trigger berhenti bekerja bila `meta.guards_off = '1'`. Itu hanya dipakai saat restore (bagian 7).
 
@@ -143,6 +146,7 @@ Urutan restore di sisi database:
 - Tiap migrasi satu fungsi dan satu transaksi SQLite. Langkah yang gagal dibatalkan dan aplikasi tetap di versi lama.
 - Sebelum migrasi, aplikasi menulis cadangan pengaman. View dan trigger dibuang lalu dibuat ulang tiap kali, karena tidak menyimpan data.
 - Berkas cadangan mencatat `schema_version`-nya sendiri. Versi lebih lama dimigrasi di memori sebelum restore. Versi lebih baru ditolak.
+- **Migrasi 7 ke 8** (`src/data/db/migrations/v8_category_guards.ts`): tiga trigger `trg_category_kind_locked`, `trg_category_archive_last` dan `trg_category_archive_recurring` (kode di bagian 4) dan pengisian `categories.icon` untuk 14 kategori seed yang masih kosong (Food & drink = `food`, Transport = `car`, Shopping = `bag`, Bills = `bolt`, Health = `heart`, Leisure = `film`, Housing = `home`, Education = `book`, Gifts = `gift`, Other = `dot`, Salary = `wallet`, Freelance = `briefcase`, Interest and dividends = `tag`, Other income = `dot`); ikon yang sudah terisi tidak disentuh. Berhenti bekerja saat `meta.guards_off = 1`. `ensureMonth` (anggaran yang berulang) melewati kategori yang diarsipkan: anggaran bulan ini tetap ada, tidak disalin ke bulan berikutnya.
 - **Migrasi 5 ke 6** (`src/data/db/migrations/v6_fx_auto_update_on.ts`): pengaturan `fx_auto_update` (sakelar "Perbarui otomatis") yang masih bernilai `'0'` dari seed lama diubah menjadi `'1'` sekali, karena bawaannya sekarang nyala. Setelah build ini setiap perubahan sakelar ditulis eksplisit oleh `setFxAutoUpdate`, jadi `'0'` berikutnya adalah pilihan orangnya sendiri dan tidak disentuh lagi. Batas versi cadangan (`SUPPORTED_SCHEMA_VERSION`) naik ke 6.
 - **Migrasi 3 ke 4** (`src/data/db/migrations/v4_one_forex_account.ts`): dua trigger `trg_one_forex_ins` dan `trg_one_forex_upd` yang menolak akun forex aktif kedua dengan kode `forex_account_exists`. Hanya menambah trigger (tidak ada tabel yang dibangun ulang). Berhenti bekerja saat `meta.guards_off = 1`, jadi restore tidak terhalang.
 - **Migrasi 4 ke 5** (`src/data/db/migrations/v5_more_currencies.ts`): tabel `currencies` (daftar acuan statis, tidak ikut cadangan) diisi semua mata uang asing yang dilayani Exchange Rate API dan masih berlaku (151, dengan satuan terkecil ISO 4217: 1, 100 atau 1000). `insert or ignore`, jadi dua belas yang lama tidak berubah. Daftar dan alasan yang dikecualikan (IRR, CLF, XDR, CNH, SLL, ZWL, HRK, dan kode non-ISO) ada di `src/core/currencyList.ts`.

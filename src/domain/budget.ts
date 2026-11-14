@@ -9,6 +9,7 @@ import type {
   MonthlyLimitRow,
 } from '../data/repo/budgets';
 import * as repo from '../data/repo/budgets';
+import { listCategories } from '../data/repo/categories';
 import { DomainError, throwDomainError } from './errors';
 import { getMonthStartDay } from './transactionsList';
 
@@ -105,8 +106,10 @@ export async function ensureMonth(db: Db, month: string): Promise<boolean> {
 
   await repo.setMonthlyLimit(db, month, prevLimit.amount, true);
 
+  // A category that has been archived keeps this month's data but is not carried into the next one.
+  const activeCategoryIds = new Set((await listCategories(db, { kind: 'expense' })).map(c => c.id));
   const prevBudgets = await repo.listBudgets(db, prevMonth);
-  for (const budget of prevBudgets.filter(b => b.repeat)) {
+  for (const budget of prevBudgets.filter(b => b.repeat && activeCategoryIds.has(b.category_id))) {
     await repo.createBudget(db, { categoryId: budget.category_id, month, limitAmount: budget.limit_amount, repeat: true });
   }
   return true;

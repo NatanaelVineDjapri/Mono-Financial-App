@@ -3813,3 +3813,118 @@ export function valasPocketToLabel(): string {
 export function settingsRatesRowHint(): string {
   return 'Rates that value the foreign money in the Valas account. Automatic updates are on by default.';
 }
+
+// Categories (list, edit form, archive, archived list): CLAUDE.md rule 21.
+export const catListAdd = () => `Add category`;
+export const catListExpenseHeader = (count: number) => `Expense, ${count}`;
+export const catListIncomeHeader = (count: number) => `Income, ${count}`;
+export const catListSystemHeader = () => `System, not editable`;
+export const catListTransferName = () => `Transfer`;
+export const catListTransferSub = () => `Not income, not expense`;
+export const catListBudgetTag = () => `Budget set`;
+export const catListRowLabel = (name: string) => `${name}, tap to edit`;
+export const catListRowLabelWithBudget = (name: string) => `${name}, budget set, tap to edit`;
+export const catListArchivedRow = (count: number) => `Archived, ${count}`;
+export const catListLoadError = () => `Categories could not be loaded.`;
+export const catFormNewTitle = () => `New category`;
+export const catFormEditTitle = () => `Edit category`;
+export const catFormKindLabel = () => `Type`;
+export const catFormKindExpense = () => `Expense`;
+export const catFormKindIncome = () => `Income`;
+export const catFormKindLockedNote = (count: number) => `The type cannot change because it is used in ${count} transactions.`;
+export const catFormKindLockedOther = () => `The type cannot change because a budget or fixed expense uses it.`;
+export const catFormKindLockedLabel = (kindLabel: string) => `${kindLabel}, locked`;
+export const catFormNameLabel = () => `Name`;
+export const catFormNamePlaceholder = () => `Example: Coffee`;
+export const catFormNameCount = (count: number, max: number) => `${count}/${max}`;
+export const catFormRenameNote = () => `Renaming updates old transactions and reports.`;
+export const catFormIconLabel = () => `Icon`;
+export const catFormIconSelected = (name: string) => `${name}, selected`;
+export const catFormPreviewFallback = () => `Category name`;
+export const catFormPreviewSub = () => `Preview in the list and pickers`;
+export const catFormUsageTitle = () => `Usage`;
+export const catFormUsageTransactions = () => `Transactions`;
+export const catFormUsageLastUsed = () => `Last used`;
+export const catFormUsageNever = () => `Never`;
+export const catFormUsageBudget = () => `Budget this month`;
+export const catFormUsageBudgetYes = () => `Yes`;
+export const catFormUsageBudgetNo = () => `None`;
+export const catFormArchiveButton = () => `Archive category`;
+export const catFormSave = () => `Save category`;
+export const catFormLoadError = () => `This category could not be loaded.`;
+export const catArchiveTitle = (name: string) => `Archive ${name}?`;
+export const catArchiveBody = (count: number) => `This category no longer appears in the pickers for new transactions. ${count} earlier transactions and the reports stay intact. This month's budget is kept, but it is not created again next month.`;
+export const catArchiveRestoreHint = () => `You can restore it any time from Categories → Archived.`;
+export const catArchiveConfirm = () => `Archive`;
+export const catArchiveBlockedTitle = () => `Cannot archive yet`;
+export const catArchiveBlockedOk = () => `Got it`;
+export const catDiscardTitle = () => `Discard changes?`;
+export const catDiscardBody = () => `The changes to this category are not saved yet.`;
+export const catDiscardConfirm = () => `Discard`;
+export const catDiscardKeep = () => `Keep editing`;
+export const catSavedToast = () => `Category saved.`;
+export const catArchivedToast = () => `Category archived.`;
+export const catRestoredToast = () => `Category restored.`;
+export const catErrorNameEmpty = () => `Enter a category name.`;
+export const catErrorNameTooLong = (max: number) => `Use at most ${max} characters.`;
+export const catErrorNameTaken = (kindLabel: string) => `This name is already used in ${kindLabel}. Use another name.`;
+export const catErrorNameTakenArchived = () => `This name belongs to an archived category. Restore it first or use another name.`;
+export const catErrorLastActive = (kindWord: string) => `There must be at least one active ${kindWord} category. Add another category first, then archive this one.`;
+export const catErrorUsedByRecurring = (name: string) => `Used by the fixed expense ${name}. Change its category first.`;
+export const catErrorKindLocked = () => `The type cannot change because this category is already used.`;
+export const catErrorNotFound = () => `This category no longer exists.`;
+export const catKindWordExpense = () => `expense`;
+export const catKindWordIncome = () => `income`;
+export const catArchivedTitle = () => `Archived`;
+export const catArchivedIntro = () => `Archived categories do not appear in new pickers. Earlier transactions and reports still use them.`;
+export const catArchivedRowSub = (count: number, lastUsed: string) => `${count} transactions · ${lastUsed}`;
+export const catArchivedRowSubNone = (count: number) => `${count} transactions`;
+export const catArchivedRestore = () => `Restore`;
+export const catArchivedRestoreLabel = (name: string) => `Restore ${name}`;
+export const catArchivedFootnote = () => `Categories are never deleted, only archived, so your history does not change.`;
+export const catIconName = (key: string): string => {
+  switch (key) {
+    case 'food':
+      return 'Food';
+    case 'coffee':
+      return 'Coffee';
+    case 'car':
+      return 'Car';
+    case 'plane':
+      return 'Plane';
+    case 'bag':
+      return 'Shopping bag';
+    case 'shirt':
+      return 'Clothes';
+    case 'bolt':
+      return 'Electricity';
+    case 'phone':
+      return 'Phone';
+    case 'heart':
+      return 'Heart';
+    case 'medical':
+      return 'Medical';
+    case 'film':
+      return 'Film';
+    case 'home':
+      return 'Home';
+    case 'book':
+      return 'Book';
+    case 'education':
+      return 'Education';
+    case 'gift':
+      return 'Gift';
+    case 'paw':
+      return 'Pet';
+    case 'briefcase':
+      return 'Work';
+    case 'wallet':
+      return 'Wallet';
+    case 'tag':
+      return 'Tag';
+    case 'dot':
+      return 'Dot';
+    default:
+      return 'Dot';
+  }
+};

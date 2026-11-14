@@ -69,7 +69,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(rowsBefore).toHaveLength(11);
     expect(eventsBefore).toHaveLength(2);
 
-    await expect(runMigrations(db, 1)).resolves.toBe(6);
+    await expect(runMigrations(db, 1)).resolves.toBe(8);
 
     expect(await db.getAllAsync('select * from transactions order by 1, 2, 3')).toEqual(rowsBefore);
     expect(await db.getAllAsync('select * from recurring_events order by 1, 2, 3')).toEqual(eventsBefore);
@@ -79,7 +79,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(await db.getAllAsync("select * from v_period_flow where period = '2026-10'")).toEqual([
       expect.objectContaining({ income: 7500000, expense: 4257000 }),
     ]);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '6' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '8' });
   });
 
   test('every view, trigger and index comes back with the same SQL (17 views, 23 triggers)', async () => {
@@ -91,8 +91,10 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     await runMigrations(db, 1);
 
     // Later migrations add objects of their own (v3's table and triggers); everything that was
-    // there before migration 1 -> 2 is unchanged.
-    expect((await schemaObjects(db)).filter(o => before.some(b => b.name === o.name))).toEqual(before);
+    // there before migration 1 -> 2 is unchanged, except the goal view that migration 6 -> 7 rebuilds.
+    const rebuilt = new Set(['v_goal_progress']);
+    const keep = (o: { name: string }) => !rebuilt.has(o.name);
+    expect((await schemaObjects(db)).filter(o => before.some(b => b.name === o.name)).filter(keep)).toEqual(before.filter(keep));
   });
 
   test('the table keeps its shape: only the source CHECK changed', async () => {

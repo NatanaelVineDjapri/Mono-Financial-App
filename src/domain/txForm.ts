@@ -5,7 +5,7 @@
 // pocket) had before it.
 import type { Db } from '../data/db/types';
 import { listAccountsForForm } from '../data/repo/accounts';
-import { listCategories } from '../data/repo/categories';
+import { getCategory, listCategories } from '../data/repo/categories';
 import { listLatestRates } from '../data/repo/fx';
 import { getTransaction, type TransactionRow } from '../data/repo/transactions';
 import type { FormAccount, FormCategory, FormPocket, TxType } from '../core/tx/validate';
@@ -95,6 +95,13 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
   }));
   let pockets: FormPocket[] = pocketRows.map(p => ({ accountId: p.account_id, currency: p.currency, minorFactor: p.minor_factor, balance: p.balance, openingDate: p.opening_date }));
   const categories: FormCategory[] = categoryRows.map(c => ({ id: c.id, name: c.name, kind: c.kind }));
+  // A new transaction only offers active categories. A record edited later may still carry a category
+  // that has been archived since: it stays selectable here (so the person can keep it) but is not
+  // offered to anything else.
+  if (row?.category_id != null && !categories.some(c => c.id === row.category_id)) {
+    const kept = await getCategory(db, row.category_id);
+    if (kept) categories.push({ id: kept.id, name: kept.name, kind: kept.kind });
+  }
   const rates: Record<string, number> = Object.fromEntries(rateRows.map(r => [r.currency, r.rate_e4]));
 
   let record: TxEditRecord | null = null;

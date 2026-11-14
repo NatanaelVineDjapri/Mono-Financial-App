@@ -15,7 +15,7 @@ export function useTransactionFilterOptions() {
   });
   const categories = useQuery({
     queryKey: [...queryKeys.categories, 'transaction-filter-options'],
-    queryFn: () => listCategories(db),
+    queryFn: () => listCategories(db, { includeArchived: true }),
   });
 
   return {

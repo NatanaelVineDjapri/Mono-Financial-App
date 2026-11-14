@@ -29,6 +29,8 @@ export interface ConfirmDialogProps {
   cancelLabel: string;
   confirmLabel: string;
   busy?: boolean;
+  // A notice with one button: only the confirming button shows (a tap outside still calls onCancel).
+  hideCancel?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   testID?: string;
@@ -43,6 +45,7 @@ export function ConfirmDialog({
   cancelLabel,
   confirmLabel,
   busy = false,
+  hideCancel = false,
   onCancel,
   onConfirm,
   testID,
@@ -84,16 +87,18 @@ export function ConfirmDialog({
             ))}
           </Text>
           <View style={styles.buttons}>
-            <Pressable
-              onPress={onCancel}
-              accessibilityRole="button"
-              accessibilityLabel={cancelLabel}
-              android_ripple={undefined}
-              style={({ pressed }) => [styles.button, styles.cancel, pressed && styles.pressed]}
-              testID={testID ? `${testID}-cancel` : undefined}
-            >
-              <Text style={[MonoText.bodyStrong, { color: MonoColors.text }]}>{cancelLabel}</Text>
-            </Pressable>
+            {!hideCancel && (
+              <Pressable
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel={cancelLabel}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.button, styles.cancel, pressed && styles.pressed]}
+                testID={testID ? `${testID}-cancel` : undefined}
+              >
+                <Text style={[MonoText.bodyStrong, { color: MonoColors.text }]}>{cancelLabel}</Text>
+              </Pressable>
+            )}
             <Pressable
               onPress={busy ? undefined : onConfirm}
               accessibilityRole="button"

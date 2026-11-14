@@ -1,6 +1,6 @@
 # MONO Finance — screens to build
 
-36 things to build: 30 full screens and 6 sheets (screens 25 to 27 are the optional automatic-import screens, described in DESIGN.md section N and PAGES.md N1 to N5; Import-Setup and Import-Settings share screen 25). Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
+38 things to build: 32 full screens and 6 sheets (screens 25 to 27 are the optional automatic-import screens, described in DESIGN.md section N and PAGES.md N1 to N5; Import-Setup and Import-Settings share screen 25). Routes are a **proposal** (expo-router). The "Board" column is the file name on the design canvas (`project/<Board>.dc.html`), where the layout, copy and states live. Sizes: phone boards are 390 wide.
 
 ## Full screens
 
@@ -19,14 +19,16 @@
 | 11 | Category spending review | `/budget/category/[id]` | Budget-Category | |
 | 12 | Target | `/goals` | Goals | Progres dari view saldo, maksimal 100%; state tercapai, tanggal lewat, tanpa tautan, empty state, dan hapus target |
 | 13 | Target baru / Ubah target | `/goal/edit` | Goal-Edit | Sumber satu akun/total aset, preview langsung, validasi, state tercapai, serta tombol hapus di header saat mode ubah |
-| 14 | Categories | `/categories` | Categories | Transfer is virtual, not listed |
-| 15 | Reports | `/reports` | Reports | Charts with exact-value tables |
+| 14 | Kategori (daftar) | `/categories` | Categories | Hanya kategori aktif, header "Pengeluaran, N" dan "Pemasukan, N" menghitung yang aktif; tag "Ada anggaran"; baris sistem Transfer (virtual, gembok, tidak bisa diketuk); baris "Diarsipkan, N" bila N >= 1 |
+| 14a | Kategori baru / Ubah kategori | `/category/edit` | Category-Edit, Category-Edit-Existing | Jenis (terkunci setelah dipakai), nama (1–40, unik per jenis termasuk arsip), grid 20 ikon, pratinjau (baru) atau kartu Pemakaian (ubah), tombol "Arsipkan kategori", dialog arsip, dialog "Belum bisa diarsipkan" dan dialog "Buang perubahan?" (Category-Dialogs) |
+| 14b | Kategori diarsipkan | `/categories/archived` | Categories-Archived | Baris redup per jenis dengan "N transaksi · tanggal" dan tombol Pulihkan (langsung, tanpa dialog); kembali sendiri ke daftar bila kosong |
+| 15 | Reports | `/reports` | Reports | Rentang Month / 3 / 6 / Year, cash flow, six-month trend, spending by category, net-worth month-ends, CSV exports (transactions, balances). Charts with exact-value tables; empty state under one month of data |
 | 16 | Backup & restore | `/backup` | Backup | Create backup, share, recent backups |
 | 17 | Restore — confirm replace | `/backup/restore-confirm` | Restore-Confirm | Incompatible file: Restore-Invalid |
 | 18 | Settings | `/settings` | Settings | Assistant section, reminders, Exchange rates row, About |
 | 19 | AI chat — setup & consent | `/ai-setup` | AI-Setup | Gemini key (bring your own), disclosure |
 | 20 | AI chat | `/ai-chat` | AI-Chat | States and system messages: AI-Chat-States. Rules and mechanism: AI-Rules. No "Catat manual" button in the header; a failed message offers it. Entry: the gold + button of the tab bar (or `/ai-setup` when no key is saved) |
-| 21 | Pengeluaran tetap | `/recurring` | Recurring | Keadaan kosong, tag "Terlewat", dan daftar jatuh tempo terlama dulu. Sheet konfirmasi dapat dibuka dari daftar atau notifikasi. |
+| 21 | Pengeluaran tetap | `/recurring` | Recurring | Keadaan kosong, tag "Terlewat", daftar terlama dulu. Sheet konfirmasi `RecurringConfirmHost` (satu komponen, dipasang di root) dibuka dari daftar, kartu Overview (N==1), dan ketukan notifikasi (N==1). |
 | 22 | Buat / ubah pengeluaran tetap | `/recurring/edit` | Recurring-Edit | Templat saja: tidak ada transaksi sebelum konfirmasi. |
 | 23 | Detail akun Valas | `/account/[id]` (type forex) | Valas-Detail | Total "≈ Rp…" dari kurs terbaru; satu baris per kantong (kode, nama, kurs yang dipakai, jumlah asli, nilai rupiah), "Tambah mata uang" (sheet Valas-Add-Currency), tombol **Tambah** dan **Tukar**, aktivitas bulan ini dengan chip Semua/USD/SGD…, tautan "Kurs · diperbarui …", catatan bahwa tiap transaksi menyimpan nilai rupiah hari dicatat. Keadaan **kurs belum ada**: kantong itu hanya menampilkan jumlah aslinya dengan "Belum ada kurs" dan tombol "Atur kurs", totalnya ditandai belum lengkap, dan tidak pernah tampil sebagai nol. Ubah/buat: `/account/edit?kind=valas` dan `/account/edit?id=` (Valas-Edit) |
 | 24 | Kurs | `/settings/rates` | Rates | Sakelar "Perbarui otomatis" (nyala secara default; sehari sekali saat aplikasi dibuka, menunggu `time_next_update_utc`, kecuali ada kantong yang belum punya kurs), "Perbarui kurs sekarang" (satu GET ke open.er-api.com, satu jam jeda — dilewati kalau ada kantong tanpa kurs, 20 menit setelah HTTP 429), kurs yang dipakai per mata uang dengan sumber dan waktu (ketuk untuk mengetik kurs sendiri, sumber `manual`), kotak gagal dalam tiga jenis (tidak ada internet, dibatasi, jawaban tidak bisa dipakai) yang menyatakan kurs lama tetap dipakai, catatan cara kurs dipakai, catatan privasi, atribusi "Kurs oleh Exchange Rate API". Keadaan **kurs belum ada**: baris bertuliskan "Belum ada kurs" dan "Atur kurs". Pintu masuk: baris Kurs di tab Akun dan di Pengaturan |

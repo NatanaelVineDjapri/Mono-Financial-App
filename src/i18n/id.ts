@@ -3810,3 +3810,118 @@ export function valasPocketToLabel(): string {
 export function settingsRatesRowHint(): string {
   return 'Kurs untuk menilai uang asing di akun Valas. Pembaruan otomatis nyala secara default.';
 }
+
+// Categories (list, edit form, archive, archived list): CLAUDE.md rule 21.
+export const catListAdd = () => `Tambah kategori`;
+export const catListExpenseHeader = (count: number) => `Pengeluaran, ${count}`;
+export const catListIncomeHeader = (count: number) => `Pemasukan, ${count}`;
+export const catListSystemHeader = () => `Sistem, tidak bisa diubah`;
+export const catListTransferName = () => `Transfer`;
+export const catListTransferSub = () => `Bukan pemasukan, bukan pengeluaran`;
+export const catListBudgetTag = () => `Ada anggaran`;
+export const catListRowLabel = (name: string) => `${name}, ketuk untuk mengubah`;
+export const catListRowLabelWithBudget = (name: string) => `${name}, ada anggaran, ketuk untuk mengubah`;
+export const catListArchivedRow = (count: number) => `Diarsipkan, ${count}`;
+export const catListLoadError = () => `Kategori tidak bisa dimuat.`;
+export const catFormNewTitle = () => `Kategori baru`;
+export const catFormEditTitle = () => `Ubah kategori`;
+export const catFormKindLabel = () => `Jenis`;
+export const catFormKindExpense = () => `Pengeluaran`;
+export const catFormKindIncome = () => `Pemasukan`;
+export const catFormKindLockedNote = (count: number) => `Jenis tidak bisa diubah karena sudah dipakai di ${count} transaksi.`;
+export const catFormKindLockedOther = () => `Jenis tidak bisa diubah karena sudah dipakai anggaran atau pengeluaran tetap.`;
+export const catFormKindLockedLabel = (kindLabel: string) => `${kindLabel}, terkunci`;
+export const catFormNameLabel = () => `Nama`;
+export const catFormNamePlaceholder = () => `Contoh: Kopi`;
+export const catFormNameCount = (count: number, max: number) => `${count}/${max}`;
+export const catFormRenameNote = () => `Mengganti nama memperbarui transaksi lama dan laporan.`;
+export const catFormIconLabel = () => `Ikon`;
+export const catFormIconSelected = (name: string) => `${name}, dipilih`;
+export const catFormPreviewFallback = () => `Nama kategori`;
+export const catFormPreviewSub = () => `Pratinjau di daftar dan pilihan`;
+export const catFormUsageTitle = () => `Pemakaian`;
+export const catFormUsageTransactions = () => `Transaksi`;
+export const catFormUsageLastUsed = () => `Terakhir dipakai`;
+export const catFormUsageNever = () => `Belum pernah`;
+export const catFormUsageBudget = () => `Anggaran bulan ini`;
+export const catFormUsageBudgetYes = () => `Ada`;
+export const catFormUsageBudgetNo = () => `Tidak ada`;
+export const catFormArchiveButton = () => `Arsipkan kategori`;
+export const catFormSave = () => `Simpan kategori`;
+export const catFormLoadError = () => `Kategori ini tidak bisa dimuat.`;
+export const catArchiveTitle = (name: string) => `Arsipkan ${name}?`;
+export const catArchiveBody = (count: number) => `Kategori ini tidak muncul lagi di pilihan transaksi baru. ${count} transaksi lama dan laporan tetap utuh. Anggaran bulan ini ikut tersimpan, tapi tidak dibuat lagi bulan depan.`;
+export const catArchiveRestoreHint = () => `Kamu bisa memulihkannya kapan saja dari Kategori → Diarsipkan.`;
+export const catArchiveConfirm = () => `Arsipkan`;
+export const catArchiveBlockedTitle = () => `Belum bisa diarsipkan`;
+export const catArchiveBlockedOk = () => `Mengerti`;
+export const catDiscardTitle = () => `Buang perubahan?`;
+export const catDiscardBody = () => `Perubahan di kategori ini belum tersimpan.`;
+export const catDiscardConfirm = () => `Buang`;
+export const catDiscardKeep = () => `Lanjut mengubah`;
+export const catSavedToast = () => `Kategori tersimpan.`;
+export const catArchivedToast = () => `Kategori diarsipkan.`;
+export const catRestoredToast = () => `Kategori dipulihkan.`;
+export const catErrorNameEmpty = () => `Isi nama kategorinya.`;
+export const catErrorNameTooLong = (max: number) => `Maksimal ${max} karakter.`;
+export const catErrorNameTaken = (kindLabel: string) => `Nama ini sudah dipakai di ${kindLabel}. Pakai nama lain.`;
+export const catErrorNameTakenArchived = () => `Nama ini dipakai kategori yang diarsipkan. Pulihkan dulu atau pakai nama lain.`;
+export const catErrorLastActive = (kindWord: string) => `Harus ada minimal satu kategori ${kindWord} aktif. Tambah kategori lain dulu, lalu arsipkan yang ini.`;
+export const catErrorUsedByRecurring = (name: string) => `Dipakai pengeluaran tetap ${name}. Ganti kategorinya dulu.`;
+export const catErrorKindLocked = () => `Jenis tidak bisa diubah karena kategori ini sudah dipakai.`;
+export const catErrorNotFound = () => `Kategori ini sudah tidak ada.`;
+export const catKindWordExpense = () => `pengeluaran`;
+export const catKindWordIncome = () => `pemasukan`;
+export const catArchivedTitle = () => `Diarsipkan`;
+export const catArchivedIntro = () => `Kategori yang diarsipkan tidak muncul di pilihan baru. Transaksi lama dan laporan tetap memakainya.`;
+export const catArchivedRowSub = (count: number, lastUsed: string) => `${count} transaksi · ${lastUsed}`;
+export const catArchivedRowSubNone = (count: number) => `${count} transaksi`;
+export const catArchivedRestore = () => `Pulihkan`;
+export const catArchivedRestoreLabel = (name: string) => `Pulihkan ${name}`;
+export const catArchivedFootnote = () => `Kategori tidak pernah dihapus, hanya diarsipkan, supaya riwayatmu tidak berubah.`;
+export const catIconName = (key: string): string => {
+  switch (key) {
+    case 'food':
+      return 'Makan';
+    case 'coffee':
+      return 'Kopi';
+    case 'car':
+      return 'Mobil';
+    case 'plane':
+      return 'Pesawat';
+    case 'bag':
+      return 'Belanja';
+    case 'shirt':
+      return 'Baju';
+    case 'bolt':
+      return 'Listrik';
+    case 'phone':
+      return 'Ponsel';
+    case 'heart':
+      return 'Hati';
+    case 'medical':
+      return 'Kesehatan';
+    case 'film':
+      return 'Film';
+    case 'home':
+      return 'Rumah';
+    case 'book':
+      return 'Buku';
+    case 'education':
+      return 'Pendidikan';
+    case 'gift':
+      return 'Hadiah';
+    case 'paw':
+      return 'Hewan';
+    case 'briefcase':
+      return 'Kerja';
+    case 'wallet':
+      return 'Dompet';
+    case 'tag':
+      return 'Label';
+    case 'dot':
+      return 'Titik';
+    default:
+      return 'Titik';
+  }
+};
