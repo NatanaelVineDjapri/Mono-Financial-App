@@ -3432,7 +3432,9 @@ export function backupNeverDone(): string { return 'No backup yet'; }
 export function backupCreateNow(): string { return 'Create backup now'; }
 
 export function backupCreating(): string { return 'Creating backup…'; }
-export function backupCreateHelp(): string { return 'Creates one JSON file and opens the share sheet so you choose where to keep it.'; }
+export function backupCreateHelp(): string { return 'Creates one JSON file and saves it in a folder you choose, such as Downloads. Want it in Drive or Gmail? Use Share.'; }
+export function backupShareNow(): string { return 'Share'; }
+export function backupSavedToFolderToast(): string { return 'Backup saved in the folder you chose.'; }
 
 export function backupContentsTitle(): string { return 'What a backup contains'; }
 export function backupAccountsLabel(): string { return 'Accounts'; }
@@ -4160,3 +4162,81 @@ export const catIconName = (key: string): string => {
       return 'Dot';
   }
 };
+
+// ---- Settings screen (Board J, PAGES.md J) ----
+export function settingsGroupPrivacy(): string { return 'PRIVACY'; }
+export function settingsAppLockTitle(): string { return 'App lock'; }
+export function settingsAppLockSub(): string { return 'Require fingerprint or device PIN on open'; }
+export function settingsHideOnLaunchTitle(): string { return 'Hide amounts on launch'; }
+export function settingsHideOnLaunchSub(): string { return 'Shows Rp•••••••• until you tap the eye icon'; }
+export function settingsBlockScreenshotsTitle(): string { return 'Block screenshots and preview'; }
+export function settingsBlockScreenshotsSub(): string { return 'Hides MONO in the recent apps switcher'; }
+
+export function settingsGroupFormat(): string { return 'FORMAT'; }
+export function settingsCurrencyTitle(): string { return 'Currency'; }
+export function settingsCurrencySub(): string { return 'Rupiah, no decimals. Foreign currency lives in Forex pockets.'; }
+export function settingsCurrencyValue(): string { return 'Rp · IDR'; }
+export function settingsRatesTitle(): string { return 'Exchange rates'; }
+export function settingsRatesSub(timeText?: string, isAuto?: boolean): string {
+  if (!timeText) return 'Updated 28 Oct 2026, 09:00 · manual';
+  return `Updated ${timeText} · ${isAuto ? 'automatic' : 'manual'}`;
+}
+export function settingsRatesValue(): string { return 'Forex'; }
+export function settingsNumberFormatTitle(): string { return 'Number format'; }
+export function settingsNumberFormatSub(isId?: boolean): string {
+  return isId ? 'Rp1.234.567 · percent 12.34%' : 'Rp1,234,567 · percent 12.34%';
+}
+export function settingsNumberFormatId(): string { return 'Indonesia'; }
+export function settingsNumberFormatIntl(): string { return 'International'; }
+export function settingsMonthStartTitle(): string { return 'Month starts on'; }
+export function settingsMonthStartSub(): string { return 'Used by budgets and reports'; }
+export function settingsMonthStartValue(day: number): string { return `Day ${day}`; }
+export function settingsTimezoneTitle(): string { return 'Time zone'; }
+export function settingsTimezoneSub(): string { return 'Used for dates and timestamps'; }
+export function settingsTimezoneValue(label: string, offset: number): string { return `${label}, UTC+${offset}`; }
+
+export function settingsGroupAssistant(): string { return 'ASSISTANT'; }
+export function settingsAiChatTitle(): string { return 'Record via chat (AI)'; }
+export function settingsAiChatSub(): string { return 'Uses Gemini with your API key. Off by default.'; }
+export function settingsAiKeyTitle(): string { return 'Gemini API key'; }
+export function settingsAiKeySub(): string { return 'Stored on device, not included in backup'; }
+export function settingsAiKeyNotSet(): string { return 'Not set'; }
+export function settingsAiKeyConfigured(): string { return 'Configured'; }
+export function settingsImportAutoTitle(): string { return 'Automatic import'; }
+export function settingsImportAutoSub(): string { return 'Notifications and Gmail. Off by default.'; }
+export function settingsStatusActive(): string { return 'Active'; }
+export function settingsStatusInactive(): string { return 'Off'; }
+
+export function settingsGroupData(): string { return 'DATA'; }
+export function settingsNotificationsTitle(): string { return 'Notifications'; }
+export function settingsNotificationsSub(): string { return 'Reminders for logging, bills, budgets, goals, and backups'; }
+export function settingsBackupTitle(): string { return 'Backup & restore'; }
+export function settingsBackupSub(lastDate?: string | null): string {
+  return lastDate ? `Last backup ${lastDate}` : 'Never';
+}
+export function settingsCategoriesTitle(): string { return 'Categories'; }
+export function settingsCategoriesSub(): string { return 'Rename, add, or archive'; }
+
+export function settingsGroupErase(): string { return 'ERASE'; }
+export function settingsEraseTitle(): string { return 'Erase all data on this device'; }
+export function settingsEraseSub(): string { return 'Deletes all records. Cannot be undone without a backup.'; }
+export function settingsEraseDialogTitle(): string { return 'Erase all data?'; }
+export function settingsEraseDialogMessage(): string { return 'All accounts, transactions, budgets, goals, and records will be permanently deleted from this device. This cannot be undone.'; }
+export function settingsEraseDialogConfirm(): string { return 'Erase all data'; }
+export function settingsEraseSuccessToast(): string { return 'All data on this device has been erased.'; }
+
+export function settingsGroupAbout(): string { return 'ABOUT'; }
+export function settingsAboutAppTitle(): string { return 'MONO Finance'; }
+export function settingsAboutVersion(version: string, build: string, schema: string): string {
+  return `Version ${version} · build ${build} · database schema ${schema}`;
+}
+export function settingsAboutOfflineTitle(): string { return 'Works offline'; }
+export function settingsAboutOfflineSub(): string { return 'No account, no analytics. Only optional AI chat and optional rate updates use the internet.'; }
+export function settingsAboutLicensesTitle(): string { return 'Open-source licenses'; }
+export function settingsAboutLicensesSub(): string { return 'Open-source components and libraries'; }
+
+export function settingsNotifBackupTitle(): string { return 'Backup reminder'; }
+export function settingsNotifBackupSub(): string { return 'Reminds you to create regular backups'; }
+export function settingsNotifRecurringTitle(): string { return 'Fixed expense reminders'; }
+export function settingsNotifRecurringSub(): string { return 'Notifications for bills and scheduled payments'; }
+

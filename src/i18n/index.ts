@@ -897,6 +897,8 @@ export const backupNeverDone = pick(en.backupNeverDone, id.backupNeverDone);
 export const backupCreateNow = pick(en.backupCreateNow, id.backupCreateNow);
 export const backupCreating = pick(en.backupCreating, id.backupCreating);
 export const backupCreateHelp = pick(en.backupCreateHelp, id.backupCreateHelp);
+export const backupShareNow = pick(en.backupShareNow, id.backupShareNow);
+export const backupSavedToFolderToast = pick(en.backupSavedToFolderToast, id.backupSavedToFolderToast);
 export const backupContentsTitle = pick(en.backupContentsTitle, id.backupContentsTitle);
 export const backupAccountsLabel = pick(en.backupAccountsLabel, id.backupAccountsLabel);
 export const backupTransactionsLabel = pick(en.backupTransactionsLabel, id.backupTransactionsLabel);
@@ -1019,3 +1021,71 @@ export const catArchivedRestore = pick(en.catArchivedRestore, id.catArchivedRest
 export const catArchivedRestoreLabel = pick(en.catArchivedRestoreLabel, id.catArchivedRestoreLabel);
 export const catArchivedFootnote = pick(en.catArchivedFootnote, id.catArchivedFootnote);
 export const catIconName = pick(en.catIconName, id.catIconName);
+
+// Settings
+export const settingsGroupPrivacy = pick(en.settingsGroupPrivacy, id.settingsGroupPrivacy);
+export const settingsAppLockTitle = pick(en.settingsAppLockTitle, id.settingsAppLockTitle);
+export const settingsAppLockSub = pick(en.settingsAppLockSub, id.settingsAppLockSub);
+export const settingsHideOnLaunchTitle = pick(en.settingsHideOnLaunchTitle, id.settingsHideOnLaunchTitle);
+export const settingsHideOnLaunchSub = pick(en.settingsHideOnLaunchSub, id.settingsHideOnLaunchSub);
+export const settingsBlockScreenshotsTitle = pick(en.settingsBlockScreenshotsTitle, id.settingsBlockScreenshotsTitle);
+export const settingsBlockScreenshotsSub = pick(en.settingsBlockScreenshotsSub, id.settingsBlockScreenshotsSub);
+
+export const settingsGroupFormat = pick(en.settingsGroupFormat, id.settingsGroupFormat);
+export const settingsCurrencyTitle = pick(en.settingsCurrencyTitle, id.settingsCurrencyTitle);
+export const settingsCurrencySub = pick(en.settingsCurrencySub, id.settingsCurrencySub);
+export const settingsCurrencyValue = pick(en.settingsCurrencyValue, id.settingsCurrencyValue);
+export const settingsRatesTitle = pick(en.settingsRatesTitle, id.settingsRatesTitle);
+export const settingsRatesSub = pick(en.settingsRatesSub, id.settingsRatesSub);
+export const settingsRatesValue = pick(en.settingsRatesValue, id.settingsRatesValue);
+export const settingsNumberFormatTitle = pick(en.settingsNumberFormatTitle, id.settingsNumberFormatTitle);
+export const settingsNumberFormatSub = pick(en.settingsNumberFormatSub, id.settingsNumberFormatSub);
+export const settingsNumberFormatId = pick(en.settingsNumberFormatId, id.settingsNumberFormatId);
+export const settingsNumberFormatIntl = pick(en.settingsNumberFormatIntl, id.settingsNumberFormatIntl);
+export const settingsMonthStartTitle = pick(en.settingsMonthStartTitle, id.settingsMonthStartTitle);
+export const settingsMonthStartSub = pick(en.settingsMonthStartSub, id.settingsMonthStartSub);
+export const settingsMonthStartValue = pick(en.settingsMonthStartValue, id.settingsMonthStartValue);
+export const settingsTimezoneTitle = pick(en.settingsTimezoneTitle, id.settingsTimezoneTitle);
+export const settingsTimezoneSub = pick(en.settingsTimezoneSub, id.settingsTimezoneSub);
+export const settingsTimezoneValue = pick(en.settingsTimezoneValue, id.settingsTimezoneValue);
+
+export const settingsGroupAssistant = pick(en.settingsGroupAssistant, id.settingsGroupAssistant);
+export const settingsAiChatTitle = pick(en.settingsAiChatTitle, id.settingsAiChatTitle);
+export const settingsAiChatSub = pick(en.settingsAiChatSub, id.settingsAiChatSub);
+export const settingsAiKeyTitle = pick(en.settingsAiKeyTitle, id.settingsAiKeyTitle);
+export const settingsAiKeySub = pick(en.settingsAiKeySub, id.settingsAiKeySub);
+export const settingsAiKeyNotSet = pick(en.settingsAiKeyNotSet, id.settingsAiKeyNotSet);
+export const settingsAiKeyConfigured = pick(en.settingsAiKeyConfigured, id.settingsAiKeyConfigured);
+export const settingsImportAutoTitle = pick(en.settingsImportAutoTitle, id.settingsImportAutoTitle);
+export const settingsImportAutoSub = pick(en.settingsImportAutoSub, id.settingsImportAutoSub);
+export const settingsStatusActive = pick(en.settingsStatusActive, id.settingsStatusActive);
+export const settingsStatusInactive = pick(en.settingsStatusInactive, id.settingsStatusInactive);
+
+export const settingsGroupData = pick(en.settingsGroupData, id.settingsGroupData);
+export const settingsNotificationsTitle = pick(en.settingsNotificationsTitle, id.settingsNotificationsTitle);
+export const settingsNotificationsSub = pick(en.settingsNotificationsSub, id.settingsNotificationsSub);
+export const settingsBackupTitle = pick(en.settingsBackupTitle, id.settingsBackupTitle);
+export const settingsBackupSub = pick(en.settingsBackupSub, id.settingsBackupSub);
+export const settingsCategoriesTitle = pick(en.settingsCategoriesTitle, id.settingsCategoriesTitle);
+export const settingsCategoriesSub = pick(en.settingsCategoriesSub, id.settingsCategoriesSub);
+
+export const settingsGroupErase = pick(en.settingsGroupErase, id.settingsGroupErase);
+export const settingsEraseTitle = pick(en.settingsEraseTitle, id.settingsEraseTitle);
+export const settingsEraseSub = pick(en.settingsEraseSub, id.settingsEraseSub);
+export const settingsEraseDialogTitle = pick(en.settingsEraseDialogTitle, id.settingsEraseDialogTitle);
+export const settingsEraseDialogMessage = pick(en.settingsEraseDialogMessage, id.settingsEraseDialogMessage);
+export const settingsEraseDialogConfirm = pick(en.settingsEraseDialogConfirm, id.settingsEraseDialogConfirm);
+export const settingsEraseSuccessToast = pick(en.settingsEraseSuccessToast, id.settingsEraseSuccessToast);
+
+export const settingsGroupAbout = pick(en.settingsGroupAbout, id.settingsGroupAbout);
+export const settingsAboutAppTitle = pick(en.settingsAboutAppTitle, id.settingsAboutAppTitle);
+export const settingsAboutVersion = pick(en.settingsAboutVersion, id.settingsAboutVersion);
+export const settingsAboutOfflineTitle = pick(en.settingsAboutOfflineTitle, id.settingsAboutOfflineTitle);
+export const settingsAboutOfflineSub = pick(en.settingsAboutOfflineSub, id.settingsAboutOfflineSub);
+export const settingsAboutLicensesTitle = pick(en.settingsAboutLicensesTitle, id.settingsAboutLicensesTitle);
+export const settingsAboutLicensesSub = pick(en.settingsAboutLicensesSub, id.settingsAboutLicensesSub);
+export const settingsNotifBackupTitle = pick(en.settingsNotifBackupTitle, id.settingsNotifBackupTitle);
+export const settingsNotifBackupSub = pick(en.settingsNotifBackupSub, id.settingsNotifBackupSub);
+export const settingsNotifRecurringTitle = pick(en.settingsNotifRecurringTitle, id.settingsNotifRecurringTitle);
+export const settingsNotifRecurringSub = pick(en.settingsNotifRecurringSub, id.settingsNotifRecurringSub);
+

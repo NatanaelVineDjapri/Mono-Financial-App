@@ -3429,7 +3429,9 @@ export function backupNeverDone(): string { return 'Belum ada cadangan'; }
 export function backupCreateNow(): string { return 'Buat cadangan sekarang'; }
 
 export function backupCreating(): string { return 'Membuat cadangan…'; }
-export function backupCreateHelp(): string { return 'Membuat satu berkas JSON dan membuka lembar bagikan agar kamu bisa memilih tempat menyimpannya.'; }
+export function backupCreateHelp(): string { return 'Membuat satu berkas JSON dan menyimpannya di folder yang kamu pilih, misalnya Download. Mau dikirim ke Drive atau Gmail? Pakai Bagikan.'; }
+export function backupShareNow(): string { return 'Bagikan'; }
+export function backupSavedToFolderToast(): string { return 'Cadangan tersimpan di folder yang kamu pilih.'; }
 
 export function backupContentsTitle(): string { return 'Isi cadangan'; }
 export function backupAccountsLabel(): string { return 'Akun'; }
@@ -4157,3 +4159,81 @@ export const catIconName = (key: string): string => {
       return 'Titik';
   }
 };
+
+// ---- Settings screen (Board J, PAGES.md J) ----
+export function settingsGroupPrivacy(): string { return 'PRIVASI'; }
+export function settingsAppLockTitle(): string { return 'Kunci aplikasi'; }
+export function settingsAppLockSub(): string { return 'Minta sidik jari atau PIN perangkat saat membuka'; }
+export function settingsHideOnLaunchTitle(): string { return 'Sembunyikan nominal saat dibuka'; }
+export function settingsHideOnLaunchSub(): string { return 'Tampil Rp•••••••• sampai kamu ketuk ikon mata'; }
+export function settingsBlockScreenshotsTitle(): string { return 'Blokir tangkapan layar dan pratinjau'; }
+export function settingsBlockScreenshotsSub(): string { return 'Menyembunyikan MONO di daftar aplikasi terbaru'; }
+
+export function settingsGroupFormat(): string { return 'FORMAT'; }
+export function settingsCurrencyTitle(): string { return 'Mata uang'; }
+export function settingsCurrencySub(): string { return 'Rupiah, tanpa desimal. Uang asing ada di akun Valas.'; }
+export function settingsCurrencyValue(): string { return 'Rp · IDR'; }
+export function settingsRatesTitle(): string { return 'Kurs'; }
+export function settingsRatesSub(timeText?: string, isAuto?: boolean): string {
+  if (!timeText) return 'Diperbarui 28 Okt 2026, 09.00 · manual';
+  return `Diperbarui ${timeText} · ${isAuto ? 'otomatis' : 'manual'}`;
+}
+export function settingsRatesValue(): string { return 'Valas'; }
+export function settingsNumberFormatTitle(): string { return 'Format angka'; }
+export function settingsNumberFormatSub(isId?: boolean): string {
+  return isId ? 'Rp1.234.567 · persen 12,34%' : 'Rp1,234,567 · persen 12,34%';
+}
+export function settingsNumberFormatId(): string { return 'Indonesia'; }
+export function settingsNumberFormatIntl(): string { return 'Internasional'; }
+export function settingsMonthStartTitle(): string { return 'Bulan dimulai tanggal'; }
+export function settingsMonthStartSub(): string { return 'Dipakai anggaran dan laporan'; }
+export function settingsMonthStartValue(day: number): string { return `Tanggal ${day}`; }
+export function settingsTimezoneTitle(): string { return 'Zona waktu'; }
+export function settingsTimezoneSub(): string { return 'Dipakai untuk tanggal dan cap waktu'; }
+export function settingsTimezoneValue(label: string, offset: number): string { return `${label}, UTC+${offset}`; }
+
+export function settingsGroupAssistant(): string { return 'ASISTEN'; }
+export function settingsAiChatTitle(): string { return 'Catat lewat chat (AI)'; }
+export function settingsAiChatSub(): string { return 'Memakai Gemini dengan API key-mu. Mati secara bawaan.'; }
+export function settingsAiKeyTitle(): string { return 'API key Gemini'; }
+export function settingsAiKeySub(): string { return 'Disimpan di ponsel, tidak ikut cadangan'; }
+export function settingsAiKeyNotSet(): string { return 'Belum diatur'; }
+export function settingsAiKeyConfigured(): string { return 'Sudah diatur'; }
+export function settingsImportAutoTitle(): string { return 'Impor otomatis'; }
+export function settingsImportAutoSub(): string { return 'Notifikasi dan Gmail. Mati secara bawaan.'; }
+export function settingsStatusActive(): string { return 'Aktif'; }
+export function settingsStatusInactive(): string { return 'Mati'; }
+
+export function settingsGroupData(): string { return 'DATA'; }
+export function settingsNotificationsTitle(): string { return 'Notifikasi'; }
+export function settingsNotificationsSub(): string { return 'Pengingat catat, tagihan, anggaran, target, dan cadangan'; }
+export function settingsBackupTitle(): string { return 'Cadangan dan pemulihan'; }
+export function settingsBackupSub(lastDate?: string | null): string {
+  return lastDate ? `Cadangan terakhir ${lastDate}` : 'Belum pernah';
+}
+export function settingsCategoriesTitle(): string { return 'Kategori'; }
+export function settingsCategoriesSub(): string { return 'Ganti nama, tambah, atau arsipkan'; }
+
+export function settingsGroupErase(): string { return 'HAPUS'; }
+export function settingsEraseTitle(): string { return 'Hapus semua data di perangkat ini'; }
+export function settingsEraseSub(): string { return 'Menghapus semua catatan. Tidak bisa dibatalkan tanpa cadangan.'; }
+export function settingsEraseDialogTitle(): string { return 'Hapus semua data?'; }
+export function settingsEraseDialogMessage(): string { return 'Semua akun, transaksi, anggaran, target, dan catatan akan dihapus permanen dari perangkat ini. Tindakan ini tidak bisa dibatalkan.'; }
+export function settingsEraseDialogConfirm(): string { return 'Hapus semua data'; }
+export function settingsEraseSuccessToast(): string { return 'Semua data di perangkat telah dihapus.'; }
+
+export function settingsGroupAbout(): string { return 'TENTANG'; }
+export function settingsAboutAppTitle(): string { return 'MONO Finance'; }
+export function settingsAboutVersion(version: string, build: string, schema: string): string {
+  return `Versi ${version} · build ${build} · skema database ${schema}`;
+}
+export function settingsAboutOfflineTitle(): string { return 'Berfungsi offline'; }
+export function settingsAboutOfflineSub(): string { return 'Tanpa akun, tanpa analitik. Hanya chat AI opsional dan pembaruan kurs opsional yang memakai internet.'; }
+export function settingsAboutLicensesTitle(): string { return 'Lisensi sumber terbuka'; }
+export function settingsAboutLicensesSub(): string { return 'Komponen dan pustaka sumber terbuka'; }
+
+export function settingsNotifBackupTitle(): string { return 'Pengingat cadangan'; }
+export function settingsNotifBackupSub(): string { return 'Mengingatkan untuk membuat cadangan rutin'; }
+export function settingsNotifRecurringTitle(): string { return 'Pengingat pengeluaran tetap'; }
+export function settingsNotifRecurringSub(): string { return 'Notifikasi tagihan dan pembayaran terjadwal'; }
+
