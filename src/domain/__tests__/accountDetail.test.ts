@@ -2,7 +2,7 @@ import { saveAccountChanges, saveNewAccount } from '../../core/account/save';
 import { openTestDb } from '../../data/db/openTestDb';
 import { listCategories } from '../../data/repo/categories';
 import { createAccount } from '../accounts';
-import { getAccountDetail, getAccountEditData, listAccountActivity, listAccountNames, type ActivityKind } from '../accountDetail';
+import { getAccountBalanceHistory, getAccountDetail, getAccountEditData, listAccountActivity, listAccountNames, type ActivityKind } from '../accountDetail';
 import { getAccountBalance } from '../balances';
 import { addExpense, addIncome, addTransfer } from '../transactions';
 
@@ -141,5 +141,44 @@ describe('saving accounts', () => {
     // Opening balance down to zero: 0 + 15.000.000 in - 10.357.500 out is still above zero, so it is allowed.
     const lower = await saveAccountChanges(db, bca, { name: 'BCA Tabungan', type: 'bank', openingBalance: 0, openingDate: '2026-01-01', icon: null });
     expect(lower.ok).toBe(true);
+  });
+});
+
+describe('getAccountBalanceHistory', () => {
+  test('calculates running balance history, delta and points across 1M', async () => {
+    const { db, bca } = await fixture();
+    const history = await getAccountBalanceHistory(db, bca, '1M', '2026-10-28');
+    expect(history.currentBalance).toBe(5842500);
+    expect(history.endDate).toBe('2026-10-28');
+    expect(history.range).toBe('1M');
+    expect(history.points.length).toBeGreaterThanOrEqual(2);
+    // Last point matches currentBalance
+    const lastPoint = history.points[history.points.length - 1];
+    expect(lastPoint.value).toBe(5842500);
+    expect(history.changeAmount).toBe(history.currentBalance - history.startBalance);
+  });
+
+  test('calculates history across 6M and All ranges', async () => {
+    const { db, bca } = await fixture();
+    const history6M = await getAccountBalanceHistory(db, bca, '6M', '2026-10-28');
+    expect(history6M.range).toBe('6M');
+    expect(history6M.points.length).toBeGreaterThanOrEqual(2);
+
+    const historyAll = await getAccountBalanceHistory(db, bca, 'All', '2026-10-28');
+    expect(historyAll.range).toBe('All');
+    expect(historyAll.startDate).toBe('2026-01-01');
+    expect(historyAll.startBalance).toBe(1200000);
+    expect(historyAll.changeAmount).toBe(5842500 - 1200000);
+  });
+
+  test('an account with no transactions produces flat points with delta 0', async () => {
+    const db = openTestDb();
+    const id = await createAccount(db, { name: 'Savings', type: 'savings', openingBalance: 500000, openingDate: '2026-01-01' }, NOW);
+    const history = await getAccountBalanceHistory(db, id, '1M', '2026-10-28');
+    expect(history.currentBalance).toBe(500000);
+    expect(history.startBalance).toBe(500000);
+    expect(history.changeAmount).toBe(0);
+    expect(history.changeBp).toBe(0);
+    expect(history.points.every(p => p.value === 500000 && p.delta === 0)).toBe(true);
   });
 });
