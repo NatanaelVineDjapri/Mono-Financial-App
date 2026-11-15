@@ -75,11 +75,13 @@ function CategoryRow({
   stat,
   kind,
   selected,
+  last,
   onPress,
 }: {
   stat: CategoryStat;
   kind: 'income' | 'expense';
   selected: boolean;
+  last: boolean;
   onPress: (id: number) => void;
 }) {
   const label = stat.label || othersLabel();
@@ -90,7 +92,7 @@ function CategoryRow({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={categoryRowAccessibilityLabel(label, percentFormatted, rp(stat.amountIdr))}
-      style={[styles.categoryRow, selected && styles.categoryRowSelected]}
+      style={[styles.categoryRow, !last && styles.categoryRowDivider, selected && styles.categoryRowSelected]}
       testID={`stats-category-row-${stat.id}`}
     >
       <View style={styles.categoryIcon}>
@@ -195,12 +197,13 @@ export function StatsSection({
             disabled={forcedKind != null}
           />
           <View style={styles.categoryList}>
-            {categories.map(stat => (
+            {categories.map((stat, index) => (
               <CategoryRow
                 key={stat.id}
                 stat={stat}
                 kind={effectiveKind}
                 selected={selectedCategoryId === stat.id}
+                last={index === categories.length - 1}
                 onPress={onSelectCategory}
               />
             ))}
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
   card2: { backgroundColor: MonoColors.card, borderRadius: 16, padding: 16, marginBottom: 20, gap: 16 },
   categoryList: { gap: 4 },
   categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 44, borderRadius: radius.md },
+  categoryRowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },
   categoryRowSelected: { backgroundColor: MonoColors.surface },
   categoryIcon: { width: 32, height: 32, borderRadius: radius.md, backgroundColor: MonoColors.surface, alignItems: 'center', justifyContent: 'center' },
   categoryMain: { flex: 1, gap: 6 },

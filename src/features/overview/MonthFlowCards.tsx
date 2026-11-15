@@ -3,7 +3,7 @@
 // disc with the label beside it on one line, the amount (20/26, 700) and the change against last month: Expenses
 // in neutral grey, Income in green on a rise (red on a fall), each with a triangle. Amounts go through <Amount>,
 // percentages through shownPct (hidden mode masks both).
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
@@ -18,6 +18,7 @@ import {
   incomeCardLabel,
   monthFlowCardAccessibilityLabel,
   netCashFlowLabel,
+  analyzePrompt,
   noChangeVsMonthLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
@@ -40,35 +41,40 @@ interface FlowCardProps {
   changeBp: number | null;
   previousPeriod: string;
   changeColor: string;
+  onPress: () => void;
   testID: string;
 }
 
-function FlowCard({ label, icon, amount, changeBp, previousPeriod, changeColor, testID }: FlowCardProps) {
+function FlowCard({ label, icon, amount, changeBp, previousPeriod, changeColor, onPress, testID }: FlowCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const prevMonth = monthAbbrev(previousPeriod);
   const pctText = changeBp == null ? null : shownPct(pct(Math.abs(changeBp)), hidden);
   const changeText = pctText ? overviewChangeVsLabel(pctText, prevMonth) : noChangeVsMonthLabel(prevMonth);
   return (
-    <Card
-      style={styles.card}
-      accessible
-      accessibilityLabel={monthFlowCardAccessibilityLabel(label, shown(rp(amount), hidden), changeText)}
-      testID={testID}
-    >
-      <View style={styles.head}>
-        <GoldDisc icon={icon} />
-        <Text style={styles.cardLabel}>{label}</Text>
-      </View>
-      <Amount value={amount} variant="figureCard" />
-      <View style={styles.changeRow}>
-        {changeBp != null && <Triangle up={changeBp >= 0} color={changeColor} />}
-        <Text style={[styles.change, { color: changeColor }]}>{changeText}</Text>
-      </View>
+    <Card style={styles.card}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessible
+        accessibilityLabel={monthFlowCardAccessibilityLabel(label, shown(rp(amount), hidden), changeText)}
+        style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+        testID={testID}
+      >
+        <View style={styles.head}>
+          <GoldDisc icon={icon} />
+          <Text style={styles.cardLabel}>{label}</Text>
+        </View>
+        <Amount value={amount} variant="figureCard" />
+        <View style={styles.changeRow}>
+          {changeBp != null && <Triangle up={changeBp >= 0} color={changeColor} />}
+          <Text style={[styles.change, { color: changeColor }]}>{changeText}</Text>
+        </View>
+      </Pressable>
     </Card>
   );
 }
 
-export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp, incomeChangeBp }: MonthFlowCardsProps) {
+export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp, incomeChangeBp, onOpenTransactions, onOpenAnalyze }: MonthFlowCardsProps & { onOpenTransactions: (type: 'expense' | 'income') => void; onOpenAnalyze: () => void }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.grid}>
@@ -79,6 +85,7 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
           changeBp={expenseChangeBp}
           previousPeriod={previousPeriod}
           changeColor={MonoColors.textSecond}
+          onPress={() => onOpenTransactions('expense')}
           testID="overview-expenses-card"
         />
         <FlowCard
@@ -88,6 +95,7 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
           changeBp={incomeChangeBp}
           previousPeriod={previousPeriod}
           changeColor={incomeChangeBp != null && incomeChangeBp < 0 ? MonoColors.negative : MonoColors.positive}
+          onPress={() => onOpenTransactions('income')}
           testID="overview-income-card"
         />
       </View>
@@ -95,6 +103,15 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
         <Text style={styles.netLabel}>{netCashFlowLabel(monthAbbrev(period))}</Text>
         <Amount value={month.net} sign kind={month.net < 0 ? 'expense' : month.net > 0 ? 'income' : undefined} variant="figureS" />
       </Card>
+      <Pressable
+        onPress={onOpenAnalyze}
+        accessibilityRole="button"
+        accessibilityLabel={analyzePrompt()}
+        style={({ pressed }) => [styles.analyzeLink, pressed && styles.pressed]}
+        testID="overview-analyze-link"
+      >
+        <Text style={styles.analyzeText}>{analyzePrompt()}</Text>
+      </Pressable>
       <Text style={styles.note}>{consumptionOnlyNote()}</Text>
     </View>
   );
@@ -103,7 +120,9 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
 const styles = StyleSheet.create({
   wrap: { paddingHorizontal: 16, gap: 12 },
   grid: { flexDirection: 'row', gap: 12 },
-  card: { flex: 1, gap: 8 },
+  card: { flex: 1 },
+  pressable: { flex: 1, gap: 8 },
+  pressed: { opacity: 0.85 },
   // The icon disc and the label share one line (the label wraps at large text sizes).
   head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   cardLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flexShrink: 1 },
@@ -111,5 +130,7 @@ const styles = StyleSheet.create({
   change: { ...MonoText.caption, flexShrink: 1 },
   netRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, paddingVertical: 12 },
   netLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flexShrink: 1 },
+  analyzeLink: { paddingHorizontal: 4, paddingVertical: 2 },
+  analyzeText: { ...MonoText.bodyS, color: MonoColors.accent, textDecorationLine: 'underline' },
   note: { ...MonoText.caption, color: MonoColors.textMeta },
 });

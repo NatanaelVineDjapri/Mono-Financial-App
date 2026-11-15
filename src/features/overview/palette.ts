@@ -2,6 +2,8 @@
 // tints behind the change chip. The chip's text and triangle use the `positive` / `negative`
 // tokens; the sign and the triangle always say up or down too. Inline here until the theme
 // gains tokens for the gold shades.
+import { CHART_CATEGORY_COLORS } from '@/theme/tokens';
+
 export const GOLD_LIGHT = '#F0D9A3';
 export const GOLD = '#C9A45C';
 export const GOLD_DEEP = '#6E5427';
@@ -9,6 +11,6 @@ export const GOLD_DEEP = '#6E5427';
 export const CHIP_FILL_POSITIVE = 'rgba(74,222,128,0.14)'; // positive #4ADE80
 export const CHIP_FILL_NEGATIVE = 'rgba(255,107,107,0.14)'; // negative #FF6B6B
 export const EXPENSE_BAR = '#737373';
-// "Where your money is": one grey per account, light to dark in order of size. The account
-// name and amount are always on the row beside the swatch, so colour is never the only signal.
-export const SHARE_COLORS = ['#F5F5F5', '#D4D4D4', '#A3A3A3', '#8A8A8A', '#737373', '#5C5C5C', '#525252', '#3A3A3A'] as const;
+// "Where your money is" follows the same progression as the category bars in Transactions:
+// gold first, then the same grey steps. The account name and amount remain beside each swatch.
+export const SHARE_COLORS = CHART_CATEGORY_COLORS;

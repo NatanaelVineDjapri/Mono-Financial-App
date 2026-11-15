@@ -244,6 +244,20 @@ describe('Overview', () => {
     expect(result.getAllByTestId(/^overview-account-dot-/, { includeHiddenElements: true })).toHaveLength(4);
   });
 
+  test('the carousel follows the persisted Accounts tab order', async () => {
+    const ordered = [ACCOUNTS.groups[2].accounts[0], ACCOUNTS.groups[0].accounts[0], ACCOUNTS.groups[3].accounts[0], ACCOUNTS.groups[1].accounts[0]];
+    mockQuery(useAccountsOverview, { ...ACCOUNTS, accounts: ordered });
+    mockQuery(useOverviewData, OVERVIEW);
+    mockQuery(useRecurringDue, []);
+    mockQuery(useBudgetOverview, BUDGET);
+    mockQuery(useGoalProgress, GOALS);
+    mockQuery(useTransactionsList, TX_PAGE);
+
+    const result = await renderScreen();
+    const realCards = result.getAllByTestId(/^overview-account-\d+$/);
+    expect(realCards.map(card => card.props.testID)).toEqual(['overview-account-3', 'overview-account-1', 'overview-account-4', 'overview-account-2']);
+  });
+
   test('the carousel loops: the last account also sits to the left of the first (and the first right of the last)', async () => {
     mockFilled();
     const result = await renderScreen();

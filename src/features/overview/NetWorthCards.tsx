@@ -184,6 +184,7 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
       <ChartTable
         rows={points.map(p => ({ label: monthAbbrev(p.month), values: [p.netWorth] }))}
         collapsedByDefault={points.length > 6}
+        showRowDividers
         testID="overview-net-worth-table"
       />
       <Text style={styles.caption}>{monthEndValuesNote()}</Text>
@@ -216,7 +217,7 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
         ))}
       </View>
       {shares.map((s, i) => (
-        <View key={s.id} style={styles.row}>
+        <View key={s.id} style={[styles.row, i < shares.length - 1 && styles.rowDivider]}>
           <View style={[styles.dot, { backgroundColor: colorOf(i) }]} />
           <Text style={styles.rowName}>{nameOf(s)}</Text>
           <Amount value={s.amount} variant="figureRow" />
@@ -243,6 +244,7 @@ const styles = StyleSheet.create({
   caption: { ...MonoText.caption, color: MonoColors.textMeta },
   stack: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', gap: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
+  rowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },
   dot: { width: 8, height: 8, borderRadius: 2 },
   rowName: { ...MonoText.bodyS, color: MonoColors.text, flex: 1 },
   rowPct: { ...MonoText.bodyS, color: MonoColors.textSecond, minWidth: 56, textAlign: 'right' },

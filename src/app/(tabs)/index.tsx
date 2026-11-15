@@ -10,7 +10,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useTabBarClearance } from '@/components/TabBar';
 import { accountShares } from '@/domain/overview';
-import { defaultTransactionFilters } from '@/domain/transactionFilters';
+import { defaultTransactionFilters, type TxTypeFilter } from '@/domain/transactionFilters';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import { AccountsCarousel } from '@/features/overview/AccountsCarousel';
@@ -28,6 +28,7 @@ import { OverviewTop } from '@/features/overview/OverviewTop';
 import { RecentTransactionsCard } from '@/features/overview/RecentTransactionsCard';
 import { TopCategoriesCard } from '@/features/overview/TopCategoriesCard';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
+import { useStatsCollapsed } from '@/features/transactions/statsStore';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
@@ -62,10 +63,16 @@ export default function OverviewScreen() {
   const onOpenAccount = useCallback((id: number) => router.push({ pathname: '/account/[id]', params: { id: String(id) } }), [router]);
   const onOpenAllAccounts = useCallback(() => router.push('/(tabs)/accounts'), [router]);
   const onOpenTransactions = useCallback(() => router.push('/(tabs)/transactions'), [router]);
+  const updateTransactionFilters = useStatsCollapsed(state => state.updateFilters);
+  const onOpenTransactionsForType = useCallback((type: TxTypeFilter) => {
+    updateTransactionFilters({ ...defaultTransactionFilters(), type });
+    router.push('/(tabs)/transactions');
+  }, [router, updateTransactionFilters]);
   const onOpenBudgets = useCallback(() => router.push('/(tabs)/budgets'), [router]);
   const onOpenTx = useCallback((id: number) => router.push({ pathname: '/tx/[id]', params: { id: String(id) } }), [router]);
   const onOpenRecurring = useCallback(() => router.push('/recurring' as never), [router]);
   const onOpenReports = useCallback(() => router.push('/reports' as never), [router]);
+  const onOpenAnalyze = useCallback(() => router.push('/analyze' as never), [router]);
   const onOpenGoals = useCallback(() => router.push('/goals' as never), [router]);
   const onAddAccount = useCallback(() => router.push('/account/edit' as never), [router]);
   const onAddTransaction = useCallback(() => router.push('/tx/add' as never), [router]);
@@ -101,7 +108,8 @@ export default function OverviewScreen() {
     );
   }
 
-  const accounts = accountsData.groups.flatMap(group => group.accounts);
+  // Keep "Your accounts" in the same persisted order as the Accounts tab.
+  const accounts = accountsData.accounts ?? accountsData.groups.flatMap(group => group.accounts);
   const due = recurringData ?? [];
   const change: HeroChange | null =
     overview && overview.netWorthChange != null && overview.netWorthVsDate
@@ -126,6 +134,8 @@ export default function OverviewScreen() {
             month={overview.month}
             expenseChangeBp={overview.expenseChangeBp}
             incomeChangeBp={overview.incomeChangeBp}
+            onOpenTransactions={onOpenTransactionsForType}
+            onOpenAnalyze={onOpenAnalyze}
           />
         )}
 
