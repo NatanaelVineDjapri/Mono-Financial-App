@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { AppState, Text } from 'react-native';
+import { AppState, Text, type AppStateStatus } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 
@@ -38,7 +38,7 @@ jest.mock('expo-local-authentication', () => ({
   SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC: 2 },
 }));
 
-let appStateListeners: ((state: string) => void)[] = [];
+let appStateListeners: ((state: AppStateStatus) => void)[] = [];
 jest.spyOn(AppState, 'addEventListener').mockImplementation((event, listener) => {
   if (event === 'change') {
     appStateListeners.push(listener);
