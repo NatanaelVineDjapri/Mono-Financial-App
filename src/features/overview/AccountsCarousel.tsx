@@ -25,7 +25,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { BankCard } from '@/components/BankCard';
+import { PhysicalCard } from '@/components/PhysicalCard';
 import { money } from '@/core/money';
 import type { AccountsOverviewAccount } from '@/domain/balances';
 import { accountsCountNote } from '@/i18n';
@@ -197,7 +197,7 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
               isLast={index === items.length - 1}
               hiddenFromA11y={!real}
             >
-              <BankCard
+              <PhysicalCard
                 variant="carousel"
                 name={account.name}
                 type={account.type}

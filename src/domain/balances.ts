@@ -74,6 +74,7 @@ export interface AccountsOverview {
   incomplete: boolean;
   accountCount: number;
   groups: AccountsOverviewGroup[]; // only types with at least one account, in GROUP_ORDER
+  accounts?: AccountsOverviewAccount[];
 }
 
 async function withPockets(db: Db, row: AccountOverviewRow): Promise<AccountsOverviewAccount> {
@@ -104,10 +105,16 @@ export async function getAccountsOverview(db: Db): Promise<AccountsOverview> {
     accounts: accounts.filter(a => a.type === type),
   })).filter(g => g.accounts.length > 0);
 
+  const hasCustomOrder = rows.some(r => r.sort_order > 0);
+  const orderedAccounts = hasCustomOrder
+    ? accounts
+    : groups.flatMap(g => g.accounts);
+
   return {
     netWorth: netWorth.netWorth,
     incomplete: netWorth.incomplete,
     accountCount: accounts.length,
     groups,
+    accounts: orderedAccounts,
   };
 }

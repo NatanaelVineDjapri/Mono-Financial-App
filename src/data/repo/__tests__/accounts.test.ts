@@ -1,5 +1,5 @@
 import { openTestDb } from '../../db/openTestDb';
-import { addPocket, archivePocket, createAccount, getAccount, getPocket, listAccounts, listPockets, updateAccount } from '../accounts';
+import { addPocket, archivePocket, createAccount, getAccount, getPocket, listAccounts, listAccountsForOverview, listPockets, reorderAccounts, updateAccount } from '../accounts';
 
 const NOW = '2026-01-01T00:00:00+07:00';
 
@@ -56,5 +56,17 @@ describe('accounts repo', () => {
     await addPocket(db, valas, 'USD', 25000, '2026-03-01');
     expect(await getPocket(db, valas, 'USD')).toEqual({ account_id: valas, currency: 'USD', opening_balance: 25000, opening_date: '2026-03-01', archived: 0 });
     expect(await getPocket(db, valas, 'SGD')).toBeNull();
+  });
+
+  test('reorderAccounts updates sort_order in a transaction', async () => {
+    const db = openTestDb();
+    const a = await createAccount(db, { name: 'A', type: 'cash', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
+    const b = await createAccount(db, { name: 'B', type: 'cash', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
+    const c = await createAccount(db, { name: 'C', type: 'cash', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
+
+    await reorderAccounts(db, [c, a, b]);
+
+    const overview = await listAccountsForOverview(db);
+    expect(overview.map(x => x.id)).toEqual([c, a, b]);
   });
 });

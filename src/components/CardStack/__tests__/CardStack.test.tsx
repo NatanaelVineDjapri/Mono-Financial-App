@@ -18,8 +18,48 @@ async function renderStack(overrides: Partial<Parameters<typeof CardStack>[0]> =
   return { ...result, onOpenAccount };
 }
 
+function makeTouchEvent(currentY: number, prevY: number, t: number, isEnd = false) {
+  return {
+    touchHistory: {
+      mostRecentTimeStamp: t,
+      numberActiveTouches: isEnd ? 0 : 1,
+      indexOfSingleActiveTouch: 0,
+      touchBank: [
+        {
+          touchActive: !isEnd,
+          startPageX: 0,
+          startPageY: 100,
+          previousPageX: 0,
+          previousPageY: prevY,
+          currentPageX: 0,
+          currentPageY: currentY,
+          currentTimeStamp: t,
+        },
+      ],
+    },
+    nativeEvent: {
+      touches: isEnd ? [] : [{ pageX: 0, pageY: currentY }],
+      changedTouches: [{ pageX: 0, pageY: currentY }],
+    },
+  };
+}
+
+// Press and hold a card until it is in hand, with the test clock moved past HOLD_TO_DRAG.
+async function holdCard(result: Awaited<ReturnType<typeof renderStack>>, id: number) {
+  const handle = result.getByTestId(`card-stack-drag-${id}`);
+  jest.useFakeTimers();
+  await act(async () => {
+    handle.props.onTouchStart();
+    jest.advanceTimersByTime(250);
+  });
+  return handle;
+}
+
 describe('CardStack', () => {
-  afterEach(async () => await act(() => useHideAmounts.getState().setHidden(false)));
+  afterEach(async () => {
+    await act(() => useHideAmounts.getState().setHidden(false));
+    jest.useRealTimers();
+  });
 
   test('renders the total card with net worth, account count and an optional note', async () => {
     const result = await renderStack({ note: 'A note' });
@@ -108,9 +148,16 @@ describe('CardStack', () => {
     // Bring the middle account (Cash wallet, id 2) forward — it is open but not last.
     await fireEvent.press(result.getByTestId('card-stack-card-2'));
 
-    const openText = result.getByText('Cash wallet');
-    const openDetails = openText.parent;
-    expect(Object.assign({}, ...[openDetails?.props.style].flat()).marginBottom).toBe(30);
+    // The card's content area carries the lift as extra bottom padding (12 normal + 12 for the overlap).
+    const bottomPadding = () => {
+      let node = result.getByText('Cash wallet').parent;
+      for (let i = 0; i < 8 && node; i++, node = node.parent) {
+        const padding = Object.assign({}, ...[node.props.style].flat().filter(Boolean)).paddingBottom;
+        if (typeof padding === 'number') return padding;
+      }
+      return undefined;
+    };
+    expect(bottomPadding()).toBe(24);
   });
 
   test('hidden mode masks the total card and every card’s own accessibility label', async () => {
@@ -126,5 +173,110 @@ describe('CardStack', () => {
     const result = await renderStack();
     const strip = result.getByTestId('card-stack-card-1');
     expect(strip.props.accessibilityRole).toBe('button');
+  });
+
+  test('a card only becomes draggable after a short hold, so a tap and a scroll still work', async () => {
+    const result = await renderStack();
+    const handle = result.getByTestId('card-stack-drag-1');
+
+    jest.useFakeTimers();
+    // A fresh touch is not a drag yet: the page may still scroll, the card may still be tapped.
+    expect(handle.props.onMoveShouldSetResponder()).toBe(false);
+
+    await act(async () => {
+      handle.props.onTouchStart();
+      jest.advanceTimersByTime(100);
+    });
+    expect(handle.props.onMoveShouldSetResponder()).toBe(false);
+
+    // Past the hold, the card is in hand and a move becomes a drag.
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+    expect(handle.props.onMoveShouldSetResponder()).toBe(true);
+
+    // Letting go puts it back down.
+    await act(async () => {
+      handle.props.onTouchEnd();
+    });
+    expect(handle.props.onMoveShouldSetResponder()).toBe(false);
+  });
+
+  test('a hold that never moves puts the card back instead of opening it', async () => {
+    const result = await renderStack();
+    const handle = await holdCard(result, 1);
+
+    // The hold armed the card; releasing without a drag must not count as a tap.
+    await act(async () => {
+      handle.props.onTouchEnd();
+    });
+    await fireEvent.press(result.getByTestId('card-stack-card-1'));
+
+    expect(result.getByTestId('card-stack-card-1').props.accessibilityLabel).toContain('Bring card forward.');
+  });
+
+  test('dragging a held card down reorders the stack and calls onReorder', async () => {
+    const onReorder = jest.fn();
+    const onDragActiveChange = jest.fn();
+    const result = await renderStack({ onReorder, onDragActiveChange });
+
+    const handle = await holdCard(result, 1); // index 0 (BCA)
+    expect(onDragActiveChange).toHaveBeenCalledWith(true);
+
+    await act(async () => {
+      handle.props.onResponderGrant(makeTouchEvent(100, 100, 0));
+      // Down by 130px: past the two slots below (tops at 0, 56 and 112).
+      handle.props.onResponderMove(makeTouchEvent(230, 100, 20));
+      handle.props.onResponderRelease(makeTouchEvent(230, 230, 30, true));
+    });
+
+    // BCA (id 1) moved from index 0 to the last slot: [Cash(2), Jago(3), BCA(1)].
+    expect(onReorder).toHaveBeenCalledWith([2, 3, 1]);
+    expect(onDragActiveChange).toHaveBeenLastCalledWith(false);
+  });
+
+  test('dragging a held card up moves it towards the top of the stack', async () => {
+    const onReorder = jest.fn();
+    const result = await renderStack({ onReorder });
+
+    const handle = await holdCard(result, 2); // index 1 (Cash wallet)
+    await act(async () => {
+      // Up by 60px: its top (56) is now closest to the first slot (0), not the second (56).
+      handle.props.onResponderGrant(makeTouchEvent(100, 100, 0));
+      handle.props.onResponderMove(makeTouchEvent(40, 100, 20));
+      handle.props.onResponderRelease(makeTouchEvent(40, 40, 30, true));
+    });
+
+    expect(onReorder).toHaveBeenCalledWith([2, 1, 3]);
+  });
+
+  test('dragging the open card itself moves it and keeps it open', async () => {
+    const onReorder = jest.fn();
+    const result = await renderStack({ onReorder });
+
+    const handle = await holdCard(result, 3); // open by default, last slot
+    await act(async () => {
+      handle.props.onResponderGrant(makeTouchEvent(100, 100, 0));
+      handle.props.onResponderMove(makeTouchEvent(-30, 100, 20));
+      handle.props.onResponderRelease(makeTouchEvent(-30, -30, 30, true));
+    });
+
+    expect(onReorder).toHaveBeenCalledWith([3, 1, 2]);
+    // It is still the open card, just at the top now.
+    expect(result.getByTestId('card-stack-card-3').props.accessibilityLabel).toContain('Open account.');
+  });
+
+  test('a small drag that stays in its own slot does not reorder', async () => {
+    const onReorder = jest.fn();
+    const result = await renderStack({ onReorder });
+
+    const handle = await holdCard(result, 1);
+    await act(async () => {
+      handle.props.onResponderGrant(makeTouchEvent(100, 100, 0));
+      handle.props.onResponderMove(makeTouchEvent(110, 100, 20));
+      handle.props.onResponderRelease(makeTouchEvent(110, 110, 30, true));
+    });
+
+    expect(onReorder).not.toHaveBeenCalled();
   });
 });

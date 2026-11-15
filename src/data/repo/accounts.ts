@@ -69,6 +69,17 @@ export async function updateAccount(
   await db.runAsync(`update accounts set ${fields.join(', ')} where id = $id`, params);
 }
 
+export async function reorderAccounts(db: Db, orderedIds: number[]): Promise<void> {
+  await db.withExclusiveTransactionAsync(async txn => {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await txn.runAsync('update accounts set sort_order = $order where id = $id', {
+        $order: i,
+        $id: orderedIds[i],
+      });
+    }
+  });
+}
+
 export async function getAccount(db: Db, id: number): Promise<AccountBalance | null> {
   return db.getFirstAsync<AccountBalance>('select * from v_account_balance where id = $id', { $id: id });
 }

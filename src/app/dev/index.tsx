@@ -98,6 +98,10 @@ function DevToolsContent() {
           <Button label="Galeri dev" variant="secondary" />
         </Link>
 
+        <Link href="/dev/cards" asChild>
+          <Button label="Kartu Fisik Bank (Preview)" variant="secondary" />
+        </Link>
+
         <Link href="/dev/import-sampler" asChild>
           <Button label={importSamplerTitle()} variant="secondary" />
         </Link>

@@ -154,13 +154,14 @@ export function bankCardAccessibilityLabel(name: string, type: AccountType, bala
 
 // TabBar / the four (tabs) routes (DESIGN.md "Bottom navigation"): the bottom nav's own
 // labels, reused as each tab's app-bar title. More is not a tab — see moreTitle().
-export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets';
+export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets' | 'analyze';
 
 const tabLabels: Record<TabKey, string> = {
   overview: 'Overview',
   transactions: 'Transactions',
   accounts: 'Accounts',
   budgets: 'Budgets',
+  analyze: 'Analyze',
 };
 
 export function tabLabel(key: TabKey): string {
@@ -242,6 +243,12 @@ export function cardStackAdvanceLabel(name: string, balanceFormatted: string): s
 
 export function cardStackOpenLabel(name: string, balanceFormatted: string): string {
   return `${name}, ${balanceFormatted}. Open account.`;
+}
+
+// Shown under the stack when there is more than one account: the only place the drag
+// gesture is explained, since nothing else on screen hints that cards can be moved.
+export function accountsReorderHint(): string {
+  return 'Hold a card, then drag it up or down to change the order.';
 }
 
 export function transferAccountsLabel(): string {
@@ -1059,6 +1066,10 @@ export function consumptionOnlyNote(): string {
   return 'Consumption only. Transfers between your accounts are excluded.';
 }
 
+export function analyzePrompt(): string {
+  return 'Tap to start analyzing your finances';
+}
+
 export function accountsCountNote(count: number): string {
   return `${count} ${count === 1 ? 'account' : 'accounts'}. Swipe to see all. Total equals net worth.`;
 }
@@ -1187,6 +1198,10 @@ export function goalLineLabel(valueText: string): string {
   return `Goal · Rp${valueText}`;
 }
 
+export function rangeOneMonthLabel(): string {
+  return '1M';
+}
+
 export function rangeSixMonthsLabel(): string {
   return '6M';
 }
@@ -1195,8 +1210,25 @@ export function rangeOneYearLabel(): string {
   return '1Y';
 }
 
+export function accountChartAccessibilityLabel(fromDate: string, toDate: string, startFormatted: string, endFormatted: string, lowFormatted: string, highFormatted: string): string {
+  return `Balance from ${fromDate} to ${toDate}: ${startFormatted} to ${endFormatted}, lowest ${lowFormatted}, highest ${highFormatted}.`;
+}
+
 export function rangeAllLabel(): string {
   return 'All';
+}
+
+export function accountChangeVsLabel(range: string): string {
+  switch (range) {
+    case '1M':
+      return 'vs last month';
+    case '6M':
+      return 'vs last 6 months';
+    case '1Y':
+      return 'vs last year';
+    default:
+      return 'vs All';
+  }
 }
 
 // ---------------------------------------------------------------- Transaction detail
@@ -4257,4 +4289,3 @@ export function settingsNotifBackupTitle(): string { return 'Backup reminder'; }
 export function settingsNotifBackupSub(): string { return 'Reminds you to create regular backups'; }
 export function settingsNotifRecurringTitle(): string { return 'Fixed expense reminders'; }
 export function settingsNotifRecurringSub(): string { return 'Notifications for bills and scheduled payments'; }
-

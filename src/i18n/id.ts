@@ -152,13 +152,14 @@ export function bankCardAccessibilityLabel(name: string, type: AccountType, bala
 
 // TabBar / the four (tabs) routes (DESIGN.md "Bottom navigation"): the bottom nav's own
 // labels, reused as each tab's app-bar title. More is not a tab — see moreTitle().
-export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets';
+export type TabKey = 'overview' | 'transactions' | 'accounts' | 'budgets' | 'analyze';
 
 const tabLabels: Record<TabKey, string> = {
   overview: 'Overview',
   transactions: 'Transactions',
   accounts: 'Accounts',
   budgets: 'Budgets',
+  analyze: 'Analyze',
 };
 
 export function tabLabel(key: TabKey): string {
@@ -240,6 +241,12 @@ export function cardStackAdvanceLabel(name: string, balanceFormatted: string): s
 
 export function cardStackOpenLabel(name: string, balanceFormatted: string): string {
   return `${name}, ${balanceFormatted}. Open account.`;
+}
+
+// Shown under the stack when there is more than one account: the only place the drag
+// gesture is explained, since nothing else on screen hints that cards can be moved.
+export function accountsReorderHint(): string {
+  return 'Tahan kartu, lalu geser ke atas atau ke bawah untuk mengubah urutannya.';
 }
 
 export function transferAccountsLabel(): string {
@@ -1057,6 +1064,10 @@ export function consumptionOnlyNote(): string {
   return 'Consumption only. Transfers between your accounts are excluded.';
 }
 
+export function analyzePrompt(): string {
+  return 'Ketuk untuk mulai menganalisis keuanganmu';
+}
+
 export function accountsCountNote(count: number): string {
   return `${count} ${count === 1 ? 'account' : 'accounts'}. Swipe to see all. Total equals net worth.`;
 }
@@ -1185,6 +1196,10 @@ export function goalLineLabel(valueText: string): string {
   return `Goal · Rp${valueText}`;
 }
 
+export function rangeOneMonthLabel(): string {
+  return '1M';
+}
+
 export function rangeSixMonthsLabel(): string {
   return '6M';
 }
@@ -1193,8 +1208,25 @@ export function rangeOneYearLabel(): string {
   return '1Y';
 }
 
+export function accountChartAccessibilityLabel(fromDate: string, toDate: string, startFormatted: string, endFormatted: string, lowFormatted: string, highFormatted: string): string {
+  return `Saldo dari ${fromDate} sampai ${toDate}: ${startFormatted} sampai ${endFormatted}, terendah ${lowFormatted}, tertinggi ${highFormatted}.`;
+}
+
 export function rangeAllLabel(): string {
   return 'All';
+}
+
+export function accountChangeVsLabel(range: string): string {
+  switch (range) {
+    case '1M':
+      return 'vs 1 bulan lalu';
+    case '6M':
+      return 'vs 6 bulan lalu';
+    case '1Y':
+      return 'vs 1 tahun lalu';
+    default:
+      return 'vs All';
+  }
 }
 
 // ---------------------------------------------------------------- Transaction detail
@@ -4254,4 +4286,3 @@ export function settingsNotifBackupTitle(): string { return 'Pengingat cadangan'
 export function settingsNotifBackupSub(): string { return 'Mengingatkan untuk membuat cadangan rutin'; }
 export function settingsNotifRecurringTitle(): string { return 'Pengingat pengeluaran tetap'; }
 export function settingsNotifRecurringSub(): string { return 'Notifikasi tagihan dan pembayaran terjadwal'; }
-

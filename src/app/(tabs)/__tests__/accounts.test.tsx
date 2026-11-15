@@ -12,6 +12,11 @@ import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
 jest.mock('@/features/accounts/useAccountsOverview');
 jest.mock('@/features/fx/useLatestFxUpdate');
 jest.mock('@/components/toast-store', () => ({ showToast: jest.fn() }));
+jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({}) }));
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
+}));
 
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({

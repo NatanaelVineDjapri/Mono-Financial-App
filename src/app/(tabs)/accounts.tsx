@@ -3,8 +3,9 @@
 // transaction form as a transfer, and the card stack's open card opens /account/[id]. Only
 // the Exchange rates row opens /settings/rates.
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/Button';
 import { CardStack, type CardStackAccount } from '@/components/CardStack';
@@ -15,6 +16,9 @@ import { useTabBarClearance } from '@/components/TabBar';
 import { formatDateTime } from '@/core/date';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { money, shown } from '@/core/money';
+import { useDb } from '@/data/db/DbProvider';
+import { invalidateAfterWrite } from '@/data/queryKeys';
+import { reorderAccounts } from '@/data/repo/accounts';
 import type { AccountsOverview, AccountsOverviewAccount } from '@/domain/balances';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
@@ -25,6 +29,7 @@ import {
     accountsForexEstimateNote,
     accountsIncompleteNote,
     accountsNoLoginNote,
+    accountsReorderHint,
     accountsTransferNote,
     addAccountLabel,
     exchangeRatesLabel,
@@ -96,10 +101,15 @@ function ExchangeRatesRow({ latestFxUpdate, onPress }: { latestFxUpdate: string 
 
 export default function AccountsScreen() {
   const router = useRouter();
+  const db = useDb();
+  const queryClient = useQueryClient();
   const tabBarClearance = useTabBarClearance();
   const { data, isLoading, isError, refetch } = useAccountsOverview();
   const { data: latestFxUpdate } = useLatestFxUpdate();
   const hidden = useHideAmounts(s => s.hidden);
+  // True while a card is held: the page stops scrolling so the vertical drag reaches
+  // CardStack instead of turning into a scroll.
+  const [reordering, setReordering] = useState(false);
   const onOpenRates = useCallback(() => router.push('/settings/rates' as never), [router]);
   const onRetry = useCallback(() => {
     void refetch();
@@ -109,6 +119,13 @@ export default function AccountsScreen() {
   const onOpenAccount = useCallback(
     (id: number) => router.push({ pathname: '/account/[id]', params: { id: String(id) } }),
     [router],
+  );
+  const onReorder = useCallback(
+    async (orderedIds: number[]) => {
+      await reorderAccounts(db, orderedIds);
+      await invalidateAfterWrite(queryClient);
+    },
+    [db, queryClient],
   );
 
   if (isLoading) {
@@ -145,15 +162,18 @@ export default function AccountsScreen() {
     );
   }
 
-  // GROUP_ORDER (src/domain/balances.ts) already places groups Bank, Cash, E-wallet,
-  // Savings, Forex in that order — flattening keeps it, per Fase 4.2c step 2's own order.
-  const accounts = data.groups.flatMap(group => group.accounts.map(account => toCardStackAccount(account, hidden)));
+  // Use custom accounts order if set, or group order by default (Bank, Cash, E-wallet, Savings, Forex).
+  const accountsSource = data.accounts ?? data.groups.flatMap(group => group.accounts);
+  const accounts = accountsSource.map(account => toCardStackAccount(account, hidden));
   const hasForex = data.groups.some(g => g.type === 'forex');
 
   return (
     <View style={styles.screen}>
       <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]}
+        scrollEnabled={!reordering}
+      >
         <CardStack
           netWorth={data.netWorth}
           accountCount={data.accountCount}
@@ -162,8 +182,11 @@ export default function AccountsScreen() {
           approximate={hasForex && !data.incomplete}
           accounts={accounts}
           onOpenAccount={onOpenAccount}
+          onReorder={onReorder}
+          onDragActiveChange={setReordering}
           testID="accounts-card-stack"
         />
+        {accounts.length > 1 && <Text style={styles.reorderHint}>{accountsReorderHint()}</Text>}
         {hasForex && <ExchangeRatesRow latestFxUpdate={latestFxUpdate} onPress={onOpenRates} />}
         <View style={styles.buttonRow}>
           <Button label={transferAccountsLabel()} icon="transfer" onPress={onTransfer} style={styles.buttonFlex} />
@@ -201,6 +224,7 @@ const styles = StyleSheet.create({
 
   buttonRow: { flexDirection: 'row', gap: 12 },
   buttonFlex: { flex: 1 },
+  reorderHint: { ...MonoText.caption, color: MonoColors.textMeta, marginTop: -8 },
   footerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   footerNote: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
 });
