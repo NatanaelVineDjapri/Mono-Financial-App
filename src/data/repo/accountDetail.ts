@@ -87,3 +87,18 @@ export async function listActivity(db: Db, accountId: number, period: string, fi
     { $id: accountId, $period: period },
   );
 }
+
+export interface ActivityPointRow {
+  date: string;
+  balance: number;
+}
+
+export async function getAccountActivityPoints(db: Db, accountId: number): Promise<ActivityPointRow[]> {
+  return db.getAllAsync<ActivityPointRow>(
+    `select occurred_on as date, balance_after as balance
+     from v_account_activity
+     where account_id = $id and currency = 'IDR'
+     order by occurred_on asc, tx_id asc`,
+    { $id: accountId },
+  );
+}

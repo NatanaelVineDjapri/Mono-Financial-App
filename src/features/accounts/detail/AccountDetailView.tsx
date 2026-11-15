@@ -18,6 +18,7 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatDayMonth, formatShortDate, monthName } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import type { AccountDetail, ActivityFilter, ActivityItem, ActivityKind } from '@/domain/accountDetail';
+import { AccountBalanceChart } from './AccountBalanceChart';
 import {
   accountKindCaption,
   accountTypeName,
@@ -46,13 +47,9 @@ const FILTERS: ActivityFilter[] = ['all', 'in', 'out'];
 
 // ---------------------------------------------------------------- balance and reconciliation
 
+export { AccountBalanceChart };
 export function BalanceHero({ detail }: { detail: AccountDetail }) {
-  return (
-    <View style={styles.hero} testID="account-hero">
-      <Text style={styles.caption}>{accountKindCaption(accountTypeName(detail.type))}</Text>
-      <Amount value={detail.balance} variant="displayS" testID="account-balance" />
-    </View>
-  );
+  return <AccountBalanceChart detail={detail} />;
 }
 
 function ReconRow({ label, children, strong = false, divider = false, testID }: { label: string; children: React.ReactNode; strong?: boolean; divider?: boolean; testID?: string }) {
@@ -73,10 +70,10 @@ export function ReconCard({ detail }: { detail: AccountDetail }) {
         <ReconRow label={openingBalanceOnLabel(formatShortDate(detail.openingDate))} testID="account-recon-opening">
           <Amount value={detail.openingBalance} variant="figureRow" />
         </ReconRow>
-        <ReconRow label={moneyInLabel()} testID="account-recon-in">
+        <ReconRow label={moneyInLabel()} divider testID="account-recon-in">
           <Amount value={detail.moneyIn} sign kind="income" variant="figureRow" />
         </ReconRow>
-        <ReconRow label={moneyOutLabel()} testID="account-recon-out">
+        <ReconRow label={moneyOutLabel()} divider testID="account-recon-out">
           <Amount value={-detail.moneyOut} sign kind="expense" variant="figureRow" />
         </ReconRow>
         <ReconRow label={currentBalanceLabel()} strong divider testID="account-recon-current">

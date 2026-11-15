@@ -32,6 +32,7 @@ export interface ChartTableProps {
   collapsedByDefault?: boolean;
   style?: ViewStyle;
   testID?: string;
+  showRowDividers?: boolean;
 }
 
 const DEFAULT_COLUMNS: ChartTableColumn[] = [{ format: 'amount' }];
@@ -44,7 +45,7 @@ function Cell({ value, column, strong }: { value: number; column: ChartTableColu
   return <Amount value={value} kind={column.kind} variant={strong ? 'figureS' : 'figureRow'} />;
 }
 
-export function ChartTable({ columns, rows, totalRow, collapsedByDefault = false, style, testID }: ChartTableProps) {
+export function ChartTable({ columns, rows, totalRow, collapsedByDefault = false, style, testID, showRowDividers = false }: ChartTableProps) {
   const [expanded, setExpanded] = useState(!collapsedByDefault);
   const cols = columns ?? DEFAULT_COLUMNS;
   const hasHeader = cols.some(c => c.label);
@@ -67,7 +68,7 @@ export function ChartTable({ columns, rows, totalRow, collapsedByDefault = false
             </View>
           )}
           {rows.map((row, i) => (
-            <View key={i} style={styles.row}>
+            <View key={i} style={[styles.row, showRowDividers && i < rows.length - 1 && styles.rowDivider]}>
               <Text style={styles.labelText}>{row.label}</Text>
               {cols.map((col, j) => (
                 <View key={j} style={styles.valueCell}>
@@ -96,6 +97,7 @@ const styles = StyleSheet.create({
   toggle: { paddingVertical: 8 },
   toggleText: { ...MonoText.bodyS, color: MonoColors.textSecond },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
+  rowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },
   totalRow: { borderTopWidth: 1, borderTopColor: MonoColors.border },
   labelCell: { flex: 1 },
   labelText: { flex: 1, ...MonoText.body, color: MonoColors.text },

@@ -48,6 +48,41 @@ export function millionsFixed(value: number): string {
   return `${sign}${whole},${tenths % 10}`;
 }
 
+export interface AxisRange {
+  low: number; // the lowest gridline, whole rupiah (<= min)
+  high: number; // the highest gridline (>= max)
+  step: number;
+  ticks: number[]; // low .. high, ascending
+}
+
+// A y axis for a line that need not start at zero (an account balance over a month moves by a few
+// percent, and an axis from 0 would show a flat line). The smallest round step that covers min..max in
+// at most three intervals; low and high sit on multiples of that step. A flat line (min = max) still
+// gets a band around it. Integer arithmetic only; `low` never goes below 0 for a non-negative min.
+export function niceRange(min: number, max: number): AxisRange {
+  let lo = Math.min(min, max);
+  let hi = Math.max(min, max);
+  if (hi === lo) {
+    // A flat line: open a band of about 10% of the value (at least Rp1.000) so the axis has height.
+    const band = Math.max(1000, Math.round(Math.abs(hi) / 10));
+    lo = lo >= 0 ? Math.max(0, lo - band) : lo - band;
+    hi += band;
+  }
+  let magnitude = 1;
+  for (;;) {
+    for (const mantissa of MANTISSAS) {
+      const step = mantissa * magnitude;
+      const low = Math.floor(lo / step) * step;
+      const high = Math.ceil(hi / step) * step;
+      if (high > low && (high - low) / step <= MAX_INTERVALS) {
+        const count = Math.round((high - low) / step);
+        return { low, high, step, ticks: Array.from({ length: count + 1 }, (_, i) => low + i * step) };
+      }
+    }
+    magnitude *= 10;
+  }
+}
+
 // An axis label: millions once the axis reaches Rp1 million, plain thousands below it.
 export function axisLabel(value: number, top: number): string {
   if (top >= 1_000_000) return millions(value);

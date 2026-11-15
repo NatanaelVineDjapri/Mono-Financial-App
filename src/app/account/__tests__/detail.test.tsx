@@ -2,9 +2,10 @@ import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import type { AccountDetail, ActivityItem } from '@/domain/accountDetail';
-import { useAccountActivity, useAccountDetail } from '@/features/accounts/detail/useAccountDetail';
+import type { AccountBalanceHistory, AccountDetail, ActivityItem } from '@/domain/accountDetail';
+import { useAccountActivity, useAccountBalanceHistory, useAccountDetail } from '@/features/accounts/detail/useAccountDetail';
 import { useStatsCollapsed } from '@/features/transactions/statsStore';
+import { accountChangeVsLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import AccountDetailScreen from '../[id]';
 
@@ -58,9 +59,30 @@ const ACTIVITY: ActivityItem[] = [
   { id: 12, date: '2026-10-23', title: '← GoPay', kind: 'transfer_in', delta: 50000, balanceAfter: 654500 },
 ];
 
-function mockData(detail: AccountDetail | null | undefined, activity: ActivityItem[] | undefined = ACTIVITY, extra: object = {}) {
+const SAMPLE_HISTORY: AccountBalanceHistory = {
+  currentBalance: 6842500,
+  startBalance: 5289069,
+  changeAmount: 1553431,
+  changeBp: 2937,
+  startDate: '2026-09-28',
+  endDate: '2026-10-28',
+  range: '1M',
+  points: [
+    { date: '2026-09-28', value: 5289069, delta: 0, deltaPctBp: 0 },
+    { date: '2026-10-15', value: 6000000, delta: 710931, deltaPctBp: 1344 },
+    { date: '2026-10-28', value: 6842500, delta: 1553431, deltaPctBp: 2937 },
+  ],
+};
+
+function mockData(
+  detail: AccountDetail | null | undefined,
+  activity: ActivityItem[] | undefined = ACTIVITY,
+  extra: object = {},
+  history: AccountBalanceHistory | null | undefined = undefined,
+) {
   (useAccountDetail as jest.Mock).mockReturnValue({ data: detail, isLoading: false, isError: false, refetch: jest.fn(), ...extra });
   (useAccountActivity as jest.Mock).mockReturnValue({ data: activity });
+  (useAccountBalanceHistory as jest.Mock).mockReturnValue({ data: history });
 }
 
 describe('Account detail', () => {
@@ -75,6 +97,23 @@ describe('Account detail', () => {
     expect(result.getByRole('header', { name: 'BCA Tabungan' })).toBeTruthy();
     expect(result.getByText('Bank account · current balance')).toBeTruthy();
     expect(result.getByTestId('account-balance').props.children).toBe('Rp6.842.500');
+  });
+
+  test('balance trend chart with delta comparison and range switcher', async () => {
+    mockData(BCA, ACTIVITY, {}, SAMPLE_HISTORY);
+    const result = await renderScreen();
+    expect(result.getByTestId('account-hero-delta')).toBeTruthy();
+    expect(result.getByText(accountChangeVsLabel('1M'))).toBeTruthy();
+    expect(result.getByText('+Rp1.553.431 (+29,37%)')).toBeTruthy();
+
+    expect(result.getByTestId('account-range-1M')).toBeTruthy();
+    expect(result.getByTestId('account-range-6M')).toBeTruthy();
+    expect(result.getByTestId('account-range-1Y')).toBeTruthy();
+    expect(result.getByTestId('account-range-All')).toBeTruthy();
+    expect(result.getByTestId('account-chart')).toBeTruthy();
+
+    await fireEvent.press(result.getByTestId('account-range-6M'));
+    expect(useAccountBalanceHistory).toHaveBeenCalledWith(1, '6M');
   });
 
   test('where the balance comes from: opening, money in (green), money out (red), current', async () => {

@@ -20,6 +20,7 @@ declare module 'react-native-gifted-charts' {
     dataPointStrokeColor?: string;
     dataPointStrokeWidth?: number;
     labelTextStyle?: TextStyle;
+    [key: string]: any;
   }
 
   export interface BarChartProps {
@@ -81,6 +82,8 @@ declare module 'react-native-gifted-charts' {
     disableScroll?: boolean;
     isAnimated?: boolean;
     curved?: boolean;
+    pointerConfig?: any;
+    [key: string]: any;
   }
 
   export function BarChart(props: BarChartProps): JSX.Element;

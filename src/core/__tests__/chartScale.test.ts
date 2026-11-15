@@ -1,4 +1,4 @@
-import { axisLabel, labelIndexes, millions, millionsCallout, millionsFixed, niceScale } from '../chartScale';
+import { axisLabel, labelIndexes, millions, millionsCallout, millionsFixed, niceRange, niceScale } from '../chartScale';
 
 describe('niceScale', () => {
   test('the cash flow board: a 7,5 million high gives 0, 4, 8', () => {
@@ -70,5 +70,41 @@ describe('labelIndexes', () => {
     const indexes = labelIndexes(24, 6);
     expect(indexes[indexes.length - 1]).toBe(23);
     expect(indexes.length).toBeLessThanOrEqual(7);
+  });
+});
+
+describe('niceRange', () => {
+  test('a balance that moves between 312.500 and 375.500 gets 280k, 320k, 360k, 400k', () => {
+    expect(niceRange(312_500, 375_500)).toEqual({ low: 280_000, high: 400_000, step: 40_000, ticks: [280_000, 320_000, 360_000, 400_000] });
+  });
+
+  test('the range always covers min..max with at most three intervals and round gridlines', () => {
+    const cases: [number, number][] = [[0, 1], [0, 1_000_000], [1_270_000, 1_650_000], [9_990_000, 10_010_000], [4_300_000, 34_900_000], [1, 999], [-500_000, 250_000]];
+    for (const [min, max] of cases) {
+      const range = niceRange(min, max);
+      expect(range.low).toBeLessThanOrEqual(min);
+      expect(range.high).toBeGreaterThanOrEqual(max);
+      expect(range.ticks[0]).toBe(range.low);
+      expect(range.ticks[range.ticks.length - 1]).toBe(range.high);
+      expect(range.ticks.length - 1).toBeLessThanOrEqual(3);
+      expect(range.ticks.length).toBeGreaterThanOrEqual(2);
+      expect(Math.abs(range.low % range.step)).toBe(0);
+    }
+  });
+
+  test('a flat line still gets a band around it', () => {
+    const range = niceRange(500_000, 500_000);
+    expect(range.high).toBeGreaterThan(range.low);
+    expect(range.low).toBeLessThanOrEqual(500_000);
+    expect(range.high).toBeGreaterThanOrEqual(500_000);
+  });
+
+  test('no money at all (0 to 0) is a sane axis, not a zero-height one', () => {
+    const range = niceRange(0, 0);
+    expect(range.high).toBeGreaterThan(range.low);
+  });
+
+  test('the gridlines are integers', () => {
+    expect(niceRange(33, 71).ticks.every(Number.isInteger)).toBe(true);
   });
 });

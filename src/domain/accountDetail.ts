@@ -2,7 +2,7 @@
 // Every figure is a view read: the balance, what came in and went out, the running balance on
 // each row. Nothing is stored: opening + in − out equals the balance by construction, and the
 // tests check it.
-import { periodOfDate } from '../core/date';
+import { addDays, addMonths, daysBetween, periodOfDate } from '../core/date';
 import type { Db } from '../data/db/types';
 import type { AccountType } from '../data/repo/accounts';
 import * as repo from '../data/repo/accountDetail';
@@ -119,6 +119,121 @@ export async function getAccountEditData(db: Db, accountId: number): Promise<Acc
     openingDate: account.opening_date,
     movement: movement.money_in - movement.money_out,
     firstRecordOn: movement.first_record_on,
+  };
+}
+
+export type AccountChartRange = '1M' | '6M' | '1Y' | 'All';
+
+export interface AccountChartPoint {
+  date: string;
+  value: number;
+  delta: number;
+  deltaPctBp: number | null;
+}
+
+export interface AccountBalanceHistory {
+  currentBalance: number;
+  startBalance: number;
+  changeAmount: number;
+  changeBp: number | null;
+  startDate: string;
+  endDate: string;
+  range: AccountChartRange;
+  points: AccountChartPoint[];
+}
+
+// ponytail: samples up to 30 points across the period; upgrade to adaptive density if scrub precision on long spans is requested.
+export async function getAccountBalanceHistory(
+  db: Db,
+  accountId: number,
+  range: AccountChartRange,
+  todayIso: string,
+): Promise<AccountBalanceHistory> {
+  const today = todayIso.slice(0, 10);
+  const [account, currentBal, activityRows] = await Promise.all([
+    repo.getAccountRecord(db, accountId),
+    repo.getIdrBalance(db, accountId),
+    repo.getAccountActivityPoints(db, accountId),
+  ]);
+
+  const openingBalance = account?.opening_balance ?? 0;
+  const openingDate = account?.opening_date ?? today;
+  const currentBalance = currentBal ?? openingBalance;
+
+  let targetStart = today;
+  if (range === '1M') targetStart = addDays(today, -30);
+  else if (range === '6M') targetStart = addMonths(today, -6);
+  else if (range === '1Y') targetStart = addMonths(today, -12);
+  else {
+    targetStart = openingDate;
+    const oldestTx = activityRows[0]?.date;
+    if (oldestTx && oldestTx < targetStart) targetStart = oldestTx;
+  }
+
+  let startDate = targetStart > openingDate ? targetStart : openingDate;
+  if (startDate >= today) startDate = addDays(today, -1);
+
+  const dailyBalances = new Map<string, number>();
+  for (const r of activityRows) dailyBalances.set(r.date, r.balance);
+
+  const getBalanceAt = (d: string): number => {
+    if (d >= today) return currentBalance;
+    if (dailyBalances.has(d)) return dailyBalances.get(d)!;
+    let lastBal = d >= openingDate ? openingBalance : 0;
+    for (const r of activityRows) {
+      if (r.date <= d) lastBal = r.balance;
+      else break;
+    }
+    return lastBal;
+  };
+
+  const startBalance = getBalanceAt(startDate);
+  const changeAmount = currentBalance - startBalance;
+  const changeBp = startBalance !== 0 ? Math.round(((currentBalance - startBalance) * 10000) / Math.abs(startBalance)) : null;
+
+  const intermediateTxDates = activityRows
+    .map(r => r.date)
+    .filter(d => d > startDate && d < today);
+  const allDates = Array.from(new Set([startDate, ...intermediateTxDates, today])).sort();
+
+  let sampledDates: string[];
+  if (allDates.length < 6) {
+    const interpolated: string[] = [startDate];
+    const spanDays = Math.max(1, daysBetween(startDate, today));
+    const steps = 5;
+    for (let i = 1; i < steps; i++) {
+      const d = addDays(startDate, Math.round((spanDays * i) / steps));
+      if (d > startDate && d < today) interpolated.push(d);
+    }
+    interpolated.push(today);
+    sampledDates = Array.from(new Set([...allDates, ...interpolated])).sort();
+  } else if (allDates.length > 30) {
+    const step = Math.ceil((allDates.length - 1) / 24);
+    sampledDates = [allDates[0]];
+    for (let i = step; i < allDates.length - 1; i += step) {
+      sampledDates.push(allDates[i]);
+    }
+    sampledDates.push(allDates[allDates.length - 1]);
+  } else {
+    sampledDates = allDates;
+  }
+
+  const points: AccountChartPoint[] = sampledDates.map(date => {
+    const val = getBalanceAt(date);
+    const delta = val - startBalance;
+    const deltaPctBp = startBalance !== 0 ? Math.round(((val - startBalance) * 10000) / Math.abs(startBalance)) : null;
+    return { date, value: val, delta, deltaPctBp };
+  });
+
+  return {
+    currentBalance,
+    startBalance,
+    changeAmount,
+    changeBp,
+    startDate,
+    endDate: today,
+    range,
+    points,
   };
 }
 

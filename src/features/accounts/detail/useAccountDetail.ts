@@ -5,7 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import { nowIso } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
-import { getAccountDetail, listAccountActivity, type ActivityFilter, type ActivityKind } from '@/domain/accountDetail';
+import {
+  getAccountBalanceHistory,
+  getAccountDetail,
+  listAccountActivity,
+  type AccountChartRange,
+  type ActivityFilter,
+  type ActivityKind,
+} from '@/domain/accountDetail';
 import { activityKindLabel } from '@/i18n';
 
 export function useAccountDetail(id: number) {
@@ -24,5 +31,13 @@ export function useAccountActivity(id: number, period: string | undefined, filte
     queryKey: [...queryKeys.accounts, 'activity', id, period ?? null, filter],
     queryFn: () => listAccountActivity(db, id, period as string, filter, kindFallback),
     enabled: !!period,
+  });
+}
+
+export function useAccountBalanceHistory(id: number, range: AccountChartRange) {
+  const db = useDb();
+  return useQuery({
+    queryKey: [...queryKeys.accounts, 'history', id, range],
+    queryFn: () => getAccountBalanceHistory(db, id, range, nowIso()),
   });
 }
