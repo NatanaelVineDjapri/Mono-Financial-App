@@ -129,7 +129,6 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
-
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
 export function currencyCountTag(count: number): string {
@@ -943,6 +942,14 @@ export function seeAllLabel(): string {
   return 'See all';
 }
 
+export function quickRecordTitle(): string {
+  return 'Quick record';
+}
+
+export function quickRecordAccessibilityLabel(description: string, amountFormatted: string): string {
+  return `Record ${description}, ${amountFormatted}.`;
+}
+
 // Overview empty state (PAGES.md A2).
 export function overviewEmptyMessage(): string {
   return 'No accounts yet. Net worth is calculated from your accounts.';
@@ -1025,6 +1032,10 @@ export function notificationsLabel(): string {
   return 'Notifications';
 }
 
+export function bellUnreadLabel(count: number): string {
+  return `Notifications, ${count} unread`;
+}
+
 export function backToOverviewLabel(): string {
   return 'Overview';
 }
@@ -1063,11 +1074,7 @@ export function netCashFlowLabel(monthAbbrevText: string): string {
 }
 
 export function consumptionOnlyNote(): string {
-  return 'Consumption only. Transfers between your accounts are excluded.';
-}
-
-export function analyzePrompt(): string {
-  return 'Tap to start analyzing your finances';
+  return 'Income minus expenses. Transfers, opening balances, and FX changes are excluded.';
 }
 
 export function accountsCountNote(count: number): string {
@@ -1212,6 +1219,26 @@ export function rangeOneYearLabel(): string {
 
 export function accountChartAccessibilityLabel(fromDate: string, toDate: string, startFormatted: string, endFormatted: string, lowFormatted: string, highFormatted: string): string {
   return `Balance from ${fromDate} to ${toDate}: ${startFormatted} to ${endFormatted}, lowest ${lowFormatted}, highest ${highFormatted}.`;
+}
+
+export function mapStatusLoading(): string {
+  return 'Loading map…';
+}
+
+export function mapStatusOnline(): string {
+  return 'Street map';
+}
+
+export function mapStatusOffline(): string {
+  return 'Offline';
+}
+
+export function mapStatusNone(): string {
+  return 'No location';
+}
+
+export function mapAccessibilityLabel(lat: string, lng: string): string {
+  return `Map of the transaction location, ${lat}, ${lng}`;
 }
 
 export function rangeAllLabel(): string {
@@ -1921,7 +1948,6 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
       return couldNotSaveMessage();
   }
 }
-
 
 // AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
 export function aiSetupTitle(): string {
@@ -3563,7 +3589,6 @@ export function restoreChooseAnother(): string { return 'Choose another file'; }
 
 export function restorePickError(): string { return 'Could not open the file. Try another file.'; }
 
-
 export function currencyName(code: string): string {
   return CURRENCY_NAMES_EN[code] ?? code;
 }
@@ -4197,26 +4222,7 @@ export const catIconName = (key: string): string => {
 
 // ---- Settings screen (Board J, PAGES.md J) ----
 export function settingsGroupPrivacy(): string { return 'PRIVACY'; }
-export function settingsAppLockTitle(): string { return 'App lock'; }
-export function settingsAppLockSub(): string { return 'Require fingerprint or device PIN on open'; }
-export function settingsAppLockPromptEnable(): string { return 'Turn on app lock'; }
-export function settingsAppLockPromptDisable(): string { return 'Turn off app lock'; }
-export function settingsNoLockTitle(): string { return 'No screen lock set'; }
-export function settingsNoLockMessage(): string { return 'This device has no screen lock set. Set up a fingerprint or PIN in device settings first.'; }
-export function settingsNoLockOpenSettings(): string { return 'Open settings'; }
-export function settingsNoLockCancel(): string { return 'Cancel'; }
 
-export function lockPromptMessage(): string { return 'Unlock MONO'; }
-export function lockPromptCancel(): string { return 'Cancel'; }
-export function lockSubtitle(): string { return 'Unlock with fingerprint or device PIN.'; }
-export function lockFootnote(): string { return 'Automatically locked after 30 seconds in the background.'; }
-export function lockErrorNoHardware(): string { return 'This device no longer has a screen lock set.'; }
-export function lockErrorLockout(): string { return 'Too many attempts. Try again in a moment.'; }
-export function lockErrorFailed(): string { return 'Fingerprint not recognized. Try again or use device PIN.'; }
-export function lockBtnOpenSettings(): string { return 'Open settings'; }
-export function lockBtnDisable(): string { return 'Turn off app lock'; }
-export function lockBtnUnlock(): string { return 'Unlock'; }
-export function lockScanA11y(): string { return 'Scan fingerprint'; }
 export function settingsHideOnLaunchTitle(): string { return 'Hide amounts on launch'; }
 export function settingsHideOnLaunchSub(): string { return 'Shows Rp•••••••• until you tap the eye icon'; }
 export function settingsBlockScreenshotsTitle(): string { return 'Block screenshots and preview'; }
@@ -4289,3 +4295,276 @@ export function settingsNotifBackupTitle(): string { return 'Backup reminder'; }
 export function settingsNotifBackupSub(): string { return 'Reminds you to create regular backups'; }
 export function settingsNotifRecurringTitle(): string { return 'Fixed expense reminders'; }
 export function settingsNotifRecurringSub(): string { return 'Notifications for bills and scheduled payments'; }
+
+// Location (settings, backup, transaction form and detail) and small shared labels.
+export function settingsLocationTitle(): string { return 'Save transaction location'; }
+export function settingsLocationSub(): string { return 'Records the phone\'s position when you add a transaction. Stays on this device.'; }
+export function settingsLocationDeleteTitle(): string { return 'Delete saved locations?'; }
+export function settingsLocationDeleteMessage(count: number): string { return `You have ${count} saved locations. You can keep the old ones or delete every transaction location.`; }
+export function settingsLocationKeepOld(): string { return 'Keep them'; }
+export function settingsLocationDeleteAll(): string { return 'Delete all locations'; }
+export function settingsLocationDeniedTitle(): string { return 'Location permission denied'; }
+export function settingsLocationDeniedMessage(): string { return 'Location permission was denied. You can change it in your device settings.'; }
+export function settingsLocationOpenSettings(): string { return 'Open settings'; }
+export function settingsLocationSheetSubtitle(): string { return 'The location is only saved on this device.'; }
+export function settingsLocationSheetBody(): string { return 'What is saved: coordinates, accuracy, time and an optional place name. The location is taken only when you add a transaction and the coordinates are never sent anywhere. When you open a transaction\'s details, the street map is downloaded from OpenFreeMap: the map server only learns the approximate area (a few kilometres), not the exact point. Locations are included in backup files.'; }
+export function settingsLocationEnable(): string { return 'Turn on'; }
+export function backupLocationCountLabel(): string { return 'Transactions with a location'; }
+export function backupIncludesLocation(): string { return 'The backup includes transaction locations.'; }
+export function recurringDateDecrease(): string { return 'Earlier day'; }
+export function recurringDateIncrease(): string { return 'Later day'; }
+export function dateSheetClear(): string { return 'Clear date'; }
+export function dateSheetBack(): string { return 'Back'; }
+export function locationSaved(): string { return 'Saved location'; }
+export function locationNotYet(): string { return 'Location not available yet'; }
+export function mapCardTitle(): string { return 'Transaction location'; }
+export function mapCardNotYetA11y(): string { return 'Transaction location not available yet'; }
+export function mapCardEmptyHint(): string { return 'Add a location when you record a transaction'; }
+export function txLocationCapturing(): string { return 'Location: capturing...'; }
+export function txLocationUnavailable(): string { return 'Location unavailable'; }
+export function txLocationRetry(): string { return ' Tap to retry'; }
+export function txLocationPlaceLabel(): string { return 'Place name (optional)'; }
+export function txLocationPlacePlaceholder(): string { return 'Example: Home'; }
+
+// Analysis: the financial health score (formula, no AI) and its "how it is calculated" page.
+export function analysisTitle(): string { return `Analysis`; }
+export function analysisRunningPeriod(): string { return `running period`; }
+export function analysisPeriodRange(range: string, running: boolean): string { return `${range}${running ? ` · running period` : ``}`; }
+export function analysisScoreTitle(): string { return `Financial health score`; }
+export function analysisOutOf(): string { return `of 100`; }
+export function analysisBand(band: "healthy" | "fair" | "weak" | "needs_work"): string { return ({ healthy: `Healthy`, fair: `Fair`, weak: `At risk`, needs_work: `Needs work` })[band]; }
+export function analysisDelta(delta: number, month: string): string { return `${delta > 0 ? `+${delta}` : delta < 0 ? `−${-delta}` : `±0`} from ${month}`; }
+export function analysisNote(): string { return `Calculated on this phone from your records. Not AI and sent nowhere.`; }
+export function analysisHowLink(): string { return `How it is calculated`; }
+export function analysisScoreA11y(score: number, band: string): string { return `Financial health score ${score} out of 100, ${band}`; }
+export function analysisCountedNote(counted: number, missing: string): string { return `This score is calculated from ${counted} of 5 things, because there are no ${missing} yet.`; }
+export function analysisMissing(id: "budget" | "fixed" | "wealth"): string { return ({ budget: `budgets`, fixed: `fixed expenses`, wealth: `net worth history` })[id]; }
+export function analysisAnd(): string { return ` and `; }
+export function analysisBut(): string { return `but`; }
+export function analysisLoadError(): string { return `The score could not be calculated.`; }
+export function analysisRetry(): string { return `Try again`; }
+export function analysisLoading(): string { return `Calculating…`; }
+export function analysisSectionParts(): string { return `What the score is made of`; }
+export function analysisSectionPartsSub(score: number): string { return `${score} of 100`; }
+export function analysisComponentName(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `Savings rate`, budget: `Budget discipline`, emergency: `Emergency fund`, fixed: `Fixed expenses`, wealth: `Net worth direction` })[id]; }
+export function analysisLowestTag(): string { return `Lowest`; }
+export function analysisSkippedTag(): string { return `Not counted`; }
+export function analysisPartA11y(name: string, points: number, max: number, detail: string): string { return `${name}: ${points} of ${max} points. ${detail}`; }
+export function analysisDetailSavings(pct: string, target: string): string { return `${pct} of income · target ${target} or more`; }
+export function analysisDetailSavingsNoIncome(): string { return `No income in this period`; }
+export function analysisDetailBudget(within: number, total: number): string { return `${within} of ${total} budgets within the limit`; }
+export function analysisDetailEmergency(months: string, target: number): string { return `${months} months of expenses · target ${target} months`; }
+export function analysisDetailEmergencyNoExpense(): string { return `No expenses in this period`; }
+export function analysisDetailFixed(pct: string, healthy: boolean, target: string): string { return `${pct} of income${healthy ? ` · healthy under ${target}` : ``}`; }
+export function analysisDetailWealth(rises: number, comparisons: number): string { return `${rises === comparisons ? `Up ${rises} ${rises === 1 ? `month` : `months`} in a row` : `Up in ${rises} of ${comparisons} months`}`; }
+export function analysisSkippedLink(id: "budget" | "fixed" | "wealth"): string { return ({ budget: `Create a budget`, fixed: `Add a fixed expense`, wealth: `Not enough history yet` })[id]; }
+export function analysisSectionImprove(): string { return `What could raise it`; }
+export function analysisSectionImproveSub(): string { return `biggest impact first`; }
+export function analysisPlusPoints(points: number): string { return `+${points} ${points === 1 ? `pt` : `pts`}`; }
+export function analysisInfoTag(): string { return `Info`; }
+export function analysisImpBudgetTitle(name: string): string { return `${name} is over its limit`; }
+export function analysisImpBudgetBody(spent: string, limit: string, over: string, others: number): string { return `Spent ${spent} of a ${limit} limit, ${over} over. If every budget stays within its limit, budget discipline is full.${others > 0 ? ` ${others === 1 ? `Another budget is` : `${others} other budgets are`} over too.` : ``}`; }
+export function analysisImpBudgetFoot(used: string, daysLeft: number | null): string { return `${used} used${daysLeft === null ? `` : daysLeft === 0 ? ` · last day` : ` · ${daysLeft} ${daysLeft === 1 ? `day` : `days`} left`}`; }
+export function analysisImpBudgetLink(name: string): string { return `View ${name} budget`; }
+export function analysisImpEmergencyTitle(months: string): string { return `Emergency fund is only ${months} months`; }
+export function analysisImpEmergencyBody(months: string, add: string, target: number): string { return `All your accounts together cover ${months} months of expenses. Adding ${add} brings it to ${target} months.`; }
+export function analysisImpEmergencyFoot(months: string, target: number): string { return `${months} months · target ${target} months`; }
+export function analysisImpEmergencyLink(): string { return `Open goals`; }
+export function analysisImpSavingsTitle(pct: string): string { return `You save ${pct} of your income`; }
+export function analysisImpSavingsBody(cut: string, target: string): string { return `Spending about ${cut} less brings your savings to ${target} of income.`; }
+export function analysisImpSavingsLink(): string { return `See reports`; }
+export function analysisImpFixedTitle(pct: string): string { return `Fixed expenses are ${pct} of income`; }
+export function analysisImpFixedBody(target: string): string { return `Fixed expenses under ${target} of income leave more room. This is for information only and does not change the score.`; }
+export function analysisImpFixedLink(): string { return `See fixed expenses`; }
+export function analysisWatchTag(): string { return `Heads up`; }
+export function analysisWatchTitle(name: string): string { return `${name} is almost full`; }
+export function analysisWatchBody(name: string, pct: string, limit: string, remaining: string, hasLeft: boolean, daysLeft: number, other: string | null): string { return `${hasLeft ? `${name} is already at ${pct} of its ${limit} limit, with only ${remaining} left for ${daysLeft === 0 ? `today` : `${daysLeft} ${daysLeft === 1 ? `day` : `days`}`}.` : `${name} has reached its ${limit} limit, with nothing left for ${daysLeft === 0 ? `today` : `${daysLeft} ${daysLeft === 1 ? `day` : `days`}`}.`}${other ? ` ${other}` : ``}`; }
+export function analysisWatchOther(name: string, pct: string): string { return `${name} is also at ${pct}.`; }
+export function analysisWatchLink(): string { return `View all budgets`; }
+export function analysisSectionGood(): string { return `Already going well`; }
+export function analysisGoodSavings(pct: string, target: string, far: boolean): string { return `You save ${pct} of your income, ${far ? `well above` : `at or above`} the ${target} target.`; }
+export function analysisGoodBudget(within: number, total: number): string { return `${within} of ${total} budgets are within their limit.`; }
+export function analysisGoodEmergency(months: string): string { return `Your accounts cover ${months} months of expenses.`; }
+export function analysisGoodFixed(amount: string, pct: string): string { return `Fixed expenses are ${amount} a month, only ${pct} of income.`; }
+export function analysisGoodWealthRose(netWorth: string, change: string, pct: string | null, month: string): string { return `Net worth is ${netWorth}, up ${change}${pct ? ` (${pct})` : ``} from the end of ${month}.`; }
+export function analysisGoodWealthMostly(rises: number, comparisons: number): string { return `Net worth rose in ${rises} of the last ${comparisons} months.`; }
+export function analysisSummaryLead(band: "healthy" | "fair" | "weak" | "needs_work", running: boolean, month: string): string { return ({ healthy: `Your finances ${running ? `look healthy this month` : `looked healthy in ${month}`}.`, fair: `Your finances ${running ? `are doing fine this month` : `were doing fine in ${month}`}.`, weak: `${running ? `This month is` : `${month} was`} still a little shaky.`, needs_work: `${running ? `This month has` : `${month} had`} room to improve, one step at a time.` })[band]; }
+export function analysisStrongPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `your savings are strong`, budget: `you stay within your budgets`, emergency: `your emergency fund is well filled`, fixed: `your fixed expenses are light`, wealth: `your net worth keeps rising` })[id]; }
+export function analysisWeakPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth", n: number, months: string): string { return ({ savings: `savings are still thin`, budget: n === 1 ? `one budget is over its limit` : `${n} budgets are over their limits`, emergency: `the emergency fund is only ${months} months`, fixed: `fixed expenses take a big share of income`, wealth: `net worth has not been rising steadily` })[id]; }
+export function analysisCalmPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `Spending is close to income, so little is left to save.`, budget: `A few budgets went over their limits, which is easy to adjust next period.`, emergency: `Your emergency fund is still growing, and every bit you set aside helps.`, fixed: `Fixed expenses take a large share of income, so they are worth reviewing.`, wealth: `Your net worth has been moving up and down lately.` })[id]; }
+export function analysisAddMissing(missing: string): string { return `Add ${missing} so the score is more complete.`; }
+export function analysisSectionTrend(): string { return `Score over 6 months`; }
+export function analysisTrendUntil(date: string): string { return `* until ${date}`; }
+export function analysisTrendColMonth(): string { return `Month`; }
+export function analysisTrendColScore(): string { return `Score`; }
+export function analysisTrendNone(): string { return `Not enough data`; }
+export function analysisTrendA11y(summary: string): string { return `Financial health score over the last 6 months: ${summary}`; }
+export function analysisNotReadyRing(): string { return `none yet`; }
+export function analysisNotReadyTitle(): string { return `Score not ready yet`; }
+export function analysisNotReadyBody(): string { return `The score appears once there are enough records to read. After that it moves with your habits.`; }
+export function analysisNeedTitle(): string { return `What it needs`; }
+export function analysisNeedAccounts(need: number): string { return `At least ${need} ${need === 1 ? `account` : `accounts`}`; }
+export function analysisHaveAccounts(have: number): string { return `${have === 0 ? `No accounts yet` : `${have} ${have === 1 ? `account` : `accounts`} so far`}`; }
+export function analysisNeedTransactions(need: number): string { return `At least ${need} transactions`; }
+export function analysisHaveTransactions(have: number, met: boolean): string { return `${met ? `${have} transactions recorded` : `Only ${have} recorded so far`}`; }
+export function analysisNeedSpan(need: number): string { return `At least ${need} days of data`; }
+export function analysisHaveSpan(have: number, met: boolean): string { return `${met ? `${have} days of data` : `Only ${have} ${have === 1 ? `day` : `days`} of data so far`}`; }
+export function analysisAddTransaction(): string { return `Add a transaction`; }
+export function analysisMoreTitle(): string { return `Analysis`; }
+export function analysisMoreSub(): string { return `Financial health score`; }
+export function analysisMoreScoreA11y(score: number): string { return `Score ${score} out of 100`; }
+export function analysisHowTitle(): string { return `How it is calculated`; }
+export function analysisHowBack(): string { return `Analysis`; }
+export function analysisHowIntro(): string { return `A score from 0 to 100 made of five things. The formula is fixed and runs on your phone, with no AI, so the same data always gives the same score.`; }
+export function analysisHowSectionParts(): string { return `Five parts`; }
+export function analysisHowTotal(total: number): string { return `${total} points in all`; }
+export function analysisHowPoints(points: number): string { return `${points} ${points === 1 ? `point` : `points`}`; }
+export function analysisHowSavingsFormula(): string { return `(Income − expenses) ÷ income in this period.`; }
+export function analysisHowSavingsRule(full: string): string { return `Full at ${full} or more. Zero at 0% or less. In between it rises in a straight line.`; }
+export function analysisHowBudgetFormula(): string { return `Budgets that stay within their limit ÷ number of budgets.`; }
+export function analysisHowBudgetExample(within: number, total: number, pct: string, max: number, points: number): string { return `Example: ${within} of ${total} = ${pct} of ${max} points = ${points} points.`; }
+export function analysisHowEmergencyFormula(): string { return `Total of all accounts ÷ expenses of this period.`; }
+export function analysisHowEmergencyRule(full: number, balance: string, expense: string, months: string, pct: string, max: number, points: number): string { return `Full at ${full} months. Example: ${balance} ÷ ${expense} = ${months} months = ${pct} of ${max} points = ${points} points.`; }
+export function analysisHowEmergencyYoung(days: number): string { return `In the first ${days - 1} days of a running period the previous full period is used for the expenses.`; }
+export function analysisHowFixedFormula(): string { return `Estimated fixed expenses per month ÷ income.`; }
+export function analysisHowFixedRule(full: string, zero: string): string { return `Full at ${full} or less. Zero at ${zero} or more.`; }
+export function analysisHowWealthFormula(): string { return `Periods in which net worth rose ÷ periods compared (up to the last 6 months).`; }
+export function analysisHowWealthExample(rises: number, comparisons: number, points: number): string { return `Example: up in ${rises} of ${comparisons} comparisons = ${points} points.`; }
+export function analysisHowSectionMeaning(): string { return `What the score means`; }
+export function analysisHowSectionNotes(): string { return `Notes`; }
+export function analysisHowNotePeriod(): string { return `The period follows the month start day in Settings. A running month uses data up to today.`; }
+export function analysisHowNoteTransfers(): string { return `Transfers between your own accounts do not count as income or expenses.`; }
+export function analysisHowNoteSkipped(): string { return `With no budget or fixed expense yet, that part is skipped and its weight is shared with the others. The score is then marked "calculated from N of 5 things".`; }
+export function analysisHowNoteMinimum(transactions: number, days: number): string { return `The score appears after at least ${transactions} transactions and ${days} days of data.`; }
+export function analysisHowNoteAdvice(): string { return `The score is made from your own records and is not financial advice.`; }
+
+
+
+// Overview: net cash flow block with its Week / Month / Year switch.
+export function flowTitle(range: string): string { return `Net cash flow · ${range}`; }
+export function flowRangeName(key: "week" | "month" | "year", month: string): string { return ({ week: `7 days`, month: month, year: `12 months` })[key]; }
+export function flowSegment(key: "week" | "month" | "year"): string { return ({ week: `Week`, month: `Month`, year: `Year` })[key]; }
+export function flowIn(range: string): string { return `In · ${range}`; }
+export function flowOut(range: string): string { return `Out · ${range}`; }
+export function flowVs(pct: string, against: string): string { return `${pct} vs ${against}`; }
+export function flowAgainst(key: "week" | "month" | "year", previousMonth: string): string { return ({ week: `the 7 days before`, month: `${previousMonth} (same days)`, year: `the 12 months before` })[key]; }
+export function flowNoCompare(): string { return `Nothing earlier to compare with`; }
+export function flowChartA11y(title: string, net: string, start: string, end: string): string { return `${title}: ${net} from ${start} to ${end}. The line is the running total.`; }
+export function flowTileA11y(label: string, amount: string): string { return `${label}: ${amount}. Open transactions`; }
+export function analysisBannerTitle(): string { return `Financial Insights`; }
+export function analysisBannerSub(): string { return `Evaluate your spending patterns & habits`; }
+export function heroActionRecord(): string { return `Record`; }
+export function heroActionTransfer(): string { return `Transfer`; }
+export function heroActionScan(): string { return `Scan`; }
+
+// Analysis: the optional AI review (Gemini, the person's own key).
+export function analysisAiTitle(): string { return `AI analysis`; }
+export function analysisAiTag(): string { return `Written by AI`; }
+export function analysisAiSetupBody(): string { return `Get a short written review of this period from Gemini, using your own API key. The score above stays a formula.`; }
+export function analysisAiSetupButton(): string { return `Set up AI`; }
+export function analysisAiConsentTitle(): string { return `Send a summary to Gemini?`; }
+export function analysisAiConsentSent(): string { return `Sent: the score and its five parts, income, expenses, the share saved, fixed expenses, your budgets, spending per category, the score of the last 6 periods and your 10 biggest expenses of the period (date, a shortened description with long numbers blanked, category and amount).`; }
+export function analysisAiConsentNotSent(): string { return `Never sent: account names, balances, goals, notes, receipts, backups or your key. It goes straight from this phone to Google with your key, nothing passes through MONO.`; }
+export function analysisAiConsentAuto(): string { return `After you allow it, the review is written automatically whenever you open a period that can be scored. You can turn that off at any time.`; }
+export function analysisAiAllow(): string { return `Allow`; }
+export function analysisAiLater(): string { return `Not now`; }
+export function analysisAiLoading(): string { return `AI is writing the review…`; }
+export function analysisAiTipsLabel(): string { return `Tips`; }
+export function analysisAiFooter(): string { return `Written by AI from a summary of your numbers. It can be wrong and is not financial advice. The score above is still the formula.`; }
+export function analysisAiRegenerate(): string { return `Write again`; }
+export function analysisAiTurnOff(): string { return `Turn off automatic AI analysis`; }
+export function analysisAiSettings(): string { return `Open AI settings`; }
+export function analysisAiA11y(title: string): string { return `${title}. Written by AI, can be wrong.`; }
+
+// Notifications: the inbox, its settings, the Android channels and the notification texts.
+export function notifBackHome(): string { return `Overview`; }
+export function notifInboxTitle(): string { return `Notifications`; }
+export function notifMarkAllRead(): string { return `Mark all as read`; }
+export function notifEmptyTitle(): string { return `No notifications yet`; }
+export function notifEmptyBody(): string { return `Reminders for bills, budgets and goals will show up here.`; }
+export function notifEmptyButton(): string { return `Set up notifications`; }
+export function notifGroupToday(): string { return `Today`; }
+export function notifGroupYesterday(): string { return `Yesterday`; }
+export function notifGroupOlder(): string { return `Earlier`; }
+export function notifShortDate(day: number, month: number): string { return `${day} ${[`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`][month - 1]}`; }
+export function notifSettingsBack(): string { return `Settings`; }
+export function notifDeniedTitle(): string { return `Notifications are off on the phone`; }
+export function notifDeniedBody(): string { return `Reminders will not appear until you allow them in the system settings.`; }
+export function notifDeniedButton(): string { return `Open phone settings`; }
+export function notifGroupGeneral(): string { return `GENERAL`; }
+export function notifGroupReminders(): string { return `REMINDERS`; }
+export function notifGroupBills(): string { return `RECURRING BILLS`; }
+export function notifGroupBudgets(): string { return `BUDGETS`; }
+export function notifGroupGoals(): string { return `GOALS`; }
+export function notifGroupBackup(): string { return `BACKUP`; }
+export function notifAllow(): string { return `Allow notifications`; }
+export function notifAllowSub(): string { return `Everything is scheduled on this phone, no server.`; }
+export function notifQuiet(): string { return `Quiet hours`; }
+export function notifQuietSub(): string { return `System notifications are held back, the inbox keeps working.`; }
+export function notifDaily(): string { return `Daily record reminder`; }
+export function notifDailyTime(): string { return `Reminder time`; }
+export function notifDailyWarn(time: string): string { return `Will appear at ${time} because of quiet hours.`; }
+export function notifBillDue(): string { return `Due tomorrow`; }
+export function notifBillDueSub(): string { return `The day before, at 09.00`; }
+export function notifBillOverdue(): string { return `Overdue`; }
+export function notifBillOverdueSub(): string { return `The day after the due date, at 09.00`; }
+export function notifBudgetNear(): string { return `Nearing the limit`; }
+export function notifBudgetNearSub(): string { return `At 80% used`; }
+export function notifBudgetOver(): string { return `Over the limit`; }
+export function notifBudgetOverSub(): string { return `At 100% used`; }
+export function notifGoal(): string { return `Goal progress`; }
+export function notifGoalSub(): string { return `50%, 75%, reached`; }
+export function notifBackup(): string { return `Backup reminder`; }
+export function notifBackupSub(): string { return `Every 7 days`; }
+export function notifHideNote(): string { return `"Hide amounts" is on: reminders do not show amounts.`; }
+export function notifPickTime(): string { return `Choose hour and minute`; }
+export function notifHour(): string { return `Hour`; }
+export function notifMinute(): string { return `Minute`; }
+export function notifSelect(): string { return `Select`; }
+export function notifDailyTimeTitle(): string { return `Daily reminder time`; }
+export function notifQuietStartTitle(): string { return `Quiet hours start`; }
+export function notifQuietEndTitle(): string { return `Quiet hours end`; }
+export function notifChannelName(id: "reminders" | "bills" | "budgets"): string { return ({ reminders: `Reminders`, bills: `Bills`, budgets: `Budgets` })[id]; }
+export function notifChannelDescription(id: "reminders" | "bills" | "budgets"): string { return ({ reminders: `Daily record and backup reminders`, bills: `Bills that are due or overdue`, budgets: `Budget and goal alerts` })[id]; }
+export function notifDailyTitle(): string { return `No transactions yet today`; }
+export function notifDailyBody(): string { return `Record your spending before you forget.`; }
+export function notifRecordNow(): string { return `Record now`; }
+export function notifBillDueTitle(name: string): string { return `${name} is due tomorrow`; }
+export function notifBillDueBody(amount: string | null, varies: boolean, account: string): string { return `${amount === null ? `Bill from ${account}.` : varies ? `About ${amount} from ${account}.` : `${amount} from ${account}.`}`; }
+export function notifOverdueTitle(name: string): string { return `${name} is overdue`; }
+export function notifOverdueBody(date: string): string { return `Due ${date} and not recorded yet.`; }
+export function notifBudgetNearTitle(category: string): string { return `${category} budget is almost used up`; }
+export function notifBudgetNearBody(pct: string, spent: string | null, limit: string | null, daysLeft: number): string { return `${spent === null || limit === null ? `Used ${pct}%. ${daysLeft} days left.` : `Used ${pct}%: ${spent} of ${limit}. ${daysLeft} days left.`}`; }
+export function notifBudgetOverTitle(category: string): string { return `${category} budget exceeded`; }
+export function notifBudgetOverBody(pct: string, spent: string | null, limit: string | null): string { return `${spent === null || limit === null ? `Used ${pct}% of the limit.` : `Spent ${spent} of ${limit}.`}`; }
+export function notifGoalReachedTitle(name: string): string { return `${name} reached`; }
+export function notifGoalReachedBody(current: string | null, target: string | null): string { return `${current === null || target === null ? `Goal reached!` : `${current} of ${target}.`}`; }
+export function notifGoalMilestoneTitle(name: string, pct: string): string { return `${name} ${pct}% reached`; }
+export function notifGoalMilestoneBody(pct: string, current: string | null, target: string | null): string { return `${current === null || target === null ? `${pct}% of the goal.` : `${current} of ${target}.`}`; }
+export function notifBackupTitle(): string { return `Time for a backup`; }
+export function notifBackupBody(days: number | null): string { return `${days === null ? `You have never made a backup.` : `Last backup ${days} days ago.`}`; }
+
+// Welcome (first launch).
+export function welcomeTitle(): string { return `Welcome to MONO`; }
+export function welcomeBody(): string { return `Record money, watch your budgets and see your net worth. Everything stays on this phone.`; }
+export function welcomePromiseLocal(): string { return `Only on this device. No account, no sync.`; }
+export function welcomePromiseNoBank(): string { return `No bank login or card number.`; }
+export function welcomePromiseCalculated(): string { return `Every figure is calculated from your records.`; }
+export function welcomeNicknameLabel(): string { return `Nickname`; }
+export function welcomeNicknameOptional(): string { return `Optional`; }
+export function welcomeNicknamePlaceholder(): string { return `For example: Nael`; }
+export function welcomeNicknameHint(): string { return `Only used for the greeting on the Overview screen.`; }
+export function welcomeStart(): string { return `Start`; }
+export function welcomeRestorePrompt(): string { return `Have a backup file?`; }
+export function welcomeRestoreLink(): string { return `Restore`; }
+export function welcomeRestoreA11y(): string { return `Have a backup file? Restore it`; }
+export function welcomeSaveFailed(): string { return `Could not save. Try again.`; }
+
+// Profile picture.
+export function profileGroupTitle(): string { return `PROFILE`; }
+export function profileAvatarTitle(): string { return `Profile picture`; }
+export function profileAvatarSub(): string { return `Choose a MONO fox`; }
+export function profilePickerTitle(): string { return `Choose a profile picture`; }
+export function profilePickerSubtitle(): string { return `Shown on the Overview. Only on this phone.`; }
+export function profileAvatarDefault(): string { return `Default`; }
+export function profileAvatarPose(id: "sunglasses" | "glasses" | "money_eyes" | "headphones" | "thinking" | "checking_portfolio" | "thumbs_up" | "saving_money" | "hoodie_on"): string { return ({ sunglasses: `Sunglasses`, glasses: `Glasses`, money_eyes: `Money eyes`, headphones: `Headphones`, thinking: `Thinking`, checking_portfolio: `Checking portfolio`, thumbs_up: `Thumbs up`, saving_money: `Saving money`, hoodie_on: `Hoodie on` })[id]; }

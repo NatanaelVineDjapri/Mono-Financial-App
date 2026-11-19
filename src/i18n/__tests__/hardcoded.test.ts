@@ -24,9 +24,16 @@ const ALLOWED = [
   'i18n/',
   'features/ai_chat/prompt.ts',
   'features/ai_chat/receiptTidy.ts',
+  'features/ai_chat/analysisAi.ts',
   'features/more/backupStatus.ts',
   // Category names the scan looks for in the person's own list (Indonesian ones included).
   'features/receipt/draft.ts',
+  // Notification copy is Indonesian-only by design (spec: "Indonesian only — not language-switched")
+  'features/notifications/copy.ts',
+  'features/notifications/scheduler.ts',
+  'features/notifications/NotificationsInit.tsx',
+  'app/notifications.tsx',
+  'app/settings/notifications.tsx',
   '__tests__/',
   '.test.',
 ];

@@ -127,7 +127,6 @@ export function accountTypeTag(type: AccountType): string {
   return accountTypeTags[type];
 }
 
-
 // The Accounts card stack's open Valas card (Fase 4.2c; DESIGN.md "Accounts with a Valas
 // account"): "2 CURRENCIES" — a dynamic count, distinct from the fixed per-type tags above.
 export function currencyCountTag(count: number): string {
@@ -941,6 +940,14 @@ export function seeAllLabel(): string {
   return 'See all';
 }
 
+export function quickRecordTitle(): string {
+  return 'Catat cepat';
+}
+
+export function quickRecordAccessibilityLabel(description: string, amountFormatted: string): string {
+  return `Catat ${description}, ${amountFormatted}.`;
+}
+
 // Overview empty state (PAGES.md A2).
 export function overviewEmptyMessage(): string {
   return 'No accounts yet. Net worth is calculated from your accounts.';
@@ -1023,6 +1030,10 @@ export function notificationsLabel(): string {
   return 'Notifications';
 }
 
+export function bellUnreadLabel(count: number): string {
+  return `Notifikasi, ${count} belum dibaca`;
+}
+
 export function backToOverviewLabel(): string {
   return 'Overview';
 }
@@ -1061,11 +1072,7 @@ export function netCashFlowLabel(monthAbbrevText: string): string {
 }
 
 export function consumptionOnlyNote(): string {
-  return 'Consumption only. Transfers between your accounts are excluded.';
-}
-
-export function analyzePrompt(): string {
-  return 'Ketuk untuk mulai menganalisis keuanganmu';
+  return 'Pemasukan dikurangi pengeluaran. Transfer, saldo awal, dan perubahan kurs tidak dihitung.';
 }
 
 export function accountsCountNote(count: number): string {
@@ -1210,6 +1217,26 @@ export function rangeOneYearLabel(): string {
 
 export function accountChartAccessibilityLabel(fromDate: string, toDate: string, startFormatted: string, endFormatted: string, lowFormatted: string, highFormatted: string): string {
   return `Saldo dari ${fromDate} sampai ${toDate}: ${startFormatted} sampai ${endFormatted}, terendah ${lowFormatted}, tertinggi ${highFormatted}.`;
+}
+
+export function mapStatusLoading(): string {
+  return 'Memuat peta…';
+}
+
+export function mapStatusOnline(): string {
+  return 'Peta jalan';
+}
+
+export function mapStatusOffline(): string {
+  return 'Offline';
+}
+
+export function mapStatusNone(): string {
+  return 'Tanpa lokasi';
+}
+
+export function mapAccessibilityLabel(lat: string, lng: string): string {
+  return `Peta lokasi transaksi, ${lat}, ${lng}`;
 }
 
 export function rangeAllLabel(): string {
@@ -1919,7 +1946,6 @@ export function accountDbErrorMessage(code: string | undefined, ctx: { firstReco
       return couldNotSaveMessage();
   }
 }
-
 
 // AI Chat setup & consent (K1, DESIGN.md "K. AI chat").
 export function aiSetupTitle(): string {
@@ -3560,7 +3586,6 @@ export function restoreChooseAnother(): string { return 'Pilih berkas lain'; }
 
 export function restorePickError(): string { return 'Berkas tidak bisa dibuka. Coba berkas lain.'; }
 
-
 export function currencyName(code: string): string {
   return CURRENCY_NAMES_ID[code] ?? code;
 }
@@ -4194,26 +4219,7 @@ export const catIconName = (key: string): string => {
 
 // ---- Settings screen (Board J, PAGES.md J) ----
 export function settingsGroupPrivacy(): string { return 'PRIVASI'; }
-export function settingsAppLockTitle(): string { return 'Kunci aplikasi'; }
-export function settingsAppLockSub(): string { return 'Minta sidik jari atau PIN perangkat saat membuka'; }
-export function settingsAppLockPromptEnable(): string { return 'Aktifkan kunci aplikasi'; }
-export function settingsAppLockPromptDisable(): string { return 'Matikan kunci aplikasi'; }
-export function settingsNoLockTitle(): string { return 'Kunci layar belum diatur'; }
-export function settingsNoLockMessage(): string { return 'Perangkat ini belum punya kunci layar. Atur sidik jari atau PIN di pengaturan perangkat dulu.'; }
-export function settingsNoLockOpenSettings(): string { return 'Buka pengaturan'; }
-export function settingsNoLockCancel(): string { return 'Batal'; }
 
-export function lockPromptMessage(): string { return 'Buka MONO'; }
-export function lockPromptCancel(): string { return 'Batal'; }
-export function lockSubtitle(): string { return 'Buka dengan sidik jari atau PIN perangkat.'; }
-export function lockFootnote(): string { return 'Dikunci otomatis setelah 30 detik di latar belakang.'; }
-export function lockErrorNoHardware(): string { return 'Perangkat ini tidak punya kunci layar lagi.'; }
-export function lockErrorLockout(): string { return 'Terlalu banyak percobaan. Coba lagi sebentar.'; }
-export function lockErrorFailed(): string { return 'Sidik jari tidak dikenali. Coba lagi atau pakai PIN perangkat.'; }
-export function lockBtnOpenSettings(): string { return 'Buka pengaturan'; }
-export function lockBtnDisable(): string { return 'Matikan kunci aplikasi'; }
-export function lockBtnUnlock(): string { return 'Buka kunci'; }
-export function lockScanA11y(): string { return 'Pindai sidik jari'; }
 export function settingsHideOnLaunchTitle(): string { return 'Sembunyikan nominal saat dibuka'; }
 export function settingsHideOnLaunchSub(): string { return 'Tampil Rp•••••••• sampai kamu ketuk ikon mata'; }
 export function settingsBlockScreenshotsTitle(): string { return 'Blokir tangkapan layar dan pratinjau'; }
@@ -4286,3 +4292,276 @@ export function settingsNotifBackupTitle(): string { return 'Pengingat cadangan'
 export function settingsNotifBackupSub(): string { return 'Mengingatkan untuk membuat cadangan rutin'; }
 export function settingsNotifRecurringTitle(): string { return 'Pengingat pengeluaran tetap'; }
 export function settingsNotifRecurringSub(): string { return 'Notifikasi tagihan dan pembayaran terjadwal'; }
+
+// Location (settings, backup, transaction form and detail) and small shared labels.
+export function settingsLocationTitle(): string { return 'Simpan lokasi transaksi'; }
+export function settingsLocationSub(): string { return 'Mencatat posisi ponsel saat kamu menambah transaksi. Tetap di perangkat ini.'; }
+export function settingsLocationDeleteTitle(): string { return 'Hapus lokasi tersimpan?'; }
+export function settingsLocationDeleteMessage(count: number): string { return `Ada ${count} lokasi tersimpan. Kamu bisa menyimpan lokasi lama atau menghapus semua lokasi transaksi.`; }
+export function settingsLocationKeepOld(): string { return 'Simpan yang lama'; }
+export function settingsLocationDeleteAll(): string { return 'Hapus semua lokasi'; }
+export function settingsLocationDeniedTitle(): string { return 'Izin lokasi ditolak'; }
+export function settingsLocationDeniedMessage(): string { return 'Izin lokasi ditolak. Kamu bisa mengubahnya di pengaturan perangkat.'; }
+export function settingsLocationOpenSettings(): string { return 'Buka pengaturan'; }
+export function settingsLocationSheetSubtitle(): string { return 'Lokasi hanya disimpan di perangkat ini.'; }
+export function settingsLocationSheetBody(): string { return 'Yang disimpan: koordinat, akurasi, waktu, dan nama tempat opsional. Lokasi diambil hanya saat kamu menambah transaksi dan koordinatnya tidak dikirim ke mana pun. Saat kamu membuka detail transaksi, peta jalan diunduh dari OpenFreeMap: server peta hanya tahu perkiraan area (beberapa kilometer), bukan titik tepatnya. Lokasi ikut berkas cadangan.'; }
+export function settingsLocationEnable(): string { return 'Nyalakan'; }
+export function backupLocationCountLabel(): string { return 'Transaksi dengan lokasi'; }
+export function backupIncludesLocation(): string { return 'Cadangan menyertakan lokasi transaksi.'; }
+export function recurringDateDecrease(): string { return 'Kurangi tanggal'; }
+export function recurringDateIncrease(): string { return 'Tambah tanggal'; }
+export function dateSheetClear(): string { return 'Hapus tanggal'; }
+export function dateSheetBack(): string { return 'Kembali'; }
+export function locationSaved(): string { return 'Lokasi tersimpan'; }
+export function locationNotYet(): string { return 'Lokasi belum tersedia'; }
+export function mapCardTitle(): string { return 'Lokasi transaksi'; }
+export function mapCardNotYetA11y(): string { return 'Lokasi transaksi belum tersedia'; }
+export function mapCardEmptyHint(): string { return 'Tambahkan lokasi saat mencatat transaksi'; }
+export function txLocationCapturing(): string { return 'Lokasi: mengambil...'; }
+export function txLocationUnavailable(): string { return 'Lokasi tidak tersedia'; }
+export function txLocationRetry(): string { return ' Ketuk untuk coba lagi'; }
+export function txLocationPlaceLabel(): string { return 'Nama tempat (opsional)'; }
+export function txLocationPlacePlaceholder(): string { return 'Contoh: Rumah'; }
+
+// Analysis: the financial health score (formula, no AI) and its "how it is calculated" page.
+export function analysisTitle(): string { return `Analisis`; }
+export function analysisRunningPeriod(): string { return `periode berjalan`; }
+export function analysisPeriodRange(range: string, running: boolean): string { return `${range}${running ? ` · periode berjalan` : ``}`; }
+export function analysisScoreTitle(): string { return `Skor kesehatan keuangan`; }
+export function analysisOutOf(): string { return `dari 100`; }
+export function analysisBand(band: "healthy" | "fair" | "weak" | "needs_work"): string { return ({ healthy: `Sehat`, fair: `Cukup`, weak: `Rawan`, needs_work: `Perlu dibenahi` })[band]; }
+export function analysisDelta(delta: number, month: string): string { return `${delta > 0 ? `+${delta}` : delta < 0 ? `−${-delta}` : `±0`} dari ${month}`; }
+export function analysisNote(): string { return `Dihitung di ponsel ini dari catatanmu. Bukan AI dan tidak dikirim ke mana pun.`; }
+export function analysisHowLink(): string { return `Cara menghitung`; }
+export function analysisScoreA11y(score: number, band: string): string { return `Skor kesehatan keuangan ${score} dari 100, ${band}`; }
+export function analysisCountedNote(counted: number, missing: string): string { return `Skor ini dihitung dari ${counted} dari 5 hal, karena belum ada ${missing}.`; }
+export function analysisMissing(id: "budget" | "fixed" | "wealth"): string { return ({ budget: `anggaran`, fixed: `pengeluaran tetap`, wealth: `riwayat kekayaan bersih` })[id]; }
+export function analysisAnd(): string { return ` dan `; }
+export function analysisBut(): string { return `tapi`; }
+export function analysisLoadError(): string { return `Skor belum bisa dihitung.`; }
+export function analysisRetry(): string { return `Coba lagi`; }
+export function analysisLoading(): string { return `Menghitung…`; }
+export function analysisSectionParts(): string { return `Dari apa skor ini`; }
+export function analysisSectionPartsSub(score: number): string { return `${score} dari 100`; }
+export function analysisComponentName(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `Tingkat tabungan`, budget: `Disiplin anggaran`, emergency: `Dana darurat`, fixed: `Pengeluaran tetap`, wealth: `Arah kekayaan bersih` })[id]; }
+export function analysisLowestTag(): string { return `Terendah`; }
+export function analysisSkippedTag(): string { return `Tidak dihitung`; }
+export function analysisPartA11y(name: string, points: number, max: number, detail: string): string { return `${name}: ${points} dari ${max} poin. ${detail}`; }
+export function analysisDetailSavings(pct: string, target: string): string { return `${pct} dari pemasukan · target ${target} atau lebih`; }
+export function analysisDetailSavingsNoIncome(): string { return `Belum ada pemasukan di periode ini`; }
+export function analysisDetailBudget(within: number, total: number): string { return `${within} dari ${total} anggaran dalam batas`; }
+export function analysisDetailEmergency(months: string, target: number): string { return `${months} bulan pengeluaran · target ${target} bulan`; }
+export function analysisDetailEmergencyNoExpense(): string { return `Belum ada pengeluaran di periode ini`; }
+export function analysisDetailFixed(pct: string, healthy: boolean, target: string): string { return `${pct} dari pemasukan${healthy ? ` · sehat di bawah ${target}` : ``}`; }
+export function analysisDetailWealth(rises: number, comparisons: number): string { return `${rises === comparisons ? `Naik ${rises} bulan berturut-turut` : `Naik di ${rises} dari ${comparisons} bulan`}`; }
+export function analysisSkippedLink(id: "budget" | "fixed" | "wealth"): string { return ({ budget: `Buat anggaran`, fixed: `Tambah pengeluaran tetap`, wealth: `Riwayat belum cukup` })[id]; }
+export function analysisSectionImprove(): string { return `Yang bisa dinaikkan`; }
+export function analysisSectionImproveSub(): string { return `urut dari dampak terbesar`; }
+export function analysisPlusPoints(points: number): string { return `+${points} poin`; }
+export function analysisInfoTag(): string { return `Info`; }
+export function analysisImpBudgetTitle(name: string): string { return `${name} melebihi batas`; }
+export function analysisImpBudgetBody(spent: string, limit: string, over: string, others: number): string { return `Terpakai ${spent} dari batas ${limit}, lebih ${over}. Kalau semua anggaran dalam batas, nilai disiplin anggaran penuh.${others > 0 ? ` ${others === 1 ? `Satu anggaran lain` : `${others} anggaran lain`} juga melebihi batas.` : ``}`; }
+export function analysisImpBudgetFoot(used: string, daysLeft: number | null): string { return `${used} terpakai${daysLeft === null ? `` : daysLeft === 0 ? ` · hari terakhir` : ` · ${daysLeft} hari tersisa`}`; }
+export function analysisImpBudgetLink(name: string): string { return `Lihat anggaran ${name}`; }
+export function analysisImpEmergencyTitle(months: string): string { return `Dana darurat baru ${months} bulan`; }
+export function analysisImpEmergencyBody(months: string, add: string, target: number): string { return `Saldo semua akunmu setara ${months} bulan pengeluaran. Menambah ${add} membawanya ke ${target} bulan.`; }
+export function analysisImpEmergencyFoot(months: string, target: number): string { return `${months} bulan · target ${target} bulan`; }
+export function analysisImpEmergencyLink(): string { return `Buka target`; }
+export function analysisImpSavingsTitle(pct: string): string { return `Kamu menabung ${pct} dari pemasukan`; }
+export function analysisImpSavingsBody(cut: string, target: string): string { return `Mengurangi pengeluaran sekitar ${cut} membawa tabunganmu ke ${target} dari pemasukan.`; }
+export function analysisImpSavingsLink(): string { return `Lihat laporan`; }
+export function analysisImpFixedTitle(pct: string): string { return `Pengeluaran tetap ${pct} dari pemasukan`; }
+export function analysisImpFixedBody(target: string): string { return `Pengeluaran tetap di bawah ${target} dari pemasukan memberi ruang lebih. Ini hanya informasi dan tidak mengubah skor.`; }
+export function analysisImpFixedLink(): string { return `Lihat pengeluaran tetap`; }
+export function analysisWatchTag(): string { return `Perhatikan`; }
+export function analysisWatchTitle(name: string): string { return `${name} hampir penuh`; }
+export function analysisWatchBody(name: string, pct: string, limit: string, remaining: string, hasLeft: boolean, daysLeft: number, other: string | null): string { return `${hasLeft ? `${name} sudah ${pct} dari batas ${limit} dan hanya tersisa ${remaining} untuk ${daysLeft === 0 ? `hari ini` : `${daysLeft} hari`}.` : `${name} sudah mencapai batas ${limit} dan tidak ada sisa untuk ${daysLeft === 0 ? `hari ini` : `${daysLeft} hari`}.`}${other ? ` ${other}` : ``}`; }
+export function analysisWatchOther(name: string, pct: string): string { return `${name} juga sudah ${pct}.`; }
+export function analysisWatchLink(): string { return `Lihat semua anggaran`; }
+export function analysisSectionGood(): string { return `Yang sudah baik`; }
+export function analysisGoodSavings(pct: string, target: string, far: boolean): string { return `Kamu menabung ${pct} dari pemasukan, ${far ? `jauh di atas` : `sudah mencapai`} target ${target}.`; }
+export function analysisGoodBudget(within: number, total: number): string { return `${within} dari ${total} anggaran masih dalam batas.`; }
+export function analysisGoodEmergency(months: string): string { return `Saldo akunmu setara ${months} bulan pengeluaran.`; }
+export function analysisGoodFixed(amount: string, pct: string): string { return `Pengeluaran tetap ${amount} per bulan, hanya ${pct} dari pemasukan.`; }
+export function analysisGoodWealthRose(netWorth: string, change: string, pct: string | null, month: string): string { return `Kekayaan bersih ${netWorth}, naik ${change}${pct ? ` (${pct})` : ``} dari akhir ${month}.`; }
+export function analysisGoodWealthMostly(rises: number, comparisons: number): string { return `Kekayaan bersih naik di ${rises} dari ${comparisons} bulan terakhir.`; }
+export function analysisSummaryLead(band: "healthy" | "fair" | "weak" | "needs_work", running: boolean, month: string): string { return ({ healthy: `${running ? `Bulan ini` : `Di ${month}`} keuanganmu sehat.`, fair: `${running ? `Bulan ini` : `Di ${month}`} keuanganmu cukup baik.`, weak: `${running ? `Bulan ini` : `${month}`} masih rawan.`, needs_work: `${running ? `Bulan ini` : `${month}`} masih ada ruang untuk dibenahi, pelan-pelan saja.` })[band]; }
+export function analysisStrongPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `tabunganmu kuat`, budget: `anggaranmu terjaga`, emergency: `dana daruratmu terisi baik`, fixed: `pengeluaran tetapmu ringan`, wealth: `kekayaan bersihmu terus naik` })[id]; }
+export function analysisWeakPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth", n: number, months: string): string { return ({ savings: `tabungan masih tipis`, budget: n === 1 ? `satu anggaran melebihi batas` : `${n} anggaran melebihi batas`, emergency: `dana darurat baru ${months} bulan`, fixed: `pengeluaran tetap memakan porsi besar dari pemasukan`, wealth: `kekayaan bersih belum naik stabil` })[id]; }
+export function analysisCalmPhrase(id: "savings" | "budget" | "emergency" | "fixed" | "wealth"): string { return ({ savings: `Pengeluaran hampir sama dengan pemasukan, jadi hanya sedikit yang tersisa untuk ditabung.`, budget: `Beberapa anggaran melewati batas, dan itu bisa disesuaikan di periode berikutnya.`, emergency: `Dana daruratmu masih bertumbuh, dan setiap yang kamu sisihkan membantu.`, fixed: `Pengeluaran tetap mengambil porsi besar dari pemasukan, jadi layak ditinjau.`, wealth: `Kekayaan bersihmu belakangan naik turun.` })[id]; }
+export function analysisAddMissing(missing: string): string { return `Tambahkan ${missing} supaya skor lebih lengkap.`; }
+export function analysisSectionTrend(): string { return `Skor 6 bulan`; }
+export function analysisTrendUntil(date: string): string { return `* sampai ${date}`; }
+export function analysisTrendColMonth(): string { return `Bulan`; }
+export function analysisTrendColScore(): string { return `Skor`; }
+export function analysisTrendNone(): string { return `Belum cukup data`; }
+export function analysisTrendA11y(summary: string): string { return `Skor kesehatan keuangan 6 bulan terakhir: ${summary}`; }
+export function analysisNotReadyRing(): string { return `belum ada`; }
+export function analysisNotReadyTitle(): string { return `Skor belum bisa dihitung`; }
+export function analysisNotReadyBody(): string { return `Skor muncul setelah ada cukup catatan untuk dibaca. Setelah itu angkanya bergerak mengikuti kebiasaanmu.`; }
+export function analysisNeedTitle(): string { return `Yang dibutuhkan`; }
+export function analysisNeedAccounts(need: number): string { return `Punya minimal ${need} akun`; }
+export function analysisHaveAccounts(have: number): string { return `${have === 0 ? `Belum ada akun` : `${have} akun sudah ada`}`; }
+export function analysisNeedTransactions(need: number): string { return `Minimal ${need} transaksi`; }
+export function analysisHaveTransactions(have: number, met: boolean): string { return `${met ? `${have} transaksi tercatat` : `Baru ${have} tercatat`}`; }
+export function analysisNeedSpan(need: number): string { return `Data minimal ${need} hari`; }
+export function analysisHaveSpan(have: number, met: boolean): string { return `${met ? `Data ${have} hari` : `Baru ada data ${have} hari`}`; }
+export function analysisAddTransaction(): string { return `Tambah transaksi`; }
+export function analysisMoreTitle(): string { return `Analisis`; }
+export function analysisMoreSub(): string { return `Skor kesehatan keuangan`; }
+export function analysisMoreScoreA11y(score: number): string { return `Skor ${score} dari 100`; }
+export function analysisHowTitle(): string { return `Cara menghitung`; }
+export function analysisHowBack(): string { return `Analisis`; }
+export function analysisHowIntro(): string { return `Skor 0 sampai 100 dari lima hal. Rumusnya tetap dan berjalan di ponselmu, tanpa AI, jadi data yang sama selalu memberi skor yang sama.`; }
+export function analysisHowSectionParts(): string { return `Lima komponen`; }
+export function analysisHowTotal(total: number): string { return `total ${total} poin`; }
+export function analysisHowPoints(points: number): string { return `${points} poin`; }
+export function analysisHowSavingsFormula(): string { return `(Pemasukan − pengeluaran) ÷ pemasukan pada periode ini.`; }
+export function analysisHowSavingsRule(full: string): string { return `Penuh di ${full} atau lebih. Nol di 0% atau kurang. Di antaranya naik lurus.`; }
+export function analysisHowBudgetFormula(): string { return `Jumlah anggaran yang tidak melebihi batas ÷ jumlah anggaran.`; }
+export function analysisHowBudgetExample(within: number, total: number, pct: string, max: number, points: number): string { return `Contoh: ${within} dari ${total} = ${pct} dari ${max} poin = ${points} poin.`; }
+export function analysisHowEmergencyFormula(): string { return `Total saldo semua akun ÷ pengeluaran periode ini.`; }
+export function analysisHowEmergencyRule(full: number, balance: string, expense: string, months: string, pct: string, max: number, points: number): string { return `Penuh di ${full} bulan. Contoh: ${balance} ÷ ${expense} = ${months} bulan = ${pct} dari ${max} poin = ${points} poin.`; }
+export function analysisHowEmergencyYoung(days: number): string { return `Di ${days - 1} hari pertama periode berjalan, pengeluaran periode penuh sebelumnya yang dipakai.`; }
+export function analysisHowFixedFormula(): string { return `Perkiraan total pengeluaran tetap per bulan ÷ pemasukan.`; }
+export function analysisHowFixedRule(full: string, zero: string): string { return `Penuh di ${full} atau kurang. Nol di ${zero} atau lebih.`; }
+export function analysisHowWealthFormula(): string { return `Jumlah bulan kekayaan bersihnya naik ÷ jumlah bulan yang dibandingkan (hingga 6 bulan terakhir).`; }
+export function analysisHowWealthExample(rises: number, comparisons: number, points: number): string { return `Contoh: naik ${rises} dari ${comparisons} perbandingan = ${points} poin.`; }
+export function analysisHowSectionMeaning(): string { return `Arti skor`; }
+export function analysisHowSectionNotes(): string { return `Catatan`; }
+export function analysisHowNotePeriod(): string { return `Periode mengikuti tanggal mulai bulan di Pengaturan. Bulan yang masih berjalan memakai data sampai hari ini.`; }
+export function analysisHowNoteTransfers(): string { return `Transfer antar akunmu tidak dihitung sebagai pemasukan atau pengeluaran.`; }
+export function analysisHowNoteSkipped(): string { return `Kalau belum ada anggaran atau pengeluaran tetap, komponennya dilewati dan bobotnya dibagi ke yang lain. Skor diberi catatan "dihitung dari N dari 5 hal".`; }
+export function analysisHowNoteMinimum(transactions: number, days: number): string { return `Skor muncul setelah minimal ${transactions} transaksi dan data ${days} hari.`; }
+export function analysisHowNoteAdvice(): string { return `Skor dibuat dari catatanmu sendiri dan bukan nasihat keuangan.`; }
+
+
+
+// Overview: net cash flow block with its Week / Month / Year switch.
+export function flowTitle(range: string): string { return `Arus kas bersih · ${range}`; }
+export function flowRangeName(key: "week" | "month" | "year", month: string): string { return ({ week: `7 hari`, month: month, year: `12 bulan` })[key]; }
+export function flowSegment(key: "week" | "month" | "year"): string { return ({ week: `Minggu`, month: `Bulan`, year: `Tahun` })[key]; }
+export function flowIn(range: string): string { return `Masuk · ${range}`; }
+export function flowOut(range: string): string { return `Keluar · ${range}`; }
+export function flowVs(pct: string, against: string): string { return `${pct} vs ${against}`; }
+export function flowAgainst(key: "week" | "month" | "year", previousMonth: string): string { return ({ week: `7 hari sebelumnya`, month: `${previousMonth} (hari yang sama)`, year: `12 bulan sebelumnya` })[key]; }
+export function flowNoCompare(): string { return `Belum ada pembanding`; }
+export function flowChartA11y(title: string, net: string, start: string, end: string): string { return `${title}: ${net} dari ${start} sampai ${end}. Garis adalah total berjalan.`; }
+export function flowTileA11y(label: string, amount: string): string { return `${label}: ${amount}. Buka transaksi`; }
+export function analysisBannerTitle(): string { return `Analisis Keuangan`; }
+export function analysisBannerSub(): string { return `Evaluasi kesehatan & pola pengeluaranmu`; }
+export function heroActionRecord(): string { return `Catat`; }
+export function heroActionTransfer(): string { return `Transfer`; }
+export function heroActionScan(): string { return `Pindai`; }
+
+// Analysis: the optional AI review (Gemini, the person's own key).
+export function analysisAiTitle(): string { return `Analisis AI`; }
+export function analysisAiTag(): string { return `Ditulis AI`; }
+export function analysisAiSetupBody(): string { return `Dapatkan ulasan tertulis singkat dari Gemini untuk periode ini, memakai kunci API milikmu sendiri. Skor di atas tetap dari rumus.`; }
+export function analysisAiSetupButton(): string { return `Siapkan AI`; }
+export function analysisAiConsentTitle(): string { return `Kirim ringkasan ke Gemini?`; }
+export function analysisAiConsentSent(): string { return `Dikirim: skor dan lima komponennya, pemasukan, pengeluaran, porsi yang ditabung, pengeluaran tetap, anggaranmu, pengeluaran per kategori, skor 6 periode terakhir, dan 10 pengeluaran terbesar di periode ini (tanggal, deskripsi yang dipendekkan dengan angka panjang disamarkan, kategori, dan nominal).`; }
+export function analysisAiConsentNotSent(): string { return `Tidak pernah dikirim: nama akun, saldo, target, catatan, struk, cadangan, atau kuncimu. Data berangkat langsung dari ponsel ini ke Google dengan kuncimu, tidak lewat MONO.`; }
+export function analysisAiConsentAuto(): string { return `Setelah kamu izinkan, ulasan ditulis otomatis setiap kamu membuka periode yang bisa dinilai. Kamu bisa mematikannya kapan saja.`; }
+export function analysisAiAllow(): string { return `Izinkan`; }
+export function analysisAiLater(): string { return `Nanti saja`; }
+export function analysisAiLoading(): string { return `AI sedang menulis ulasan…`; }
+export function analysisAiTipsLabel(): string { return `Saran`; }
+export function analysisAiFooter(): string { return `Ditulis AI dari ringkasan angkamu. Bisa keliru dan bukan nasihat keuangan. Skor di atas tetap dari rumus.`; }
+export function analysisAiRegenerate(): string { return `Tulis ulang`; }
+export function analysisAiTurnOff(): string { return `Matikan analisis AI otomatis`; }
+export function analysisAiSettings(): string { return `Buka pengaturan AI`; }
+export function analysisAiA11y(title: string): string { return `${title}. Ditulis AI, bisa keliru.`; }
+
+// Notifications: the inbox, its settings, the Android channels and the notification texts.
+export function notifBackHome(): string { return `Beranda`; }
+export function notifInboxTitle(): string { return `Notifikasi`; }
+export function notifMarkAllRead(): string { return `Tandai semua dibaca`; }
+export function notifEmptyTitle(): string { return `Belum ada notifikasi`; }
+export function notifEmptyBody(): string { return `Pengingat tagihan, anggaran, dan target akan muncul di sini.`; }
+export function notifEmptyButton(): string { return `Atur notifikasi`; }
+export function notifGroupToday(): string { return `Hari ini`; }
+export function notifGroupYesterday(): string { return `Kemarin`; }
+export function notifGroupOlder(): string { return `Lebih lama`; }
+export function notifShortDate(day: number, month: number): string { return `${day} ${[`Jan`, `Feb`, `Mar`, `Apr`, `Mei`, `Jun`, `Jul`, `Agu`, `Sep`, `Okt`, `Nov`, `Des`][month - 1]}`; }
+export function notifSettingsBack(): string { return `Pengaturan`; }
+export function notifDeniedTitle(): string { return `Notifikasi dimatikan di ponsel`; }
+export function notifDeniedBody(): string { return `Pengingat tidak akan muncul sampai kamu mengizinkannya di pengaturan sistem.`; }
+export function notifDeniedButton(): string { return `Buka pengaturan ponsel`; }
+export function notifGroupGeneral(): string { return `UMUM`; }
+export function notifGroupReminders(): string { return `PENGINGAT`; }
+export function notifGroupBills(): string { return `TAGIHAN BERULANG`; }
+export function notifGroupBudgets(): string { return `ANGGARAN`; }
+export function notifGroupGoals(): string { return `TARGET`; }
+export function notifGroupBackup(): string { return `CADANGAN`; }
+export function notifAllow(): string { return `Izinkan notifikasi`; }
+export function notifAllowSub(): string { return `Semua dijadwalkan di ponsel ini, tanpa server.`; }
+export function notifQuiet(): string { return `Jam tenang`; }
+export function notifQuietSub(): string { return `Notifikasi sistem ditunda, inbox tetap berjalan.`; }
+export function notifDaily(): string { return `Catat harian`; }
+export function notifDailyTime(): string { return `Waktu pengingat`; }
+export function notifDailyWarn(time: string): string { return `Akan muncul pukul ${time} karena jam tenang.`; }
+export function notifBillDue(): string { return `Jatuh tempo besok`; }
+export function notifBillDueSub(): string { return `H-1 pukul 09.00`; }
+export function notifBillOverdue(): string { return `Terlewat`; }
+export function notifBillOverdueSub(): string { return `Sehari setelah jatuh tempo pukul 09.00`; }
+export function notifBudgetNear(): string { return `Mendekati batas`; }
+export function notifBudgetNearSub(): string { return `80% pemakaian`; }
+export function notifBudgetOver(): string { return `Melewati batas`; }
+export function notifBudgetOverSub(): string { return `100% pemakaian`; }
+export function notifGoal(): string { return `Pencapaian target`; }
+export function notifGoalSub(): string { return `50%, 75%, tercapai`; }
+export function notifBackup(): string { return `Ingatkan backup`; }
+export function notifBackupSub(): string { return `7 hari sekali`; }
+export function notifHideNote(): string { return `"Sembunyikan nominal" aktif — pengingat tidak menampilkan nominal.`; }
+export function notifPickTime(): string { return `Pilih jam dan menit`; }
+export function notifHour(): string { return `Jam`; }
+export function notifMinute(): string { return `Menit`; }
+export function notifSelect(): string { return `Pilih`; }
+export function notifDailyTimeTitle(): string { return `Waktu pengingat harian`; }
+export function notifQuietStartTitle(): string { return `Mulai jam tenang`; }
+export function notifQuietEndTitle(): string { return `Selesai jam tenang`; }
+export function notifChannelName(id: "reminders" | "bills" | "budgets"): string { return ({ reminders: `Pengingat`, bills: `Tagihan`, budgets: `Anggaran` })[id]; }
+export function notifChannelDescription(id: "reminders" | "bills" | "budgets"): string { return ({ reminders: `Pengingat catat harian dan cadangan`, bills: `Jatuh tempo dan tagihan terlewat`, budgets: `Peringatan anggaran dan target` })[id]; }
+export function notifDailyTitle(): string { return `Belum ada transaksi hari ini`; }
+export function notifDailyBody(): string { return `Catat pengeluaranmu sebelum lupa.`; }
+export function notifRecordNow(): string { return `Catat sekarang`; }
+export function notifBillDueTitle(name: string): string { return `${name} jatuh tempo besok`; }
+export function notifBillDueBody(amount: string | null, varies: boolean, account: string): string { return `${amount === null ? `Tagihan dari ${account}.` : varies ? `sekitar ${amount} dari ${account}.` : `${amount} dari ${account}.`}`; }
+export function notifOverdueTitle(name: string): string { return `${name} terlewat`; }
+export function notifOverdueBody(date: string): string { return `Jatuh tempo ${date} dan belum dicatat.`; }
+export function notifBudgetNearTitle(category: string): string { return `Anggaran ${category} hampir habis`; }
+export function notifBudgetNearBody(pct: string, spent: string | null, limit: string | null, daysLeft: number): string { return `${spent === null || limit === null ? `Terpakai ${pct}%. Sisa ${daysLeft} hari.` : `Terpakai ${pct}%: ${spent} dari ${limit}. Sisa ${daysLeft} hari.`}`; }
+export function notifBudgetOverTitle(category: string): string { return `Anggaran ${category} terlampaui`; }
+export function notifBudgetOverBody(pct: string, spent: string | null, limit: string | null): string { return `${spent === null || limit === null ? `Terpakai ${pct}% dari batas.` : `Terpakai ${spent} dari ${limit}.`}`; }
+export function notifGoalReachedTitle(name: string): string { return `${name} tercapai`; }
+export function notifGoalReachedBody(current: string | null, target: string | null): string { return `${current === null || target === null ? `Target telah tercapai!` : `${current} dari ${target}.`}`; }
+export function notifGoalMilestoneTitle(name: string, pct: string): string { return `${name} ${pct}% tercapai`; }
+export function notifGoalMilestoneBody(pct: string, current: string | null, target: string | null): string { return `${current === null || target === null ? `${pct}% dari target.` : `${current} dari ${target}.`}`; }
+export function notifBackupTitle(): string { return `Waktunya backup`; }
+export function notifBackupBody(days: number | null): string { return `${days === null ? `Kamu belum pernah membuat cadangan.` : `Cadangan terakhir ${days} hari lalu.`}`; }
+
+// Welcome (first launch).
+export function welcomeTitle(): string { return `Selamat datang di MONO`; }
+export function welcomeBody(): string { return `Catat uang, pantau anggaran, dan lihat kekayaan bersihmu. Semuanya tersimpan di ponsel ini.`; }
+export function welcomePromiseLocal(): string { return `Hanya di perangkat ini. Tanpa akun, tanpa sinkronisasi.`; }
+export function welcomePromiseNoBank(): string { return `Tanpa login bank atau nomor kartu.`; }
+export function welcomePromiseCalculated(): string { return `Semua angka dihitung dari catatanmu.`; }
+export function welcomeNicknameLabel(): string { return `Nama panggilan`; }
+export function welcomeNicknameOptional(): string { return `Opsional`; }
+export function welcomeNicknamePlaceholder(): string { return `Contoh: Nael`; }
+export function welcomeNicknameHint(): string { return `Hanya dipakai untuk sapaan di layar Overview.`; }
+export function welcomeStart(): string { return `Mulai`; }
+export function welcomeRestorePrompt(): string { return `Punya berkas cadangan?`; }
+export function welcomeRestoreLink(): string { return `Pulihkan`; }
+export function welcomeRestoreA11y(): string { return `Punya berkas cadangan? Pulihkan`; }
+export function welcomeSaveFailed(): string { return `Belum bisa menyimpan. Coba lagi.`; }
+
+// Profile picture.
+export function profileGroupTitle(): string { return `PROFIL`; }
+export function profileAvatarTitle(): string { return `Foto profil`; }
+export function profileAvatarSub(): string { return `Pilih rubah MONO`; }
+export function profilePickerTitle(): string { return `Pilih foto profil`; }
+export function profilePickerSubtitle(): string { return `Tampil di Ringkasan. Hanya di ponsel ini.`; }
+export function profileAvatarDefault(): string { return `Bawaan`; }
+export function profileAvatarPose(id: "sunglasses" | "glasses" | "money_eyes" | "headphones" | "thinking" | "checking_portfolio" | "thumbs_up" | "saving_money" | "hoodie_on"): string { return ({ sunglasses: `Kacamata hitam`, glasses: `Kacamata`, money_eyes: `Mata duitan`, headphones: `Headphone`, thinking: `Berpikir`, checking_portfolio: `Cek portofolio`, thumbs_up: `Jempol`, saving_money: `Menabung`, hoodie_on: `Pakai hoodie` })[id]; }
