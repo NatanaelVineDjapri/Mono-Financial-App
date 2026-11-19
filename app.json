@@ -58,7 +58,24 @@
           "microphonePermission": false
         }
       ],
-      "expo-sharing"
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "MONO memakai lokasi hanya saat kamu menambah transaksi. Koordinat tetap di perangkat ini; peta di detail transaksi hanya mengunduh data peta untuk perkiraan area."
+        }
+      ],
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/brand/mono-mark.png",
+          "color": "#B8972E",
+          "sounds": [],
+          "androidMode": "default"
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

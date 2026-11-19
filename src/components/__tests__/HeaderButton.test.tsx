@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { MonoColors } from '@/theme/tokens';
+import { HeaderChrome, MonoColors, radius } from '@/theme/tokens';
 import { HeaderButton } from '../HeaderButton';
 
 function flat(style: unknown): Record<string, unknown> {
@@ -10,24 +10,24 @@ function flat(style: unknown): Record<string, unknown> {
 }
 
 describe('HeaderButton', () => {
-  test('icon-only: a 40×40 square, radius 10, card fill, 1px border', async () => {
+  test('icon-only: a 48×48 square, radius 16, the header chrome fill, 1px border', async () => {
     const result = await render(<HeaderButton icon="pencil" label="Edit monthly limit" onPress={jest.fn()} testID="btn" />);
     const style = flat(result.getByTestId('btn').props.style);
     expect(style).toMatchObject({
-      width: 40,
-      height: 40,
-      borderRadius: 10,
+      width: 48,
+      height: 48,
+      borderRadius: radius.lg,
       borderWidth: 1,
-      borderColor: MonoColors.border,
-      backgroundColor: MonoColors.card,
+      borderColor: HeaderChrome.border,
+      backgroundColor: HeaderChrome.fill,
     });
     expect(result.getByRole('button', { name: 'Edit monthly limit' })).toBeTruthy();
   });
 
-  test('with text: a chip at least 40 high, padding 14, text 14/400 then the icon 8 apart, free to widen', async () => {
+  test('with text: a chip at least 48 high, padding 14, text 14/400 then the icon 8 apart, free to widen', async () => {
     const result = await render(<HeaderButton icon="chevron-down" text="Oct 2026" label="Month: October 2026. Change month" testID="chip" />);
     const style = flat(result.getByTestId('chip').props.style);
-    expect(style).toMatchObject({ minHeight: 40, paddingHorizontal: 14, gap: 8, flexDirection: 'row', borderRadius: 10, backgroundColor: MonoColors.card });
+    expect(style).toMatchObject({ minHeight: 48, paddingHorizontal: 14, gap: 8, flexDirection: 'row', borderRadius: radius.lg, backgroundColor: HeaderChrome.fill });
     expect(style.width).toBeUndefined();
     expect(style.height).toBeUndefined();
 

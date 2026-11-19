@@ -158,7 +158,7 @@ describe('BudgetEditScreen — edit mode uses the same form', () => {
     const result = await renderScreen();
 
     expect(result.getByText('Edit category budget')).toBeTruthy();
-    expect(result.getByTestId('budget-amount-input').props.value).toBe('Rp700.000');
+    expect(result.getByTestId('budget-amount-input').props.value).toBe('700.000');
     expect(within(result.getByTestId('allocation-allocated')).getByText('Already allocated, 5 categories')).toBeTruthy();
     expect(within(result.getByTestId('allocation-allocated')).getByText('Rp4.300.000')).toBeTruthy();
     expect(result.getByTestId('allocation-exact')).toBeTruthy();

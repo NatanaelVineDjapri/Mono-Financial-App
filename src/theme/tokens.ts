@@ -20,6 +20,10 @@ export const MonoColors = {
 
 export const radius = { sm: 10, md: 12, lg: 16 } as const;
 
+// The chrome of a screen header's action buttons and chips (HeaderButton, the period steppers): slightly darker
+// fill and hairline than a card, as on the boards.
+export const HeaderChrome = { fill: '#151516', border: '#272728' } as const;
+
 // Chart-only category colours (Fase 4.3c), not part of the 12 core tokens above —
 // DESIGN.md section 3 rule 5 already allows an extra grey shade for a chart's own
 // secondary series (e.g. "#6B6B6B") beyond the core palette; these are that same

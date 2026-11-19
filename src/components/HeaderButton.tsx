@@ -1,13 +1,13 @@
 // Header action button (DESIGN.md section 8): the one style every screen header's right-
 // side actions share — Transactions' Filters, Budgets' month chip and edit button.
-// 48 high, radius 16, fill #151516, 1px #272728 border. Icon-only actions are 48×48; with
+// 48 high, radius 16, the HeaderChrome fill and a 1px HeaderChrome border. Icon-only actions are 48×48; with
 // `text` it becomes a chip (padding 14, text 14/400, icon 8 after the text) that grows
 // with the text and never truncates it (CLAUDE.md rule 7: at 200% the chip widens, the
 // screen title is what wraps). Pressed = raised fill, no ripple (section 16).
 import { Pressable, StyleSheet, Text, View, type PressableProps } from 'react-native';
 
 import { Icon, type IconName } from '@/components/Icon';
-import { MonoColors, radius } from '@/theme/tokens';
+import { HeaderChrome, MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 export const HEADER_BUTTON_SIZE = 48;
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
   base: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#272728',
-    backgroundColor: '#151516',
+    borderColor: HeaderChrome.border,
+    backgroundColor: HeaderChrome.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },

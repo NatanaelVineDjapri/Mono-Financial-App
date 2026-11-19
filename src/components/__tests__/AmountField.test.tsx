@@ -3,14 +3,16 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { AmountField } from '../AmountField';
 
 describe('AmountField', () => {
-  test('shows the value formatted as rupiah', async () => {
+  test('shows the digits with thousands separators, the Rp sits in its own prefix', async () => {
     const result = await render(<AmountField value={1500000} onChangeValue={() => {}} testID="amount" />);
-    expect(result.getByTestId('amount-input').props.value).toBe('Rp1.500.000');
+    expect(result.getByTestId('amount-input').props.value).toBe('1.500.000');
+    expect(result.getByText('Rp')).toBeTruthy();
   });
 
-  test('zero shows Rp0, not an empty field', async () => {
+  test('zero leaves the field empty so the 0 placeholder shows', async () => {
     const result = await render(<AmountField value={0} onChangeValue={() => {}} testID="amount" />);
-    expect(result.getByTestId('amount-input').props.value).toBe('Rp0');
+    expect(result.getByTestId('amount-input').props.value).toBe('');
+    expect(result.getByTestId('amount-input').props.placeholder).toBe('0');
   });
 
   test('typed text is stripped to digits and parsed as an int', async () => {

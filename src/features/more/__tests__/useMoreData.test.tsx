@@ -4,14 +4,14 @@ import type { ReactNode } from 'react';
 
 import { countTransactionsChangedSince, getLastBackupAt } from '@/data/repo/backupLog';
 import { getSetting } from '@/data/repo/settings';
-import { listRecurringDue } from '@/domain/recurring';
+import { listDue } from '@/domain/recurring';
 
 import { useMoreData } from '../useMoreData';
 
 jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({ fake: 'db' }) }));
 jest.mock('@/data/repo/backupLog', () => ({ getLastBackupAt: jest.fn(async () => null), countTransactionsChangedSince: jest.fn(async () => 0) }));
 jest.mock('@/data/repo/settings', () => ({ getSetting: jest.fn(async () => null) }));
-jest.mock('@/domain/recurring', () => ({ listRecurringDue: jest.fn(async () => []) }));
+jest.mock('@/domain/recurring', () => ({ listDue: jest.fn(async () => []) }));
 
 // useFocusEffect needs a navigator; here it runs the callback on mount, and the test can fire it
 // again to stand for "the screen got focus again" (coming back from /backup).
@@ -31,7 +31,7 @@ jest.mock('expo-router', () => ({
 const mockLast = getLastBackupAt as jest.MockedFunction<typeof getLastBackupAt>;
 const mockChanged = countTransactionsChangedSince as jest.MockedFunction<typeof countTransactionsChangedSince>;
 const mockSetting = getSetting as jest.MockedFunction<typeof getSetting>;
-const mockDue = listRecurringDue as jest.MockedFunction<typeof listRecurringDue>;
+const mockDue = listDue as jest.MockedFunction<typeof listDue>;
 
 const clients: QueryClient[] = [];
 function makeWrapper() {
