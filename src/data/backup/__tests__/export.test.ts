@@ -9,8 +9,8 @@ const NOW = '2026-11-03T10:00:00+07:00';
 const sha256Hex = async (text: string) => createHash('sha256').update(text).digest('hex');
 
 describe('exportBackup', () => {
-  test('eleven tables, no currencies/meta/backup_log', () => {
-    expect(BACKUP_TABLES).toHaveLength(11);
+  test('twelve tables, no currencies/meta/backup_log', () => {
+    expect(BACKUP_TABLES).toHaveLength(12);
     expect(BACKUP_TABLES).not.toContain('currencies');
     expect(BACKUP_TABLES).not.toContain('meta');
     expect(BACKUP_TABLES).not.toContain('backup_log');

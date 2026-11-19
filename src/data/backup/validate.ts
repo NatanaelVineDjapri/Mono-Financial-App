@@ -5,7 +5,7 @@
 import { BACKUP_TABLES, canonicalDataJson } from './export';
 import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 
-const SUPPORTED_SCHEMA_VERSION = 8;
+const SUPPORTED_SCHEMA_VERSION = 10;
 
 export type ValidationFailure =
   | { ok: false; reason: 'not_json' }
@@ -57,6 +57,9 @@ function checkInternalReferences(data: BackupData): BackupTable | null {
     if (!recurringIds.has(e.recurring_id)) return 'recurring_events';
     if (e.transaction_id !== null && !transactionIds.has(e.transaction_id)) return 'recurring_events';
   }
+  for (const r of data.transaction_locations) {
+    if (!transactionIds.has(row<{ transaction_id: unknown }>(r).transaction_id)) return 'transaction_locations';
+  }
   return null;
 }
 
@@ -79,6 +82,13 @@ export async function validateBackup(raw: string, sha256Hex: Sha256Hex): Promise
     return { ok: false, reason: 'missing_table', table: BACKUP_TABLES[0] };
   }
 
+  // Schema v1 backups predate locations. Add the missing table in memory so they
+  // restore as a valid snapshot without changing the original file on disk.
+  if (file.schema_version < 9 && !(file.data as Partial<BackupData>).transaction_locations) {
+    (file.data as BackupData).transaction_locations = [];
+    (file.counts as BackupFile['counts']).transaction_locations = 0;
+  }
+
   for (const table of BACKUP_TABLES) {
     const rows = file.data[table];
     if (!Array.isArray(rows)) {
@@ -89,8 +99,13 @@ export async function validateBackup(raw: string, sha256Hex: Sha256Hex): Promise
     }
   }
 
-  const expectedChecksum = `sha256:${await sha256Hex(canonicalDataJson(file.data as BackupData))}`;
-  if (file.checksum !== expectedChecksum) {
+  const dataForChecksum = file.schema_version < 9 ? { ...file.data, transaction_locations: [] } as BackupData : file.data as BackupData;
+  const expectedChecksum = `sha256:${await sha256Hex(canonicalDataJson(dataForChecksum))}`;
+  const legacyDataForChecksum = file.schema_version < 9
+    ? JSON.stringify(Object.fromEntries(Object.entries(file.data as Record<string, unknown[]>).filter(([key]) => key !== 'transaction_locations')))
+    : '';
+  const legacyChecksum = file.schema_version < 9 ? `sha256:${await sha256Hex(legacyDataForChecksum)}` : '';
+  if (file.checksum !== expectedChecksum && file.checksum !== legacyChecksum) {
     return { ok: false, reason: 'checksum_mismatch' };
   }
 

@@ -7,6 +7,8 @@ import { addMoreCurrencies } from './v5_more_currencies';
 import { turnOnFxAutoUpdate } from './v6_fx_auto_update_on';
 import { clampGoalProgressView } from './v7_goal_progress_clamp';
 import { addCategoryGuards } from './v8_category_guards';
+import { addTransactionLocations } from './v9_transaction_locations';
+import { addNotifications } from './v10_notifications';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -22,6 +24,9 @@ export type Migration = (db: Db) => Promise<void>;
 //   6 -> 7: goal progress is clamped and no longer smoothed around 50%.
 //   7 -> 8: categories are archived, never deleted: kind locked once used, last active category and a
 //           category of an active fixed expense cannot be archived; seeded categories get their icon key.
+//   8 -> 9: private, foreground-captured transaction locations; disabled by default.
+//   9 -> 10: notifications inbox table + 12 new settings keys; maps backup_reminder -> notif_backup,
+//            recurring_reminders -> notif_bill_h1 + notif_bill_overdue; cancels all old scheduled notifs.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -30,6 +35,8 @@ export const migrations: Record<number, Migration> = {
   5: turnOnFxAutoUpdate,
   6: clampGoalProgressView,
   7: addCategoryGuards,
+  8: addTransactionLocations,
+  9: addNotifications,
 };
 
 // Brings `db` from its current meta.schema_version up to the newest version this build

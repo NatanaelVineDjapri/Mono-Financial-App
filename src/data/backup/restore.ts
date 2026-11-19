@@ -17,6 +17,7 @@ const CLEARED_BEFORE_RESTORE = ['import_app_settings'] as const;
 // Children before parents, so every delete is FK-safe at the moment it runs.
 const DELETE_ORDER: BackupTable[] = [
   'recurring_events',
+  'transaction_locations',
   'transactions',
   'recurring',
   'account_currencies',
@@ -65,10 +66,13 @@ export async function restoreBackup(db: Db, raw: string, now: string, sha256Hex:
         if (exists) await txn.execAsync(`delete from ${table}`);
       }
       for (const table of DELETE_ORDER) {
-        await txn.execAsync(`delete from ${table}`);
+        const exists = await txn.getFirstAsync('select 1 as x from sqlite_master where type = ? and name = ?', ['table', table]);
+        if (exists) await txn.execAsync(`delete from ${table}`);
       }
 
       for (const table of INSERT_ORDER) {
+        const exists = await txn.getFirstAsync('select 1 as x from sqlite_master where type = ? and name = ?', ['table', table]);
+        if (!exists) continue;
         for (const r of file.data[table]) {
           const columns = Object.keys(r);
           if (columns.length === 0) continue;

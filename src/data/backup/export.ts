@@ -1,4 +1,4 @@
-// DESIGN.md section 16 / DATABASE.md section 7. Eleven tables: the earlier nine plus
+// DATABASE.md section 7. Twelve tables: the earlier eleven plus transaction_locations.
 // account_currencies and fx_rates. Not included: currencies (static seed), meta
 // (recreated), backup_log (device-local), and the Gemini key (secure storage).
 import type { Db } from '../db/types';
@@ -15,6 +15,7 @@ export const BACKUP_TABLES = [
   'recurring_events',
   'fx_rates',
   'settings',
+  'transaction_locations',
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];
@@ -48,7 +49,8 @@ export async function exportBackup(db: Db, now: string, sha256Hex: Sha256Hex): P
     // `table` only ever comes from the fixed BACKUP_TABLES list above, never user
     // input — SQL identifiers can't be bound as parameters, so this is the one place
     // string interpolation into SQL is both necessary and safe.
-    const rows = await db.getAllAsync<Record<string, unknown>>(`select * from ${table}`);
+    const exists = await db.getFirstAsync<{ x: number }>('select 1 as x from sqlite_master where type = ? and name = ?', ['table', table]);
+    const rows = exists ? await db.getAllAsync<Record<string, unknown>>(`select * from ${table}`) : [];
     data[table] = rows;
     counts[table] = rows.length;
   }
