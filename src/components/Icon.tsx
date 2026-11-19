@@ -74,7 +74,10 @@ export type IconName =
   | 'undo'
   // Backup & restore
   | 'upload'
-  | 'file';
+  | 'file'
+  | 'shield'
+  | 'trend'
+  | 'pulse';
 
 export interface IconProps {
   name: IconName;
@@ -139,6 +142,9 @@ const PATHS: Partial<Record<IconName, string>> = {
   upload: 'M12 16 V5 M7 10 L12 5 L17 10 M5 20 H19',
   file: 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19',
   pencil: 'M4 20 L4.5 16 L15.5 5 a2.1 2.1 0 0 1 3 3 L7.5 19 Z M13.5 7 L17 10.5',
+  shield: 'M12 3 l7 3 v5 c0 4.5 -3 8 -7 10 c-4 -2 -7 -5.5 -7 -10 V6 Z',
+  trend: 'M3 17 l6 -6 4 4 8 -8 M15 7 h6 v6',
+  pulse: 'M3 12 h4 l2.5 -6 4 12 2.5 -6 H21',
 };
 
 function renderGlyph(name: IconName, color: string, strokeWidth: number) {

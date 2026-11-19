@@ -17,6 +17,8 @@ import { MoreRow } from '@/features/more/MoreRow';
 import { useMoreData } from '@/features/more/useMoreData';
 import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
 import {
+  analysisMoreSub,
+  analysisMoreTitle,
   devToolsHint,
   devToolsLabel,
   moreBackLabel,
@@ -89,6 +91,13 @@ export default function MoreScreen() {
           <MoreRow icon="target" title={moreGoalsTitle()} sub={moreGoalsSub()} onPress={go('/goals')} testID="more-goals" />
           <MoreRow icon="refresh" title={moreRecurringTitle()} sub={moreRecurringSub(dueCount)} onPress={go('/recurring')} testID="more-recurring" />
           <MoreRow icon="file-text" title={moreReportsTitle()} sub={moreReportsSub()} onPress={go('/reports')} testID="more-reports" />
+          <MoreRow
+            icon="pulse"
+            title={analysisMoreTitle()}
+            sub={analysisMoreSub()}
+            onPress={go('/analysis')}
+            testID="more-analysis"
+          />
           <MoreRow icon="tag" title={moreCategoriesTitle()} sub={moreCategoriesSub()} onPress={go('/categories')} last testID="more-categories" />
         </Card>
 

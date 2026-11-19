@@ -23,3 +23,7 @@ export const SERVER_RETRY_DELAY_MS = 1000;
 export const TIDY_MAX_OUTPUT_TOKENS = 256;
 export const TIDY_MAX_LINES = 60; // lines of receipt text sent
 export const TIDY_MAX_LINE_CHARS = 80;
+
+// "Analisis AI" on the Analysis screen (analysisAi.ts): a short review as strict JSON with short free text.
+export const ANALYSIS_MAX_OUTPUT_TOKENS = 1536; // thinking tokens share this budget
+export const ANALYSIS_TOP_EXPENSES = 10; // the biggest expenses of the period that are sent

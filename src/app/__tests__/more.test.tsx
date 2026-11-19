@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { MoreData } from '@/features/more/useMoreData';
 import { useMoreData } from '@/features/more/useMoreData';
+import { useAnalysis } from '@/features/analysis/useAnalysis';
 import { useCreateBackup } from '@/features/backup/useCreateBackup';
 import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
 import { languageChoiceEnabled, useLanguage } from '@/i18n/lang';
@@ -11,6 +12,8 @@ import MoreScreen from '../more';
 
 jest.mock('@/features/more/useMoreData');
 jest.mock('@/features/backup/useCreateBackup');
+jest.mock('@/features/analysis/useAnalysis');
+const mockUseAnalysis = useAnalysis as jest.MockedFunction<typeof useAnalysis>;
 const mockUseCreateBackup = useCreateBackup as jest.MockedFunction<typeof useCreateBackup>;
 const mockCreateBackup = jest.fn(async () => true);
 jest.mock('@/features/settings/useLanguageSetting');
@@ -51,6 +54,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockVersion = '1.0.0';
   mockCreateBackup.mockResolvedValue(true);
+  mockUseAnalysis.mockReturnValue({ data: undefined } as ReturnType<typeof useAnalysis>);
   mockUseCreateBackup.mockReturnValue({ create: mockCreateBackup, busy: false });
   (languageChoiceEnabled as jest.Mock).mockReturnValue(true);
   mockUseLanguageSetting.mockImplementation(() => ({ language: useLanguage.getState().language, change: mockChangeLanguage }));
@@ -73,6 +77,8 @@ describe('structure', () => {
       'Gym, internet, langganan',
       'Laporan',
       'Arus kas, pengeluaran, kekayaan bersih, ekspor CSV',
+      'Analisis',
+      'Skor kesehatan keuangan',
       'Kategori',
       'Kategori pemasukan dan pengeluaran',
       'Cadangan dan pemulihan',
@@ -122,6 +128,30 @@ describe('structure', () => {
   test('there is no tab bar on this screen', async () => {
     const screen = await renderMore();
     expect(screen.queryByTestId('tab-bar')).toBeNull();
+  });
+});
+
+describe('the Analysis row', () => {
+  const withScore = (result: unknown) =>
+    mockUseAnalysis.mockReturnValue({ data: { analysis: { result } } } as unknown as ReturnType<typeof useAnalysis>);
+
+  test('sits in the Money group and opens /analysis', async () => {
+    const screen = await renderMore();
+    fireEvent.press(screen.getByTestId('more-analysis'));
+    expect(mockPush).toHaveBeenCalledWith('/analysis');
+  });
+
+  test('does not show a score on the Analysis row', async () => {
+    withScore({ eligible: true, score: 83 });
+    const screen = await renderMore();
+    expect(screen.queryByTestId('more-analysis-value')).toBeNull();
+    expect(screen.getByTestId('more-analysis').props.accessibilityLabel).not.toContain('Skor 83 dari 100');
+  });
+
+  test('shows no score when it cannot be calculated yet (never a made-up number)', async () => {
+    withScore({ eligible: false, checks: [] });
+    const screen = await renderMore();
+    expect(screen.queryByTestId('more-analysis-value')).toBeNull();
   });
 });
 

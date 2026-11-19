@@ -14,17 +14,19 @@ export interface MoreRowProps {
   icon: IconName;
   title: string;
   sub: string;
+  right?: string; // a short value before the chevron, e.g. the score
+  rightLabel?: string; // what that value is, for screen readers
   onPress: () => void;
   last?: boolean; // no separator under the last row of a card
   testID?: string;
 }
 
-export function MoreRow({ icon, title, sub, onPress, last = false, testID }: MoreRowProps) {
+export function MoreRow({ icon, title, sub, right, rightLabel, onPress, last = false, testID }: MoreRowProps) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={moreRowLabel(title, sub)}
+      accessibilityLabel={right ? `${moreRowLabel(title, sub)}. ${rightLabel ?? right}` : moreRowLabel(title, sub)}
       android_ripple={undefined}
       style={({ pressed }) => [styles.row, !last && styles.separator, pressed && styles.pressed]}
       testID={testID}
@@ -36,6 +38,7 @@ export function MoreRow({ icon, title, sub, onPress, last = false, testID }: Mor
           {sub}
         </Text>
       </View>
+      {right ? <Text style={styles.right} testID={testID ? `${testID}-value` : undefined}>{right}</Text> : null}
       <Icon name="chevron-right" size={20} color={MonoColors.textMeta} />
     </Pressable>
   );
@@ -48,4 +51,5 @@ const styles = StyleSheet.create({
   text: { flex: 1, gap: 2 },
   title: { ...MonoText.bodyStrong, lineHeight: 20, color: MonoColors.text },
   sub: { ...MonoText.bodyS, color: MonoColors.textMeta },
+  right: { ...MonoText.figureS, color: MonoColors.text },
 });
