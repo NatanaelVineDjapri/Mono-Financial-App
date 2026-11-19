@@ -3,7 +3,7 @@
 // transfer keeps being a transfer and an income or expense never becomes one. A Valas record is
 // edited through its pocket; its rupiah value is frozen again only if its amount, currency or account changes.
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
@@ -24,7 +24,8 @@ export default function EditTransactionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const txId = Number(id);
   const { data, isLoading, isError, refetch } = useTxFormData(txId);
-  const onSubmit = useEditSubmit(data?.record);
+  const [placeName, setPlaceName] = useState<string | undefined>(undefined);
+  const onSubmit = useEditSubmit(data?.record, placeName);
   const today = useMemo(() => todayLocal(), []);
 
   if (isLoading) return <View style={styles.screen} />;
@@ -44,7 +45,8 @@ export default function EditTransactionScreen() {
       </View>
     );
   }
-  return <TransactionForm mode="edit" data={data} today={today} onCancel={() => router.back()} onSetRates={() => router.push('/settings/rates' as never)} onSubmit={onSubmit} />;
+  const location = data.record.location;
+  return <TransactionForm mode="edit" data={data} today={today} onCancel={() => router.back()} onSetRates={() => router.push('/settings/rates' as never)} onSubmit={onSubmit} locationStatus={location ? 'ready' : 'idle'} placeName={placeName ?? location?.place_name ?? ''} onPlaceNameChange={setPlaceName} onLocationPress={() => setPlaceName(undefined)} />;
 }
 
 const styles = StyleSheet.create({

@@ -62,6 +62,8 @@ import {
   recurringStop,
   recurringStopBody,
   recurringStopTitle,
+  recurringDateDecrease,
+  recurringDateIncrease,
 } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -92,7 +94,7 @@ function DayStepper({ value, onChange }: { value: number; onChange: (v: number) 
         onPress={() => onChange(Math.max(1, value - 1))}
         style={s.stepBtn}
         accessibilityRole="button"
-        accessibilityLabel="Kurangi tanggal"
+        accessibilityLabel={recurringDateDecrease()}
       >
         <Icon name="minus" size={18} color={MonoColors.text} />
       </Pressable>
@@ -101,7 +103,7 @@ function DayStepper({ value, onChange }: { value: number; onChange: (v: number) 
         onPress={() => onChange(Math.min(31, value + 1))}
         style={s.stepBtn}
         accessibilityRole="button"
-        accessibilityLabel="Tambah tanggal"
+        accessibilityLabel={recurringDateIncrease()}
       >
         <Icon name="plus" size={18} color={MonoColors.text} />
       </Pressable>

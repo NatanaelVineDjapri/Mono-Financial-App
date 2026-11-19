@@ -21,6 +21,7 @@ import { deleteTransactionWithUndo } from '@/features/transactions/detail/delete
 import {
   BudgetCard,
   DetailsCard,
+  TransactionMapCard,
   HeroCard,
   RateFixedNote,
   TransferCard,
@@ -148,6 +149,7 @@ export default function TransactionDetailScreen() {
         ) : (
           <DetailsCard detail={detail} />
         )}
+        <TransactionMapCard detail={detail} />
         {foreign && <RateFixedNote />}
         {detail.budget && <BudgetCard detail={detail} />}
       </ScrollView>

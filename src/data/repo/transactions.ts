@@ -428,6 +428,141 @@ export async function getLastUsedAccountId(db: Db): Promise<number | null> {
   return row?.account_id ?? null;
 }
 
+export interface QuickRecordRow {
+  source: 'place' | 'category';
+  label: string;
+  place_name: string | null;
+  kind: 'income' | 'expense';
+  account_id: number;
+  account_name: string;
+  category_id: number | null;
+  category_name: string | null;
+  amount: number;
+  use_count: number;
+  last_on: string;
+}
+
+export function listQuickRecordSources(db: Db, limit: number): Promise<QuickRecordRow[]> {
+  return db.getAllAsync<QuickRecordRow>(
+    `with txs as (
+       select t.id as id,
+              t.kind as kind,
+              t.account_id as account_id,
+              t.category_id as category_id,
+              t.amount as amount,
+              t.occurred_on as occurred_on,
+              lower(trim(coalesce(tl.place_name, ''))) as place_key
+         from transactions t
+         join accounts a on a.id = t.account_id and a.archived = 0
+         left join transaction_locations tl on tl.transaction_id = t.id
+        where t.kind in ('income', 'expense')
+          and t.currency = 'IDR'
+     ),
+     cat_pairs as (
+       select kind,
+              category_id,
+              account_id,
+              count(*) as pair_count,
+              max(occurred_on) as pair_last_on,
+              max(id) as pair_last_id
+         from txs
+        where category_id is not null
+        group by kind, category_id, account_id
+     ),
+     cat_ranked as (
+       select p.*,
+              row_number() over (
+                partition by p.kind, p.category_id
+                order by p.pair_count desc, p.pair_last_on desc, p.pair_last_id desc
+              ) as rank,
+              sum(p.pair_count) over (partition by p.kind, p.category_id) as use_count,
+              max(p.pair_last_on) over (partition by p.kind, p.category_id) as last_on
+         from cat_pairs p
+     ),
+     place_pairs as (
+       select kind,
+              place_key,
+              account_id,
+              category_id,
+              count(*) as pair_count,
+              max(occurred_on) as pair_last_on,
+              max(id) as pair_last_id
+         from txs
+        where place_key <> ''
+        group by kind, place_key, account_id, category_id
+     ),
+     place_ranked as (
+       select p.*,
+              row_number() over (
+                partition by p.kind, p.place_key
+                order by p.pair_count desc, p.pair_last_on desc, p.pair_last_id desc
+              ) as rank,
+              sum(p.pair_count) over (partition by p.kind, p.place_key) as use_count,
+              max(p.pair_last_on) over (partition by p.kind, p.place_key) as last_on
+         from place_pairs p
+     ),
+     items as (
+       select 'category' as source,
+              c.kind as kind,
+              c.account_id as account_id,
+              c.category_id as category_id,
+              c.use_count as use_count,
+              c.last_on as last_on,
+              c.pair_last_id as last_id,
+              null as place_name
+         from cat_ranked c
+        where c.rank = 1
+       union all
+       select 'place' as source,
+              p.kind as kind,
+              p.account_id as account_id,
+              p.category_id as category_id,
+              p.use_count as use_count,
+              p.last_on as last_on,
+              p.pair_last_id as last_id,
+              (select trim(tl2.place_name)
+                 from transaction_locations tl2
+                where tl2.transaction_id = p.pair_last_id) as place_name
+         from place_ranked p
+        where p.rank = 1
+     ),
+     labelled as (
+       select i.*,
+              coalesce(i.place_name, c.name, '') as label
+         from items i
+         left join categories c on c.id = i.category_id
+     ),
+     deduped as (
+       select l.*,
+              row_number() over (
+                partition by lower(l.label)
+                order by l.use_count desc, l.last_on desc,
+                         case when l.source = 'place' then 0 else 1 end
+              ) as label_rank
+         from labelled l
+     )
+     select d.source as source,
+            d.label as label,
+            d.place_name as place_name,
+            d.kind as kind,
+            d.account_id as account_id,
+            a.name as account_name,
+            d.category_id as category_id,
+            c.name as category_name,
+            t.amount as amount,
+            d.use_count as use_count,
+            d.last_on as last_on
+       from deduped d
+       join transactions t on t.id = d.last_id
+       join accounts a on a.id = d.account_id
+       left join categories c on c.id = d.category_id
+      where d.label_rank = 1
+      order by d.use_count desc, d.last_on desc, d.label
+      limit $limit`,
+    { $limit: limit },
+  );
+}
+
 export interface SimilarExpense {
   id: number;
   occurred_on: string;

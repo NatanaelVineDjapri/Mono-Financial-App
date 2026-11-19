@@ -8,7 +8,7 @@
 // form; a short balance appears as soon as the amount makes it so. Save is disabled while an
 // error is showing, and tapping it on an invalid form reveals what is wrong instead of saving.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -31,35 +31,41 @@ import {
 } from '@/core/tx/validate';
 import type { TxFormData } from '@/domain/txForm';
 import {
-    aiDraftSaveButton,
-    aiDraftSavingLabel,
-    aiEditSaveContinue,
-    aiEditSkip,
-    aiEditTitle,
-    addTransactionTitle,
-    cancelLabel,
-    chooseAccountPlaceholder,
-    closeLabel,
-    descriptionPlaceholder,
-    editTransactionTitle,
-    fieldsNeedAttention,
-    formDescriptionLabel,
-    formDescriptionOptionalLabel,
-    formNotesOptionalLabel,
-    notesPlaceholder,
-    saveButtonLabel,
-    savingLabel,
-    TRANSFER_IN_FIRST_LINK,
-    txFieldErrorMessage,
-    txKindLabel,
-    txValasFieldError,
-    typeLockedHint,
-    valasAmountTitle,
-    valasAmountToMoveTitle,
-    valasPocketFromLabel,
-    valasPocketToLabel,
-    valasYouReceive,
-    valasYouSend,
+  aiDraftSaveButton,
+  aiDraftSavingLabel,
+  aiEditSaveContinue,
+  aiEditSkip,
+  aiEditTitle,
+  addTransactionTitle,
+  cancelLabel,
+  chooseAccountPlaceholder,
+  closeLabel,
+  descriptionPlaceholder,
+  editTransactionTitle,
+  fieldsNeedAttention,
+  formDescriptionLabel,
+  formDescriptionOptionalLabel,
+  formNotesOptionalLabel,
+  notesPlaceholder,
+  saveButtonLabel,
+  savingLabel,
+  TRANSFER_IN_FIRST_LINK,
+  txFieldErrorMessage,
+  txKindLabel,
+  txValasFieldError,
+  typeLockedHint,
+  valasAmountTitle,
+  valasAmountToMoveTitle,
+  valasPocketFromLabel,
+  valasPocketToLabel,
+  valasYouReceive,
+  valasYouSend,
+  txLocationCapturing,
+  locationSaved,
+  txLocationUnavailable,
+  txLocationRetry,
+  txLocationPlaceLabel,
+  txLocationPlacePlaceholder,
 } from '@/i18n';
 import { DraftProgressBar, DraftProgressText, SourceQuote } from '@/features/ai_chat/ui/DraftEditChrome';
 import { MonoColors } from '@/theme/tokens';
@@ -93,6 +99,10 @@ export interface TransactionFormProps {
   today: string;
   initialType?: TxType;
   initialAccountId?: number; // preselect this account (from Account detail's Add and Transfer)
+  initialToAccountId?: number; // preselect the destination of a transfer
+  initialCategoryId?: number; // preselect a category (from a quick record)
+  initialAmount?: number; // preselect the amount (from a quick record)
+  initialDescription?: string; // preselect the note (from a quick record)
   onCancel: () => void;
   onChat?: () => void;
   // The Valas account can be used (through a pocket). Default: yes, except in the AI chat's draft editor.
@@ -100,6 +110,10 @@ export interface TransactionFormProps {
   // "Atur kurs" in the missing-rate error: opens the Rates screen.
   onSetRates?: () => void;
   onSubmit: (values: TxFormValues) => Promise<SubmitResult>;
+  locationStatus?: 'idle' | 'capturing' | 'ready' | 'unavailable';
+  onLocationPress?: () => void;
+  placeName?: string;
+  onPlaceNameChange?: (value: string) => void;
 }
 
 type SheetName = AccountSheetRole | 'category' | 'date' | null;
@@ -109,7 +123,17 @@ function pocketsOfAccount(pockets: readonly FormPocket[], accountId: number | nu
   return accountId == null ? [] : pockets.filter(p => p.accountId === accountId);
 }
 
-function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: string, allowForex: boolean, initialType?: TxType, initialAccountId?: number, draft?: DraftModeProps): TxFormValues {
+// What a caller may prefill on a fresh form (Account detail's Add/Transfer, a quick record).
+interface InitialPreset {
+  type?: TxType;
+  accountId?: number;
+  toAccountId?: number;
+  categoryId?: number;
+  amount?: number;
+  description?: string;
+}
+
+function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: string, allowForex: boolean, preset: InitialPreset, draft?: DraftModeProps): TxFormValues {
   if (mode === 'draft' && draft) return draft.initialValues;
   if (mode === 'edit' && data.record) {
     const r = data.record;
@@ -127,25 +151,39 @@ function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: 
       note: r.note,
     };
   }
-  const preselected = data.accounts.find(a => a.id === initialAccountId && (allowForex || a.type !== 'forex'));
+  const preselected = data.accounts.find(a => a.id === preset.accountId && (allowForex || a.type !== 'forex'));
   const first = preselected ?? data.accounts.find(a => a.type !== 'forex');
-  const type = initialType ?? 'expense';
+  const type = preset.type ?? 'expense';
+  // A transfer shortcut supplies both sides. Keep the destination only when it exists, is
+  // allowed, and differs from the source; the form's own validation rejects the rest anyway.
+  const toPreselected = type === 'transfer'
+    ? data.accounts.find(a => a.id === preset.toAccountId && a.id !== first?.id && (allowForex || a.type !== 'forex'))
+    : undefined;
+  // A quick record supplies the category, amount and note of a repeated entry. Each is kept only
+  // when it still fits the chosen kind, so a shortcut whose category was deleted or renamed to
+  // another kind opens a merely emptier form instead of one that cannot be saved.
+  const category = data.categories.find(c => c.id === preset.categoryId && c.kind === type);
+  const typedAmount = preset.amount ?? 0;
+  const amount = Number.isSafeInteger(typedAmount) && typedAmount > 0 ? typedAmount : 0;
   const base: TxFormValues = {
     type,
-    amount: 0,
-    categoryId: null,
+    amount,
+    categoryId: category?.id ?? null,
     accountId: first?.id ?? null,
-    toAccountId: null,
+    toAccountId: toPreselected?.id ?? null,
     date: today,
-    description: '',
+    description: preset.description?.trim() ?? '',
     note: '',
   };
   if (!allowForex || first?.type !== 'forex') return base;
   // The Valas account was chosen (from its detail): start on its first pocket; an exchange starts on
-  // a swap between two of its pockets.
+  // a swap between two of its pockets. A transfer shortcut's destination wins over the swap.
   const own = pocketsOfAccount(data.pockets, first.id);
   const currency = own[0]?.currency;
-  if (type === 'transfer') return { ...base, currency, toAccountId: first.id, toCurrency: own[1]?.currency };
+  if (type === 'transfer') {
+    if (toPreselected) return { ...base, currency, toAccountId: toPreselected.id };
+    return { ...base, currency, toAccountId: first.id, toCurrency: own[1]?.currency };
+  }
   return { ...base, currency };
 }
 
@@ -155,12 +193,19 @@ function balanceAfterPocket(pocket: FormPocket, amount: number, direction: 'in' 
   return direction === 'in' ? pocket.balance + safe : pocket.balance - safe;
 }
 
-export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, allowForex: allowForexProp, onSetRates, onCancel, onChat, onSubmit }: TransactionFormProps) {
+export function TransactionForm({ mode, draft, data, today, initialType, initialAccountId, initialToAccountId, initialCategoryId, initialAmount, initialDescription, allowForex: allowForexProp, onSetRates, onCancel, onChat, onSubmit, locationStatus, onLocationPress, placeName, onPlaceNameChange }: TransactionFormProps) {
   const allowForex = allowForexProp ?? mode !== 'draft';
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
 
-  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, allowForex, initialType, initialAccountId, draft));
+  const [values, setValues] = useState<TxFormValues>(() => initialValues(mode, data, today, allowForex, {
+    type: initialType,
+    accountId: initialAccountId,
+    toAccountId: initialToAccountId,
+    categoryId: initialCategoryId,
+    amount: initialAmount,
+    description: initialDescription,
+  }, draft));
   const [touched, setTouched] = useState<ReadonlySet<TxFieldKey>>(new Set());
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -451,6 +496,20 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
           error={errorView('date')}
         />
 
+        {locationStatus && locationStatus !== 'idle' && (
+          <>
+            <Pressable style={styles.locationChip} onPress={onLocationPress} accessibilityRole="button">
+              <Text style={styles.locationChipText}>
+                {locationStatus === 'capturing' ? txLocationCapturing() : locationStatus === 'ready' ? locationSaved() : txLocationUnavailable()}
+              </Text>
+              {locationStatus === 'unavailable' && <Text style={styles.locationRetryText}>{txLocationRetry()}</Text>}
+            </Pressable>
+            {locationStatus === 'ready' && (
+              <TextBox label={txLocationPlaceLabel()} value={placeName ?? ''} onChange={value => onPlaceNameChange?.(value.slice(0, 60))} placeholder={txLocationPlacePlaceholder()} testID="tx-location-place" />
+            )}
+          </>
+        )}
+
         <TextBox
           label={isTransfer ? formDescriptionOptionalLabel() : formDescriptionLabel()}
           value={values.description}
@@ -556,4 +615,7 @@ const styles = StyleSheet.create({
   barRow: { flexDirection: 'row', gap: 12 },
   cancelButton: { width: 104 },
   saveButton: { flex: 1 },
+  locationChip: { alignSelf: 'flex-start', borderRadius: 10, borderWidth: 1, borderColor: MonoColors.border, backgroundColor: MonoColors.card, paddingHorizontal: 10, paddingVertical: 7 },
+  locationChipText: { ...MonoText.caption, color: MonoColors.textSecond },
+  locationRetryText: { ...MonoText.caption, color: MonoColors.text },
 });

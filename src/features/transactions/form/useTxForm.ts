@@ -25,6 +25,7 @@ import { getTxFormData, type TxEditRecord, type TxFormData } from '@/domain/txFo
 import { changesSavedMessage, txSavedMessage, undoFailedMessage, undoLabel } from '@/i18n';
 
 import type { SubmitResult } from './TransactionForm';
+import type { TransactionLocationInput } from '@/core/tx/save';
 
 export function useTxFormData(editId?: number) {
   const db = useDb();
@@ -39,14 +40,14 @@ export function useTxFormData(editId?: number) {
 
 // Add: save, close, then "Expense saved. BCA Tabungan is now Rp6.717.500." with Undo. `source` is where
 // the record came from: the form itself (default), or a reviewed receipt scan ('scan').
-export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'manual') {
+export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'manual', location?: TransactionLocationInput | null) {
   const db = useDb();
   const queryClient = useQueryClient();
   const router = useRouter();
 
   return useCallback(
     async (values: TxFormValues): Promise<SubmitResult> => {
-      const result = await saveNewTransaction(db, values, nowIso(), source);
+      const result = await saveNewTransaction(db, values, nowIso(), source, location);
       if (!result.ok) return result;
       const saved = result.value;
 
@@ -79,13 +80,13 @@ export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'm
       });
       return { ok: true };
     },
-    [db, queryClient, router, data, source],
+    [db, queryClient, router, data, source, location],
   );
 }
 
 // Edit: the same row is updated, then back to its detail with "Changes saved." and an Undo that
 // writes the old values back.
-export function useEditSubmit(record: TxEditRecord | null | undefined) {
+export function useEditSubmit(record: TxEditRecord | null | undefined, placeName?: string) {
   const db = useDb();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -93,7 +94,7 @@ export function useEditSubmit(record: TxEditRecord | null | undefined) {
   return useCallback(
     async (values: TxFormValues): Promise<SubmitResult> => {
       if (!record) return { ok: false, message: undoFailedMessage() };
-      const result = await saveTransactionChanges(db, record.id, values, nowIso());
+       const result = await saveTransactionChanges(db, record.id, values, nowIso(), record.location ? { latE6: record.location.lat_e6, lngE6: record.location.lng_e6, accuracyM: record.location.accuracy_m, capturedAt: record.location.captured_at, placeName: placeName ?? record.location.place_name ?? undefined } : null);
       if (!result.ok) return result;
 
       await invalidateAfterWrite(queryClient);
@@ -110,6 +111,6 @@ export function useEditSubmit(record: TxEditRecord | null | undefined) {
       });
       return { ok: true };
     },
-    [db, queryClient, router, record],
+    [db, queryClient, router, record, placeName],
   );
 }

@@ -7,7 +7,7 @@
 // a plus, a transfer is neutral with no sign (DESIGN.md section 6). The bank tiles keep the
 // bank's own colour; amounts next to them never turn green or red except the From / To
 // nominals the board colours (the From side red, the To side neutral).
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
@@ -20,7 +20,13 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatShortDate, formatTimeWib, monthShortLabel } from '@/core/date';
 import { currencySymbol, money, pct, rateRp, rp, shown, shownPct } from '@/core/money';
 import type { TxDetail, TxDetailAccount } from '@/domain/transactionDetail';
+import { LocationMap, type MapState } from '@/features/location/LocationMap';
 import {
+  mapAccessibilityLabel,
+  mapStatusLoading,
+  mapStatusNone,
+  mapStatusOffline,
+  mapStatusOnline,
   afterLabel,
   balanceAfterLabel,
   categoryLabel,
@@ -47,6 +53,11 @@ import {
   txDetailToLabel,
   txKindLabel,
   txSourceName,
+  locationSaved,
+  locationNotYet,
+  mapCardTitle,
+  mapCardNotYetA11y,
+  mapCardEmptyHint,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -209,6 +220,48 @@ export function DetailsCard({ detail }: { detail: TxDetail }) {
   );
 }
 
+/** The saved point on a still street map (OpenFreeMap through MapLibre, see LocationMap). Without a connection,
+ * or in a build with no map module, the map does not load and the card keeps its plain grid with the pin and
+ * the coordinates, marked "Offline". */
+export function TransactionMapCard({ detail }: { detail: TxDetail }) {
+  const location = detail.location;
+  const [mapState, setMapState] = useState<MapState>('loading');
+  const lat = location ? (location.lat_e6 / 1_000_000).toFixed(6) : null;
+  const lng = location ? (location.lng_e6 / 1_000_000).toFixed(6) : null;
+  const place = location ? location.place_name?.trim() || locationSaved() : locationNotYet();
+  const badge = !location ? mapStatusNone() : mapState === 'ready' ? mapStatusOnline() : mapState === 'offline' ? mapStatusOffline() : mapStatusLoading();
+  return (
+    <Card style={styles.mapCard} testID="tx-detail-map">
+      <View style={styles.mapHeader}>
+        <View>
+          <Text style={styles.mapTitle}>{mapCardTitle()}</Text>
+          <Text style={styles.mapSubtitle}>{place}</Text>
+        </View>
+        <Text style={styles.mapStatus} testID="tx-detail-map-status">{badge}</Text>
+      </View>
+      <View style={styles.mapPreview} accessible accessibilityLabel={location ? mapAccessibilityLabel(lat as string, lng as string) : mapCardNotYetA11y()}>
+        {location && (
+          <LocationMap latE6={location.lat_e6} lngE6={location.lng_e6} onStateChange={setMapState}>
+            <View style={styles.offlineMap} pointerEvents="none">
+              <View style={styles.offlineRiver} />
+              <View style={[styles.offlineRoad, styles.offlineRoadOne]} />
+              <View style={[styles.offlineRoad, styles.offlineRoadTwo]} />
+              <View style={[styles.offlineRoad, styles.offlineRoadThree]} />
+              <View style={[styles.offlineRoad, styles.offlineRoadFour]} />
+              <View style={[styles.offlineBlock, styles.offlineBlockOne]} />
+              <View style={[styles.offlineBlock, styles.offlineBlockTwo]} />
+              <View style={[styles.offlineBlock, styles.offlineBlockThree]} />
+              <View style={[styles.offlineBlock, styles.offlineBlockFour]} />
+            </View>
+            <Text style={styles.mapCoordinate}>{lat}, {lng}</Text>
+          </LocationMap>
+        )}
+        {!location && <Text style={styles.mapEmpty}>{mapCardEmptyHint()}</Text>}
+      </View>
+    </Card>
+  );
+}
+
 // Tx-Detail-Valas: the rupiah value is fixed at recording, so a later rate never rewrites it.
 export function RateFixedNote() {
   return (
@@ -361,6 +414,27 @@ const styles = StyleSheet.create({
   arrowRow: { width: BANK_TILE_SIZE, alignItems: 'center' },
 
   budget: { gap: 12 },
+  mapCard: { padding: 16, gap: 12 },
+  mapHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  mapTitle: { ...MonoText.bodyStrong, color: MonoColors.text },
+  mapSubtitle: { ...MonoText.caption, color: MonoColors.textSecond, marginTop: 2 },
+  mapStatus: { ...MonoText.caption, color: MonoColors.textSecond, borderWidth: 1, borderColor: MonoColors.border, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, backgroundColor: MonoColors.surface },
+  mapPreview: { height: 174, overflow: 'hidden', position: 'relative', borderRadius: 16, backgroundColor: MonoColors.surface, borderWidth: 1.5, borderColor: '#383838', shadowColor: '#000000', shadowOpacity: 0.28, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  offlineMap: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: '#0C0C0C' },
+  offlineRiver: { position: 'absolute', width: 70, height: 330, left: '58%', top: -74, backgroundColor: '#102C3A', borderLeftWidth: 3, borderRightWidth: 3, borderColor: '#17445A', transform: [{ rotate: '18deg' }] },
+  offlineRoad: { position: 'absolute', backgroundColor: '#242424', borderColor: '#383838', borderWidth: 1 },
+  offlineRoadOne: { width: '125%', height: 18, left: '-12%', top: '42%', backgroundColor: '#493518', borderColor: '#8A6428', transform: [{ rotate: '-14deg' }] },
+  offlineRoadTwo: { width: 10, height: '125%', left: '31%', top: '-12%', transform: [{ rotate: '24deg' }] },
+  offlineRoadThree: { width: '120%', height: 7, left: '-10%', top: '67%', transform: [{ rotate: '8deg' }] },
+  offlineRoadFour: { width: 6, height: '120%', left: '75%', top: '-10%', transform: [{ rotate: '-34deg' }] },
+  offlineBlock: { position: 'absolute', backgroundColor: '#151515', opacity: 0.9, borderRadius: 2, borderWidth: 1, borderColor: '#202020' },
+  offlineBlockOne: { width: 78, height: 42, left: 14, top: 18 },
+  offlineBlockTwo: { width: 62, height: 54, left: 92, top: 92 },
+  offlineBlockThree: { width: 72, height: 38, right: 12, top: 18 },
+  offlineBlockFour: { width: 54, height: 48, right: 72, bottom: 14 },
+  mapCoordinate: { position: 'absolute', left: 10, bottom: 10, ...MonoText.caption, color: '#D4D4D4', fontFamily: MonoText.figureRow.fontFamily, backgroundColor: 'rgba(12,12,12,0.88)', borderWidth: 1, borderColor: '#383838', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, overflow: 'hidden' },
+  // Centred in the box, both ways, when there is no location to show.
+  mapEmpty: { ...MonoText.caption, color: MonoColors.textMeta, textAlign: 'center', paddingHorizontal: 24, position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, textAlignVertical: 'center' },
   budgetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   budgetHeadWrap: { flexWrap: 'wrap' },
   budgetTitle: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase', flexShrink: 1 },

@@ -9,6 +9,7 @@ import { getCategory, listCategories } from '../data/repo/categories';
 import { listLatestRates } from '../data/repo/fx';
 import { getTransaction, type TransactionRow } from '../data/repo/transactions';
 import type { FormAccount, FormCategory, FormPocket, TxType } from '../core/tx/validate';
+import { getTransactionLocation, type TransactionLocation } from '../data/repo/transactionLocations';
 
 export interface TxEditRecord {
   id: number;
@@ -27,6 +28,7 @@ export interface TxEditRecord {
   // only when its amount, currency or account changes).
   supported: boolean;
   snapshot: TransactionRow;
+  location?: TransactionLocation | null;
 }
 
 export interface TxFormData {
@@ -123,6 +125,7 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
       toCurrency: row.to_currency,
       supported: true,
       snapshot: row,
+      location: await getTransactionLocation(db, row.id),
     };
   }
   return { accounts, categories, pockets, rates, record };

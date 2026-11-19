@@ -15,9 +15,15 @@ import { getTransaction, type TransactionRow, type TxSource } from '../../data/r
 import { txDbErrorMessage } from '../../i18n';
 import { formatShortDate } from '../date';
 import { toIdr } from '../money';
+import { deleteTransactionLocation, insertTransactionLocation, updateTransactionLocationPlace } from '../../data/repo/transactionLocations';
+import type { CapturedLocation } from '../../features/location/capture';
 import type { TxFormValues, TxType } from './validate';
 
 export type SaveOutcome<T> = { ok: true; value: T } | { ok: false; message: string };
+
+export interface TransactionLocationInput extends CapturedLocation {
+  placeName?: string;
+}
 
 // The database's own error code as a message (DESIGN.md section 14). Unknown codes, and any
 // error that is not one of ours, say "Couldn't save. Nothing was changed." and nothing technical.
@@ -105,12 +111,15 @@ export async function writeNewTransaction(txn: Db, values: TxFormValues, now: st
 
 // A new record. `values` has passed validateTx; `now` is an ISO instant with offset. `source` is where
 // it came from: the form (the default), or a scanned receipt ('scan').
-export async function saveNewTransaction(db: Db, values: TxFormValues, now: string, source: TxSource = 'manual'): Promise<SaveOutcome<SavedTransaction>> {
+export async function saveNewTransaction(db: Db, values: TxFormValues, now: string, source: TxSource = 'manual', location?: TransactionLocationInput | null): Promise<SaveOutcome<SavedTransaction>> {
   const accountId = values.accountId as number;
   let id = 0;
   try {
     await db.withExclusiveTransactionAsync(async txn => {
       id = await writeNewTransaction(txn, values, now, source);
+      if (location && source === 'manual' && (location.accuracyM == null || location.accuracyM <= 500)) {
+        await insertTransactionLocation(txn, { transactionId: id, ...location });
+      }
     });
   } catch (error) {
     return failure(error, now.slice(0, 10));
@@ -172,7 +181,7 @@ function patchFromValues(values: TxFormValues, amountIdr: number | undefined): U
 }
 
 // The same row, changed. The record's id, its created_at and its source stay as they were.
-export async function saveTransactionChanges(db: Db, id: number, values: TxFormValues, now: string): Promise<SaveOutcome<null>> {
+export async function saveTransactionChanges(db: Db, id: number, values: TxFormValues, now: string, location?: TransactionLocationInput | null): Promise<SaveOutcome<null>> {
   try {
     await db.withExclusiveTransactionAsync(async txn => {
       const { currency } = sideCurrencies(values);
@@ -189,6 +198,11 @@ export async function saveTransactionChanges(db: Db, id: number, values: TxFormV
         }
       }
       await updateTransaction(txn, id, patchFromValues(values, amountIdr), now);
+      if (location) {
+        await updateTransactionLocationPlace(txn, id, location.placeName ?? null);
+      } else if (location === null) {
+        await deleteTransactionLocation(txn, id);
+      }
     });
     return { ok: true, value: null };
   } catch (error) {

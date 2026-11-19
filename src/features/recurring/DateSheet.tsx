@@ -9,7 +9,13 @@ import { HeaderButton } from '@/components/HeaderButton';
 import { Icon } from '@/components/Icon';
 import { Sheet } from '@/components/Sheet';
 import { SheetHeader } from '@/components/SheetHeader';
-import { cancelLabel, closeLabel, confirmLabel } from '@/i18n';
+import {
+  cancelLabel,
+  closeLabel,
+  confirmLabel,
+  dateSheetClear,
+  dateSheetBack,
+} from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -136,7 +142,7 @@ export function DateSheet({ visible, selected, title, subtitle, optional, onSele
             {/* Footer step 1 */}
             <View style={s.footer}>
               {optional && (
-                <Button label="Hapus tanggal" variant="secondary" onPress={() => onSelect('')} style={s.flex} />
+                <Button label={dateSheetClear()} variant="secondary" onPress={() => onSelect('')} style={s.flex} />
               )}
               <Button label={cancelLabel()} variant="secondary" onPress={onClose} style={s.flex} />
               <Button label={confirmLabel()} onPress={() => setStep('day')} style={s.flex} />
@@ -169,7 +175,7 @@ export function DateSheet({ visible, selected, title, subtitle, optional, onSele
 
             {/* Footer step 2 */}
             <View style={s.footer}>
-              <Button label="Kembali" variant="secondary" onPress={() => setStep('month')} style={s.flex} />
+              <Button label={dateSheetBack()} variant="secondary" onPress={() => setStep('month')} style={s.flex} />
               <Button label={confirmLabel()} onPress={confirm} style={s.flex} />
             </View>
           </>

@@ -75,6 +75,47 @@ describe('TransactionForm: a fresh form', () => {
     expect(transfer.getByText('Amount to move')).toBeTruthy();
   });
 
+  test('a transfer shortcut preselects both the source and the destination', async () => {
+    const { view } = await renderForm({ initialType: 'transfer', initialAccountId: 1, initialToAccountId: 3 });
+    const result = await view;
+    expect(result.getByTestId('tx-from-button').props.accessibilityLabel).toBe('From, BCA Tabungan');
+    expect(result.getByTestId('tx-to-button').props.accessibilityLabel).toBe('To, Jago Pocket');
+  });
+
+  test('a transfer shortcut whose destination is the source leaves the destination empty', async () => {
+    const { view } = await renderForm({ initialType: 'transfer', initialAccountId: 1, initialToAccountId: 1 });
+    const result = await view;
+    expect(result.getByTestId('tx-to-button').props.accessibilityLabel).toBe('To, Choose account');
+  });
+
+  test('a category quick record fills in the amount, category and account', async () => {
+    const { view } = await renderForm({
+      initialType: 'expense',
+      initialAccountId: 2,
+      initialCategoryId: FOOD,
+      initialAmount: 18000,
+    });
+    const result = await view;
+    expect(result.getByTestId('tx-amount-input').props.value).toBe('18.000');
+    expect(result.getByTestId('tx-description').props.value).toBe('');
+    expect(result.getByTestId(`tx-category-${FOOD}`).props.accessibilityState).toMatchObject({ selected: true });
+    expect(result.getByTestId('tx-account-button').props.accessibilityLabel).toBe('Account, Cash wallet');
+    expect(result.getByText('Balance after: Rp432.000')).toBeTruthy();
+  });
+
+  test('a category quick record whose category belongs to the other kind is dropped, the rest stays', async () => {
+    const { view } = await renderForm({
+      initialType: 'expense',
+      initialCategoryId: SALARY, // an income category on an expense
+      initialAmount: 18000,
+    });
+    const result = await view;
+    expect(result.getByTestId('tx-amount-input').props.value).toBe('18.000');
+    expect(result.getByTestId('tx-description').props.value).toBe('');
+    expect(result.queryByTestId(`tx-category-${SALARY}`)).toBeNull();
+    expect(result.queryByTestId('tx-category-error')).toBeNull();
+  });
+
   test('Cancel and close both leave; the header has no Chat shortcut', async () => {
     const { view, onCancel } = await renderForm();
     const result = await view;

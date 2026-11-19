@@ -5,6 +5,7 @@
 import type { Db } from '../data/db/types';
 import type { AccountType } from '../data/repo/accounts';
 import * as repo from '../data/repo/transactionDetail';
+import { getTransactionLocation } from '../data/repo/transactionLocations';
 import type { TxKind, TxSource } from '../data/repo/transactions';
 
 export interface TxDetailAccount {
@@ -48,6 +49,7 @@ export interface TxDetail {
   // Foreign-currency income/expense only: the rate the rupiah value was struck at.
   rateE4: number | null;
   budget: TxDetailBudget | null; // expenses whose category has a budget that month
+  location?: import('../data/repo/transactionLocations').TransactionLocation | null;
 }
 
 // amount_idr / amount, as rupiah per 1 major unit times 10.000 (the same unit as
@@ -62,7 +64,10 @@ export async function getTransactionDetail(db: Db, id: number): Promise<TxDetail
   const row = await repo.getTxDetailRow(db, id);
   if (!row) return null;
 
-  const balanceAfter = (await repo.getBalanceAfter(db, row.account_id, row.currency, row.id)) ?? 0;
+  const [balanceAfter, location] = await Promise.all([
+    repo.getBalanceAfter(db, row.account_id, row.currency, row.id),
+    getTransactionLocation(db, id),
+  ]);
   const account: TxDetailAccount = {
     id: row.account_id,
     name: row.account_name,
@@ -70,7 +75,7 @@ export async function getTransactionDetail(db: Db, id: number): Promise<TxDetail
     icon: row.account_icon,
     currency: row.currency,
     minorFactor: row.minor_factor,
-    balanceAfter,
+    balanceAfter: balanceAfter ?? 0,
   };
 
   let toAccount: TxDetailAccount | null = null;
@@ -122,6 +127,7 @@ export async function getTransactionDetail(db: Db, id: number): Promise<TxDetail
     toAccount,
     rateE4: row.kind !== 'transfer' && row.currency !== 'IDR' ? impliedRateE4(row.amount_idr, row.amount, row.minor_factor) : null,
     budget,
+    location,
   };
 }
 
