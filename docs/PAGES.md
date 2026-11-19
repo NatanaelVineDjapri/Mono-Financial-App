@@ -139,6 +139,7 @@ Papan: `Main` · 390 × 2970
 - Hero dengan gelombang emas lembut di belakangnya: sapaan "Selamat datang, Nael" (Newsreader 28/34, satu-satunya serif), baris "Net worth" dengan tombol Sembunyikan/Tampilkan (44), saldo (IBM Plex Sans 700, 40/46), chip perubahan hijau (tinggi 28, radius 14) "▲ +Rp3.243.000 (+57,53%)" dan "vs 30 Sep 2026". Di bawahnya chip kedua untuk tahun berjalan (YTD): selisih dan persen terhadap akhir tahun lalu, dengan keterangan "YTD · vs 31 Dec 2025"; tidak tampil bila catatan baru mulai tahun ini. The top of the screen has one background image, `assets/images/mono-overview-bg.jpg` (portrait artwork, 936×1681), behind everything from the MONO logo down to the balance: scaled uniformly to the screen width and shifted so the thin gold ribbon runs through the top-right corner above the greeting and the balance, with the image's own bottom edge fading into the screen background (#0A0A0A) so there is no visible edge. The header and the hero have no fill of their own (the header scrolls with the content). The Hide/Show amounts control is plain text with no fill and no border: an 18 eye icon and "Hide amounts" in the same grey as the "NET WORTH" label (#8A8A8A, 13/18, 500), right-aligned with a 44 high touch area; under 360dp it reads "Hide".
 - Dua kartu berdampingan (jarak 12), Expenses dan Income bulan ini: cakram ikon emas 40 dengan label di sebelahnya (satu baris), angka (20/26, 700), perubahan terhadap bulan lalu (Expenses abu netral dengan segitiga, Income hijau). Di bawahnya kartu tipis "Net cash flow · Oct" bernilai hijau dan catatan "Consumption only. Transfers between your accounts are excluded."
 - "Your accounts": carousel kartu bank berwarna bergaya coverflow 3D (300 × 154): kartu yang fokus di tengah dengan ukuran penuh dan bayangan lembut, kartu tetangga mengintip di kiri dan kanan (skala 0,88, miring sekitar 26° pada sumbu Y, lebih gelap), snap ke tengah, berputar (kartu terakhir ada di kiri kartu pertama, dan sebaliknya), titik indikator di bawahnya (yang aktif lebih panjang, emas), nama dan saldo di kiri bawah dengan warna `fg` kartu, tag kecil di kanan atas, tautan "All accounts".
+- "Catat cepat": kartu berisi lima nama tempat (`place_name`) yang paling sering dipakai atau jenis kategori yang paling sering muncul (urut jumlah penggunaan, lalu yang terbaru), masing-masing berupa inisial dan nama tempat/kategori; ketuk untuk membuka formulir dengan akun, kategori, jumlah, dan tempat yang relevan sudah terisi sehingga cukup simpan. Label yang sama tidak diulang; kartu tersembunyi bila belum ada tempat atau kategori.
 - Kartu "Cash flow": batang pemasukan (emas) vs pengeluaran (#737373) dua belas bulan, disertai garis kisi, garis dasar (sumbu x), keterangan sumbu y dalam juta rupiah, dan tabel nilai.
 - Kartu "Top categories": cincin 140 (stroke 16, ujung bulat, jeda 5) dengan persen terbesar dan nama kategorinya di tengah, legenda dengan titik, nama dan persen (largest remainder satu desimal; Food & drink 33,5%), tautan "Amounts" ke Reports. Warna: terbesar emas, lalu #A3A3A3, #737373, #525252, Others #3A3A3A.
 - Kartu "Fixed expenses" berbingkai emas 1,5 px: Gym membership jatuh tempo hari ini (Rp200.000) dengan tombol "Review and record", lalu "Next: Internet · 5 Nov" Rp385.000.
@@ -690,7 +691,7 @@ Papan: `Settings` · 390 × 1720
  
 **Tata letak dan komponen**
  
-- Privacy: App lock (sidik jari atau PIN), Hide amounts on launch, Block screenshots and app preview.
+- Privacy: Hide amounts on launch, Block screenshots and app preview.
 - Format: Currency (rupiah, tanpa desimal, uang asing ada di akun Valas, ikon gembok), Exchange rates (terakhir diperbarui 28 Okt 2026 09:00, membuka papan Rates), Number format, Month starts on, Time zone (WIB, UTC+7).
 - Data: Monthly backup reminder, Fixed expense reminders (sakelar, 09:00, nominal tidak ditampilkan di notifikasi bila Hide amounts aktif), Backup and restore (cadangan terakhir 21 Okt 2026), Categories.
 - Assistant: sakelar "Catat lewat chat (AI)" (mati secara default) dan baris "API key Gemini" yang membuka layar setup.
@@ -1100,6 +1101,25 @@ Papan: `Import-Permission` · 390 × 844 (lembar)
 **Catatan**
  
 - MONO mendeteksi izin yang belum aktif dan menampilkan panduan ini dari bagian masalah di N2.
+## O · Analisis (skor kesehatan keuangan)
+
+Papan: Analyze, Analyze-How, Analyze-States. Rute `/analysis` dan `/analysis/how`. Pintu masuk: baris "Analisis" di Lainnya (skor di kanan) dan banner "Financial insights" di Ringkasan.
+
+- **Skor 0 sampai 100 dihitung dengan rumus di ponsel**, bukan AI, tanpa jaringan, tidak disimpan. Lima komponen: tabungan 25, anggaran 25, dana darurat 20, pengeluaran tetap 15, arah kekayaan bersih 15. Komponen tanpa data dilewati dan bobotnya dibagi ulang (sisa terbesar, jumlah tepat 100). Poin = round half up dari rasio yang dibulatkan ke persen utuh; skor = jumlah poin. Kelayakan: minimal 10 transaksi dan 28 hari data, selain itu layar "belum bisa dihitung" dengan daftar syarat.
+- Pemilih periode memakai kalender bulan yang sama dengan Anggaran dan Laporan. Kartu skor (cincin emas, 600 ms, mati bila reduce motion), lima baris komponen dengan tag "Terendah", "Yang bisa dinaikkan" (maks 3, selisih poin disimulasikan dengan fungsi skor yang sama), kartu "Perhatikan", "Yang sudah baik", dan "Skor 6 bulan" (batang plus tabel nilai).
+- Kalimat semuanya dari templat (`src/features/analysis/copy.ts` lewat `src/i18n`); skor rendah bernada tenang tanpa merah.
+- **Kartu "Analisis AI" (opsional)**: ulasan tertulis dari Gemini dengan kunci milik pengguna, hanya setelah persetujuan sekali yang bisa dicabut. Dikirim ringkasan angka dan 10 pengeluaran terbesar; tidak pernah nama akun, saldo, target, catatan, struk, cadangan, atau kunci. Selalu berlabel "Ditulis AI", tidak disimpan, tidak mengubah skor. Aturannya di CLAUDE.md rule 23.
+- `/analysis/how` statis: bobot, ambang, dan contoh diambil dari konstanta dan rumus yang sama dengan skor.
+
+## P · Notifikasi
+
+Rute `/notifications` (kotak masuk, lonceng di Ringkasan dengan hitungan belum dibaca) dan `/settings/notifications`. Semua dijadwalkan di ponsel (expo-notifications), tanpa server. Pengingat: catat harian, tagihan jatuh tempo besok dan terlewat, anggaran mendekati dan melewati batas, pencapaian target, cadangan. Jam tenang menunda notifikasi sistem, kotak masuk tetap berjalan. Dengan Sembunyikan nominal aktif, tidak ada nominal di notifikasi. Keadaan izin ditolak menawarkan membuka pengaturan ponsel. Semua teks lewat `src/i18n`.
+
+## Q · Ringkasan: hero dan blok arus kas
+
+- Hero: sapaan, kartu Net worth dengan tombol Sembunyikan nominal, chip perubahan (hijau dengan plus bila naik, merah dengan minus bila turun, segitiga selalu ada), dan tombol Record, Transfer, Scan. Banner "Financial insights" ke Analisis berada di bawah "Catat cepat".
+- Blok "Arus kas bersih" (`NetCashFlowCard`): total berjalan sebagai grafik area emas dengan tooltip sentuh, pilihan Minggu / Bulan / Tahun (7 hari, periode berjalan dibanding hari yang sama bulan lalu, 12 periode), dan tile Masuk dan Keluar dengan bar. Label aksesibilitas dan tabel nilai tepat di bawahnya.
+
 ## Keadaan sistem
  
 ### S1 · Keadaan kosong

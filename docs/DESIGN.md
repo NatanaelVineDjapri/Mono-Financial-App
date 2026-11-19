@@ -184,7 +184,7 @@ Period selector, cash flow (savings rate), six-month trend with table, spending 
 Local-only banner, last backup, "Create backup now", contents list, restore entry, recent backups. *Restore confirm:* file info, comparison of this device versus file, warning, safety-backup switch, required tick, disabled Replace until ticked. *Invalid file:* explicit checklist (readable JSON ✓, MONO marker ✓, schema version ✕, totals skipped), data untouched.
  
 **J. Settings**
-Privacy (app lock, hide amounts on launch, block screenshots), assistant (AI chat switch, Gemini API key), format (rupiah currency, exchange rates, number format, month start, time zone), data (backup reminder, backup, categories), erase all data, About.
+Privacy (hide amounts on launch, block screenshots), assistant (AI chat switch, Gemini API key), format (rupiah currency, exchange rates, number format, month start, time zone), data (backup reminder, backup, categories), erase all data, About.
  
 **K. AI chat (optional): add transactions by chatting**
 - *AI-Setup (consent and key):* title "Catat lewat chat", what is sent to Gemini (typed message, account and category names, today's date) versus never sent (balances, transaction history, budgets, goals, backups), API key field (masked, Paste), note that the key stays on the phone (Android Keystore), is excluded from backups and that MONO has no server, warning that usage follows the key's quota or billing and that this feature needs the internet, button "Simpan dan tes kunci".
@@ -223,6 +223,10 @@ Confirm-first model: a fixed expense is a template, and the transaction is creat
 - *Backup:* recurring and recurring_events are included (Backup shows "Fixed expenses 4", Restore compares 4 / 4).
 **More** and **Categories** (10 expense, 4 income, system Transfer row). Categories are managed here: add, edit (rename, icon, type until it is used), archive and restore from "Diarsipkan". They are never deleted; each type keeps at least one active category; a category an active fixed expense uses cannot be archived; budgets of an archived category stay for the month and are not copied forward. See PAGES.md K.
  
+### Analysis, notifications and the Overview hero (built after the boards above)
+
+Analysis (`/analysis`, `/analysis/how`): a financial health score from a formula on the phone (no AI, no network, nothing stored), with an optional, consented "AI analysis" card that uses the person's own Gemini key (CLAUDE.md rule 23). Notifications (`/notifications`, `/settings/notifications`): local reminders, quiet hours, an inbox. The Overview hero shows net worth with its change and the Record / Transfer / Scan buttons; a "Net cash flow" block with a Week / Month / Year switch follows the accounts. Positive amounts are green with a plus sign, negative red with a minus sign. Details in PAGES.md sections O, P and Q.
+
 ## 12. Accounting rules
  
 1. No stored balances. Balance = opening + income − expense ± transfers.
@@ -415,7 +419,7 @@ File name `mono-backup-YYYY-MM-DD.json`. Readable, not encrypted. Not included: 
  
 ### Packages (`package.json`)
  
-`expo`, `expo-router`, `expo-sqlite`, `@tanstack/react-query`, `zustand`, `react-native-reanimated`, `react-native-gesture-handler`, `@shopify/react-native-skia`, `victory-native`, `expo-font` with `@expo-google-fonts/*`, `expo-video`, `expo-sharing`, `expo-document-picker`, `expo-file-system`, `expo-asset`, `expo-crypto`, `expo-local-authentication`, `expo-screen-capture`, `expo-notifications`, `expo-secure-store`. Dev: `jest`, `better-sqlite3`, `eslint`. Deliberately absent: `axios`, `firebase`, analytics and crash SDKs.
+`expo`, `expo-router`, `expo-sqlite`, `@tanstack/react-query`, `zustand`, `react-native-reanimated`, `react-native-gesture-handler`, `@shopify/react-native-skia`, `victory-native`, `expo-font` with `@expo-google-fonts/*`, `expo-video`, `expo-sharing`, `expo-document-picker`, `expo-file-system`, `expo-asset`, `expo-crypto`, `expo-screen-capture`, `expo-notifications`, `expo-secure-store`. Dev: `jest`, `better-sqlite3`, `eslint`. Deliberately absent: `axios`, `firebase`, analytics and crash SDKs.
  
 Expo's default Android manifest already declares INTERNET. Keep it for the optional AI chat only, strip unused permissions with `android.blockedPermissions`, read the merged manifest after prebuild, and ban `fetch` outside `src/features/ai_chat` with an ESLint rule. `expo-screen-capture` sets FLAG_SECURE when "Block screenshots" is on. Add `.sql` to Metro `assetExts`.
  
