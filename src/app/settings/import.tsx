@@ -10,7 +10,6 @@ import { ImportPermissionSheet } from '@/features/import/ImportPermissionSheet';
 import { ImportScreenView } from '@/features/import/ImportSettingsView';
 import { shouldShowPermissionGuide, useNotificationAccess } from '@/features/import/notifications/access';
 import * as native from '@/features/import/notifications/native';
-import { withLockSuspended } from '@/features/lock/useLock';
 import { useImportAppActions, useImportApps, type ImportActionResult } from '@/features/import/useImportApps';
 import { AccountSheet } from '@/features/transactions/form/formSheets';
 import { useTxFormData } from '@/features/transactions/form/useTxForm';
@@ -70,13 +69,13 @@ export default function ImportSettingsRoute() {
           native.requestRebind();
           refresh();
         }}
-        onOpenBattery={() => void withLockSuspended(() => native.openBatterySettings())}
+        onOpenBattery={() => void native.openBatterySettings()}
       />
       <ImportPermissionSheet
         visible={guide && shouldShowPermissionGuide(access)}
         onClose={() => setGuide(false)}
-        onOpenSettings={() => void withLockSuspended(() => native.openAppInfo())}
-        onOpenAccess={() => void withLockSuspended(() => native.openAccessSettings())}
+        onOpenSettings={() => void native.openAppInfo()}
+        onOpenAccess={() => void native.openAccessSettings()}
       />
       <AccountSheet
         visible={picker != null}

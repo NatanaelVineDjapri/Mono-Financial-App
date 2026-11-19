@@ -6,13 +6,14 @@
 // and Tentang (brand lockup, offline note, open-source licenses).
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
-import * as LocalAuthentication from 'expo-local-authentication';
+import * as Location from 'expo-location';
 import { useCallback, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Button } from '@/components/Button';
 import { HeaderRow } from '@/components/HeaderRow';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
@@ -23,6 +24,9 @@ import { showToast } from '@/components/toast-store';
 import { setNumberFormat } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
+import { AvatarPickerSheet } from '@/features/profile/AvatarPickerSheet';
+import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
+import { saveAvatarPose, useAvatarPose } from '@/features/profile/useAvatarPose';
 import { getLastBackupAt } from '@/data/repo/backupLog';
 import { getAllSettings, setSetting } from '@/data/repo/settings';
 import { resetDatabase } from '@/dev/resetDatabase';
@@ -30,7 +34,6 @@ import { deleteKeyAndDisable, setAiEnabled } from '@/features/ai_chat/aiSettings
 import { hasKey } from '@/features/ai_chat/keystore';
 import { getRatesOverview } from '@/features/fx/ratesOverview';
 import { useImportApps } from '@/features/import/useImportApps';
-import { withLockSuspended } from '@/features/lock/useLock';
 import { formatBackupTime, zoneOf } from '@/features/more/backupStatus';
 import {
   cancelLabel,
@@ -49,10 +52,6 @@ import {
   settingsAiKeyNotSet,
   settingsAiKeySub,
   settingsAiKeyTitle,
-  settingsAppLockPromptDisable,
-  settingsAppLockPromptEnable,
-  settingsAppLockSub,
-  settingsAppLockTitle,
   settingsBackupSub,
   settingsBackupTitle,
   settingsBlockScreenshotsSub,
@@ -73,6 +72,9 @@ import {
   settingsGroupData,
   settingsGroupErase,
   settingsGroupFormat,
+  profileAvatarSub,
+  profileAvatarTitle,
+  profileGroupTitle,
   settingsGroupPrivacy,
   settingsHideOnLaunchSub,
   settingsHideOnLaunchTitle,
@@ -81,9 +83,6 @@ import {
   settingsMonthStartSub,
   settingsMonthStartTitle,
   settingsMonthStartValue,
-  settingsNoLockMessage,
-  settingsNoLockOpenSettings,
-  settingsNoLockTitle,
   settingsNotifBackupSub,
   settingsNotifBackupTitle,
   settingsNotificationsSub,
@@ -102,6 +101,18 @@ import {
   settingsTimezoneSub,
   settingsTimezoneTitle,
   settingsTimezoneValue,
+  settingsLocationTitle,
+  settingsLocationSub,
+  settingsLocationDeleteTitle,
+  settingsLocationDeleteMessage,
+  settingsLocationKeepOld,
+  settingsLocationDeleteAll,
+  settingsLocationDeniedTitle,
+  settingsLocationDeniedMessage,
+  settingsLocationOpenSettings,
+  settingsLocationSheetSubtitle,
+  settingsLocationSheetBody,
+  settingsLocationEnable,
 } from '@/i18n';
 import { useLanguage } from '@/i18n/lang';
 import { MonoColors } from '@/theme/tokens';
@@ -164,18 +175,22 @@ export default function SettingsScreen() {
   );
 
   // Dialog & sheet states
+  const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
+  const avatarPose = useAvatarPose();
   const [eraseDialogOpen, setEraseDialogOpen] = useState(false);
   const [eraseBusy, setEraseBusy] = useState(false);
-  const [noLockDialogOpen, setNoLockDialogOpen] = useState(false);
   const [tzSheetOpen, setTzSheetOpen] = useState(false);
   const [monthSheetOpen, setMonthSheetOpen] = useState(false);
   const [formatSheetOpen, setFormatSheetOpen] = useState(false);
   const [notifSheetOpen, setNotifSheetOpen] = useState(false);
   const [licensesSheetOpen, setLicensesSheetOpen] = useState(false);
+  const [locationSheetOpen, setLocationSheetOpen] = useState(false);
+  const [locationDeleteDialogOpen, setLocationDeleteDialogOpen] = useState(false);
+  const [locationPermissionDialogOpen, setLocationPermissionDialogOpen] = useState(false);
+  const [storedLocationCount, setStoredLocationCount] = useState(0);
 
   // Derived values
   const settings = screenData?.settings ?? {};
-  const appLock = settings.app_lock !== '0';
   const hideOnLaunch = settings.hide_on_launch === '1';
   const blockScreenshots = settings.block_screenshots !== '0';
   const numFormat = settings.number_format ?? 'id_ID';
@@ -183,47 +198,32 @@ export default function SettingsScreen() {
   const currentTz = settings.timezone ?? 'Asia/Jakarta';
   const zone = zoneOf(currentTz);
   const aiEnabled = settings.ai_enabled === '1' && (screenData?.hasKey ?? false);
-  const backupReminder = settings.backup_reminder !== '0';
-  const recurringReminder = settings.recurring_reminders !== '0';
-  const notifActive = backupReminder || recurringReminder;
+  const notifActive = settings.notif_enabled === '1';
+  const locationEnabled = settings.location_enabled === '1';
 
-  // Toggle handlers
-  const onToggleAppLock = async (val: boolean) => {
-    try {
-      if (val) {
-        const hasHw = await LocalAuthentication.hasHardwareAsync();
-        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-        const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
-        if (!hasHw || !isEnrolled || enrolledLevel === LocalAuthentication.SecurityLevel.NONE) {
-          setNoLockDialogOpen(true);
-          return;
-        }
+  const onToggleLocation = async (value: boolean) => {
+    if (value) {
+      setLocationSheetOpen(true);
+      return;
+    }
+    const count = await db.getFirstAsync<{ n: number }>('select count(*) as n from transaction_locations').catch(() => ({ n: 0 }));
+    setStoredLocationCount(count?.n ?? 0);
+    await setSetting(db, 'location_enabled', '0');
+    await invalidateAfterWrite(queryClient);
+    setLocationDeleteDialogOpen(true);
+  };
 
-        const res = await withLockSuspended(() =>
-          LocalAuthentication.authenticateAsync({
-            promptMessage: settingsAppLockPromptEnable(),
-            cancelLabel: cancelLabel(),
-            disableDeviceFallback: false,
-          }),
-        );
-        if (!res.success) return;
-      } else {
-        const res = await withLockSuspended(() =>
-          LocalAuthentication.authenticateAsync({
-            promptMessage: settingsAppLockPromptDisable(),
-            cancelLabel: cancelLabel(),
-            disableDeviceFallback: false,
-          }),
-        );
-        if (!res.success) return;
-      }
-
-      await setSetting(db, 'app_lock', val ? '1' : '0');
+  const requestLocation = async () => {
+    const result = await Location.requestForegroundPermissionsAsync();
+    setLocationSheetOpen(false);
+    if (result.status === Location.PermissionStatus.GRANTED) {
+      await setSetting(db, 'location_enabled', '1');
       await invalidateAfterWrite(queryClient);
-    } catch {
-      // Keep switch in current state
+    } else {
+      setLocationPermissionDialogOpen(true);
     }
   };
+
 
   const onToggleHideOnLaunch = async (val: boolean) => {
     await setSetting(db, 'hide_on_launch', val ? '1' : '0');
@@ -266,15 +266,8 @@ export default function SettingsScreen() {
     setFormatSheetOpen(false);
   };
 
-  const onToggleBackupReminder = async (val: boolean) => {
-    await setSetting(db, 'backup_reminder', val ? '1' : '0');
-    await invalidateAfterWrite(queryClient);
-  };
-
-  const onToggleRecurringReminder = async (val: boolean) => {
-    await setSetting(db, 'recurring_reminders', val ? '1' : '0');
-    await invalidateAfterWrite(queryClient);
-  };
+  const onToggleBackupReminder = async (_val: boolean) => {}; // removed: now in /settings/notifications
+  const onToggleRecurringReminder = async (_val: boolean) => {}; // removed: now in /settings/notifications
 
   const onConfirmErase = async () => {
     setEraseBusy(true);
@@ -326,24 +319,34 @@ export default function SettingsScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: 32 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. PRIVASI */}
+        {/* 0. PROFIL */}
         <Text style={[styles.sectionHeader, styles.sectionHeaderFirst]} accessibilityRole="header">
+          {profileGroupTitle()}
+        </Text>
+        <View style={styles.card}>
+          <Pressable
+            style={({ pressed }) => [styles.row, styles.rowLast, pressed && styles.pressed]}
+            onPress={() => setAvatarSheetOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${profileAvatarTitle()}, ${profileAvatarSub()}`}
+            testID="settings-avatar-row"
+          >
+            <View style={styles.avatarWrap}>
+              <ProfileAvatar poseId={avatarPose} size={44} testID="settings-avatar" />
+            </View>
+            <View style={styles.rowTextWrap}>
+              <Text style={styles.rowTitle}>{profileAvatarTitle()}</Text>
+              <Text style={styles.rowSub}>{profileAvatarSub()}</Text>
+            </View>
+            <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
+          </Pressable>
+        </View>
+
+        {/* 1. PRIVASI */}
+        <Text style={styles.sectionHeader} accessibilityRole="header">
           {settingsGroupPrivacy()}
         </Text>
         <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.rowTextWrap}>
-              <Text style={styles.rowTitle}>{settingsAppLockTitle()}</Text>
-              <Text style={styles.rowSub}>{settingsAppLockSub()}</Text>
-            </View>
-            <MonoSwitch
-              value={appLock}
-              onValueChange={v => void onToggleAppLock(v)}
-              label={settingsAppLockTitle()}
-              testID="settings-app-lock-switch"
-            />
-          </View>
-
           <View style={styles.row}>
             <View style={styles.rowTextWrap}>
               <Text style={styles.rowTitle}>{settingsHideOnLaunchTitle()}</Text>
@@ -368,6 +371,14 @@ export default function SettingsScreen() {
               label={settingsBlockScreenshotsTitle()}
               testID="settings-block-screenshots-switch"
             />
+          </View>
+
+          <View style={[styles.row, styles.rowLast]}>
+            <View style={styles.rowTextWrap}>
+              <Text style={styles.rowTitle}>{settingsLocationTitle()}</Text>
+              <Text style={styles.rowSub}>{settingsLocationSub()}</Text>
+            </View>
+            <MonoSwitch value={locationEnabled} onValueChange={v => void onToggleLocation(v)} label={settingsLocationTitle()} testID="settings-location-switch" />
           </View>
         </View>
 
@@ -531,7 +542,7 @@ export default function SettingsScreen() {
           {/* Notifikasi */}
           <Pressable
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-            onPress={() => setNotifSheetOpen(true)}
+            onPress={() => router.push('/settings/notifications' as never)}
             accessibilityRole="button"
             accessibilityLabel={`${settingsNotificationsTitle()}, ${notifActive ? settingsStatusActive() : settingsStatusInactive()}`}
             testID="settings-notifications-row"
@@ -659,22 +670,48 @@ export default function SettingsScreen() {
         testID="settings-erase-dialog"
       />
 
-      {/* Dialog: No lock credentials on device */}
       <ConfirmDialog
-        visible={noLockDialogOpen}
-        icon="alert-circle"
-        iconColor={MonoColors.accent}
-        title={settingsNoLockTitle()}
-        message={[{ text: settingsNoLockMessage() }]}
-        cancelLabel={cancelLabel()}
-        confirmLabel={settingsNoLockOpenSettings()}
-        onCancel={() => setNoLockDialogOpen(false)}
+        visible={locationDeleteDialogOpen}
+        icon="trash"
+        iconColor={MonoColors.textSecond}
+        title={settingsLocationDeleteTitle()}
+        message={[{ text: settingsLocationDeleteMessage(storedLocationCount) }]}
+        cancelLabel={settingsLocationKeepOld()}
+        confirmLabel={settingsLocationDeleteAll()}
+        onCancel={() => setLocationDeleteDialogOpen(false)}
         onConfirm={() => {
-          setNoLockDialogOpen(false);
-          void withLockSuspended(() => Linking.openSettings());
+          setLocationDeleteDialogOpen(false);
+          void db.runAsync('delete from transaction_locations');
         }}
-        testID="settings-no-lock-dialog"
+        testID="settings-location-delete-dialog"
       />
+      <ConfirmDialog
+        visible={locationPermissionDialogOpen}
+        icon="alert-circle"
+        title={settingsLocationDeniedTitle()}
+        message={[{ text: settingsLocationDeniedMessage() }]}
+        cancelLabel={cancelLabel()}
+        confirmLabel={settingsLocationOpenSettings()}
+        onCancel={() => setLocationPermissionDialogOpen(false)}
+        onConfirm={() => { setLocationPermissionDialogOpen(false); void Linking.openSettings(); }}
+        testID="settings-location-permission-dialog"
+      />
+
+      <AvatarPickerSheet
+        visible={avatarSheetOpen}
+        selected={avatarPose}
+        onSelect={id => {
+          setAvatarSheetOpen(false);
+          void saveAvatarPose(db, id).then(() => invalidateAfterWrite(queryClient));
+        }}
+        onClose={() => setAvatarSheetOpen(false)}
+      />
+
+      <Sheet visible={locationSheetOpen} onClose={() => setLocationSheetOpen(false)} closeLabel={cancelLabel()} testID="location-explanation-sheet">
+        <SheetHeader visible={locationSheetOpen} icon="info" title={settingsLocationTitle()} subtitle={settingsLocationSheetSubtitle()} onClose={() => setLocationSheetOpen(false)} />
+        <Text style={styles.sheetBody}>{settingsLocationSheetBody()}</Text>
+        <Button label={settingsLocationEnable()} onPress={() => void requestLocation()} />
+      </Sheet>
 
       {/* Sheet: Timezone */}
       <Sheet
@@ -798,48 +835,6 @@ export default function SettingsScreen() {
         </View>
       </Sheet>
 
-      {/* Sheet: Notifications */}
-      <Sheet
-        visible={notifSheetOpen}
-        onClose={() => setNotifSheetOpen(false)}
-        closeLabel={cancelLabel()}
-        testID="notifications-sheet"
-      >
-        <SheetHeader
-          visible={notifSheetOpen}
-          icon="bell"
-          title={settingsNotificationsTitle()}
-          subtitle={settingsNotificationsSub()}
-          onClose={() => setNotifSheetOpen(false)}
-        />
-        <View style={styles.sheetList}>
-          <View style={styles.sheetToggleRow}>
-            <View style={styles.rowTextWrap}>
-              <Text style={styles.sheetItemText}>{settingsNotifBackupTitle()}</Text>
-              <Text style={styles.sheetItemSub}>{settingsNotifBackupSub()}</Text>
-            </View>
-            <MonoSwitch
-              value={backupReminder}
-              onValueChange={v => void onToggleBackupReminder(v)}
-              label={settingsNotifBackupTitle()}
-              testID="notif-backup-switch"
-            />
-          </View>
-          <View style={styles.sheetToggleRow}>
-            <View style={styles.rowTextWrap}>
-              <Text style={styles.sheetItemText}>{settingsNotifRecurringTitle()}</Text>
-              <Text style={styles.sheetItemSub}>{settingsNotifRecurringSub()}</Text>
-            </View>
-            <MonoSwitch
-              value={recurringReminder}
-              onValueChange={v => void onToggleRecurringReminder(v)}
-              label={settingsNotifRecurringTitle()}
-              testID="notif-recurring-switch"
-            />
-          </View>
-        </View>
-      </Sheet>
-
       {/* Sheet: Open-source licenses */}
       <Sheet
         visible={licensesSheetOpen}
@@ -930,6 +925,7 @@ const styles = StyleSheet.create({
   rowLast: {
     borderBottomWidth: 0,
   },
+  avatarWrap: { marginRight: 14 },
   rowTextWrap: {
     flex: 1,
     marginRight: 12,
@@ -1002,6 +998,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 8,
   },
+  sheetBody: { ...MonoText.bodyS, color: MonoColors.textSecond, paddingHorizontal: 16, paddingBottom: 16, lineHeight: 21 },
   sheetItem: {
     flexDirection: 'row',
     alignItems: 'center',

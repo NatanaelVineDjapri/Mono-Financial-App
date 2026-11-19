@@ -25,8 +25,8 @@ import { useBlockScreenshots } from '@/features/ai_chat/useBlockScreenshots';
 import { FxAutoUpdate } from '@/features/fx/FxAutoUpdate';
 import { ImportSync } from '@/features/import/ImportSync';
 import { RecurringConfirmHost } from '@/features/recurring/RecurringConfirmHost';
+import { NotificationsInit } from '@/features/notifications/NotificationsInit';
 import { initialLanguage, useLanguage } from '@/i18n/lang';
-import { LockGate } from '@/features/lock/LockGate';
 import { navTheme } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -133,6 +133,7 @@ export default function RootLayout() {
             <DbProvider>
               <HiddenAmountsInit />
               <BlockScreenshotsInit />
+              <NotificationsInit />
               <ImportSync />
               <FxAutoUpdate />
               <LanguageGate>
@@ -143,11 +144,9 @@ export default function RootLayout() {
                   back on its first tab (Overview) instead of the tab the user actually came
                   from. Every screen below already draws its own header, so the native one is
                   off everywhere. */}
-              <LockGate>
                 <Stack screenOptions={{ headerShown: false }} />
                 <ToastHost />
                 <RecurringConfirmHost />
-              </LockGate>
               </LanguageGate>
             </DbProvider>
           </ThemeProvider>

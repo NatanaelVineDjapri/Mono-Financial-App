@@ -19,7 +19,6 @@ import { today as todayLocal } from '@/core/clock';
 import { discardCachedImage } from '@/features/receipt/cache';
 import { scanImage } from '@/features/receipt/scan';
 import { useReceiptStore } from '@/features/receipt/store';
-import { withLockSuspended } from '@/features/lock/useLock';
 import {
   receiptAllowCameraLabel,
   receiptCloseLabel,
@@ -63,7 +62,7 @@ export default function ScanReceiptScreen() {
   // The first visit asks for the camera; coming back from the system settings re-reads the answer.
   useEffect(() => {
     if (permission && permission.status === 'undetermined' && permission.canAskAgain) {
-      void withLockSuspended(() => requestPermission());
+      void requestPermission();
     }
   }, [permission, requestPermission]);
   useEffect(() => {
@@ -114,9 +113,7 @@ export default function ScanReceiptScreen() {
   const pickFromGallery = useCallback(async () => {
     if (busy.current) return;
     try {
-      const picked = await withLockSuspended(() =>
-        ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsEditing: false }),
-      );
+      const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsEditing: false });
       if (picked.canceled || picked.assets.length === 0) return;
       if (__DEV__) console.warn('[receipt] picture picked:', picked.assets[0].uri);
       await process(picked.assets[0].uri);
@@ -151,7 +148,7 @@ export default function ScanReceiptScreen() {
         <View style={styles.permissionActions}>
           <Button
             label={receiptOpenSettingsLabel()}
-            onPress={() => void withLockSuspended(() => Linking.openSettings())}
+            onPress={() => void Linking.openSettings()}
             testID="scan-open-settings"
           />
           <Button label={receiptGalleryLabel()} variant="secondary" icon="image" onPress={() => void pickFromGallery()} testID="scan-gallery" />
@@ -159,7 +156,7 @@ export default function ScanReceiptScreen() {
             <Button
               label={receiptAllowCameraLabel()}
               variant="secondary"
-              onPress={() => void withLockSuspended(() => requestPermission())}
+              onPress={() => void requestPermission()}
               testID="scan-allow-camera"
             />
           )}

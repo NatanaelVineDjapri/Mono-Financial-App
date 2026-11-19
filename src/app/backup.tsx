@@ -26,7 +26,6 @@ import { invalidateAfterWrite } from '@/data/queryKeys';
 import { countTransactionsChangedSince, getLastBackupAt } from '@/data/repo/backupLog';
 import { getSetting } from '@/data/repo/settings';
 import { useCreateBackup } from '@/features/backup/useCreateBackup';
-import { withLockSuspended } from '@/features/lock/useLock';
 import { formatBackupTime } from '@/features/more/backupStatus';
 import {
   backupAccountsLabel,
@@ -89,6 +88,8 @@ import {
   restoreSafetyBackupLabel,
   restoreSuccessToast,
   restoreWarning,
+  backupLocationCountLabel,
+  backupIncludesLocation,
 } from '@/i18n';
 import { useLanguage } from '@/i18n/lang';
 import { MonoColors } from '@/theme/tokens';
@@ -120,6 +121,7 @@ interface ScreenData {
   goalCount: number;
   categoryCount: number;
   recurringCount: number;
+  locationCount: number;
 }
 
 interface PendingFile {
@@ -332,7 +334,7 @@ export default function BackupScreen() {
   const { data, refetch } = useQuery({
     queryKey: ['backup-screen'],
     queryFn: async (): Promise<ScreenData> => {
-      const [lastBackupAt, timezone, accounts, transactions, budgets, goals, categories, recurring, logs] = await Promise.all([
+      const [lastBackupAt, timezone, accounts, transactions, budgets, goals, categories, recurring, locations, logs] = await Promise.all([
         getLastBackupAt(db),
         getSetting(db, 'timezone'),
         db.getFirstAsync<CountsRow>('select count(*) as n from accounts where archived = 0'),
@@ -341,6 +343,7 @@ export default function BackupScreen() {
         db.getFirstAsync<CountsRow>('select count(*) as n from goals'),
         db.getFirstAsync<CountsRow>('select count(*) as n from categories where archived = 0'),
         db.getFirstAsync<CountsRow>('select count(*) as n from recurring where archived = 0'),
+        db.getFirstAsync<CountsRow>("select count(*) as n from transaction_locations").catch(() => ({ n: 0 })),
         db.getAllAsync<BackupLogRow>('select * from backup_log order by created_at desc limit 10'),
       ]);
       const changedSince = lastBackupAt ? await countTransactionsChangedSince(db, lastBackupAt) : 0;
@@ -355,6 +358,7 @@ export default function BackupScreen() {
         goalCount: goals?.n ?? 0,
         categoryCount: categories?.n ?? 0,
         recurringCount: recurring?.n ?? 0,
+        locationCount: locations?.n ?? 0,
       };
     },
   });
@@ -365,9 +369,7 @@ export default function BackupScreen() {
     if (picking) return;
     setPicking(true);
     try {
-      const result = await withLockSuspended(() =>
-        File.pickFileAsync({ mimeTypes: ['application/json', '*/*'] }),
-      );
+      const result = await File.pickFileAsync({ mimeTypes: ['application/json', '*/*'] });
       if (result.canceled) return;
       const picked = result.result;
       const raw = await picked.text();
@@ -546,6 +548,10 @@ export default function BackupScreen() {
               <Text style={s.tableValue}>{data?.accountCount ?? 0}</Text>
             </View>
             <View style={s.tableRow}>
+              <Text style={s.tableLabel}>{backupLocationCountLabel()}</Text>
+              <Text style={s.tableValue}>{data?.locationCount ?? 0}</Text>
+            </View>
+            <View style={s.tableRow}>
               <Text style={s.tableLabel}>{backupTransactionsLabel()}</Text>
               <Text style={s.tableValue}>{data?.txCount ?? 0}</Text>
             </View>
@@ -566,6 +572,7 @@ export default function BackupScreen() {
           </View>
 
           <Text style={s.cardCaption}>{backupFormatNote(1)}</Text>
+          <Text style={s.cardCaption}>{backupIncludesLocation()}</Text>
         </View>
 
         {/* 4. Restore from a backup Card */}

@@ -34,7 +34,6 @@ jest.mock('@/data/db/DbProvider', () => ({
 
 jest.mock('@/data/repo/settings', () => ({
   getAllSettings: jest.fn(async () => ({
-    app_lock: '1',
     hide_on_launch: '0',
     block_screenshots: '1',
     number_format: 'id_ID',
@@ -78,14 +77,6 @@ jest.mock('@/features/ai_chat/aiSettings', () => ({
 
 jest.mock('@/dev/resetDatabase', () => ({
   resetDatabase: jest.fn(async () => {}),
-}));
-
-jest.mock('expo-local-authentication', () => ({
-  hasHardwareAsync: jest.fn(async () => true),
-  isEnrolledAsync: jest.fn(async () => true),
-  getEnrolledLevelAsync: jest.fn(async () => 1),
-  authenticateAsync: jest.fn(async () => ({ success: true })),
-  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC: 2 },
 }));
 
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 0 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
@@ -139,10 +130,6 @@ describe('SettingsScreen', () => {
   test('toggles privacy switches and persists them', async () => {
     await renderSettings();
 
-    const appLockSwitch = screen.getByTestId('settings-app-lock-switch');
-    await fireEvent.press(appLockSwitch);
-    await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'app_lock', '0'));
-
     const hideOnLaunchSwitch = screen.getByTestId('settings-hide-on-launch-switch');
     await fireEvent.press(hideOnLaunchSwitch);
     await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'hide_on_launch', '1'));
@@ -150,46 +137,6 @@ describe('SettingsScreen', () => {
     const blockScreenshotsSwitch = screen.getByTestId('settings-block-screenshots-switch');
     await fireEvent.press(blockScreenshotsSwitch);
     await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'block_screenshots', '0'));
-  });
-
-  test('app lock: toggling off is rejected when authentication fails', async () => {
-    const LocalAuth = require('expo-local-authentication');
-    LocalAuth.authenticateAsync.mockResolvedValueOnce({ success: false });
-
-    await renderSettings();
-    const appLockSwitch = screen.getByTestId('settings-app-lock-switch');
-    await fireEvent.press(appLockSwitch);
-
-    expect(LocalAuth.authenticateAsync).toHaveBeenCalledWith(expect.objectContaining({ promptMessage: 'Matikan kunci aplikasi' }));
-    expect(setSetting).not.toHaveBeenCalledWith(expect.anything(), 'app_lock', '0');
-  });
-
-  test('app lock: toggling on without device credentials shows dialog and is rejected', async () => {
-    const LocalAuth = require('expo-local-authentication');
-    LocalAuth.hasHardwareAsync.mockResolvedValueOnce(false);
-
-    // Make initial settings have app_lock = '0'
-    const settingsRepo = require('@/data/repo/settings');
-    settingsRepo.getAllSettings.mockResolvedValueOnce({
-      app_lock: '0',
-      hide_on_launch: '0',
-      block_screenshots: '1',
-      number_format: 'id_ID',
-      month_start_day: '1',
-      timezone: 'Asia/Jakarta',
-      backup_reminder: '1',
-      recurring_reminders: '1',
-      ai_enabled: '0',
-    });
-
-    await renderSettings();
-    const appLockSwitch = screen.getByTestId('settings-app-lock-switch');
-    await fireEvent.press(appLockSwitch);
-
-    // Dialog opens
-    await waitFor(() => expect(screen.getByTestId('settings-no-lock-dialog')).toBeTruthy());
-    expect(screen.getByText('Perangkat ini belum punya kunci layar. Atur sidik jari atau PIN di pengaturan perangkat dulu.')).toBeTruthy();
-    expect(setSetting).not.toHaveBeenCalledWith(expect.anything(), 'app_lock', '1');
   });
 
   test('opens timezone picker sheet and selects option', async () => {
@@ -252,5 +199,16 @@ describe('SettingsScreen', () => {
 
     await fireEvent.press(screen.getByTestId('settings-categories-row'));
     expect(mockPush).toHaveBeenCalledWith('/categories');
+  });
+});
+
+describe('profile picture', () => {
+  test('the Profile group opens the picker and a chosen pose is saved as one setting', async () => {
+    await renderSettings();
+    expect(screen.getByText('PROFIL')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('settings-avatar-row'));
+    await waitFor(() => expect(screen.getByTestId('avatar-picker-sheet')).toBeTruthy());
+    await fireEvent.press(screen.getByTestId('avatar-option-headphones'));
+    await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'avatar_pose', 'headphones'));
   });
 });

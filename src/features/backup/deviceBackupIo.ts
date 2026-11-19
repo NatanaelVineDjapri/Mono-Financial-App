@@ -6,7 +6,6 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { requireOptionalNativeModule } from 'expo';
 
 import { backupShareTitle } from '@/i18n';
-import { withLockSuspended } from '@/features/lock/useLock';
 
 import type { BackupIo } from './createBackup';
 
@@ -51,7 +50,7 @@ export const deviceBackupIo: BackupIo = {
   async saveToFolder(fileName, json) {
     let folder: Directory;
     try {
-      folder = await withLockSuspended(() => Directory.pickDirectoryAsync());
+      folder = await Directory.pickDirectoryAsync();
     } catch (err) {
       if (isPickerCancelled(err)) return null;
       throw err;
@@ -63,8 +62,6 @@ export const deviceBackupIo: BackupIo = {
   async share(uri) {
     const Sharing = loadSharing();
     if (!(await Sharing.isAvailableAsync())) throw new Error('sharing_unavailable');
-    await withLockSuspended(() =>
-      Sharing.shareAsync(uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: backupShareTitle() }),
-    );
+    await Sharing.shareAsync(uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: backupShareTitle() });
   },
 };
