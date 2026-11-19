@@ -5,6 +5,8 @@ import { File } from 'expo-file-system';
 
 import type { Db } from '@/data/db/types';
 
+import { runSqlScript } from './runSqlScript';
+
 async function loadNovemberSql(): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- static asset require, not a dynamic module load
   const asset = Asset.fromModule(require('../../tools/november_transactions.sql'));
@@ -16,5 +18,6 @@ async function loadNovemberSql(): Promise<string> {
 }
 
 export async function loadNovemberData(db: Db): Promise<void> {
-  await db.execAsync(await loadNovemberSql());
+  // Pressing it twice loads the same transactions again instead of failing on their ids.
+  await runSqlScript(db, await loadNovemberSql(), { replace: true });
 }

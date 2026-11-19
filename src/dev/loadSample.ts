@@ -8,6 +8,9 @@ import { createValasAccount } from '@/domain/accounts';
 import type { Db } from '@/data/db/types';
 import { insertFxRate } from '@/data/repo/fx';
 
+import { resetDatabase } from './resetDatabase';
+import { runSqlScript } from './runSqlScript';
+
 async function loadSampleSql(): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- static asset require, not a dynamic module load
   const asset = Asset.fromModule(require('../../tools/sample_data.sql'));
@@ -39,7 +42,9 @@ export async function setSampleAccountIcons(db: Db): Promise<void> {
 }
 
 export async function loadSampleData(db: Db): Promise<void> {
-  await db.execAsync(await loadSampleSql());
+  // The seed uses fixed ids, so it starts from an empty ledger: pressing the button again reloads instead of clashing.
+  await resetDatabase(db);
+  await runSqlScript(db, await loadSampleSql());
   await setSampleAccountIcons(db);
 }
 
