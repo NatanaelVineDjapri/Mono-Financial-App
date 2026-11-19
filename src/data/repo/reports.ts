@@ -16,6 +16,30 @@ export async function getPeriodFlow(db: Db, period: string): Promise<PeriodFlowR
   return db.getFirstAsync<PeriodFlowRow>('select * from v_period_flow where period = $period', { $period: period });
 }
 
+// Income and expense (amount_idr, transfers excluded) of the transactions dated from `from` to `to`, both
+// included. The Overview compares the running period with the same days of the previous one.
+export async function getFlowBetween(db: Db, from: string, to: string): Promise<{ income: number; expense: number }> {
+  const row = await db.getFirstAsync<{ income: number; expense: number }>(
+    `select coalesce(sum(case when kind = 'income' then amount_idr end), 0) as income,
+            coalesce(sum(case when kind = 'expense' then amount_idr end), 0) as expense
+     from transactions where occurred_on between $from and $to`,
+    { $from: from, $to: to },
+  );
+  return row ?? { income: 0, expense: 0 };
+}
+
+// Income and expense per day (amount_idr, transfers excluded) from `from` to `to`, only the days that have any.
+export async function listDailyFlow(db: Db, from: string, to: string): Promise<{ date: string; income: number; expense: number }[]> {
+  return db.getAllAsync(
+    `select occurred_on as date,
+            coalesce(sum(case when kind = 'income' then amount_idr end), 0) as income,
+            coalesce(sum(case when kind = 'expense' then amount_idr end), 0) as expense
+     from transactions where occurred_on between $from and $to and kind in ('income', 'expense')
+     group by occurred_on order by occurred_on`,
+    { $from: from, $to: to },
+  );
+}
+
 export async function listPeriodFlow(db: Db): Promise<PeriodFlowRow[]> {
   return db.getAllAsync<PeriodFlowRow>('select * from v_period_flow order by period');
 }

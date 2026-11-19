@@ -35,6 +35,32 @@ describe('getOverviewData', () => {
     expect(data.cashFlow[11]).toMatchObject({ income: 7500000, expense: 1580000 });
   });
 
+  test('the same days of last month: Oct 1-28 against Sep 1-28, not the whole of September', async () => {
+    const db = await fixture();
+    const data = await getOverviewData(db, '2026-10-28');
+    // September 1-28 holds the 1.000.000 bill (Sep 10) but not the salary (Sep 25 is inside, 7.000.000)
+    expect(data.expenseRangeChangeBp).toBe(5800); // 1.580.000 vs 1.000.000
+    expect(data.incomeRangeChangeBp).toBe(714); // 7.500.000 vs 7.000.000 (Sep 25 is within 28 days)
+    expect(data.savingsRateBp).toBe(7893); // 5.920.000 of 7.500.000
+  });
+
+  test('early in the period only the days gone by count on both sides', async () => {
+    const db = openTestDb();
+    const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 5000000, openingDate: '2026-08-01' }, NOW);
+    const categories = await listCategories(db);
+    const bills = categories.find(c => c.name === 'Bills')!.id;
+    await addExpense(db, { accountId: bca, currency: 'IDR', categoryId: bills, amount: 100000, occurredOn: '2026-09-05' }, NOW);
+    await addExpense(db, { accountId: bca, currency: 'IDR', categoryId: bills, amount: 400000, occurredOn: '2026-09-20' }, NOW); // after day 10: left out
+    await addExpense(db, { accountId: bca, currency: 'IDR', categoryId: bills, amount: 150000, occurredOn: '2026-10-03' }, NOW);
+    const data = await getOverviewData(db, '2026-10-10');
+    expect(data.rangeStart).toBe('2026-10-01');
+    expect(data.rangeEnd).toBe('2026-10-10');
+    expect(data.expenseRangeChangeBp).toBe(5000); // 150.000 vs 100.000
+    expect(data.expenseChangeBp).toBe(-7000); // against the whole of September (500.000) it would look like a fall
+    expect(data.savingsRateBp).toBeNull(); // no income
+    expect(data.incomeRangeChangeBp).toBe(0); // 0 against 0: no change
+  });
+
   test('top categories: largest first, shares sum to 100,00%', async () => {
     const db = await fixture();
     const { topCategories } = await getOverviewData(db, '2026-10-28');

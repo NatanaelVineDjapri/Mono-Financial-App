@@ -3,11 +3,13 @@
 // the screen draws. No new SQL and no stored numbers (CLAUDE.md rule 2): the only
 // arithmetic here is month-over-month change, in integer basis points through
 // pctChangeBp (half away from zero).
-import { addDays, periodOfDate, previousPeriod } from '../core/date';
+import { addDays, daysBetween, periodEnd, periodOfDate, periodStart, previousPeriod } from '../core/date';
 import type { Db } from '../data/db/types';
 import { pctChangeBp } from './budget';
 import { getCategoryStats, largestRemainderSharesBp, type CategoryStatsResult } from './categoryStats';
 import { getNetWorth, getNetWorthHistory, type NetWorthMonth } from './net-worth';
+import { getFlowBetween, listDailyFlow } from '../data/repo/reports';
+import { buildFlowRanges, type FlowRange, type FlowRangeKey } from './cashFlowRanges';
 import { listPeriodFlow } from './reports';
 import { getMonthStartDay } from './transactionsList';
 
@@ -34,12 +36,21 @@ export interface ShareRow {
 
 export interface OverviewData {
   period: string;
+  rangeStart: string; // the first day of the period
+  rangeEnd: string; // today while the period is running, else its last day
   previousPeriod: string;
   month: OverviewFlow;
   previous: OverviewFlow;
   // null when last month's figure is 0 (the change is undefined, so the card shows no %).
   expenseChangeBp: number | null;
   incomeChangeBp: number | null;
+  // vs the same days of the previous period (day 1 up to the same day number), the fair comparison while the
+  // period is still running; null when that figure is 0.
+  expenseRangeChangeBp: number | null;
+  incomeRangeChangeBp: number | null;
+  savingsRateBp: number | null; // net / income of the period, null when there is no income
+  // Net cash flow for the Week / Month / Year switch of the Overview block.
+  flowRanges: Record<FlowRangeKey, FlowRange>;
   netWorth: number;
   netWorthIncomplete: boolean;
   // vs the end of the previous calendar month; null when there is no earlier month yet.
@@ -121,6 +132,21 @@ export async function getOverviewData(db: Db, todayIso: string): Promise<Overvie
   const month = flowOf(period);
   const prev = flowOf(previous);
 
+  // The previous period's same days: as many days from its start as this period has run (never past its end).
+  const rangeStart = periodStart(period, startDay);
+  const fullEnd = periodEnd(period, startDay);
+  const rangeEnd = today < fullEnd ? today : fullEnd;
+  const previousStart = periodStart(previous, startDay);
+  const previousEnd = periodEnd(previous, startDay);
+  const sameDaysEnd = addDays(previousStart, daysBetween(rangeStart, rangeEnd));
+  // Daily rows from the earlier of: 13 days ago (week against the week before) and the previous period's first day.
+  const dailyFrom = previousStart < addDays(today, -13) ? previousStart : addDays(today, -13);
+  const daily = await listDailyFlow(db, dailyFrom, today);
+  const flowRanges = buildFlowRanges({ today, startDay, period, daily, periods: flows });
+  const prevSameDays = await getFlowBetween(db, previousStart, sameDaysEnd < previousEnd ? sameDaysEnd : previousEnd);
+  // Half away from zero, basis points, integers only (the same arithmetic as v_savings_rate).
+  const savingsRateBp = month.income > 0 ? Math.trunc((month.net * 20000 + (month.net >= 0 ? month.income : -month.income)) / (2 * month.income)) : null;
+
   // History is per calendar month, month-end valued, the current month valued to date.
   const currentMonth = today.slice(0, 7);
   const last = history[history.length - 1];
@@ -135,11 +161,17 @@ export async function getOverviewData(db: Db, todayIso: string): Promise<Overvie
 
   return {
     period,
+    rangeStart,
+    rangeEnd,
     previousPeriod: previous,
     month,
     previous: prev,
     expenseChangeBp: pctChangeBp(month.expense, prev.expense),
     incomeChangeBp: pctChangeBp(month.income, prev.income),
+    expenseRangeChangeBp: pctChangeBp(month.expense, prevSameDays.expense),
+    incomeRangeChangeBp: pctChangeBp(month.income, prevSameDays.income),
+    savingsRateBp,
+    flowRanges,
     netWorth: worth.netWorth,
     netWorthIncomplete: worth.incomplete,
     netWorthChange,

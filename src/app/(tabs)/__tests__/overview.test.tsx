@@ -2,12 +2,15 @@ import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { Dimensions, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { buildFlowRanges } from '@/domain/cashFlowRanges';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import type { AccountsOverview } from '@/domain/balances';
 import type { OverviewData } from '@/domain/overview';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import { useGoalProgress, useOverviewData } from '@/features/overview/useOverview';
+import { useQuickRecords } from '@/features/overview/useQuickRecords';
+import { useNeedsWelcome } from '@/features/welcome/useNeedsWelcome';
 import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useGreeting } from '@/features/overview/useGreeting';
 import { useDisplayName } from '@/features/settings/useDisplayName';
@@ -18,6 +21,8 @@ import OverviewScreen from '../index';
 
 jest.mock('@/features/accounts/useAccountsOverview');
 jest.mock('@/features/overview/useOverview');
+jest.mock('@/features/overview/useQuickRecords');
+jest.mock('@/features/welcome/useNeedsWelcome');
 jest.mock('@/features/recurring/useRecurringDue');
 jest.mock('@/features/budgets/useBudgets');
 jest.mock('@/features/transactions/useTransactionsList');
@@ -30,7 +35,9 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQuery: jest.fn(({ queryKey }: { queryKey?: unknown[] } = {}) => ({
     data:
-      queryKey?.[0] === 'recurring'
+      queryKey?.[0] === 'notifications'
+        ? 3 // unread notifications
+        : queryKey?.[0] === 'recurring'
         ? [
             {
               id: 1, name: 'Gym membership', amount: 200000, amount_varies: 0,
@@ -53,9 +60,14 @@ function setWindow(overrides: Partial<ReturnType<typeof useWindowDimensions>> = 
 }
 
 const mockPush = jest.fn();
+const mockRedirect = jest.fn();
 jest.mock('expo-router', () => ({
   ...jest.requireActual('expo-router'),
   useRouter: () => ({ push: mockPush, back: jest.fn() }),
+  Redirect: ({ href }: { href: string }) => {
+    mockRedirect(href);
+    return null;
+  },
 }));
 
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 0 }, frame: { x: 0, y: 0, width: 400, height: 800 } };
@@ -80,13 +92,36 @@ const ACCOUNTS: AccountsOverview = {
   ],
 };
 
+const FLOW_RANGES = buildFlowRanges({
+  today: '2026-10-28',
+  startDay: 1,
+  period: '2026-10',
+  daily: [
+    { date: '2026-09-05', income: 7000000, expense: 0 },
+    { date: '2026-09-20', income: 0, expense: 3940000 },
+    { date: '2026-10-20', income: 0, expense: 1580000 },
+    { date: '2026-10-25', income: 7500000, expense: 0 },
+    { date: '2026-10-26', income: 0, expense: 2677000 },
+  ],
+  periods: [
+    { period: '2026-09', income: 7000000, expense: 3940000 },
+    { period: '2026-10', income: 7500000, expense: 4257000 },
+  ],
+});
+
 const OVERVIEW: OverviewData = {
   period: '2026-10',
+  rangeStart: '2026-10-01',
+  rangeEnd: '2026-10-28',
   previousPeriod: '2026-09',
   month: { income: 7500000, expense: 4257000, net: 3243000 },
   previous: { income: 7000000, expense: 3940000, net: 3060000 },
   expenseChangeBp: 805,
   incomeChangeBp: 714,
+  expenseRangeChangeBp: 1232,
+  incomeRangeChangeBp: 714,
+  savingsRateBp: 4324,
+  flowRanges: FLOW_RANGES,
   netWorth: 8880000,
   netWorthIncomplete: false,
   netWorthChange: 3243000,
@@ -139,12 +174,45 @@ const BUDGET = {
 
 const GOALS = [{ id: 1, name: 'Total assets', mode: 'total_assets', account_id: null, target_amount: 30000000, target_date: '2027-06-30', current_amount: 8880000, remaining: 21120000, progress_bp: 2960 }];
 
+const QUICK_RECORDS = [
+  {
+    source: 'category',
+    label: 'Food & drink',
+    placeName: null,
+    kind: 'expense',
+    accountId: 1,
+    accountName: 'BCA Tabungan',
+    categoryId: 2,
+    categoryName: 'Food & drink',
+    amount: 18000,
+    count: 4,
+    lastOn: '2026-10-20',
+  },
+  {
+    source: 'place',
+    label: 'Kantor',
+    placeName: 'Kantor',
+    kind: 'expense',
+    accountId: 1,
+    accountName: 'BCA Tabungan',
+    categoryId: 3,
+    categoryName: 'Transport',
+    amount: 5000,
+    count: 2,
+    lastOn: '2026-10-18',
+  },
+];
+
+const mockNeedsWelcome = useNeedsWelcome as jest.MockedFunction<typeof useNeedsWelcome>;
+
 function mockFilled() {
+  mockNeedsWelcome.mockReturnValue(false);
   mockQuery(useAccountsOverview, ACCOUNTS);
   mockQuery(useOverviewData, OVERVIEW);
   mockQuery(useRecurringDue, []);
   mockQuery(useBudgetOverview, BUDGET);
   mockQuery(useGoalProgress, GOALS);
+  mockQuery(useQuickRecords, QUICK_RECORDS);
   mockQuery(useTransactionsList, TX_PAGE);
 }
 
@@ -159,20 +227,17 @@ describe('Overview', () => {
     mockFilled();
     const result = await renderScreen();
     expect(result.getByLabelText('MONO')).toBeTruthy();
-    expect(result.getByRole('button', { name: 'Notifications' })).toBeTruthy();
+    expect(result.getByRole('button', { name: /Notifi/ })).toBeTruthy();
     expect(result.getByText('Selamat pagi, Nael')).toBeTruthy();
     expect(result.getByTestId('hero-balance').props.children).toBe('Rp8.880.000');
     expect(result.getByText('+Rp3.243.000 (+57,53%)')).toBeTruthy();
     expect(result.getByText('vs 30 Sep 2026')).toBeTruthy();
-    // The second line: year to date, vs the end of last year.
-    expect(result.getByText('+Rp4.120.000 (+86,61%)')).toBeTruthy();
-    expect(result.getByText('YTD · vs 31 Dec 2025')).toBeTruthy();
-    expect(within(result.getByTestId('overview-expenses-card')).getByText('Expenses')).toBeTruthy();
-    expect(result.getAllByText('Rp4.257.000').length).toBeGreaterThan(0);
-    expect(result.getByText('8,05% vs Sep')).toBeTruthy();
-    expect(result.getByText('7,14% vs Sep')).toBeTruthy();
-    expect(result.getByText('Net cash flow · Oct')).toBeTruthy();
-    expect(result.getByText('Consumption only. Transfers between your accounts are excluded.')).toBeTruthy();
+    // The net cash flow block: October so far, against the same days of September.
+    expect(result.getByText('Arus kas bersih · October')).toBeTruthy();
+    expect(result.getByTestId('flow-net').props.children).toBe('+Rp3.243.000');
+    expect(within(result.getByTestId('overview-income-card')).getByText('Rp7.500.000')).toBeTruthy();
+    expect(within(result.getByTestId('overview-expenses-card')).getByText('Rp4.257.000')).toBeTruthy();
+    expect(result.getByText('Pemasukan dikurangi pengeluaran. Transfer, saldo awal, dan perubahan kurs tidak dihitung.')).toBeTruthy();
     expect(result.getByTestId('overview-account-1')).toBeTruthy();
     expect(result.getByText('Cash flow')).toBeTruthy();
     expect(result.getByText('Top categories')).toBeTruthy();
@@ -187,39 +252,114 @@ describe('Overview', () => {
     expect(result.getByText('Where your money is')).toBeTruthy();
   });
 
-  test('positive money is green, never gold: hero chip, Income change and Net cash flow; Expenses stay neutral', async () => {
+  test('a plus is green: the net worth chip, the cash flow change chip and the net figure stay white, Out is gold, In is green', async () => {
     mockFilled();
     const result = await renderScreen();
     const style = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
     expect(MonoColors.positive).toBe('#4ADE80');
-    expect(MonoColors.positive).not.toBe(MonoColors.accent);
-
     expect(style(result.getByText('+Rp3.243.000 (+57,53%)')).color).toBe(MonoColors.positive);
-    expect(style(result.getByText('7,14% vs Sep')).color).toBe(MonoColors.positive);
-    expect(style(result.getByText('8,05% vs Sep')).color).toBe(MonoColors.textSecond);
-    const net = within(result.getByTestId('overview-net-cash-flow')).getByText('+Rp3.243.000');
-    expect(style(net).color).toBe(MonoColors.positive);
+    const change = within(result.getByTestId('flow-change')).getByText(/vs September/);
+    expect(style(change).color).toBe(MonoColors.positive);
+    expect(style(result.getByTestId('flow-net')).color).toBe(MonoColors.text);
+    // the tiles' bars: In green, Out gold, each against the larger of the two
+    const bar = (id: string) => style(result.getByTestId(`${id}-bar`));
+    expect(bar('overview-income-card')).toMatchObject({ backgroundColor: MonoColors.positive, width: '100%' });
+    expect(bar('overview-expenses-card')).toMatchObject({ backgroundColor: MonoColors.accent, width: '57%' }); // 4.257.000 of 7.500.000
   });
 
-  test('the YTD line sits under the month line, in the same green; with no earlier month end it is not drawn', async () => {
+  test('a falling net worth is red with its minus sign, and so is a cash flow that dropped', async () => {
     mockFilled();
+    mockQuery(useOverviewData, {
+      ...OVERVIEW,
+      netWorthChange: -500000,
+      netWorthChangeBp: -533,
+      flowRanges: { ...FLOW_RANGES, month: { ...FLOW_RANGES.month, net: -3257000, previousNet: 2000000, netChangeBp: -26285 } },
+    });
     const result = await renderScreen();
     const style = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
-    expect(style(result.getByText('+Rp4.120.000 (+86,61%)')).color).toBe(MonoColors.positive);
-    expect(result.getByTestId('hero-change-ytd').props.accessibilityLabel).toBe('Year to date +Rp4.120.000 (+86,61%) vs 31 Dec 2025');
-
-    mockQuery(useOverviewData, { ...OVERVIEW, netWorthYtdChange: null, netWorthYtdBp: null, netWorthYtdVsDate: null });
-    const without = await renderScreen();
-    expect(without.queryByTestId('hero-change-ytd')).toBeNull();
-    expect(without.getByTestId('hero-change')).toBeTruthy(); // the month line is unaffected
+    expect(style(result.getByText('−Rp500.000 (−5,33%)')).color).toBe(MonoColors.negative);
+    expect(result.getByTestId('flow-net').props.children).toBe('−Rp3.257.000');
+    expect(style(within(result.getByTestId('flow-change')).getByText(/vs September/)).color).toBe(MonoColors.negative);
   });
 
-  test('a falling net worth turns the hero chip red (with its minus and a down triangle)', async () => {
+  test('the Week / Month / Year switch changes the range: label, net figure and tiles', async () => {
     mockFilled();
-    mockQuery(useOverviewData, { ...OVERVIEW, netWorthChange: -500000, netWorthChangeBp: -533 });
     const result = await renderScreen();
-    const text = result.getByText('−Rp500.000 (−5,33%)');
-    expect(Object.assign({}, ...[text.props.style].flat(Infinity).filter(Boolean)).color).toBe(MonoColors.negative);
+    expect(result.getByText('Arus kas bersih · October')).toBeTruthy();
+    await fireEvent.press(result.getByRole('radio', { name: 'Tahun' }));
+    expect(result.getByText('Arus kas bersih · 12 bulan')).toBeTruthy();
+    await fireEvent.press(result.getByRole('radio', { name: 'Minggu' }));
+    expect(result.getByText('Arus kas bersih · 7 hari')).toBeTruthy();
+    expect(result.getByTestId('flow-net').props.children).toBe(`+Rp${String(FLOW_RANGES.week.net).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`);
+  });
+
+  test('with nothing earlier to compare with, the block says so instead of showing a made-up change', async () => {
+    mockFilled();
+    mockQuery(useOverviewData, { ...OVERVIEW, flowRanges: { ...FLOW_RANGES, month: { ...FLOW_RANGES.month, netChangeBp: null } } });
+    const result = await renderScreen();
+    expect(result.getByTestId('flow-change').props.children).toBe('Belum ada pembanding');
+  });
+
+  test('the chart has an accessibility label and no analysis link', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    expect(result.getByTestId('flow-chart').props.accessibilityLabel).toContain('+Rp3.243.000');
+    expect(result.queryByTestId('overview-analysis-link')).toBeNull();
+  });
+
+  test('on the first launch the Overview sends the person to Welcome, once', async () => {
+    mockFilled();
+    mockNeedsWelcome.mockReturnValue(true);
+    const result = await renderScreen();
+    expect(result.queryByTestId('overview-scroll')).toBeNull();
+    expect(mockRedirect).toHaveBeenCalledWith('/welcome');
+  });
+
+  test('the bell opens the notifications inbox and says how many are unread', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    const bell = result.getByTestId('overview-bell');
+    expect(bell.props.accessibilityLabel).toContain('3');
+    await fireEvent.press(bell);
+    expect(mockPush).toHaveBeenCalledWith('/notifications');
+  });
+
+  test('quick record shows repeated places or categories and opens the form prefilled', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    expect(result.getByText('Catat cepat')).toBeTruthy();
+    expect(result.getByTestId('quick-record-category-Food & drink')).toBeTruthy();
+    await fireEvent.press(result.getByTestId('quick-record-category-Food & drink'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/tx/add',
+      params: { type: 'expense', account: '1', category: '2', amount: '18000' },
+    });
+  });
+
+  test('the hero action buttons and analysis banner navigate correctly', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    expect(result.getByTestId('overview-analysis-banner')).toBeTruthy();
+    await fireEvent.press(result.getByTestId('overview-analysis-banner'));
+    expect(mockPush).toHaveBeenCalledWith('/analysis');
+
+    await fireEvent.press(result.getByTestId('hero-action-record'));
+    expect(mockPush).toHaveBeenCalledWith('/tx/add');
+
+    await fireEvent.press(result.getByTestId('hero-action-transfer'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/tx/add', params: { type: 'transfer' } });
+
+    await fireEvent.press(result.getByTestId('hero-action-scan'));
+    expect(mockPush).toHaveBeenCalledWith('/tx/scan');
+  });
+
+  test('In and Out open the Transactions list for that type', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    await fireEvent.press(result.getByTestId('overview-expenses-card'));
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/transactions');
+    await fireEvent.press(result.getByTestId('overview-income-card'));
+    expect(mockPush).toHaveBeenLastCalledWith('/(tabs)/transactions');
   });
 
   test('where your money is lists every account on its own row, nothing folded into Others', async () => {
@@ -400,11 +540,10 @@ describe('Overview', () => {
     await act(async () => useHideAmounts.getState().setHidden(true));
     const result = await renderScreen();
     // No real number from the sample survives anywhere on the screen.
-    for (const text of ['Rp8.880.000', 'Rp4.257.000', 'Rp7.500.000', '+Rp3.243.000', 'Rp3.243.000', 'Rp6.842.500', '33,5%', '8,05%', '7,14%', '57,53%', '77,05%', '4.120.000', '86,61%']) {
+    for (const text of ['Rp8.880.000', 'Rp4.257.000', 'Rp7.500.000', '+Rp3.243.000', 'Rp3.243.000', 'Rp6.842.500', '33,5%', '57,53%', '77,05%', '3.243.000']) {
       expect(result.queryAllByText(new RegExp(text.replace(/[.+]/g, '\\$&'))).length).toBe(0);
     }
     expect(result.getByTestId('hero-balance').props.children).toBe('Rp••••••••');
-    expect(result.getAllByText('••,••% vs Sep').length).toBe(2); // Expenses and Income cards
     // The legend still names the categories, but its shares are masked.
     expect(result.getAllByText('••,••%').length).toBeGreaterThan(0);
   });
@@ -430,16 +569,18 @@ describe('Overview', () => {
     expect(image.props.importantForAccessibility).toBe('no-hide-descendants');
   });
 
-  test('the Hide amounts button is plain text: no fill, no border, 13/18, the same grey as NET WORTH, 44 high', async () => {
+  test('the Hide amounts button: an eye and its text on the right of the Net worth label, 44 high, full label for screen readers', async () => {
     mockFilled();
     const result = await renderScreen();
     const flat = (n: { props: { style?: unknown } }) => Object.assign({}, ...[n.props.style].flat(Infinity).filter(Boolean));
-    const style = flat(result.getByTestId('overview-hide-toggle'));
-    expect(style).toMatchObject({ minHeight: 44, justifyContent: 'flex-end' });
-    expect(style.backgroundColor).toBeUndefined();
-    expect(style.borderWidth).toBeUndefined();
-    expect(flat(result.getByText('Hide amounts'))).toMatchObject({ color: '#8A8A8A', fontSize: 13, lineHeight: 18, fontFamily: 'IBMPlexSans_500Medium' });
-    expect(flat(within(result.getByTestId('overview-hero')).getByText('Net worth')).color).toBe('#8A8A8A');
+    const button = result.getByTestId('overview-hide-toggle');
+    expect(flat(button)).toMatchObject({ minHeight: 44, justifyContent: 'flex-end' });
+    expect(button.props.accessibilityLabel).toBe('Hide amounts');
+    expect(within(button).getByText('Hide amounts')).toBeTruthy();
+    expect(within(result.getByTestId('overview-hero')).getByText('Net worth')).toBeTruthy();
+    await fireEvent.press(button);
+    expect(useHideAmounts.getState().hidden).toBe(true);
+    await act(async () => useHideAmounts.getState().setHidden(false));
   });
 
   test('under 360dp the button reads "Hide" but keeps its full accessibility label', async () => {

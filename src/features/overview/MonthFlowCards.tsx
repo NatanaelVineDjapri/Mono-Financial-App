@@ -18,7 +18,6 @@ import {
   incomeCardLabel,
   monthFlowCardAccessibilityLabel,
   netCashFlowLabel,
-  analyzePrompt,
   noChangeVsMonthLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
@@ -74,7 +73,7 @@ function FlowCard({ label, icon, amount, changeBp, previousPeriod, changeColor, 
   );
 }
 
-export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp, incomeChangeBp, onOpenTransactions, onOpenAnalyze }: MonthFlowCardsProps & { onOpenTransactions: (type: 'expense' | 'income') => void; onOpenAnalyze: () => void }) {
+export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp, incomeChangeBp, onOpenTransactions }: MonthFlowCardsProps & { onOpenTransactions: (type: 'expense' | 'income') => void }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.grid}>
@@ -103,15 +102,6 @@ export function MonthFlowCards({ period, previousPeriod, month, expenseChangeBp,
         <Text style={styles.netLabel}>{netCashFlowLabel(monthAbbrev(period))}</Text>
         <Amount value={month.net} sign kind={month.net < 0 ? 'expense' : month.net > 0 ? 'income' : undefined} variant="figureS" />
       </Card>
-      <Pressable
-        onPress={onOpenAnalyze}
-        accessibilityRole="button"
-        accessibilityLabel={analyzePrompt()}
-        style={({ pressed }) => [styles.analyzeLink, pressed && styles.pressed]}
-        testID="overview-analyze-link"
-      >
-        <Text style={styles.analyzeText}>{analyzePrompt()}</Text>
-      </Pressable>
       <Text style={styles.note}>{consumptionOnlyNote()}</Text>
     </View>
   );
@@ -130,7 +120,5 @@ const styles = StyleSheet.create({
   change: { ...MonoText.caption, flexShrink: 1 },
   netRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, paddingVertical: 12 },
   netLabel: { ...MonoText.bodyS, color: MonoColors.textSecond, flexShrink: 1 },
-  analyzeLink: { paddingHorizontal: 4, paddingVertical: 2 },
-  analyzeText: { ...MonoText.bodyS, color: MonoColors.accent, textDecorationLine: 'underline' },
   note: { ...MonoText.caption, color: MonoColors.textMeta },
 });

@@ -1,77 +1,198 @@
-// Overview header, 64 high below the status bar: the MONO mark and wordmark on the left;
-// a notification bell (no function yet) and the round avatar that opens /more on the
-// right. Both buttons are 44.
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+// Overview header: Avatar with 2-line greeting (greeting phrase & username) on the left,
+// notification bell with unread badge dot on the right.
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
-import { moreTitle, notificationsLabel } from '@/i18n';
+import type { AvatarPoseId } from '@/features/profile/avatarPoses';
+import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
+import { bellUnreadLabel, moreTitle, notificationsLabel, welcomeGreeting, type GreetingKind } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 const HEADER_HEIGHT = 64;
-const BUTTON = 44;
-const MARK_HEIGHT = 26;
-const MARK_ASPECT = 219 / 222; // assets/brand/mono-mark.png
-const WORDMARK_HEIGHT = 14;
-const WORDMARK_ASPECT = 499 / 110; // assets/brand/mono-wordmark.png
 
 export interface OverviewHeaderProps {
   initial: string; // first letter of the nickname
+  avatarPose?: AvatarPoseId | null; // the chosen profile picture; null: the default avatar
+  nickname: string;
+  greeting: GreetingKind | null;
   onAvatarPress: () => void;
   onBellPress?: () => void;
+  unreadCount?: number; // 0 = no badge; >0 = show dot or count
 }
 
-export function OverviewHeader({ initial, onAvatarPress, onBellPress }: OverviewHeaderProps) {
+export function OverviewHeader({
+  initial,
+  avatarPose = null,
+  nickname,
+  greeting,
+  onAvatarPress,
+  onBellPress,
+  unreadCount = 0,
+}: OverviewHeaderProps) {
   const insets = useSafeAreaInsets();
+  const greetingPhrase = greeting ? welcomeGreeting(null, greeting) : '';
+  const fullGreeting = greeting ? welcomeGreeting(nickname, greeting) : '';
+
   return (
     <View style={[styles.header, { height: HEADER_HEIGHT + insets.top, paddingTop: insets.top }]} testID="overview-header">
-      {/* Plain RN Image (not expo-image): the two PNGs are tiny bundled assets, and a
-          missing logo here left an empty gap at the header's left. */}
-      <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel="MONO">
-        <Image
-          source={require('@/assets/brand/mono-mark.png')}
-          style={{ height: MARK_HEIGHT, width: MARK_HEIGHT * MARK_ASPECT }}
-          resizeMode="contain"
-        />
-        <Image
-          source={require('@/assets/brand/mono-wordmark.png')}
-          style={{ height: WORDMARK_HEIGHT, width: WORDMARK_HEIGHT * WORDMARK_ASPECT }}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.actions}>
-        <Pressable
-          onPress={onBellPress}
-          accessibilityRole="button"
-          accessibilityLabel={notificationsLabel()}
-          android_ripple={undefined}
-          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-          testID="overview-bell"
-        >
-          <Icon name="bell" size={22} color={MonoColors.text} />
-        </Pressable>
+      <View style={styles.left}>
         <Pressable
           onPress={onAvatarPress}
           accessibilityRole="button"
           accessibilityLabel={moreTitle()}
           android_ripple={undefined}
-          style={({ pressed }) => [styles.button, styles.avatar, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.avatar, pressed && styles.pressed]}
           testID="overview-more-avatar"
         >
-          <Text style={styles.initial}>{initial}</Text>
+          <ProfileAvatar poseId={avatarPose} size={40} />
+          <Text style={styles.avatarInitialA11y}>{initial}</Text>
         </Pressable>
+
+        <View style={styles.greetingCol}>
+          {greetingPhrase ? (
+            <Text style={styles.greetingSub} numberOfLines={1}>
+              {greetingPhrase}
+            </Text>
+          ) : null}
+          <Text style={styles.userName} numberOfLines={1}>
+            {nickname}
+          </Text>
+          {fullGreeting ? (
+            <Text style={styles.greetingA11y} accessibilityRole="header">
+              {fullGreeting}
+            </Text>
+          ) : null}
+        </View>
       </View>
+
+      <View accessible accessibilityRole="header" accessibilityLabel="MONO" style={styles.monoA11y} />
+
+      <Pressable
+        onPress={onBellPress}
+        accessibilityRole="button"
+        accessibilityLabel={unreadCount > 0 ? bellUnreadLabel(unreadCount) : notificationsLabel()}
+        android_ripple={undefined}
+        style={({ pressed }) => [styles.bellButton, pressed && styles.pressed]}
+        testID="overview-bell"
+      >
+        <Icon name="bell" size={20} color={MonoColors.text} />
+        {unreadCount > 0 && (
+          unreadCount <= 9
+            ? <View style={styles.badgeDot} />
+            : (
+              <View style={styles.badgeCount}>
+                <Text style={styles.badgeCountText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )
+        )}
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  button: { width: BUTTON, height: BUTTON, borderRadius: BUTTON / 2, alignItems: 'center', justifyContent: 'center' },
-  avatar: { backgroundColor: MonoColors.raised, borderWidth: 1, borderColor: MonoColors.border },
-  pressed: { opacity: 0.7 },
-  initial: { ...MonoText.titleM, color: MonoColors.text },
+  header: {
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: MonoColors.raised,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarInitialA11y: {
+    position: 'absolute',
+    opacity: 0,
+    width: 0,
+    height: 0,
+    overflow: 'hidden',
+  },
+  greetingCol: {
+    justifyContent: 'center',
+    gap: 1,
+    flex: 1,
+  },
+  greetingSub: {
+    ...MonoText.caption,
+    fontSize: 12,
+    color: MonoColors.textSecond,
+  },
+  userName: {
+    ...MonoText.bodyStrong,
+    fontSize: 15,
+    color: MonoColors.text,
+  },
+  greetingA11y: {
+    position: 'absolute',
+    opacity: 0,
+    width: 0,
+    height: 0,
+    overflow: 'hidden',
+  },
+  monoA11y: {
+    position: 'absolute',
+    opacity: 0,
+    width: 0,
+    height: 0,
+  },
+  bellButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: MonoColors.raised,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  badgeDot: {
+    position: 'absolute',
+    top: 9,
+    right: 9,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: MonoColors.accent,
+    borderWidth: 1.5,
+    borderColor: MonoColors.raised,
+  },
+  badgeCount: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: MonoColors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeCountText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: MonoColors.bg,
+    lineHeight: 11,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
 });

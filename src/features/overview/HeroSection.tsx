@@ -1,8 +1,16 @@
-// Hero (DESIGN.md "A. Overview"): no background of its own. The artwork behind it (and the
-// header above it) is OverviewTop's. Serif greeting (the screen's one serif moment), "Net worth" with the hide/reveal
-// button, the balance in sans 700 40/46, and the green (red when falling) change chip with "vs <date>".
-// Hidden-amounts mode masks the balance, the chip's amount and its percentage.
+// Hero (the Overview's top). Net worth card with luxury wave backdrop, balance,
+// hide/reveal toggle, delta chip, quick-action pills, and a sparkle button with sheen animation.
+import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { Defs, LinearGradient, Path, Rect, Stop, Svg } from 'react-native-svg';
 
 import { Amount } from '@/components/Amount';
 import { Icon } from '@/components/Icon';
@@ -10,19 +18,19 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatShortDate } from '@/core/date';
 import { pct, rp, shown, shownPct } from '@/core/money';
 import {
+  heroActionRecord,
+  heroActionScan,
+  heroActionTransfer,
   hideAmountsLabel,
   hideAmountsShortLabel,
   netWorthChangeLabel,
-  netWorthYtdChangeLabel,
   netWorthIncompleteNote,
   netWorthLabel,
   showAmountsLabel,
   showAmountsShortLabel,
-  welcomeGreeting,
-  ytdCaption,
   type GreetingKind,
 } from '@/i18n';
-import { MonoColors } from '@/theme/tokens';
+import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 import { CHIP_FILL_NEGATIVE, CHIP_FILL_POSITIVE } from './palette';
@@ -43,13 +51,14 @@ export interface HeroSectionProps {
   netWorth: number;
   incomplete?: boolean;
   change?: HeroChange | null;
-  ytd?: HeroChange | null; // year to date, the second line under the balance
   note?: string; // empty state: the one-line explanation under the balance
+  onAddTransaction?: () => void;
+  onTransfer?: () => void;
+  onScan?: () => void;
 }
 
-// One change line: the green (red when falling) chip and its caption. The first line says "vs
-// <last month end>"; the YTD line (`ytd`) says "YTD · vs <last year end>".
-export function ChangeChip({ change, hidden, ytd = false }: { change: HeroChange; hidden: boolean; ytd?: boolean }) {
+// The net worth change: a chip in the tone of its sign, then "vs <last month end>".
+export function ChangeChip({ change, hidden }: { change: HeroChange; hidden: boolean }) {
   const amountText = shown(rp(change.amount, true), hidden);
   const pctText = change.bp == null ? null : shownPct(pct(change.bp, true), hidden);
   const text = pctText ? `${amountText} (${pctText})` : amountText;
@@ -60,75 +69,280 @@ export function ChangeChip({ change, hidden, ytd = false }: { change: HeroChange
     <View
       style={styles.changeRow}
       accessible
-      accessibilityLabel={
-        ytd ? netWorthYtdChangeLabel(amountText, pctText ?? '', vs) : netWorthChangeLabel(amountText, pctText ?? '', vs).replace(' ()', '')
-      }
-      testID={ytd ? 'hero-change-ytd' : 'hero-change'}
+      accessibilityLabel={netWorthChangeLabel(amountText, pctText ?? '', vs).replace(' ()', '')}
+      testID="hero-change"
     >
       <View style={[styles.chip, { backgroundColor: rising ? CHIP_FILL_POSITIVE : CHIP_FILL_NEGATIVE }]}>
         <Triangle up={rising} color={tone} />
         <Text style={[styles.chipText, { color: tone }]}>{text}</Text>
       </View>
-      <Text style={styles.vs}>{ytd ? ytdCaption(vs) : `vs ${vs}`}</Text>
+      <Text style={styles.vs}>{`vs ${vs}`}</Text>
     </View>
   );
 }
 
-export function HeroSection({ nickname, greeting, netWorth, incomplete = false, change, ytd, note }: HeroSectionProps) {
+export function HeroSection({
+  nickname,
+  greeting,
+  netWorth,
+  incomplete = false,
+  change,
+  note,
+  onAddTransaction,
+  onTransfer,
+  onScan,
+}: HeroSectionProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const toggle = useHideAmounts(s => s.toggle);
   const { width } = useWindowDimensions();
   const narrow = width < NARROW_WIDTH;
   const fullLabel = hidden ? showAmountsLabel() : hideAmountsLabel();
   const buttonText = narrow ? (hidden ? showAmountsShortLabel() : hideAmountsShortLabel()) : fullLabel;
+
+  const shimmer = useSharedValue(-1);
+  const reducedMotion = useReducedMotion();
+
+  const onShine = useCallback(() => {
+    if (reducedMotion) return;
+    shimmer.set(-1);
+    shimmer.set(withTiming(1.6, {
+      duration: 1000,
+      easing: Easing.bezier(0.16, 1, 0.3, 1),
+    }));
+  }, [reducedMotion, shimmer]);
+
+  const sheenStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(shimmer.value, [-1, 1.6], [-160, width + 60]);
+    const opacity = interpolate(shimmer.value, [-1, -0.2, 0.4, 1.2, 1.6], [0, 0.85, 1, 0.85, 0]);
+    return {
+      opacity,
+      transform: [{ translateX }, { skewX: '-24deg' }],
+    };
+  });
+
   return (
     <View style={styles.hero} testID="overview-hero">
-      <Text style={styles.greeting} accessibilityRole="header">
-        {greeting ? welcomeGreeting(nickname, greeting) : ' '}
-      </Text>
-      <View style={styles.labelRow}>
-        <Text style={styles.label}>{netWorthLabel()}</Text>
-        {/* Plain text button in the same grey as "NET WORTH": no fill, no border. 44 high touch area, right-aligned. */}
-        <Pressable
-          onPress={toggle}
-          accessibilityRole="button"
-          accessibilityLabel={fullLabel}
-          android_ripple={undefined}
-          style={({ pressed }) => [styles.hideButton, pressed && styles.pressed]}
-          testID="overview-hide-toggle"
-        >
-          <Icon name={hidden ? 'eye-off' : 'eye'} size={18} color={MonoColors.textMeta} />
-          <Text style={styles.hideText}>{buttonText}</Text>
-        </Pressable>
+      <View style={styles.card} testID="overview-net-worth-card">
+        {/* Luxury dark metallic card backdrop with ambient gold light and fluid curves */}
+        <Svg style={StyleSheet.absoluteFill} pointerEvents="none" viewBox="0 0 350 210" preserveAspectRatio="none">
+          <Defs>
+            <LinearGradient id="hero-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#1C1C1F" />
+              <Stop offset="55%" stopColor="#121214" />
+              <Stop offset="100%" stopColor="#0B0B0D" />
+            </LinearGradient>
+            <LinearGradient id="hero-ambient" x1="100%" y1="0%" x2="30%" y2="80%">
+              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.18" />
+              <Stop offset="50%" stopColor="#E5C07B" stopOpacity="0.04" />
+              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0" />
+            </LinearGradient>
+            <LinearGradient id="hero-gold-stroke-1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.08" />
+              <Stop offset="50%" stopColor="#E5C07B" stopOpacity="0.55" />
+              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0.15" />
+            </LinearGradient>
+            <LinearGradient id="hero-gold-stroke-2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.03" />
+              <Stop offset="45%" stopColor="#FFF2D6" stopOpacity="0.32" />
+              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0.08" />
+            </LinearGradient>
+            <LinearGradient id="hero-wave-fill" x1="100%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.08" />
+              <Stop offset="60%" stopColor="#E5C07B" stopOpacity="0.02" />
+              <Stop offset="100%" stopColor="#000000" stopOpacity="0" />
+            </LinearGradient>
+          </Defs>
+          <Rect width="350" height="210" fill="url(#hero-bg)" />
+          <Rect width="350" height="210" fill="url(#hero-ambient)" />
+          <Path d="M 80 -10 C 180 50, 240 120, 360 80 L 360 -10 Z" fill="url(#hero-wave-fill)" />
+          <Path d="M 60 -15 C 160 45, 230 115, 360 75" stroke="url(#hero-gold-stroke-1)" strokeWidth="1.75" fill="none" />
+          <Path d="M 90 -20 C 190 55, 260 135, 370 110" stroke="url(#hero-gold-stroke-2)" strokeWidth="1.25" fill="none" />
+          <Path d="M 130 -20 C 220 70, 280 160, 390 145" stroke="rgba(255,255,255,0.07)" strokeWidth="1" fill="none" />
+          <Path d="M 170 -15 C 255 85, 305 185, 410 180" stroke="rgba(229,192,123,0.22)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
+          <Path d="M 215 -10 C 290 100, 335 205, 430 205" stroke="rgba(255,255,255,0.05)" strokeWidth="0.8" fill="none" />
+          <Path d="M 0 0 L 350 0" stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
+        </Svg>
+
+        {/* Shimmer / gleam animated specular beam */}
+        <Animated.View pointerEvents="none" style={[styles.sheenWrap, sheenStyle]}>
+          <Svg width="120" height="320" viewBox="0 0 120 320">
+            <Defs>
+              <LinearGradient id="hero-sheen" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
+                <Stop offset="25%" stopColor="#FFF2D6" stopOpacity="0.2" />
+                <Stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.55" />
+                <Stop offset="75%" stopColor="#E5C07B" stopOpacity="0.28" />
+                <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+              </LinearGradient>
+            </Defs>
+            <Rect width="120" height="320" fill="url(#hero-sheen)" />
+          </Svg>
+        </Animated.View>
+
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>{netWorthLabel()}</Text>
+          <View style={styles.topRightControls}>
+            <Pressable
+              onPress={onShine}
+              accessibilityRole="button"
+              accessibilityLabel="Kilaukan kartu"
+              hitSlop={8}
+              style={({ pressed }) => [styles.sparkleButton, pressed && styles.pressed]}
+              testID="hero-card-shimmer"
+            >
+              <Icon name="spark" size={16} color={MonoColors.accent} />
+            </Pressable>
+            <Pressable
+              onPress={toggle}
+              accessibilityRole="button"
+              accessibilityLabel={fullLabel}
+              android_ripple={undefined}
+              style={({ pressed }) => [styles.hideButton, pressed && styles.pressed]}
+              testID="overview-hide-toggle"
+            >
+              <Icon name={hidden ? 'eye-off' : 'eye'} size={18} color={MonoColors.textMeta} />
+              <Text style={styles.hideText}>{buttonText}</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.balanceBlock}>
+          <Amount value={netWorth} variant="heroBalance" testID="hero-balance" />
+          {!!note && <Text style={styles.note}>{note}</Text>}
+          {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
+          {change && <ChangeChip change={change} hidden={hidden} />}
+        </View>
+
+        {(onAddTransaction || onTransfer || onScan) && (
+          <View style={styles.actionRow}>
+            {onAddTransaction && (
+              <Pressable
+                onPress={onAddTransaction}
+                accessibilityRole="button"
+                accessibilityLabel={heroActionRecord()}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.primaryPill, pressed && styles.pressed]}
+                testID="hero-action-record"
+              >
+                <Icon name="plus" size={16} color="#0A0A0A" />
+                <Text style={styles.primaryPillText}>{heroActionRecord()}</Text>
+              </Pressable>
+            )}
+
+            {onTransfer && (
+              <Pressable
+                onPress={onTransfer}
+                accessibilityRole="button"
+                accessibilityLabel={heroActionTransfer()}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.secondaryPill, pressed && styles.pressed]}
+                testID="hero-action-transfer"
+              >
+                <Icon name="transfer" size={16} color={MonoColors.text} />
+                <Text style={styles.secondaryPillText}>{heroActionTransfer()}</Text>
+              </Pressable>
+            )}
+
+            {onScan && (
+              <Pressable
+                onPress={onScan}
+                accessibilityRole="button"
+                accessibilityLabel={heroActionScan()}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.iconPill, pressed && styles.pressed]}
+                testID="hero-action-scan"
+              >
+                <Icon name="scan" size={18} color={MonoColors.text} />
+              </Pressable>
+            )}
+          </View>
+        )}
       </View>
-      <Amount value={netWorth} variant="heroBalance" testID="hero-balance" />
-      {!!note && <Text style={styles.note}>{note}</Text>}
-      {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
-      {change && <ChangeChip change={change} hidden={hidden} />}
-      {ytd && <ChangeChip change={ytd} hidden={hidden} ytd />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { paddingHorizontal: 16, paddingTop: 28, paddingBottom: 8, gap: 4 },
-  greeting: { ...MonoText.heroGreeting, color: MonoColors.text },
-  labelRow: { zIndex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 8 },
+  hero: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 0 },
+  card: {
+    backgroundColor: MonoColors.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    padding: 20,
+    gap: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   label: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
-  hideButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
-  pressed: { opacity: 0.7 },
-  hideText: { ...MonoText.bodyS, fontFamily: MonoText.figureRow.fontFamily, color: MonoColors.textMeta }, // 13/18, weight 500; same grey as "NET WORTH"
-  note: { ...MonoText.body, color: MonoColors.textSecond },
-  changeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 10, rowGap: 6, marginTop: 8 },
-  chip: {
-    minHeight: 28,
+  topRightControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sparkleButton: {
+    width: 28,
+    height: 28,
     borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(229,192,123,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(229,192,123,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheenWrap: {
+    position: 'absolute',
+    top: -40,
+    bottom: -40,
+    width: 120,
+    zIndex: 10,
+  },
+  hideButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginVertical: -8 },
+  pressed: { opacity: 0.7 },
+  hideText: { ...MonoText.bodyS, fontFamily: MonoText.figureRow.fontFamily, color: MonoColors.textMeta },
+  balanceBlock: { gap: 8, marginTop: -2 },
+  note: { ...MonoText.body, color: MonoColors.textSecond },
+  changeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 10, rowGap: 6 },
+  chip: { minHeight: 28, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  chipText: { ...MonoText.chip },
+  vs: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  primaryPill: {
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: MonoColors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 18,
   },
-  chipText: { ...MonoText.chip },
-  vs: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  primaryPillText: {
+    ...MonoText.bodyStrong,
+    fontSize: 13,
+    color: '#0A0A0A',
+  },
+  secondaryPill: {
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: MonoColors.raised,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+  },
+  secondaryPillText: {
+    ...MonoText.bodyStrong,
+    fontSize: 13,
+    color: MonoColors.text,
+  },
+  iconPill: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: MonoColors.raised,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
