@@ -10,7 +10,7 @@ import { LineChart } from 'react-native-gifted-charts';
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { labelIndexes, niceRange } from '@/core/chartScale';
+import { axisLabel, labelIndexes, millionsCallout, niceRange } from '@/core/chartScale';
 import { formatDayMonth, formatShortDate, monthAbbrev, monthName } from '@/core/date';
 import { pct, rp, shown, shownPct } from '@/core/money';
 import type { FlowRange, FlowRangeKey } from '@/domain/cashFlowRanges';
@@ -33,13 +33,22 @@ import { MonoText } from '@/theme/typography';
 import { Triangle } from './parts';
 
 const KEYS: FlowRangeKey[] = ['week', 'month', 'year'];
-const CHART_HEIGHT = 104;
-const PAD_X = 6;
+const CHART_HEIGHT = 140;
+const PAD_X = 8;
+const Y_LABEL_WIDTH = 46; // the gutter for the y axis labels (as on the account chart)
+const X_LABEL_WIDTH = 52;
+const X_LABELS_MAX = 4;
 const NO_ANIMATION = { animationDuration: 0 };
 
 export interface NetCashFlowCardProps {
   ranges: Record<FlowRangeKey, FlowRange>;
   onOpenTransactions?: (type: 'income' | 'expense') => void;
+}
+
+// A y axis label: millions once the axis reaches Rp1 million ("1,2 jt"), thousands below it ("280k").
+function yLabel(value: number, top: number): string {
+  if (value === 0) return '0';
+  return top >= 1_000_000 ? millionsCallout(value) : axisLabel(value, top);
 }
 
 // A bucket's name: the day for week and month, the month for the year.
@@ -92,16 +101,18 @@ export function NetCashFlowCard({ ranges, onOpenTransactions }: NetCashFlowCardP
   // The running total is drawn from the axis' lowest line, and the tooltip and the table say the real amounts.
   const cumulative = range.points.map(p => p.cumulative);
   const yRange = niceRange(Math.min(0, ...cumulative), Math.max(0, ...cumulative));
-  const plotWidth = Math.max(160, wrapWidth);
+  const yWidth = hidden ? 0 : Y_LABEL_WIDTH;
+  const plotWidth = Math.max(160, wrapWidth - yWidth);
   const spacing = range.points.length > 1 ? (plotWidth - PAD_X * 2) / (range.points.length - 1) : 120;
   const lineData = range.points.map(p => ({
     value: p.cumulative - yRange.low,
     raw: p.cumulative,
+    delta: p.net, // what that day (or period) added to the running total
     id: p.key,
     dataPointRadius: 0,
     hideDataPoint: true,
   }));
-  const xLabels = labelIndexes(range.points.length, 4);
+  const xLabels = labelIndexes(range.points.length, X_LABELS_MAX);
 
   const biggest = Math.max(range.income, range.expense, 1);
   const inShare = Math.round((range.income * 100) / biggest);
@@ -138,7 +149,6 @@ export function NetCashFlowCard({ ranges, onOpenTransactions }: NetCashFlowCardP
           {wrapWidth > 0 && (
             <LineChart
               data={lineData}
-              areaChart
               interpolateMissingValues={false}
               height={CHART_HEIGHT}
               width={plotWidth}
@@ -146,52 +156,73 @@ export function NetCashFlowCard({ ranges, onOpenTransactions }: NetCashFlowCardP
               initialSpacing={PAD_X}
               endSpacing={PAD_X}
               color={MonoColors.accent}
-              thickness={2}
-              startFillColor={MonoColors.accent}
-              endFillColor={MonoColors.accent}
-              startOpacity={0.16}
+              thickness={2.5}
+              startFillColor="transparent"
+              startOpacity={0}
               endOpacity={0}
               hideDataPoints
-              hideRules
-              hideYAxisText
               yAxisThickness={0}
-              xAxisThickness={0}
-              yAxisLabelWidth={0}
+              xAxisThickness={1}
+              xAxisColor={MonoColors.border}
+              hideRules={false}
+              rulesColor={MonoColors.border}
+              rulesType="solid"
+              noOfSections={yRange.ticks.length - 1}
+              yAxisLabelTexts={yRange.ticks.map(t => yLabel(t, yRange.high))}
+              yAxisLabelWidth={yWidth}
+              yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
               maxValue={yRange.high - yRange.low}
-              noOfSections={3}
+              hideYAxisText={hidden}
               backgroundColor="transparent"
               disableScroll
               isAnimated={false}
               {...NO_ANIMATION}
+              curved
               pointerConfig={{
                 pointerStripHeight: CHART_HEIGHT,
-                pointerStripWidth: 1,
+                pointerStripWidth: 1.5,
                 pointerStripColor: MonoColors.border,
+                strokeDashArray: [4, 4],
                 pointerColor: MonoColors.accent,
-                pointerRadius: 4,
+                pointerRadius: 5,
                 autoAdjustPointerLabelPosition: true,
-                pointerLabelWidth: 130,
-                pointerLabelHeight: 28,
-                shiftPointerLabelX: -65,
-                shiftPointerLabelY: -34,
+                pointerLabelWidth: 180,
+                pointerLabelHeight: 52,
+                shiftPointerLabelX: -90,
+                shiftPointerLabelY: -58,
                 activatePointersInstantlyOnTouch: true,
-                pointerLabelComponent: (items: { raw?: number; id?: string }[]) => {
+                pointerLabelComponent: (items: { raw?: number; delta?: number; id?: string }[]) => {
                   const item = items?.[0];
                   if (!item || item.raw == null || !item.id) return null;
+                  const delta = item.delta ?? 0;
+                  const deltaTone = delta === 0 ? MonoColors.textSecond : delta > 0 ? MonoColors.positive : MonoColors.negative;
                   return (
                     <View style={styles.tooltip}>
-                      <Text style={styles.tooltipText}>{`${bucketLabel(key, item.id)} · ${shown(rp(item.raw), hidden)}`}</Text>
+                      <Text style={styles.tooltipDate}>{bucketLabel(key, item.id)}</Text>
+                      <View style={styles.tooltipRow}>
+                        <View style={[styles.tooltipDot, { backgroundColor: MonoColors.accent }]} />
+                        <Text style={styles.tooltipAmount}>{shown(rp(item.raw, true), hidden)}</Text>
+                      </View>
+                      <Text style={[styles.tooltipDelta, { color: deltaTone }]}>{shown(rp(delta, true), hidden)}</Text>
                     </View>
                   );
                 },
               }}
             />
           )}
-          <View style={styles.xRow} importantForAccessibility="no-hide-descendants">
-            {xLabels.map(i => (
-              <Text key={i} style={styles.xLabel}>{bucketLabel(key, range.points[i].key)}</Text>
-            ))}
-          </View>
+          {wrapWidth > 0 && (
+            <View style={styles.xRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {xLabels.map(i => {
+                const x = yWidth + PAD_X + i * spacing - X_LABEL_WIDTH / 2;
+                const left = Math.min(Math.max(0, x), Math.max(0, wrapWidth - X_LABEL_WIDTH));
+                return (
+                  <Text key={range.points[i].key} style={[styles.xLabel, { left, width: X_LABEL_WIDTH }]}>
+                    {bucketLabel(key, range.points[i].key)}
+                  </Text>
+                );
+              })}
+            </View>
+          )}
         </View>
       )}
 
@@ -232,11 +263,15 @@ const styles = StyleSheet.create({
   chip: { minHeight: 28, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 6 },
   chipText: { ...MonoText.chip },
   noCompare: { ...MonoText.bodyS, color: MonoColors.textSecond },
-  chartWrap: { marginTop: 2, marginBottom: 2 },
-  xRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: PAD_X, marginTop: 6 },
-  xLabel: { ...MonoText.caption, color: MonoColors.textMeta },
-  tooltip: { backgroundColor: MonoColors.bg, borderWidth: 1, borderColor: MonoColors.border, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, alignItems: 'center' },
-  tooltipText: { ...MonoText.caption, color: MonoColors.text },
+  chartWrap: { marginTop: 6, marginBottom: 2, marginHorizontal: -4 },
+  xRow: { height: 18, marginTop: 4 },
+  xLabel: { ...MonoText.caption, position: 'absolute', top: 0, textAlign: 'center', color: MonoColors.textMeta },
+  tooltip: { backgroundColor: MonoColors.card, borderRadius: 8, borderWidth: 1, borderColor: MonoColors.border, paddingHorizontal: 10, paddingVertical: 6, gap: 3 },
+  tooltipDate: { ...MonoText.caption, color: MonoColors.textSecond },
+  tooltipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tooltipDot: { width: 6, height: 6, borderRadius: 3 },
+  tooltipAmount: { ...MonoText.bodyStrong, fontSize: 13, color: MonoColors.text },
+  tooltipDelta: { ...MonoText.caption, fontFamily: MonoText.bodyStrong.fontFamily },
   tiles: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: MonoColors.border },
   tile: { flex: 1, minWidth: 0, gap: 8, paddingVertical: 12 },
   tileRight: { paddingLeft: 12, borderLeftWidth: 1, borderLeftColor: MonoColors.border },
