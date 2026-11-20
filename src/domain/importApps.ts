@@ -6,6 +6,7 @@
 // that exists and is not archived. Without one it stays off. Taking the account away switches the
 // app off. Nothing here reads or stores a notification: only {package, app name, last seen}.
 import type { Db } from '../data/db/types';
+import { countPending } from '../data/repo/importQueue';
 import { getImportApp, listEnabledPackages, setImportAppState, upsertSeenApp, type ImportAppRow, type SupportedLevel } from '../data/repo/importApps';
 
 export type ImportAppErrorCode = 'unknown_app' | 'needs_account' | 'account_missing' | 'account_not_rupiah';
@@ -80,7 +81,7 @@ export async function allowedPackages(db: Db): Promise<string[]> {
   return listEnabledPackages(db);
 }
 
-// "N transaksi menunggu tinjauan": there is no review queue yet, so it is always zero for now.
-export async function pendingReviewCount(_db: Db): Promise<number> {
-  return 0;
+// "N transaksi menunggu tinjauan": the rows of the review queue still waiting for Simpan or Tolak.
+export async function pendingReviewCount(db: Db): Promise<number> {
+  return countPending(db);
 }

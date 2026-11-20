@@ -25,6 +25,8 @@ const ALLOWED = [
   'features/ai_chat/prompt.ts',
   'features/ai_chat/receiptTidy.ts',
   'features/ai_chat/analysisAi.ts',
+  // The notification parsers read Indonesian payment wording (the words they look for are not UI text).
+  'features/import/parsers/',
   'features/more/backupStatus.ts',
   // Category names the scan looks for in the person's own list (Indonesian ones included).
   'features/receipt/draft.ts',

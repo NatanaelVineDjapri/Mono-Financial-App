@@ -12,7 +12,7 @@ import type { ValidationFailure } from './validate';
 // Tables that are not in a backup file but point at accounts: they are emptied first, or deleting
 // the accounts would break their foreign keys. Import settings map this phone's apps to accounts,
 // so after a restore the apps are switched on again (and the native allowlist re-synced).
-const CLEARED_BEFORE_RESTORE = ['import_app_settings'] as const;
+const CLEARED_BEFORE_RESTORE = ['import_queue', 'import_merchant_memory', 'import_app_settings'] as const;
 
 // Children before parents, so every delete is FK-safe at the moment it runs.
 const DELETE_ORDER: BackupTable[] = [

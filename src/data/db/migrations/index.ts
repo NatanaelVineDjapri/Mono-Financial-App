@@ -9,6 +9,7 @@ import { clampGoalProgressView } from './v7_goal_progress_clamp';
 import { addCategoryGuards } from './v8_category_guards';
 import { addTransactionLocations } from './v9_transaction_locations';
 import { addNotifications } from './v10_notifications';
+import { addImportQueue } from './v11_import_queue';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -27,6 +28,8 @@ export type Migration = (db: Db) => Promise<void>;
 //   8 -> 9: private, foreground-captured transaction locations; disabled by default.
 //   9 -> 10: notifications inbox table + 12 new settings keys; maps backup_reminder -> notif_backup,
 //            recurring_reminders -> notif_bill_h1 + notif_bill_overdue; cancels all old scheduled notifs.
+//   10 -> 11: import_queue + import_merchant_memory (review queue of the notification import, parsed fields only);
+//            transactions.source also accepts 'import'.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -37,6 +40,7 @@ export const migrations: Record<number, Migration> = {
   7: addCategoryGuards,
   8: addTransactionLocations,
   9: addNotifications,
+  10: addImportQueue,
 };
 
 // Brings `db` from its current meta.schema_version up to the newest version this build

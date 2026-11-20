@@ -5,6 +5,8 @@
 import type { Db } from '@/data/db/types';
 
 const DELETE_ORDER = [
+  'import_queue',
+  'import_merchant_memory',
   'recurring_events',
   'transactions',
   'recurring',

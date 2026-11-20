@@ -196,6 +196,9 @@ Satu baris per aplikasi yang pernah mengirim notifikasi. **Hanya metadata aplika
 - **Cadangan:** tabel ini **tidak diekspor** (pemetaan paket khusus perangkat) tetapi **dikosongkan saat restore**, karena kalau tidak, menghapus `accounts` gagal oleh FK. Setelah restore, aplikasi dinyalakan lagi; allowlist native disinkronkan ulang dari database setiap app dibuka.
 - Daftar tabel cadangan tetap sebelas.
 
-### Belum ada (tahap berikutnya)
+### Sudah ada: antrean tinjauan (migrasi v11)
 
-`import_queue` (antrean tinjauan), `merchant_category_memory` (ingatan merchant ke kategori), dan nilai `'import'` pada CHECK `transactions.source` (nanti lewat migrasi v6, digabung dengan `'scan'`). Antrean tidak akan punya kolom isi pesan atau judul asli, hanya field hasil baca.
+- `import_queue`: satu baris per transaksi terdeteksi (`package`, `app_name`, `account_id`, `kind` boleh kosong = "Perlu dicek", `amount_idr` > 0, `merchant`, `category_id` boleh kosong, `guessed`, `occurred_at`, `fingerprint` UNIQUE, `status` pending/rejected/saved). **Tidak ada kolom isi pesan atau judul**, hanya field hasil baca.
+- `import_merchant_memory`: `merchant_key` (huruf kecil, tanpa tanda) ke `category_id`, diisi hanya saat pengguna menyalakan "Ingat kategori" lalu menekan Simpan.
+- CHECK `transactions.source` kini `('manual','ai','recurring','scan','import')` (tabel dibangun ulang).
+- Kedua tabel tidak diekspor dan dikosongkan saat restore (seperti `import_app_settings`).

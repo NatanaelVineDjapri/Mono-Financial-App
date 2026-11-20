@@ -1356,3 +1356,45 @@ export const profilePickerTitle = pick(en.profilePickerTitle, id.profilePickerTi
 export const profilePickerSubtitle = pick(en.profilePickerSubtitle, id.profilePickerSubtitle);
 export const profileAvatarDefault = pick(en.profileAvatarDefault, id.profileAvatarDefault);
 export const profileAvatarPose = pick(en.profileAvatarPose, id.profileAvatarPose);
+
+// Notification import: review queue.
+export const importReviewTitle = pick(en.importReviewTitle, id.importReviewTitle);
+export const importReviewIntro = pick(en.importReviewIntro, id.importReviewIntro);
+export const importReviewEmptyTitle = pick(en.importReviewEmptyTitle, id.importReviewEmptyTitle);
+export const importReviewEmptyBody = pick(en.importReviewEmptyBody, id.importReviewEmptyBody);
+export const importBadgeGuessed = pick(en.importBadgeGuessed, id.importBadgeGuessed);
+export const importBadgeCheck = pick(en.importBadgeCheck, id.importBadgeCheck);
+export const importPickCategory = pick(en.importPickCategory, id.importPickCategory);
+export const importPickKind = pick(en.importPickKind, id.importPickKind);
+export const importSaveAll = pick(en.importSaveAll, id.importSaveAll);
+export const importSavedAll = pick(en.importSavedAll, id.importSavedAll);
+export const importSavedSomeFailed = pick(en.importSavedSomeFailed, id.importSavedSomeFailed);
+export const importSave = pick(en.importSave, id.importSave);
+export const importSaving = pick(en.importSaving, id.importSaving);
+export const importReject = pick(en.importReject, id.importReject);
+export const importRejectedToast = pick(en.importRejectedToast, id.importRejectedToast);
+export const importSavedToast = pick(en.importSavedToast, id.importSavedToast);
+export const importBackLabel = pick(en.importBackLabel, id.importBackLabel);
+export const importEditTitle = pick(en.importEditTitle, id.importEditTitle);
+export const importFromApp = pick(en.importFromApp, id.importFromApp);
+export const importKindLabel = pick(en.importKindLabel, id.importKindLabel);
+export const importAmountLabel = pick(en.importAmountLabel, id.importAmountLabel);
+export const importMerchantLabel = pick(en.importMerchantLabel, id.importMerchantLabel);
+export const importMerchantPlaceholder = pick(en.importMerchantPlaceholder, id.importMerchantPlaceholder);
+export const importCategoryLabel = pick(en.importCategoryLabel, id.importCategoryLabel);
+export const importAccountLabel = pick(en.importAccountLabel, id.importAccountLabel);
+export const importDateLabel = pick(en.importDateLabel, id.importDateLabel);
+export const importRemember = pick(en.importRemember, id.importRemember);
+export const importRememberSwitch = pick(en.importRememberSwitch, id.importRememberSwitch);
+export const importNeedsKind = pick(en.importNeedsKind, id.importNeedsKind);
+export const importItemGone = pick(en.importItemGone, id.importItemGone);
+export const importDraftTag = pick(en.importDraftTag, id.importDraftTag);
+export const importNotSaved = pick(en.importNotSaved, id.importNotSaved);
+
+// Nickname in Settings.
+export const profileNicknameTitle = pick(en.profileNicknameTitle, id.profileNicknameTitle);
+export const profileNicknameEmpty = pick(en.profileNicknameEmpty, id.profileNicknameEmpty);
+export const profileNicknameSheetSubtitle = pick(en.profileNicknameSheetSubtitle, id.profileNicknameSheetSubtitle);
+export const profileNicknamePlaceholder = pick(en.profileNicknamePlaceholder, id.profileNicknamePlaceholder);
+export const profileNicknameHint = pick(en.profileNicknameHint, id.profileNicknameHint);
+export const profileNicknameSave = pick(en.profileNicknameSave, id.profileNicknameSave);

@@ -9,7 +9,7 @@ describe('migration 8 -> 9 transaction locations', () => {
     );
     await runMigrations(db, 8);
 
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '10' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '11' });
     expect(await db.getFirstAsync("select count(*) as count from accounts where name = 'Old'")).toEqual({ count: 1 });
     expect(await db.getFirstAsync('select count(*) as count from transaction_locations')).toEqual({ count: 0 });
     expect(await db.getFirstAsync("select value from settings where key = 'location_enabled'")).toEqual({ value: '0' });

@@ -4,7 +4,7 @@
 import type { Db } from '../db/types';
 
 export type TxKind = 'income' | 'expense' | 'transfer';
-export type TxSource = 'manual' | 'ai' | 'recurring' | 'scan';
+export type TxSource = 'manual' | 'ai' | 'recurring' | 'scan' | 'import';
 
 export interface NewTransaction {
   kind: TxKind;

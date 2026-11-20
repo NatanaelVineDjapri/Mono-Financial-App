@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { openTestDb } from '@/data/db/openTestDb';
+import { openMigratedTestDb, openTestDb } from '@/data/db/openTestDb';
 
 import { resetDatabase } from '../resetDatabase';
 import { asReplace, runSqlScript, stripOuterTransaction } from '../runSqlScript';
@@ -60,7 +60,7 @@ describe('pressing the dev buttons again', () => {
   const count = async (db: ReturnType<typeof openTestDb>, table: string) => (await db.getFirstAsync<{ n: number }>(`select count(*) as n from ${table}`))!.n;
 
   test('"Load sample data" after data exists: reset, then load, so it works every time', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     await runSqlScript(db, sample());
     const accounts = await count(db, 'accounts');
     const transactions = await count(db, 'transactions');

@@ -7,7 +7,7 @@ describe('migration 9 -> 10 notifications', () => {
     const db = openTestDb();
     await runMigrations(db, 9);
 
-    expect(await db.getFirstAsync("SELECT value FROM meta WHERE key = 'schema_version'")).toEqual({ value: '10' });
+    expect(await db.getFirstAsync("SELECT value FROM meta WHERE key = 'schema_version'")).toEqual({ value: '11' });
     expect(await db.getFirstAsync('SELECT count(*) AS n FROM notifications')).toEqual({ n: 0 });
 
     const keys = ['notif_enabled','quiet_start','quiet_end','notif_daily','notif_daily_time',

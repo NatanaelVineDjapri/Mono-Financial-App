@@ -1315,6 +1315,7 @@ const txSourceLabels: Record<TxSource, string> = {
   ai: 'AI chat',
   recurring: 'Fixed expense',
   scan: 'Scan struk',
+  import: 'Impor notifikasi',
 };
 
 export function txSourceName(source: TxSource): string {
@@ -4565,3 +4566,45 @@ export function profilePickerTitle(): string { return `Pilih foto profil`; }
 export function profilePickerSubtitle(): string { return `Tampil di Ringkasan. Hanya di ponsel ini.`; }
 export function profileAvatarDefault(): string { return `Bawaan`; }
 export function profileAvatarPose(id: "sunglasses" | "glasses" | "money_eyes" | "headphones" | "thinking" | "checking_portfolio" | "thumbs_up" | "saving_money" | "hoodie_on"): string { return ({ sunglasses: `Kacamata hitam`, glasses: `Kacamata`, money_eyes: `Mata duitan`, headphones: `Headphone`, thinking: `Berpikir`, checking_portfolio: `Cek portofolio`, thumbs_up: `Jempol`, saving_money: `Menabung`, hoodie_on: `Pakai hoodie` })[id]; }
+
+// Impor notifikasi: antrean tinjauan dan layar periksa (board N3 dan N4).
+export function importReviewTitle(): string { return `Tinjau transaksi`; }
+export function importReviewIntro(): string { return `Terbaca dari notifikasi aplikasi yang kamu pilih. Belum ada yang tersimpan sampai kamu menekan Simpan.`; }
+export function importReviewEmptyTitle(): string { return `Tidak ada yang perlu ditinjau`; }
+export function importReviewEmptyBody(): string { return `Transaksi dari notifikasi muncul di sini untuk kamu periksa.`; }
+export function importBadgeGuessed(): string { return `Ditebak`; }
+export function importBadgeCheck(): string { return `Perlu dicek`; }
+export function importPickCategory(): string { return `Pilih kategori`; }
+export function importPickKind(): string { return `Pilih jenis`; }
+export function importSaveAll(count: number): string { return `Simpan ${count} yang lengkap`; }
+export function importSavedAll(count: number): string { return `${count} transaksi tersimpan.`; }
+export function importSavedSomeFailed(saved: number, failed: number): string { return `${saved} tersimpan, ${failed} perlu kamu periksa dulu.`; }
+export function importSave(): string { return `Simpan`; }
+export function importSaving(): string { return `Menyimpan...`; }
+export function importReject(): string { return `Tolak`; }
+export function importRejectedToast(): string { return `Transaksi ditolak.`; }
+export function importSavedToast(): string { return `Transaksi tersimpan.`; }
+export function importBackLabel(): string { return `Kembali`; }
+export function importEditTitle(): string { return `Periksa transaksi`; }
+export function importFromApp(app: string, dateTime: string): string { return `Terbaca dari notifikasi ${app}, ${dateTime}`; }
+export function importKindLabel(): string { return `Jenis`; }
+export function importAmountLabel(): string { return `Nominal`; }
+export function importMerchantLabel(): string { return `Toko atau penerima`; }
+export function importMerchantPlaceholder(): string { return `Tanpa nama`; }
+export function importCategoryLabel(): string { return `Kategori`; }
+export function importAccountLabel(): string { return `Akun`; }
+export function importDateLabel(): string { return `Tanggal`; }
+export function importRemember(merchant: string): string { return `Ingat kategori untuk ${merchant}`; }
+export function importRememberSwitch(): string { return `Ingat kategori untuk toko ini`; }
+export function importNeedsKind(): string { return `Pilih dulu apakah ini pengeluaran atau pemasukan.`; }
+export function importItemGone(): string { return `Transaksi ini sudah tidak ada di antrean.`; }
+export function importDraftTag(): string { return `Draf dari notifikasi`; }
+export function importNotSaved(): string { return `Belum tersimpan`; }
+
+// Nama panggilan di Pengaturan.
+export function profileNicknameTitle(): string { return `Nama panggilan`; }
+export function profileNicknameEmpty(): string { return `Belum diisi`; }
+export function profileNicknameSheetSubtitle(): string { return `Tampil di sapaan Ringkasan dan obrolan AI.`; }
+export function profileNicknamePlaceholder(): string { return `Contoh: Nael`; }
+export function profileNicknameHint(): string { return `Kosongkan untuk memakai sapaan bawaan. Hanya di ponsel ini.`; }
+export function profileNicknameSave(): string { return `Simpan`; }

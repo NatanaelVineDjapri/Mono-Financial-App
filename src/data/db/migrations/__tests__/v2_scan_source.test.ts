@@ -69,7 +69,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(rowsBefore).toHaveLength(11);
     expect(eventsBefore).toHaveLength(2);
 
-    await expect(runMigrations(db, 1)).resolves.toBe(10);
+    await expect(runMigrations(db, 1)).resolves.toBe(11);
 
     expect(await db.getAllAsync('select * from transactions order by 1, 2, 3')).toEqual(rowsBefore);
     expect(await db.getAllAsync('select * from recurring_events order by 1, 2, 3')).toEqual(eventsBefore);
@@ -79,7 +79,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(await db.getAllAsync("select * from v_period_flow where period = '2026-10'")).toEqual([
       expect.objectContaining({ income: 7500000, expense: 4257000 }),
     ]);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '10' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '11' });
   });
 
   test('every view, trigger and index comes back with the same SQL (17 views, 23 triggers)', async () => {
@@ -102,7 +102,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     const before = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
     await runMigrations(db, 1);
     const after = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
-    expect(after).toBe(before.replace("'recurring'))", "'recurring','scan'))"));
+    expect(after).toBe(before.replace("'recurring'))", "'recurring','scan','import'))"));
   });
 
   test('scan is accepted, an unknown source is still refused', async () => {

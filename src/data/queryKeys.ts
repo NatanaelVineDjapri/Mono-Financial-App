@@ -17,6 +17,7 @@ export const queryKeys = {
   reports: ['reports'] as const,
   analysis: ['analysis'] as const,
   notifications: ['notifications'] as const,
+  importQueue: ['import-queue'] as const,
 } as const;
 
 export function invalidateAfterWrite(queryClient: QueryClient): Promise<void> {

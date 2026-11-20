@@ -2,7 +2,7 @@ import { createAccount } from '../../domain/accounts';
 import { createBudget, setMonthlyLimit } from '../../domain/budget';
 import { createGoal } from '../../domain/goals';
 import { addExpense, addIncome } from '../../domain/transactions';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { listCategories } from '../../data/repo/categories';
 import { getNetWorth } from '../../domain/net-worth';
 import { resetDatabase } from '../resetDatabase';
@@ -11,7 +11,7 @@ const NOW = '2026-10-28T10:00:00+07:00';
 
 describe('resetDatabase', () => {
   test('clears entered data but keeps categories and settings', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     const categories = await listCategories(db);
     const categoriesBefore = categories.length;
     const cat = (name: string) => categories.find(c => c.name === name)!.id;

@@ -67,7 +67,11 @@ Cadangan: tabel ini **tidak diekspor** (khusus perangkat, pemetaan paket) tetapi
 - **Titik masuk**: Pengaturan, Asisten, Impor otomatis. Default mati.
 - **`/dev/import-sampler`** (hanya `__DEV__`): teks mentah notifikasi dari paket yang diaktifkan, di memori saja, tombol Salin. Untuk mengambil sampel nyata yang ditempel ke chat supaya parser dibuat dari teks asli.
 
-## 6. Parser berlapis (tahap berikutnya)
+## 6. Parser berlapis
+
+**Status:** parser umum, antrean tinjauan, kategori otomatis, Tinjau (`/import/review`) dan Periksa (`/import/edit/[id]`) sudah dibangun. **Parser khusus per institusi belum ada**: butuh sampel notifikasi asli (ambil lewat `/dev/import-sampler`), tidak pernah dikarang. Sampai itu ada, semua hasil berstatus "Ditebak".
+
+Alur: pendengar native (hanya paket yang dinyalakan) -> `ImportSync` (menguras antrean native saat app dibuka atau kembali ke depan, plus kejadian langsung) -> `src/features/import/ingest.ts` satu per satu -> `enqueueNotification` (`src/domain/importQueue.ts`) membaca judul dan teks, mengambil hanya `{jenis, nominal, merchant, kategori usulan, waktu}`, lalu teksnya dilupakan. Sidik jari (`paket|jenis|nominal|merchant|ember 2 menit`) mencegah notifikasi yang diperbarui masuk dua kali; baris yang ditolak atau sudah disimpan tetap ada (status) untuk itu, dan yang lebih tua dari 60 hari dibersihkan. Simpan = `saveQueueItem`: `validateTx` lalu `saveNewTransaction(..., 'import')`, baru baris ditandai `saved`. Akun tujuan selalu rupiah (akun Valas ditolak).
 
 1. **Khusus per institusi**, hanya yang punya sampel nyata. Tidak mengarang format teks. Hasil `{institution, merchant, amountIdr, kind, occurredAt, reference?}`, tingkat "Didukung penuh".
 2. **Umum** (`generic.ts`): lolos hanya bila ada nominal rupiah dan kata kunci transaksi; OTP, promo, dan notifikasi tanpa nominal dibuang; jenis tidak jelas berarti "Perlu dicek"; selalu "Ditebak".
@@ -87,4 +91,4 @@ Kategori dari memori per merchant lalu aturan kata kunci lokal, kosong bila tida
 
 ## 8. Urutan kerja
 
-1. Rencana ini. 2. Migrasi v3 + repo + domain + tes (aktivasi tanpa akun ditolak). 3. Modul native + manifes + pembungkus TS + filter JS + tes allowlist. 4. Pencatat aplikasi terdeteksi + sinkron ke DB + tes (tidak menyimpan teks). 5. Layar `/settings/import` dan panduan izin, baris masuk di Pengaturan. 6. `/dev/import-sampler`. 7. Docs dan CLAUDE.md. 8. Tahap berikutnya: parser umum, antrean, Import-Review, Import-Review-Edit.
+1. Rencana ini. 2. Migrasi v3 + repo + domain + tes (aktivasi tanpa akun ditolak). 3. Modul native + manifes + pembungkus TS + filter JS + tes allowlist. 4. Pencatat aplikasi terdeteksi + sinkron ke DB + tes (tidak menyimpan teks). 5. Layar `/settings/import` dan panduan izin, baris masuk di Pengaturan. 6. `/dev/import-sampler`. 7. Docs dan CLAUDE.md. 8. Parser umum, antrean, Import-Review, Import-Review-Edit (selesai). 9. Berikutnya: parser khusus per institusi, setelah ada sampel asli.

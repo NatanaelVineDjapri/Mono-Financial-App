@@ -1317,6 +1317,7 @@ const txSourceLabels: Record<TxSource, string> = {
   ai: 'AI chat',
   recurring: 'Fixed expense',
   scan: 'Receipt scan',
+  import: 'Notification import',
 };
 
 export function txSourceName(source: TxSource): string {
@@ -4568,3 +4569,45 @@ export function profilePickerTitle(): string { return `Choose a profile picture`
 export function profilePickerSubtitle(): string { return `Shown on the Overview. Only on this phone.`; }
 export function profileAvatarDefault(): string { return `Default`; }
 export function profileAvatarPose(id: "sunglasses" | "glasses" | "money_eyes" | "headphones" | "thinking" | "checking_portfolio" | "thumbs_up" | "saving_money" | "hoodie_on"): string { return ({ sunglasses: `Sunglasses`, glasses: `Glasses`, money_eyes: `Money eyes`, headphones: `Headphones`, thinking: `Thinking`, checking_portfolio: `Checking portfolio`, thumbs_up: `Thumbs up`, saving_money: `Saving money`, hoodie_on: `Hoodie on` })[id]; }
+
+// Notification import: the review queue and the check screen (boards N3 and N4).
+export function importReviewTitle(): string { return `Review transactions`; }
+export function importReviewIntro(): string { return `Read from the notifications of the apps you chose. Nothing is saved until you tap Save.`; }
+export function importReviewEmptyTitle(): string { return `Nothing to review`; }
+export function importReviewEmptyBody(): string { return `Transactions found in notifications show up here for you to check.`; }
+export function importBadgeGuessed(): string { return `Guessed`; }
+export function importBadgeCheck(): string { return `Needs checking`; }
+export function importPickCategory(): string { return `Choose a category`; }
+export function importPickKind(): string { return `Choose a type`; }
+export function importSaveAll(count: number): string { return `Save ${count} that ${count === 1 ? 'is' : 'are'} complete`; }
+export function importSavedAll(count: number): string { return `${count} ${count === 1 ? 'transaction' : 'transactions'} saved.`; }
+export function importSavedSomeFailed(saved: number, failed: number): string { return `${saved} saved, ${failed} need${failed === 1 ? 's' : ''} your check first.`; }
+export function importSave(): string { return `Save`; }
+export function importSaving(): string { return `Saving...`; }
+export function importReject(): string { return `Reject`; }
+export function importRejectedToast(): string { return `Transaction rejected.`; }
+export function importSavedToast(): string { return `Transaction saved.`; }
+export function importBackLabel(): string { return `Back`; }
+export function importEditTitle(): string { return `Check transaction`; }
+export function importFromApp(app: string, dateTime: string): string { return `Read from a ${app} notification, ${dateTime}`; }
+export function importKindLabel(): string { return `Type`; }
+export function importAmountLabel(): string { return `Amount`; }
+export function importMerchantLabel(): string { return `Shop or recipient`; }
+export function importMerchantPlaceholder(): string { return `No name`; }
+export function importCategoryLabel(): string { return `Category`; }
+export function importAccountLabel(): string { return `Account`; }
+export function importDateLabel(): string { return `Date`; }
+export function importRemember(merchant: string): string { return `Remember the category for ${merchant}`; }
+export function importRememberSwitch(): string { return `Remember the category for this shop`; }
+export function importNeedsKind(): string { return `First choose whether this is an expense or income.`; }
+export function importItemGone(): string { return `This transaction is no longer in the queue.`; }
+export function importDraftTag(): string { return `Draft from a notification`; }
+export function importNotSaved(): string { return `Not saved yet`; }
+
+// Nickname in Settings.
+export function profileNicknameTitle(): string { return `Nickname`; }
+export function profileNicknameEmpty(): string { return `Not set`; }
+export function profileNicknameSheetSubtitle(): string { return `Shown in the Overview greeting and the AI chat.`; }
+export function profileNicknamePlaceholder(): string { return `For example: Nael`; }
+export function profileNicknameHint(): string { return `Leave empty to use the default greeting. Only on this phone.`; }
+export function profileNicknameSave(): string { return `Save`; }
