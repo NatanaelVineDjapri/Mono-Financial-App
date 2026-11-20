@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { countTransactionsChangedSince, getLastBackupAt } from '@/data/repo/backupLog';
+import { countPending } from '@/data/repo/importQueue';
 import { getSetting } from '@/data/repo/settings';
 import { listDue } from '@/domain/recurring';
 
@@ -10,6 +11,7 @@ import { useMoreData } from '../useMoreData';
 
 jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({ fake: 'db' }) }));
 jest.mock('@/data/repo/backupLog', () => ({ getLastBackupAt: jest.fn(async () => null), countTransactionsChangedSince: jest.fn(async () => 0) }));
+jest.mock('@/data/repo/importQueue', () => ({ countPending: jest.fn(async () => 0) }));
 jest.mock('@/data/repo/settings', () => ({ getSetting: jest.fn(async () => null) }));
 jest.mock('@/domain/recurring', () => ({ listDue: jest.fn(async () => []) }));
 
@@ -53,10 +55,16 @@ beforeEach(() => {
 });
 
 describe('useMoreData', () => {
+  test('counts the detected transactions waiting for review', async () => {
+    (countPending as jest.Mock).mockResolvedValueOnce(4);
+    const { result } = await renderHook(() => useMoreData(), { wrapper: makeWrapper() });
+    await waitFor(() => expect(result.current.importPending).toBe(4));
+  });
+
   test('never backed up and nothing due', async () => {
     const { result } = await renderHook(() => useMoreData(), { wrapper: makeWrapper() });
     await waitFor(() => expect(mockLast).toHaveBeenCalled());
-    expect(result.current).toEqual({ backup: { kind: 'none' }, dueCount: 0 });
+    expect(result.current).toEqual({ backup: { kind: 'none' }, dueCount: 0, importPending: 0 });
   });
 
   test('counts the fixed expenses due today or overdue, as v_recurring_due lists them', async () => {
