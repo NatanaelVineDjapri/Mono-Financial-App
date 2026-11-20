@@ -1,7 +1,9 @@
 // The profile pictures the person can choose from: the MONO fox in nine poses (assets/mascot/fox_poses). The
 // choice is one local setting (`avatar_pose`, the pose's id); nothing is derived or stored elsewhere. No choice, or
 // an id this version does not know (a restored backup from a later one), means the default avatar.
-export const AVATAR_POSE_SETTING = 'avatar_pose';
+import { AVATAR_POSE_SETTING } from './avatarSetting';
+
+export { AVATAR_POSE_SETTING };
 
 export type AvatarPoseId =
   | 'sunglasses'

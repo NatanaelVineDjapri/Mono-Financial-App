@@ -58,15 +58,23 @@ test('Mulai saves the nickname and goes to the Overview, replacing Welcome', asy
   await open();
   await fireEvent.changeText(screen.getByTestId('welcome-nickname-input'), 'Nael');
   await fireEvent.press(screen.getByTestId('welcome-start'));
-  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), 'Nael');
+  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), 'Nael', null);
   expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
 });
 
 test('Mulai works with no nickname at all', async () => {
   await open();
   await fireEvent.press(screen.getByTestId('welcome-start'));
-  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), '');
+  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), '', null);
   expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
+});
+
+test('a profile picture can be chosen before Mulai and is handed over with it', async () => {
+  await open();
+  await fireEvent.press(screen.getByTestId('welcome-avatar-row'));
+  await fireEvent.press(await screen.findByTestId('avatar-option-thumbs_up'));
+  await fireEvent.press(screen.getByTestId('welcome-start'));
+  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), '', 'thumbs_up');
 });
 
 test('"Punya berkas cadangan? Pulihkan" opens Backup', async () => {

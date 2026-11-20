@@ -43,6 +43,15 @@ describe('Mulai', () => {
     expect(await getSetting(db, WELCOME_DONE_SETTING)).toBe('1');
   });
 
+  test('a chosen profile picture is saved with it; none chosen leaves the setting alone', async () => {
+    const db = openTestDb();
+    await finishWelcome(db, '', 'money_eyes');
+    expect(await getSetting(db, 'avatar_pose')).toBe('money_eyes');
+    const other = openTestDb();
+    await finishWelcome(other, '');
+    expect(await getSetting(other, 'avatar_pose')).toBeNull();
+  });
+
   test('a long nickname is cut to the limit', async () => {
     const db = openTestDb();
     await finishWelcome(db, 'x'.repeat(100));
