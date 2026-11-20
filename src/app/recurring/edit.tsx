@@ -33,10 +33,13 @@ import { listAccountsForForm } from '@/data/repo/accounts';
 import { listCategories } from '@/data/repo/categories';
 import { getRecurring } from '@/data/repo/recurring';
 import { guessAccountLogo } from '@/features/accounts/logos';
+import { DomainError } from '@/domain/errors';
 import { archiveRecurring, createRecurring, updateRecurring } from '@/domain/recurring';
 import {
   cancelLabel,
   closeLabel,
+  couldNotSaveMessage,
+  guardMessage,
   recurringAccountRequired,
   recurringAmount,
   recurringAmountRequired,
@@ -172,6 +175,7 @@ export default function RecurringEditScreen() {
   const [amountErr, setAmountErr] = useState('');
   const [accountErr, setAccountErr] = useState('');
   const [endErr, setEndErr] = useState('');
+  const [saveErr, setSaveErr] = useState('');
 
   // Populate from existing when editing (once)
   useEffect(() => {
@@ -213,10 +217,17 @@ export default function RecurringEditScreen() {
       categoryId, dayOfMonth: day, firstDueOn: firstDue,
       endOn: endOn || null, remind,
     };
-    if (isEditing && recurringId != null) {
-      await updateRecurring(db, recurringId, input);
-    } else {
-      await createRecurring(db, input, nowIso());
+    setSaveErr('');
+    try {
+      if (isEditing && recurringId != null) {
+        await updateRecurring(db, recurringId, input);
+      } else {
+        await createRecurring(db, input, nowIso());
+      }
+    } catch (error) {
+      // A guard of the database (e.g. a rupiah account is required) or anything else: said in words, never silent.
+      setSaveErr(error instanceof DomainError ? guardMessage(error.code, error.context) : couldNotSaveMessage());
+      return;
     }
     await qc.invalidateQueries();
     router.back();
@@ -256,6 +267,7 @@ export default function RecurringEditScreen() {
           onChangeText={t => { setName(t); setNameErr(''); }}
           error={nameErr || undefined}
           maxLength={40}
+          testID="recurring-name"
         />
 
         {/* Amount */}
@@ -264,6 +276,7 @@ export default function RecurringEditScreen() {
           value={amount}
           onChangeValue={v => { setAmount(v); setAmountErr(''); }}
           error={amountErr || undefined}
+          testID="recurring-amount"
         />
 
         {/* Amount varies switch */}
@@ -370,6 +383,9 @@ export default function RecurringEditScreen() {
       </ScrollView>
 
       {/* Bottom bar */}
+      {!!saveErr && (
+        <Text style={[s.error, s.saveError]} accessibilityLiveRegion="polite" testID="recurring-save-error">{saveErr}</Text>
+      )}
       <View style={[s.bar, { paddingBottom: insets.bottom + 16 }]}>
         {isEditing ? (
           <Button label={recurringStop()} variant="secondary" onPress={() => setStopVisible(true)} style={s.barBtn} />
@@ -461,6 +477,7 @@ const s = StyleSheet.create({
   accountBalance: { ...MonoText.bodyS, color: MonoColors.textSecond, fontVariant: ['tabular-nums'] as never },
   balanceNote: { ...MonoText.caption, color: MonoColors.accent },
   error: { ...MonoText.bodyS, color: MonoColors.negative },
+  saveError: { paddingHorizontal: 16, paddingVertical: 8 },
 
   stepperRow: {
     flexDirection: 'row',

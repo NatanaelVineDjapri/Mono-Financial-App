@@ -14,9 +14,12 @@ import { nowIso } from '@/core/clock';
 import { addDays, formatShortDate } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
+import { DomainError } from '@/domain/errors';
 import { confirmRecurring, nextDue, skipRecurring } from '@/domain/recurring';
 import { deleteTransaction } from '@/domain/transactions';
 import {
+  couldNotSaveMessage,
+  guardMessage,
   recurringAfter,
   recurringAmount,
   recurringCategory,
@@ -29,6 +32,7 @@ import {
   recurringSkip,
   recurringSkipNote,
   recurringUsualAmount,
+  undoLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -46,6 +50,7 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
   const hidden = useHideAmounts(s => s.hidden);
   const [amount, setAmount] = useState(due.amount);
   const [busy, setBusy] = useState(false);
+  const [saveErr, setSaveErr] = useState('');
 
   // Fetch live account balance
   const [bal, setBal] = useState<number | null>(null);
@@ -66,6 +71,7 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
 
   const save = async () => {
     setBusy(true);
+    setSaveErr('');
     try {
       const result = await confirmRecurring(
         db,
@@ -77,13 +83,16 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
       showToast(
         recurringSavedToast(acctName, shown(rp(result.balanceAfter), hidden)),
         {
-          actionLabel: 'Urungkan',
+          actionLabel: undoLabel(),
           onAction: async () => {
             await deleteTransaction(db, result.transactionId);
             await qc.invalidateQueries();
           },
         },
       );
+    } catch (error) {
+      // The database refused (e.g. the balance changed meanwhile): said in words, and the sheet stays open.
+      setSaveErr(error instanceof DomainError ? guardMessage(error.code, error.context) : couldNotSaveMessage());
     } finally {
       setBusy(false);
     }
@@ -96,6 +105,8 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
   };
 
   const balanceAfterPreview = bal !== null ? bal - amount : null;
+  // The account cannot cover the amount: Record stays off, and the sheet says by how much (never silent).
+  const short = bal !== null && amount > bal ? amount - bal : null;
 
   return (
     <Modal transparent animationType="slide" onRequestClose={closeConfirmSheet}>
@@ -119,6 +130,9 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
           {balanceAfterPreview !== null && (
             <Text style={s.after}>{recurringAfter(acctName, shown(rp(balanceAfterPreview), hidden))}</Text>
           )}
+
+          {short !== null && <Text style={s.error} accessibilityLiveRegion="polite" testID="recurring-confirm-short">{guardMessage('insufficient_balance', { shortfallFormatted: shown(rp(short), hidden) })}</Text>}
+          {!!saveErr && <Text style={s.error} accessibilityLiveRegion="polite" testID="recurring-confirm-error">{saveErr}</Text>}
 
           <Button
             label={recurringRecord()}
@@ -155,5 +169,6 @@ const s = StyleSheet.create({
   infoRow: { borderBottomWidth: 1, borderBottomColor: MonoColors.border, paddingVertical: 8, gap: 2 },
   infoValue: { ...MonoText.body, color: MonoColors.text },
   after: { ...MonoText.bodyStrong, color: MonoColors.text },
+  error: { ...MonoText.bodyS, color: MonoColors.negative },
   note: { ...MonoText.bodyS, color: MonoColors.textMeta, textAlign: 'center' },
 });
