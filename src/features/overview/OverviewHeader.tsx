@@ -32,6 +32,7 @@ export function OverviewHeader({
   unreadCount = 0,
 }: OverviewHeaderProps) {
   const insets = useSafeAreaInsets();
+  const hasName = nickname.trim().length > 0;
   const greetingPhrase = greeting ? welcomeGreeting(null, greeting) : '';
   const fullGreeting = greeting ? welcomeGreeting(nickname, greeting) : '';
 
@@ -51,13 +52,13 @@ export function OverviewHeader({
         </Pressable>
 
         <View style={styles.greetingCol}>
-          {greetingPhrase ? (
+          {hasName && greetingPhrase ? (
             <Text style={styles.greetingSub} numberOfLines={1}>
               {greetingPhrase}
             </Text>
           ) : null}
-          <Text style={styles.userName} numberOfLines={1}>
-            {nickname}
+          <Text style={styles.userName} numberOfLines={1} testID="overview-header-name">
+            {hasName ? nickname : greetingPhrase}
           </Text>
           {fullGreeting ? (
             <Text style={styles.greetingA11y} accessibilityRole="header">

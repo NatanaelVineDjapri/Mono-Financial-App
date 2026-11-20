@@ -43,6 +43,7 @@ jest.mock('@/data/repo/settings', () => ({
     recurring_reminders: '1',
     ai_enabled: '0',
   })),
+  getSetting: jest.fn(async (_db: unknown, key: string) => (key === 'display_name' ? 'Nael' : null)),
   setSetting: jest.fn(async () => {}),
 }));
 
@@ -199,6 +200,27 @@ describe('SettingsScreen', () => {
 
     await fireEvent.press(screen.getByTestId('settings-categories-row'));
     expect(mockPush).toHaveBeenCalledWith('/categories');
+  });
+});
+
+describe('nickname', () => {
+  test('the row shows the saved name; the sheet saves a trimmed new one as one setting', async () => {
+    await renderSettings();
+    await waitFor(() => expect(screen.getByTestId('settings-nickname-value').props.children).toBe('Nael'));
+    await fireEvent.press(screen.getByTestId('settings-nickname-row'));
+    await waitFor(() => expect(screen.getByTestId('nickname-sheet')).toBeTruthy());
+    await fireEvent.changeText(screen.getByTestId('nickname-field-input'), '  Budi   Santoso ');
+    await fireEvent.press(screen.getByTestId('nickname-save'));
+    await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'display_name', 'Budi Santoso'));
+  });
+
+  test('saving an empty field clears the nickname', async () => {
+    await renderSettings();
+    await fireEvent.press(screen.getByTestId('settings-nickname-row'));
+    await waitFor(() => expect(screen.getByTestId('nickname-sheet')).toBeTruthy());
+    await fireEvent.changeText(screen.getByTestId('nickname-field-input'), '   ');
+    await fireEvent.press(screen.getByTestId('nickname-save'));
+    await waitFor(() => expect(setSetting).toHaveBeenCalledWith(expect.anything(), 'display_name', ''));
   });
 });
 

@@ -44,18 +44,14 @@ import { useTransactionsList } from '@/features/transactions/useTransactionsList
 import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 
-// Sample nickname from the DESIGN.md Welcome board — in a later phase this comes from a
-// persistent setting (CLAUDE.md's "Optional nickname field" note on Welcome).
-// Until Settings has a place to type a name, the owner's own name stands in when none is saved.
-const NICKNAME = 'Nael';
-
 export default function OverviewScreen() {
   const router = useRouter();
   const needsWelcome = useNeedsWelcome();
   const avatarPose = useAvatarPose();
   const db = useDb();
   const savedName = useDisplayName();
-  const displayName = savedName.trim() || NICKNAME;
+  // No name set: the header greets without one ("Selamat pagi"); nothing is made up.
+  const displayName = savedName.trim();
   const greeting = useGreeting();
   const clearance = useTabBarClearance();
   const { data: accountsData, isLoading: accountsLoading } = useAccountsOverview();

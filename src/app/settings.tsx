@@ -25,8 +25,11 @@ import { setNumberFormat } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { AvatarPickerSheet } from '@/features/profile/AvatarPickerSheet';
+import { NicknameSheet } from '@/features/profile/NicknameSheet';
+import { saveNickname } from '@/features/profile/nickname';
 import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
 import { saveAvatarPose, useAvatarPose } from '@/features/profile/useAvatarPose';
+import { useDisplayName } from '@/features/settings/useDisplayName';
 import { getLastBackupAt } from '@/data/repo/backupLog';
 import { getAllSettings, setSetting } from '@/data/repo/settings';
 import { resetDatabase } from '@/dev/resetDatabase';
@@ -75,6 +78,8 @@ import {
   profileAvatarSub,
   profileAvatarTitle,
   profileGroupTitle,
+  profileNicknameEmpty,
+  profileNicknameTitle,
   settingsGroupPrivacy,
   settingsHideOnLaunchSub,
   settingsHideOnLaunchTitle,
@@ -177,6 +182,8 @@ export default function SettingsScreen() {
   // Dialog & sheet states
   const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
   const avatarPose = useAvatarPose();
+  const nickname = useDisplayName();
+  const [nicknameSheetOpen, setNicknameSheetOpen] = useState(false);
   const [eraseDialogOpen, setEraseDialogOpen] = useState(false);
   const [eraseBusy, setEraseBusy] = useState(false);
   const [tzSheetOpen, setTzSheetOpen] = useState(false);
@@ -325,7 +332,7 @@ export default function SettingsScreen() {
         </Text>
         <View style={styles.card}>
           <Pressable
-            style={({ pressed }) => [styles.row, styles.rowLast, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
             onPress={() => setAvatarSheetOpen(true)}
             accessibilityRole="button"
             accessibilityLabel={`${profileAvatarTitle()}, ${profileAvatarSub()}`}
@@ -337,6 +344,19 @@ export default function SettingsScreen() {
             <View style={styles.rowTextWrap}>
               <Text style={styles.rowTitle}>{profileAvatarTitle()}</Text>
               <Text style={styles.rowSub}>{profileAvatarSub()}</Text>
+            </View>
+            <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.row, styles.rowLast, pressed && styles.pressed]}
+            onPress={() => setNicknameSheetOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${profileNicknameTitle()}, ${nickname.trim() || profileNicknameEmpty()}`}
+            testID="settings-nickname-row"
+          >
+            <View style={styles.rowTextWrap}>
+              <Text style={styles.rowTitle}>{profileNicknameTitle()}</Text>
+              <Text style={styles.rowSub} testID="settings-nickname-value">{nickname.trim() || profileNicknameEmpty()}</Text>
             </View>
             <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
           </Pressable>
@@ -695,6 +715,16 @@ export default function SettingsScreen() {
         onCancel={() => setLocationPermissionDialogOpen(false)}
         onConfirm={() => { setLocationPermissionDialogOpen(false); void Linking.openSettings(); }}
         testID="settings-location-permission-dialog"
+      />
+
+      <NicknameSheet
+        visible={nicknameSheetOpen}
+        value={nickname}
+        onSave={name => {
+          setNicknameSheetOpen(false);
+          void saveNickname(db, name).then(() => invalidateAfterWrite(queryClient));
+        }}
+        onClose={() => setNicknameSheetOpen(false)}
       />
 
       <AvatarPickerSheet

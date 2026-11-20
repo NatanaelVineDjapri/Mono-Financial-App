@@ -519,12 +519,13 @@ describe('Overview', () => {
     (useDisplayName as jest.Mock).mockReturnValue('Nael');
   });
 
-  test('with no saved name the owner\'s own name stands in, on the greeting and on the avatar', async () => {
+  test('with no saved name the greeting has no name and the avatar shows the app letter', async () => {
     mockFilled();
     (useDisplayName as jest.Mock).mockReturnValue('');
     const unnamed = await renderScreen();
-    expect(unnamed.getByText('Selamat pagi, Nael')).toBeTruthy();
-    expect(unnamed.getByTestId('overview-more-avatar')).toHaveTextContent('N');
+    expect(unnamed.getByTestId('overview-header-name').props.children).toBe('Selamat pagi');
+    expect(unnamed.queryByText(/Nael/)).toBeNull();
+    expect(unnamed.getByTestId('overview-more-avatar')).toHaveTextContent('M');
     (useDisplayName as jest.Mock).mockReturnValue('Nael');
   });
 
