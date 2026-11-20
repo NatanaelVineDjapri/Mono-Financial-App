@@ -108,7 +108,6 @@ function PhysicalCardImpl({
   // Balance element
   const balanceNode = nativeOnly ? (
     <Text
-      numberOfLines={1}
       style={[
         isStrip ? MonoText.bodyS : MonoText.figureCard,
         { color: fg },
@@ -252,7 +251,6 @@ function PhysicalCardImpl({
               {balanceNode}
               {subline && !nativeOnly && (
                 <Text
-                  numberOfLines={1}
                   style={[MonoText.caption, { color: fg, opacity: 0.8 }]}
                 >
                   {subline}

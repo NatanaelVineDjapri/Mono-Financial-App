@@ -48,7 +48,7 @@ export function Button({ label, icon, variant = 'primary', disabled = false, loa
       ) : (
         <View style={styles.content}>
           {icon && <Icon name={icon} size={16} color={textColor} testID="button-icon" />}
-          <Text style={[MonoText.bodyStrong, { color: textColor }]}>{label}</Text>
+          <Text style={[MonoText.bodyStrong, styles.label, { color: textColor }]}>{label}</Text>
         </View>
       )}
     </Pressable>
@@ -57,7 +57,8 @@ export function Button({ label, icon, variant = 'primary', disabled = false, loa
 
 const styles = StyleSheet.create({
   base: {
-    height: 48,
+    minHeight: 48,
+    paddingVertical: 8,
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -68,5 +69,6 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: MonoColors.textDisabled },
   secondaryPressed: { backgroundColor: MonoColors.raised },
   disabled: { opacity: 0.4 },
-  content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  content: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  label: { flexShrink: 1, textAlign: 'center' },
 });

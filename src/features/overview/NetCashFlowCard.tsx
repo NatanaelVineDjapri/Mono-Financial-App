@@ -61,7 +61,7 @@ function Tile({ label, amount, share, tone, onPress, testID, right = false }: { 
   const body = (
     <>
       <Text style={styles.tileLabel}>{label}</Text>
-      <Amount value={amount} variant="figureM" style={styles.tileAmount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} />
+      <Amount value={amount} variant="figureM" style={styles.tileAmount} />
       <View style={styles.bar}>
         <View style={[styles.barFill, { width: `${share}%`, backgroundColor: tone }]} testID={`${testID}-bar`} />
       </View>
@@ -124,7 +124,7 @@ export function NetCashFlowCard({ ranges, onOpenTransactions }: NetCashFlowCardP
   return (
     <Card style={styles.card} testID="overview-net-cash-flow-card">
       <Text style={styles.title} accessibilityRole="header">{title}</Text>
-      <Amount value={range.net} sign variant="figureL" style={styles.net} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="flow-net" />
+      <Amount value={range.net} sign variant="figureL" style={styles.net} testID="flow-net" />
 
       {changeText !== null ? (
         <View style={styles.changeRow} accessible accessibilityLabel={flowVs(changeText, flowAgainst(key, monthName(range.previousPeriod)))} testID="flow-change">

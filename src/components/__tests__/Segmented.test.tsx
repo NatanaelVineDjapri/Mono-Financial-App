@@ -27,7 +27,7 @@ describe('Segmented', () => {
     const row = result.getByTestId('segmented');
     expect(row.props.accessibilityRole).toBe('radiogroup');
     const flatStyle = Object.assign({}, ...[row.props.style].flat());
-    expect(flatStyle.height).toBe(48);
+    expect(flatStyle.minHeight).toBe(48);
   });
 
   test('onChange is called with the tapped option\'s value', async () => {

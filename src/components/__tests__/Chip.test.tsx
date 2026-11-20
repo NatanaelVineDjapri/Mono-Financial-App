@@ -24,7 +24,7 @@ describe('Chip', () => {
   test('is 40dp tall, radius 10', async () => {
     const result = await render(<Chip label="Makanan" selected={false} onPress={() => {}} />);
     const flatStyle = Object.assign({}, ...[result.getByRole('button', { name: 'Makanan' }).props.style].flat());
-    expect(flatStyle.height).toBe(40);
+    expect(flatStyle.minHeight).toBe(40);
     expect(flatStyle.borderRadius).toBe(10);
   });
 

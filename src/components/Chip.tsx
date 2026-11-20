@@ -39,7 +39,8 @@ export function Chip({ label, selected, disabled = false, onPress, style, ...res
 
 const styles = StyleSheet.create({
   base: {
-    height: 40,
+    minHeight: 40,
+    paddingVertical: 6,
     borderRadius: radius.sm,
     paddingHorizontal: 12,
     flexDirection: 'row',

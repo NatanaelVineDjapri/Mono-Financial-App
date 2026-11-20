@@ -187,7 +187,7 @@ export function BankCard({
             </View>
             <View style={styles.balanceRow}>
               {nativeOnly ? (
-                <Text style={[styles.stripBalance, styles.stripNative, { color: fg }]} numberOfLines={1}>
+                <Text style={[styles.stripBalance, styles.stripNative, { color: fg }]}>
                   {subline}
                 </Text>
               ) : (
@@ -236,7 +236,6 @@ export function BankCard({
               {!!subline && (
                 <Text
                   style={[styles.subline, nativeOnly && styles.sublineMain, { color: fg }]}
-                  numberOfLines={1}
                 >
                   {subline}
                 </Text>

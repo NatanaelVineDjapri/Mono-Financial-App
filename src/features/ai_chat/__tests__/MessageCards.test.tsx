@@ -85,7 +85,7 @@ describe('ClarifyCard (K3, 1)', () => {
   test('chips have a 40 dp height and are reachable by role and name', async () => {
     const result = clarify([{ amount: 150000, amount_text: '150rb', description: 'Bayar', account: 'GoPay' }], 'bayar 150rb pake gopay');
     const screen = await render(<ClarifyCard result={result} onChoose={jest.fn()} onRecordAsExpense={jest.fn()} onCancel={jest.fn()} />);
-    expect(flat(screen.getByRole('button', { name: 'Bills' }).props.style).height).toBe(40);
+    expect(flat(screen.getByRole('button', { name: 'Bills' }).props.style).minHeight).toBe(40);
   });
 
   test('snapshot', async () => {

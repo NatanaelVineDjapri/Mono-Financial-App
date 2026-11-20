@@ -70,7 +70,7 @@ export function Segmented({
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    height: 48,
+    minHeight: 48,
     borderRadius: radius.md,
     backgroundColor: MonoColors.card,
     padding: 4,

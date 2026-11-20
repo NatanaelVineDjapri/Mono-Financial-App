@@ -13,8 +13,8 @@ describe('Button', () => {
     const result = await render(<Button label="Simpan" onPress={() => {}} />);
     const button = result.getByRole('button', { name: 'Simpan' });
     const flatStyle = Object.assign({}, ...[button.props.style].flat());
-    expect(flatStyle.height).toBe(48);
-    expect(flatStyle.height).toBeGreaterThanOrEqual(44);
+    expect(flatStyle.minHeight).toBe(48);
+    expect(flatStyle.height).toBeUndefined(); // grows with the text at 200%
   });
 
   test('calls onPress when tapped', async () => {

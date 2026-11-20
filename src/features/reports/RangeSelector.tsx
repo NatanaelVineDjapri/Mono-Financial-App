@@ -48,7 +48,7 @@ export function RangeSelector({ value, onChange }: { value: ReportRange; onChang
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    height: 48,
+    minHeight: 48,
     borderRadius: radius.md,
     backgroundColor: MonoColors.card,
     padding: 4,
