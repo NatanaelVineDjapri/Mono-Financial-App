@@ -48,6 +48,18 @@ describe('ProgressBar', () => {
     expect(result.getByText('Over by Rp112.000')).toBeTruthy();
   });
 
+  test('the red part is as thick as the gold part: wavy overflow matches the gold line, flat overflow fills the track', async () => {
+    const flat = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
+    const wavy = await render(<ProgressBar valueBp={14800} label="Belanja" wavy testID="wavy" />);
+    const wavyOver = flat(wavy.getByTestId('wavy-overflow'));
+    expect(wavyOver.height).toBe(3.5); // the gold line is 3.5 thick
+    expect(wavyOver.alignSelf).toBe('center');
+    expect(wavyOver.borderRadius).toBe(1.75);
+
+    const plain = await render(<ProgressBar valueBp={14800} label="Belanja" testID="plain" />);
+    expect(flat(plain.getByTestId('plain-overflow')).height).toBeUndefined(); // as tall as the 8 track, like its gold fill
+  });
+
   test('accessibilityLabel replaces the generated label', async () => {
     const result = await render(
       <ProgressBar valueBp={9583} label="Bills" accessibilityLabel="Bills: Rp1.150.000 spent of Rp1.200.000 limit, 95,83% used, Rp50.000 left" />,

@@ -187,7 +187,7 @@ export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: la
               // flat fill instead of crashing the screen; native keeps the real stripes.
               <View style={styles.overflowFallback} />
             ) : (
-              <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, HEIGHT)}</Canvas>
+              <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, isWavy ? WAVE_STROKE : HEIGHT)}</Canvas>
             )}
           </View>
         )}
@@ -223,8 +223,9 @@ const styles = StyleSheet.create({
   },
   fill: { backgroundColor: MonoColors.accent },
   overflow: { overflow: 'hidden' },
-  // The wavy track has no clip of its own, so the striped segment rounds itself.
-  overflowWavy: { borderRadius: HEIGHT / 2 },
+  // The wavy track has no clip of its own, so the striped segment rounds itself. Its height is the gold line's own
+  // thickness (not the track's), centred on the rail, so the red part is exactly as thick as the gold part.
+  overflowWavy: { height: WAVE_STROKE, alignSelf: 'center', borderRadius: WAVE_STROKE / 2 },
   overflowFallback: { ...StyleSheet.absoluteFill, backgroundColor: MonoColors.negative },
   overRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   overText: { ...MonoText.bodyS, color: MonoColors.negative },
