@@ -83,6 +83,18 @@ describe('PhysicalCard Component', () => {
     expect(getByTestId('card-mandiri-strip')).toBeTruthy();
     expect(getByText('Mandiri Utama')).toBeTruthy();
   });
+
+  test('a long account name gives way to the balance: the name can shrink, the amount never does', async () => {
+    const { getByText } = await render(
+      <PhysicalCard name="E-money Mandiri (mock)" type="ewallet" icon={null} balance={120000} variant="strip" testID="card-long-strip" />
+    );
+    const flat = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
+    const name = getByText('E-money Mandiri (mock)');
+    expect(name.props.numberOfLines).toBe(1);
+    expect(flat(name).flexShrink).toBe(1);
+    // the whole amount is there and is not cut to a number of lines
+    expect(getByText('Rp120.000').props.numberOfLines).toBeUndefined();
+  });
 });
 
 describe('PhysicalCard is decorative and cheap to redraw', () => {

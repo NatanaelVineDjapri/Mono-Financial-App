@@ -427,19 +427,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: '100%',
   },
+  // The left side gives way to the balance: a long account name is cut with an ellipsis, the amount on the right never is.
   stripLeft: {
     justifyContent: 'center',
     gap: 4,
+    flexShrink: 1,
+    minWidth: 0,
+    marginRight: 12,
   },
   stripLogoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexShrink: 1,
+    minWidth: 0,
   },
   stripName: {
     ...MonoText.body,
     fontSize: 14,
     fontWeight: '600',
+    flexShrink: 1,
   },
   stripTierText: {
     fontSize: 9.5,
@@ -460,5 +467,6 @@ const styles = StyleSheet.create({
   stripRight: {
     alignItems: 'flex-end',
     gap: 4,
+    flexShrink: 0,
   },
 });
