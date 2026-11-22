@@ -77,7 +77,11 @@ export type IconName =
   | 'file'
   | 'shield'
   | 'trend'
-  | 'pulse';
+  | 'pulse'
+  // Card scan: contactless waves, the same crossed out, and a plain bank card.
+  | 'nfc'
+  | 'nfc-off'
+  | 'card';
 
 export interface IconProps {
   name: IconName;
@@ -96,6 +100,9 @@ export interface IconProps {
 // Icons whose glyph is a single stroked path. The handful that need more than one
 // shape (overview, pie, dots) are drawn directly in `renderGlyph` below instead.
 const PATHS: Partial<Record<IconName, string>> = {
+  nfc: 'M8.5 8.5 a5 5 0 0 1 0 7 M12 5.5 a9 9 0 0 1 0 13 M15.5 2.5 a13 13 0 0 1 0 19',
+  'nfc-off': 'M8.5 8.5 a5 5 0 0 1 0 7 M12 5.5 a9 9 0 0 1 0 13 M15.5 2.5 a13 13 0 0 1 0 19 M3.5 3.5 L20.5 20.5',
+  card: 'M3 6 H21 V18 H3 Z M3 10 H21 M6.5 14.5 H10',
   check: 'M5 13 L10 18 L19 6',
   alert: 'M12 3 L22 20 L2 20 Z M12 9 L12 14 M12 17.5 L12 17.5',
   'alert-circle': 'M12 3 a9 9 0 1 0 0.001 0 Z M12 8 L12 13 M12 16.5 L12 16.5',
