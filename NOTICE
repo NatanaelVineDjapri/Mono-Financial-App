@@ -1,0 +1,15 @@
+MONO Finance
+
+E-money card scan (src/features/nfc): protocol notes consulted
+------------------------------------------------------------
+The byte sequences the card adapters send and the way their answers are laid out were written from the public
+descriptions of these projects. No source code was copied or translated from any of them; the adapters and their parsers
+are original, and every conversation in the tests is made up.
+
+- muhakmal/osp-kue-reader (Apache License 2.0): README, for the Mandiri application names and the Flazz generation 1
+  limits.
+- machfudn/tapMoney (GNU GPL v3): README only, as a description of the protocol (application names, read commands, the
+  order of the bytes of an answer). Nothing of its code is used.
+- dwierwink/scannertest (no licence stated): README and its algorithm notes, as a description of the protocol.
+
+Each adapter's header comment says which facts came from where, and which of them are not confirmed by a second source.
