@@ -6,7 +6,7 @@ import * as path from 'path';
 
 import type { Db } from '../../types';
 import { openTestDb } from '../../openTestDb';
-import { migrations, runMigrations } from '../index';
+import { migrations, LATEST_SCHEMA_VERSION, runMigrations } from '../index';
 
 const SAMPLE_SQL = fs.readFileSync(path.join(__dirname, '../../../../../tools/sample_data.sql'), 'utf8');
 const NOW = '2026-11-03T10:00:00+07:00';
@@ -62,7 +62,7 @@ describe('migration 10 -> 11', () => {
     expect(before.events).toHaveLength(1);
     expect(before.locations).toHaveLength(1);
 
-    await expect(runMigrations(db, 10)).resolves.toBe(11);
+    await expect(runMigrations(db, 10)).resolves.toBe(LATEST_SCHEMA_VERSION);
 
     expect(await read()).toEqual(before);
     expect(await db.getFirstAsync('select * from v_net_worth')).toMatchObject({ net_worth: 8880000 });
@@ -75,7 +75,7 @@ describe('migration 10 -> 11', () => {
     const after = await schemaObjects(db);
     expect(after.filter(o => before.some(b => b.name === o.name))).toEqual(before);
     // the only new objects are the queue's own index
-    expect(after.filter(o => !before.some(b => b.name === o.name)).map(o => o.name).sort()).toEqual(['idx_import_queue_status', 'sqlite_autoindex_import_merchant_memory_1', 'sqlite_autoindex_import_queue_1'].filter(n => !n.startsWith('sqlite_autoindex')));
+    expect(after.filter(o => !before.some(b => b.name === o.name)).map(o => o.name).sort()).toEqual(['idx_import_queue_status', 'trg_card_link_account_type_upd', 'trg_card_link_ins']);
   });
 
   test('the table keeps its shape: only the source CHECK changed', async () => {
@@ -83,7 +83,7 @@ describe('migration 10 -> 11', () => {
     const before = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
     await runMigrations(db, 10);
     const after = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
-    expect(after).toBe(before.replace("'scan'))", "'scan','import'))"));
+    expect(after).toBe(before.replace("'scan'))", "'scan','import','nfc'))"));
   });
 
   test('import is accepted, an unknown source is still refused, and the guards still work', async () => {

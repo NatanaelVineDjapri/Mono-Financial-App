@@ -136,7 +136,7 @@ describe('throwDomainError recognises all 14 guard codes', () => {
   });
 
   test('all 14 codes are known (forex_account_exists needs the migrated schema and is exercised in features/valas)', () => {
-    expect(GUARD_CODES.length).toBe(14);
+    expect(GUARD_CODES.length).toBe(15);
   });
 });
 

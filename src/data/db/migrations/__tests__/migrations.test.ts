@@ -1,5 +1,5 @@
 import { openTestDb } from '../../openTestDb';
-import { migrations, runMigrations } from '../index';
+import { migrations, LATEST_SCHEMA_VERSION, runMigrations } from '../index';
 
 // The real migration is put back after each test that swaps in its own.
 const real = migrations[1];
@@ -7,13 +7,13 @@ const real = migrations[1];
 describe('runMigrations', () => {
   test('a database already at the newest version is left alone', async () => {
     const db = openTestDb();
-    await expect(runMigrations(db, 5)).resolves.toBe(11);
+    await expect(runMigrations(db, 5)).resolves.toBe(LATEST_SCHEMA_VERSION);
   });
 
   test('the real migrations take a v1 database to the newest version', async () => {
     const db = openTestDb();
-    await expect(runMigrations(db, 1)).resolves.toBe(11);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '11' });
+    await expect(runMigrations(db, 1)).resolves.toBe(LATEST_SCHEMA_VERSION);
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: String(LATEST_SCHEMA_VERSION) });
   });
 
   test('runs a registered migration, bumps schema_version, and commits', async () => {
@@ -27,9 +27,9 @@ describe('runMigrations', () => {
     };
     try {
       const finalVersion = await runMigrations(db, 1);
-      expect(finalVersion).toBe(11); // the swapped-in 1 -> 2, then the real migrations up to 10 -> 11
+      expect(finalVersion).toBe(LATEST_SCHEMA_VERSION); // the swapped-in 1 -> 2, then the real migrations up to 10 -> 11
       expect(ran).toBe(true);
-      expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '11' });
+      expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: String(LATEST_SCHEMA_VERSION) });
       expect(await db.getFirstAsync("select 1 from accounts where name = 'Migrated'")).not.toBeNull();
     } finally {
       migrations[1] = real;

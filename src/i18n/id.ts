@@ -32,6 +32,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   account_type_locked: () => 'This account type can no longer be changed.',
   recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
   forex_account_exists: () => 'Akun Valas sudah ada. Tambahkan mata uangnya ke akun itu.',
+  card_link_needs_ewallet: () => 'Hanya akun e-wallet yang bisa ditautkan ke kartu.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -1316,6 +1317,7 @@ const txSourceLabels: Record<TxSource, string> = {
   recurring: 'Fixed expense',
   scan: 'Scan struk',
   import: 'Impor notifikasi',
+  nfc: 'Scan kartu',
 };
 
 export function txSourceName(source: TxSource): string {
@@ -4608,3 +4610,79 @@ export function profileNicknameSheetSubtitle(): string { return `Tampil di sapaa
 export function profileNicknamePlaceholder(): string { return `Contoh: Nael`; }
 export function profileNicknameHint(): string { return `Kosongkan untuk memakai sapaan bawaan. Hanya di ponsel ini.`; }
 export function profileNicknameSave(): string { return `Simpan`; }
+
+// Scan an e-money card (NFC): the Nfc-Tap, Nfc-Emoney-Result, Nfc-New-Account and Nfc-States boards.
+export function nfcScanTitle(): string { return `Scan kartu`; }
+export function nfcTapTitle(): string { return `Tempelkan kartu ke belakang ponsel`; }
+export function nfcTapBody(): string { return `Tahan sebentar sampai ada getaran. Jangan digeser. Bagian NFC biasanya ada di dekat kamera belakang.`; }
+export function nfcEmoneyOnlyChip(): string { return `Khusus kartu e-money`; }
+export function nfcReadingTitle(): string { return `Membaca kartu...`; }
+export function nfcReadingBody(): string { return `Jangan geser kartunya.`; }
+export function nfcResultTitle(): string { return `Saldo kartu terbaca`; }
+export function nfcCardKind(): string { return `Kartu e-money`; }
+export function nfcBalanceOnCard(): string { return `Saldo di kartu`; }
+export function nfcReadAt(date: string, time: string): string { return `Dibaca ${date} · ${time}`; }
+export function nfcBalanceInApp(): string { return `Di MONO`; }
+export function nfcDifference(): string { return `Selisih`; }
+export function nfcAccountLine(name: string, last4: string): string { return `${name} · •••• ${last4}`; }
+export function nfcExplain(kind: 'expense' | 'income', name: string): string { return `Selisih dicatat sebagai ${kind === 'expense' ? 'pengeluaran' : 'pemasukan'} "${name}" supaya saldo MONO sama dengan kartu. Saldo tidak diubah langsung.`; }
+export function nfcRecordButton(signedAmount: string): string { return `Catat penyesuaian ${signedAmount}`; }
+export function nfcSkip(): string { return `Lewati, jangan catat`; }
+export function nfcSameBalance(): string { return `Saldo MONO sudah sama dengan kartu.`; }
+export function nfcDone(): string { return `Selesai`; }
+export function nfcRecorded(account: string, balance: string): string { return `Penyesuaian dicatat. ${account} sekarang ${balance}.`; }
+export function nfcExperimentalNote(): string { return `Dibaca dengan dukungan percobaan. Cocokkan angkanya dengan struk atau aplikasi banknya.`; }
+export function nfcEstimatedNote(): string { return `Saldo ini perkiraan dari catatan transaksi terakhir di kartu.`; }
+export function nfcBalanceChanged(): string { return `Saldo MONO berubah setelah kamu scan. Scan lagi untuk melihat selisih terbaru.`; }
+export function nfcNewTitle(): string { return `Kartu baru`; }
+export function nfcAccountName(): string { return `Nama akun`; }
+export function nfcCardNumber(): string { return `Nomor kartu`; }
+export function nfcCardNumberMasked(last4: string): string { return `•••• ${last4}`; }
+export function nfcCardNumberNote(): string { return `Hanya 4 digit terakhir dan sidik nomor yang disimpan`; }
+export function nfcOpeningBalance(): string { return `Saldo awal`; }
+export function nfcOpeningBalanceNote(): string { return `Diambil dari kartu, bisa diubah`; }
+export function nfcNewExplain(): string { return `Kartu ini belum terdaftar di MONO. Setelah dibuat, scan berikutnya langsung mengenali akunnya.`; }
+export function nfcCreateAccount(): string { return `Buat akun e-money`; }
+export function nfcLinkExisting(): string { return `Tautkan ke akun yang sudah ada`; }
+export function nfcPickerTitle(): string { return `Pilih akun e-wallet`; }
+export function nfcPickerEmpty(): string { return `Belum ada akun e-wallet yang bisa ditautkan.`; }
+export function nfcAccountCreated(name: string): string { return `Akun ${name} dibuat.`; }
+export function nfcLinked(name: string): string { return `Kartu tertaut ke ${name}.`; }
+export function nfcOffTitle(): string { return `NFC belum aktif`; }
+export function nfcOffBody(): string { return `Nyalakan NFC di pengaturan ponsel, lalu kembali ke MONO.`; }
+export function nfcOpenSettings(): string { return `Buka pengaturan NFC`; }
+export function nfcFillManually(): string { return `Isi manual`; }
+export function nfcUnsupportedTitle(): string { return `Kartu ini belum didukung`; }
+export function nfcUnsupportedBody(): string { return `Hanya kartu e-money tertentu yang bisa dibaca. Kartu debit dan kredit tidak menyimpan saldo, jadi tidak bisa dipakai di sini.`; }
+export function nfcScanAnother(): string { return `Scan kartu lain`; }
+export function nfcLostTitle(): string { return `Kartu terlepas terlalu cepat`; }
+export function nfcLostBody(): string { return `Tempelkan lagi dan tahan sampai ada getaran, jangan digeser.`; }
+export function nfcTryAgain(): string { return `Coba lagi`; }
+export function nfcScanButton(): string { return `Scan kartu`; }
+export function nfcFillFromCard(): string { return `Isi dari kartu e-money`; }
+export function nfcUnlinkRow(): string { return `Lepas tautan kartu`; }
+export function nfcUnlinkTitle(): string { return `Lepas tautan kartu?`; }
+export function nfcUnlinkBody(last4: string): string { return `Tautan ke kartu berakhiran ${last4} dihapus. Akun dan transaksinya tetap ada.`; }
+export function nfcUnlinkConfirm(): string { return `Lepas tautan`; }
+export function nfcUnlinked(): string { return `Tautan kartu dilepas.`; }
+export function nfcLinkedCardRow(last4: string): string { return `Kartu tertaut •••• ${last4}`; }
+export function nfcLinkFailure(reason: string): string {
+  switch (reason) {
+    case 'already_linked':
+      return `Kartu ini sudah tertaut ke akun lain.`;
+    case 'account_has_card':
+      return `Akun ini sudah punya kartu.`;
+    case 'not_ewallet':
+      return `Hanya akun e-wallet yang bisa ditautkan ke kartu.`;
+    case 'account_not_found':
+      return `Akun ini sudah tidak tersedia.`;
+    case 'name_invalid':
+      return `Nama akun harus 1 sampai 40 karakter.`;
+    case 'name_taken':
+      return `Kamu sudah punya akun dengan nama ini.`;
+    case 'balance_invalid':
+      return `Isi saldo awal Rp0 atau lebih.`;
+    default:
+      return couldNotSaveMessage();
+  }
+}

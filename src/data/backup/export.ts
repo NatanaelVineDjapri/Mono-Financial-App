@@ -1,5 +1,5 @@
-// DATABASE.md section 7. Twelve tables: the earlier eleven plus transaction_locations.
-// account_currencies and fx_rates. Not included: currencies (static seed), meta
+// DATABASE.md section 7. Thirteen tables: the earlier twelve plus card_links (an e-money card paired with an
+// e-wallet account, last 4 digits and fingerprint only). Also account_currencies, fx_rates and transaction_locations. Not included: currencies (static seed), meta
 // (recreated), backup_log (device-local), and the Gemini key (secure storage).
 import type { Db } from '../db/types';
 
@@ -16,6 +16,7 @@ export const BACKUP_TABLES = [
   'fx_rates',
   'settings',
   'transaction_locations',
+  'card_links',
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];

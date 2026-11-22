@@ -1,5 +1,5 @@
 import { openTestDb } from '../../openTestDb';
-import { runMigrations } from '../index';
+import { LATEST_SCHEMA_VERSION, runMigrations } from '../index';
 
 // Migration 5 -> 6: a database from an older build carries the old seeded '0' for
 // "Perbarui otomatis"; the upgrade turns it on once.
@@ -8,10 +8,10 @@ describe('migration 5 -> 6 (fx auto-update on from the start)', () => {
     const db = openTestDb();
     await db.runAsync("update settings set value = '0' where key = 'fx_auto_update'");
 
-    await expect(runMigrations(db, 5)).resolves.toBe(11);
+    await expect(runMigrations(db, 5)).resolves.toBe(LATEST_SCHEMA_VERSION);
 
     expect(await db.getFirstAsync("select value from settings where key = 'fx_auto_update'")).toEqual({ value: '1' });
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '11' });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: String(LATEST_SCHEMA_VERSION) });
   });
 
   test('leaves other settings as they are', async () => {

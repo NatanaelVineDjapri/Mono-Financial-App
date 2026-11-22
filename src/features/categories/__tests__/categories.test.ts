@@ -61,7 +61,7 @@ describe('createCategory', () => {
     const { db } = await fixture();
     await createCategory(db, { kind: 'income', name: 'Bonus', icon: 'wallet' });
     const rows = await listCategories(db, { kind: 'income' });
-    expect(rows[rows.length - 1]).toMatchObject({ name: 'Bonus', sort_order: 5, icon: 'wallet' });
+    expect(rows[rows.length - 1]).toMatchObject({ name: 'Bonus', sort_order: 6, icon: 'wallet' });
   });
 
   test('a duplicate name is refused per kind, ignoring case, and an archived one has its own reason', async () => {
@@ -201,12 +201,12 @@ describe('the lists', () => {
     const { db } = await fixture();
     expect(await getCategoryOverview(db, NOW)).toMatchObject({ archivedCount: 0 });
     const before = await getCategoryOverview(db, NOW);
-    expect([before.expense.length, before.income.length]).toEqual([10, 4]);
+    expect([before.expense.length, before.income.length]).toEqual([11, 5]); // the ten and four defaults, and the system category "Penyesuaian saldo" of each kind
 
     await archiveCategory(db, await categoryId(db, 'expense', 'Gifts'));
     await archiveCategory(db, await categoryId(db, 'income', 'Freelance'));
     const after = await getCategoryOverview(db, NOW);
-    expect([after.expense.length, after.income.length, after.archivedCount]).toEqual([9, 3, 2]);
+    expect([after.expense.length, after.income.length, after.archivedCount]).toEqual([10, 4, 2]);
     expect(after.expense.some(r => r.name === 'Gifts')).toBe(false);
   });
 

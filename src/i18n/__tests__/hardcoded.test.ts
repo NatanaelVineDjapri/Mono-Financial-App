@@ -28,6 +28,9 @@ const ALLOWED = [
   // The notification parsers read Indonesian payment wording (the words they look for are not UI text).
   'features/import/parsers/',
   'features/more/backupStatus.ts',
+  // Stored values of a balance adjustment (a system category name and a record description), not screen text.
+  'core/cardAdjustment.ts',
+  'data/db/migrations/v12_nfc_card_links.ts',
   // Category names the scan looks for in the person's own list (Indonesian ones included).
   'features/receipt/draft.ts',
   // Notification copy is Indonesian-only by design (spec: "Indonesian only — not language-switched")

@@ -194,7 +194,7 @@ Satu baris per aplikasi yang pernah mengirim notifikasi. **Hanya metadata aplika
 - **Aktivasi wajib punya akun:** `CHECK (enabled = 0 OR account_id IS NOT NULL)`. Tanpa akun tujuan, aplikasi tetap mati. Domain (`src/domain/importApps.ts`) memeriksa lebih dulu dengan alasan yang jelas; CHECK adalah penjaga terakhir.
 - **Akun Valas ditolak:** trigger `trg_import_app_idr_ins` dan `trg_import_app_idr_upd` memunculkan `import_needs_idr_account` (impor selalu rupiah, seperti pengeluaran tetap).
 - **Cadangan:** tabel ini **tidak diekspor** (pemetaan paket khusus perangkat) tetapi **dikosongkan saat restore**, karena kalau tidak, menghapus `accounts` gagal oleh FK. Setelah restore, aplikasi dinyalakan lagi; allowlist native disinkronkan ulang dari database setiap app dibuka.
-- Daftar tabel cadangan tetap sebelas.
+- Daftar tabel cadangan: sebelas, lalu dua belas dan tiga belas (dengan `card_links`, bagian 12).
 
 ### Sudah ada: antrean tinjauan (migrasi v11)
 
@@ -202,3 +202,12 @@ Satu baris per aplikasi yang pernah mengirim notifikasi. **Hanya metadata aplika
 - `import_merchant_memory`: `merchant_key` (huruf kecil, tanpa tanda) ke `category_id`, diisi hanya saat pengguna menyalakan "Ingat kategori" lalu menekan Simpan.
 - CHECK `transactions.source` kini `('manual','ai','recurring','scan','import')` (tabel dibangun ulang).
 - Kedua tabel tidak diekspor dan dikosongkan saat restore (seperti `import_app_settings`).
+
+## 12. Kartu e-money (NFC, migrasi v12)
+
+- `card_links`: `account_id` (kunci utama, `ON DELETE CASCADE` karena tautan adalah atribut akun), `issuer` (`mandiri`, `flazz`, `tapcash`, `brizzi`, `jakcard`), `last4` (tepat 4 digit), `fingerprint` (UNIQUE: satu kartu hanya untuk satu akun), `linked_at`. **Tidak ada kolom nomor kartu atau saldo.**
+- `fingerprint` = sha256 dari `settings.nfc_salt` + nomor kartu. Salt (16 byte acak) dibuat sekali pada scan pertama dan disimpan di `settings`, jadi ikut cadangan dan kartu tetap dikenali setelah restore. Berkas cadangan tidak dienkripsi, jadi sidik bukan rahasia kuat.
+- Dua penjaga baru: `card_link_needs_ewallet` (hanya akun bertipe e-wallet yang bisa ditautkan) dan `account_type_locked` (akun yang tertaut tidak bisa berganti tipe). Keduanya dilewati saat restore (`guards_off`).
+- Dua kategori sistem "Penyesuaian saldo" (satu pengeluaran, satu pemasukan) dibuat sekali (`insert or ignore`, jadi kategori yang sudah ada dengan nama itu dipakai); domain membuatnya bila belum ada (cadangan lama) dan memulihkannya bila diarsipkan. Kategori tidak pernah dihapus di aplikasi ini.
+- `transactions.source` kini `('manual','ai','recurring','scan','import','nfc')`. Tabel dibangun ulang dengan prosedur yang sama dengan v2 dan v11, kini ditulis sekali di `rebuildTransactions.ts`.
+- Cadangan: `card_links` ikut (tabel ke-13), dihapus sebelum `accounts` saat restore, dan referensinya (`account_id` harus ada di `accounts`) diperiksa saat validasi. Berkas versi sebelum 12 tidak punya tabel ini dan dimigrasi di memori (`card_links = []`); checksum-nya dihitung atas tabel yang ada pada versi itu. `SUPPORTED_SCHEMA_VERSION` kini turunan dari migrasi (`LATEST_SCHEMA_VERSION`), tidak ditulis tangan.

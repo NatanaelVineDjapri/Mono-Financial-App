@@ -5,6 +5,7 @@ import { createHash } from 'crypto';
 import { createAccount } from '../../../domain/accounts';
 import { addExpense } from '../../../domain/transactions';
 import { openMigratedTestDb } from '../../db/openTestDb';
+import { LATEST_SCHEMA_VERSION } from '../../db/migrations';
 import { listCategories } from '../../repo/categories';
 import { canonicalDataJson, exportBackup } from '../export';
 import { restoreBackup } from '../restore';
@@ -24,7 +25,7 @@ describe('backups and source scan', () => {
   test('the file records schema version 4 and the scan source', async () => {
     const { db } = await fixture();
     const file = await exportBackup(db, NOW, sha256Hex);
-    expect(file.schema_version).toBe(11);
+    expect(file.schema_version).toBe(LATEST_SCHEMA_VERSION);
     expect((file.data.transactions as { source: string }[]).map(t => t.source)).toEqual(['scan']);
   });
 

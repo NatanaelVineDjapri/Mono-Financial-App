@@ -3,6 +3,7 @@ import { createAccount } from '../../../domain/accounts';
 import { addIncome } from '../../../domain/transactions';
 import { listCategories } from '../../repo/categories';
 import { openTestDb } from '../../db/openTestDb';
+import { LATEST_SCHEMA_VERSION } from '../../db/migrations';
 import { canonicalDataJson, exportBackup } from '../export';
 import { validateBackup } from '../validate';
 
@@ -34,11 +35,11 @@ describe('validateBackup', () => {
 
   test('a newer schema version is rejected', async () => {
     const file = await validFile();
-    expect(await validateBackup(JSON.stringify({ ...file, schema_version: 12 }), sha256Hex)).toEqual({
+    expect(await validateBackup(JSON.stringify({ ...file, schema_version: LATEST_SCHEMA_VERSION + 1 }), sha256Hex)).toEqual({
       ok: false,
       reason: 'newer_schema_version',
-      fileVersion: 12,
-      supportedVersion: 11,
+      fileVersion: LATEST_SCHEMA_VERSION + 1,
+      supportedVersion: LATEST_SCHEMA_VERSION,
     });
   });
 

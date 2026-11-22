@@ -18,6 +18,7 @@ const CLEARED_BEFORE_RESTORE = ['import_queue', 'import_merchant_memory', 'impor
 const DELETE_ORDER: BackupTable[] = [
   'recurring_events',
   'transaction_locations',
+  'card_links',
   'transactions',
   'recurring',
   'account_currencies',

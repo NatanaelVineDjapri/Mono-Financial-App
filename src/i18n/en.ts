@@ -35,6 +35,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   account_type_locked: () => 'This account type can no longer be changed.',
   recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
   forex_account_exists: () => 'A Valas account already exists. Add the currency to that account.',
+  card_link_needs_ewallet: () => 'Only an e-wallet account can be linked to a card.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -1318,6 +1319,7 @@ const txSourceLabels: Record<TxSource, string> = {
   recurring: 'Fixed expense',
   scan: 'Receipt scan',
   import: 'Notification import',
+  nfc: 'Card scan',
 };
 
 export function txSourceName(source: TxSource): string {
@@ -4611,3 +4613,79 @@ export function profileNicknameSheetSubtitle(): string { return `Shown in the Ov
 export function profileNicknamePlaceholder(): string { return `For example: Nael`; }
 export function profileNicknameHint(): string { return `Leave empty to use the default greeting. Only on this phone.`; }
 export function profileNicknameSave(): string { return `Save`; }
+
+// Scan an e-money card (NFC): the Nfc-Tap, Nfc-Emoney-Result, Nfc-New-Account and Nfc-States boards.
+export function nfcScanTitle(): string { return `Scan card`; }
+export function nfcTapTitle(): string { return `Hold the card to the back of your phone`; }
+export function nfcTapBody(): string { return `Hold it for a moment until you feel a vibration. Do not slide it. The NFC area is usually near the rear camera.`; }
+export function nfcEmoneyOnlyChip(): string { return `E-money cards only`; }
+export function nfcReadingTitle(): string { return `Reading the card...`; }
+export function nfcReadingBody(): string { return `Keep the card where it is.`; }
+export function nfcResultTitle(): string { return `Card balance read`; }
+export function nfcCardKind(): string { return `E-money card`; }
+export function nfcBalanceOnCard(): string { return `Balance on the card`; }
+export function nfcReadAt(date: string, time: string): string { return `Read ${date} · ${time}`; }
+export function nfcBalanceInApp(): string { return `In MONO`; }
+export function nfcDifference(): string { return `Difference`; }
+export function nfcAccountLine(name: string, last4: string): string { return `${name} · •••• ${last4}`; }
+export function nfcExplain(kind: 'expense' | 'income', name: string): string { return `The difference is recorded as ${kind === 'expense' ? 'an expense' : 'an income'} "${name}" so the MONO balance matches the card. The balance is not changed directly.`; }
+export function nfcRecordButton(signedAmount: string): string { return `Record adjustment ${signedAmount}`; }
+export function nfcSkip(): string { return `Skip, don't record`; }
+export function nfcSameBalance(): string { return `The MONO balance already matches the card.`; }
+export function nfcDone(): string { return `Done`; }
+export function nfcRecorded(account: string, balance: string): string { return `Adjustment recorded. ${account} is now ${balance}.`; }
+export function nfcExperimentalNote(): string { return `Read with experimental support. Compare the numbers with the receipt or the bank app.`; }
+export function nfcEstimatedNote(): string { return `This balance is an estimate worked out from the last transaction record on the card.`; }
+export function nfcBalanceChanged(): string { return `The MONO balance changed after you scanned. Scan again to see the latest difference.`; }
+export function nfcNewTitle(): string { return `New card`; }
+export function nfcAccountName(): string { return `Account name`; }
+export function nfcCardNumber(): string { return `Card number`; }
+export function nfcCardNumberMasked(last4: string): string { return `•••• ${last4}`; }
+export function nfcCardNumberNote(): string { return `Only the last 4 digits and a fingerprint of the number are kept.`; }
+export function nfcOpeningBalance(): string { return `Opening balance`; }
+export function nfcOpeningBalanceNote(): string { return `Taken from the card, can be changed`; }
+export function nfcNewExplain(): string { return `This card is not registered in MONO yet. Once the account is made, the next scan recognises it right away.`; }
+export function nfcCreateAccount(): string { return `Create e-money account`; }
+export function nfcLinkExisting(): string { return `Link to an existing account`; }
+export function nfcPickerTitle(): string { return `Choose an e-wallet account`; }
+export function nfcPickerEmpty(): string { return `There is no e-wallet account to link yet.`; }
+export function nfcAccountCreated(name: string): string { return `${name} was created.`; }
+export function nfcLinked(name: string): string { return `Card linked to ${name}.`; }
+export function nfcOffTitle(): string { return `NFC is off`; }
+export function nfcOffBody(): string { return `Turn on NFC in your phone settings, then come back to MONO.`; }
+export function nfcOpenSettings(): string { return `Open NFC settings`; }
+export function nfcFillManually(): string { return `Enter manually`; }
+export function nfcUnsupportedTitle(): string { return `This card is not supported yet`; }
+export function nfcUnsupportedBody(): string { return `Only some e-money cards can be read. Debit and credit cards do not keep a balance, so they cannot be used here.`; }
+export function nfcScanAnother(): string { return `Scan another card`; }
+export function nfcLostTitle(): string { return `Card removed too quickly`; }
+export function nfcLostBody(): string { return `Hold it against the phone again until you feel a vibration, and do not slide it.`; }
+export function nfcTryAgain(): string { return `Try again`; }
+export function nfcScanButton(): string { return `Scan card`; }
+export function nfcFillFromCard(): string { return `Fill in from an e-money card`; }
+export function nfcUnlinkRow(): string { return `Unlink card`; }
+export function nfcUnlinkTitle(): string { return `Unlink this card?`; }
+export function nfcUnlinkBody(last4: string): string { return `The link to the card ending ${last4} is removed. The account and its transactions stay as they are.`; }
+export function nfcUnlinkConfirm(): string { return `Unlink`; }
+export function nfcUnlinked(): string { return `Card unlinked.`; }
+export function nfcLinkedCardRow(last4: string): string { return `Linked card •••• ${last4}`; }
+export function nfcLinkFailure(reason: string): string {
+  switch (reason) {
+    case 'already_linked':
+      return `This card is already linked to another account.`;
+    case 'account_has_card':
+      return `This account already has a card.`;
+    case 'not_ewallet':
+      return `Only an e-wallet account can be linked to a card.`;
+    case 'account_not_found':
+      return `This account is not available any more.`;
+    case 'name_invalid':
+      return `The account name must be 1 to 40 characters.`;
+    case 'name_taken':
+      return `You already have an account with this name.`;
+    case 'balance_invalid':
+      return `Enter an opening balance of Rp0 or more.`;
+    default:
+      return couldNotSaveMessage();
+  }
+}

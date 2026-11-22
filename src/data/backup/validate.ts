@@ -2,10 +2,27 @@
 // counts, checksum, and internal references (a transaction's account_id actually exists
 // in the same file's accounts array, etc.) — a bad file is caught here, before restore
 // ever opens a transaction.
-import { BACKUP_TABLES, canonicalDataJson } from './export';
+import { LATEST_SCHEMA_VERSION } from '../db/migrations';
+import { BACKUP_TABLES } from './export';
 import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 
-const SUPPORTED_SCHEMA_VERSION = 11;
+const SUPPORTED_SCHEMA_VERSION = LATEST_SCHEMA_VERSION;
+
+// The schema version in which a backup table first appeared (the others have been there from the start).
+const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12 };
+
+// Every checksum a file of `version` may legitimately carry: the tables as written by the app of that time, i.e. leaving
+// out any subset of the tables that did not exist yet.
+async function checksumCandidates(data: BackupData, version: number, sha256Hex: Sha256Hex): Promise<string[]> {
+  const late = (Object.entries(TABLE_SINCE) as [BackupTable, number][]).filter(([, since]) => version < since).map(([table]) => table);
+  const out: string[] = [];
+  for (let mask = 0; mask < 1 << late.length; mask++) {
+    const left = new Set(late.filter((_, i) => (mask >> i) & 1));
+    const ordered = Object.fromEntries(BACKUP_TABLES.filter(t => !left.has(t)).map(t => [t, data[t]]));
+    out.push(`sha256:${await sha256Hex(JSON.stringify(ordered))}`);
+  }
+  return out;
+}
 
 export type ValidationFailure =
   | { ok: false; reason: 'not_json' }
@@ -60,6 +77,9 @@ function checkInternalReferences(data: BackupData): BackupTable | null {
   for (const r of data.transaction_locations) {
     if (!transactionIds.has(row<{ transaction_id: unknown }>(r).transaction_id)) return 'transaction_locations';
   }
+  for (const r of data.card_links) {
+    if (!accountIds.has(row<{ account_id: unknown }>(r).account_id)) return 'card_links';
+  }
   return null;
 }
 
@@ -82,11 +102,13 @@ export async function validateBackup(raw: string, sha256Hex: Sha256Hex): Promise
     return { ok: false, reason: 'missing_table', table: BACKUP_TABLES[0] };
   }
 
-  // Schema v1 backups predate locations. Add the missing table in memory so they
-  // restore as a valid snapshot without changing the original file on disk.
-  if (file.schema_version < 9 && !(file.data as Partial<BackupData>).transaction_locations) {
-    (file.data as BackupData).transaction_locations = [];
-    (file.counts as BackupFile['counts']).transaction_locations = 0;
+  // A file written before a table existed does not have it: add it empty, in memory only (the file on disk is never
+  // changed), so it restores as a valid snapshot.
+  for (const [table, since] of Object.entries(TABLE_SINCE) as [BackupTable, number][]) {
+    if (file.schema_version < since && !(file.data as Partial<BackupData>)[table]) {
+      (file.data as BackupData)[table] = [];
+      (file.counts as BackupFile['counts'])[table] = 0;
+    }
   }
 
   for (const table of BACKUP_TABLES) {
@@ -99,13 +121,10 @@ export async function validateBackup(raw: string, sha256Hex: Sha256Hex): Promise
     }
   }
 
-  const dataForChecksum = file.schema_version < 9 ? { ...file.data, transaction_locations: [] } as BackupData : file.data as BackupData;
-  const expectedChecksum = `sha256:${await sha256Hex(canonicalDataJson(dataForChecksum))}`;
-  const legacyDataForChecksum = file.schema_version < 9
-    ? JSON.stringify(Object.fromEntries(Object.entries(file.data as Record<string, unknown[]>).filter(([key]) => key !== 'transaction_locations')))
-    : '';
-  const legacyChecksum = file.schema_version < 9 ? `sha256:${await sha256Hex(legacyDataForChecksum)}` : '';
-  if (file.checksum !== expectedChecksum && file.checksum !== legacyChecksum) {
+  // The checksum was made over the tables that existed when the file was written, so a file from before a table
+  // existed is checked with and without it.
+  const accepted = await checksumCandidates(file.data as BackupData, file.schema_version, sha256Hex);
+  if (!accepted.includes(file.checksum as string)) {
     return { ok: false, reason: 'checksum_mismatch' };
   }
 

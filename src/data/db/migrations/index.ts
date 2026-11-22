@@ -10,6 +10,7 @@ import { addCategoryGuards } from './v8_category_guards';
 import { addTransactionLocations } from './v9_transaction_locations';
 import { addNotifications } from './v10_notifications';
 import { addImportQueue } from './v11_import_queue';
+import { addNfcCardLinks } from './v12_nfc_card_links';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -30,6 +31,8 @@ export type Migration = (db: Db) => Promise<void>;
 //            recurring_reminders -> notif_bill_h1 + notif_bill_overdue; cancels all old scheduled notifs.
 //   10 -> 11: import_queue + import_merchant_memory (review queue of the notification import, parsed fields only);
 //            transactions.source also accepts 'import'.
+//   11 -> 12: card_links (an e-money card paired with an e-wallet account: issuer, last 4 digits, fingerprint) and the two
+//            system categories of a balance adjustment; transactions.source also accepts 'nfc'.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -41,7 +44,11 @@ export const migrations: Record<number, Migration> = {
   8: addTransactionLocations,
   9: addNotifications,
   10: addImportQueue,
+  11: addNfcCardLinks,
 };
+
+// The schema_version a database reaches once every migration above has run (never written by hand).
+export const LATEST_SCHEMA_VERSION = Math.max(...Object.keys(migrations).map(Number)) + 1;
 
 // Brings `db` from its current meta.schema_version up to the newest version this build
 // knows about, one migration per exclusive transaction, oldest first. A safety backup

@@ -1,6 +1,6 @@
 // Turns a thrown SQLite error (from either backend — both surface the trigger's
 // RAISE(ABORT, 'code') text in their Error#message) into a typed DomainError for one of
-// the 13 named guard codes (CLAUDE.md rule 4), or an UnexpectedDbError for anything
+// the named guard codes (CLAUDE.md rule 4), or an UnexpectedDbError for anything
 // else. The domain layer pre-checks for friendly messages with real numbers; this is
 // the fallback when a pre-check was skipped, raced, or simply didn't exist yet.
 export const GUARD_CODES = [
@@ -18,6 +18,7 @@ export const GUARD_CODES = [
   'account_type_locked',
   'recurring_needs_idr_account',
   'forex_account_exists',
+  'card_link_needs_ewallet',
 ] as const;
 
 export type GuardCode = (typeof GUARD_CODES)[number];

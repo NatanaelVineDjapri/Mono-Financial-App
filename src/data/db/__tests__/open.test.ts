@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { initializeSchema } from '../open';
+import { LATEST_SCHEMA_VERSION } from '../migrations';
 import { openBareTestDb } from '../openTestDb';
 
 const SCHEMA_SQL = fs.readFileSync(path.join(__dirname, '../mono_schema_v1.sql'), 'utf8');
@@ -23,7 +24,7 @@ describe('initializeSchema', () => {
 
     const version = await db.getFirstAsync<{ value: string }>("select value from meta where key = 'schema_version'");
     // Created from the v1 baseline, then brought up to date by the migrations.
-    expect(version?.value).toBe('11');
+    expect(version?.value).toBe(String(LATEST_SCHEMA_VERSION));
   });
 
   test('a second call finds the existing schema and does not try to recreate it', async () => {
