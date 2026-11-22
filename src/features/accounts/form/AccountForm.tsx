@@ -43,6 +43,9 @@ import {
   editAccountLabel,
   fieldsNeedAttention,
   newAccountTitle,
+  nfcFillFromCard,
+  nfcLinkedCardRow,
+  nfcUnlinkRow,
   noBankIconLabel,
   openingBalanceHelp,
   openingBalanceLabel,
@@ -72,11 +75,15 @@ export interface AccountFormProps {
   // is one Valas account; when it exists the tile is off and says why.
   onChooseValas?: () => void;
   valasExists?: boolean;
+  // A new account only, on a phone with NFC: the link that leaves for the card scan.
+  onFillFromCard?: () => void;
+  // An account that has an e-money card: its last 4 digits and the way to unlink it (only the link goes).
+  linkedCard?: { last4: string; onUnlink: () => void };
   onCancel: () => void;
   onSubmit: (values: AccountFormValues) => Promise<AccountSubmitResult>;
 }
 
-export function AccountForm({ mode, initial, context, onChooseValas, valasExists = false, onCancel, onSubmit }: AccountFormProps) {
+export function AccountForm({ mode, initial, context, onChooseValas, valasExists = false, onFillFromCard, linkedCard, onCancel, onSubmit }: AccountFormProps) {
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
   const [values, setValues] = useState<AccountFormValues>(initial);
@@ -153,6 +160,20 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" testID="account-form-scroll">
+        {mode === 'add' && !!onFillFromCard && (
+          <Pressable
+            onPress={onFillFromCard}
+            accessibilityRole="button"
+            accessibilityLabel={nfcFillFromCard()}
+            android_ripple={undefined}
+            style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
+            testID="account-fill-from-card"
+          >
+            <Icon name="scan" size={20} color={MonoColors.text} />
+            <Text style={styles.cardLinkText}>{nfcFillFromCard()}</Text>
+            <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
+          </Pressable>
+        )}
         <View>
           <Text style={styles.label}>{accountTypeSectionLabel()}</Text>
           <View style={styles.typeGrid} accessibilityRole="radiogroup">
@@ -282,6 +303,24 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
           </View>
         )}
 
+        {mode === 'edit' && !!linkedCard && (
+          <Pressable
+            onPress={linkedCard.onUnlink}
+            accessibilityRole="button"
+            accessibilityLabel={nfcUnlinkRow()}
+            accessibilityHint={nfcLinkedCardRow(linkedCard.last4)}
+            android_ripple={undefined}
+            style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
+            testID="account-unlink-card"
+          >
+            <Icon name="wallet" size={20} color={MonoColors.textSecond} />
+            <View style={styles.cardLinkBody}>
+              <Text style={styles.cardLinkText}>{nfcUnlinkRow()}</Text>
+              <Text style={styles.help}>{nfcLinkedCardRow(linkedCard.last4)}</Text>
+            </View>
+          </Pressable>
+        )}
+
         <View style={styles.privacy}>
           <Icon name="lock" size={16} color={MonoColors.textMeta} />
           <Text style={styles.privacyText}>{accountPrivacyNote()}</Text>
@@ -350,6 +389,9 @@ const styles = StyleSheet.create({
   iconTileSelected: { borderColor: MonoColors.text, borderWidth: 1.5 },
 
   privacy: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  cardLink: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: FIELD_BORDER, backgroundColor: FIELD_FILL, borderRadius: 14 },
+  cardLinkBody: { flex: 1 },
+  cardLinkText: { ...MonoText.bodyStrong, color: MonoColors.text, flex: 1 },
   privacyText: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1 },
 
   bar: { paddingTop: 12, paddingHorizontal: 16, gap: 8, borderTopWidth: 1, borderTopColor: BAR_BORDER, backgroundColor: MonoColors.bg },

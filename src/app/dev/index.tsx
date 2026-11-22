@@ -3,12 +3,13 @@
 // before real entry screens exist. Unreachable in a production build (same Redirect
 // pattern as app/dev/gallery.tsx).
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, Redirect } from 'expo-router';
+import { Link, Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
+import { MonoSwitch } from '@/components/MonoSwitch';
 import { showToast } from '@/components/toast-store';
 import { setClockOverride } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
@@ -17,6 +18,7 @@ import { loadNovemberData } from '@/dev/loadNovemberData';
 import { importSamplerTitle } from '@/i18n';
 import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
 import { resetDatabase } from '@/dev/resetDatabase';
+import { MOCK_SCENARIOS, useMockCardStore } from '@/features/nfc/mock/mockCardReader';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -32,6 +34,8 @@ function DevToolsContent() {
   const db = useDb();
   const queryClient = useQueryClient();
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const router = useRouter();
+  const mockCard = useMockCardStore();
 
   async function after(action: () => Promise<void>, successMessage: string) {
     try {
@@ -50,7 +54,7 @@ function DevToolsContent() {
         <Text style={styles.title}>Dev tools</Text>
       </View>
 
-      <View style={styles.list}>
+      <ScrollView contentContainerStyle={styles.list}>
         <Button label="Load sample data" onPress={() => after(() => loadSampleData(db), 'Sample data loaded.')} />
         <Button
           label="Load sample data + Valas"
@@ -105,7 +109,26 @@ function DevToolsContent() {
         <Link href="/dev/import-sampler" asChild>
           <Button label={importSamplerTitle()} variant="secondary" />
         </Link>
-      </View>
+
+        <View style={styles.mockRow}>
+          <Text style={styles.confirmText}>Pretend card (the emulator has no NFC)</Text>
+          <MonoSwitch label="Pretend card" value={mockCard.enabled} onValueChange={mockCard.setEnabled} testID="dev-mock-card" />
+        </View>
+        {mockCard.enabled && (
+          <View style={styles.mockList}>
+            {MOCK_SCENARIOS.map(scenario => (
+              <Button
+                key={scenario.id}
+                label={`${mockCard.scenario === scenario.id ? '● ' : ''}${scenario.label}`}
+                variant="secondary"
+                onPress={() => mockCard.setScenario(scenario.id)}
+                testID={`dev-mock-${scenario.id}`}
+              />
+            ))}
+            <Button label="Open Scan card" onPress={() => router.push('/nfc/scan' as never)} testID="dev-mock-open" />
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -114,9 +137,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: MonoColors.bg },
   header: { paddingHorizontal: 20, paddingBottom: 16 },
   title: { ...MonoText.titleL, color: MonoColors.text },
-  list: { paddingHorizontal: 20, gap: 12 },
+  list: { paddingHorizontal: 20, paddingBottom: 40, gap: 12 },
   confirmRow: { gap: 12 },
   confirmText: { ...MonoText.body, color: MonoColors.text },
   confirmButtons: { flexDirection: 'row', gap: 12 },
   confirmButton: { flex: 1 },
+  mockList: { gap: 12 },
+  mockRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 48 },
 });

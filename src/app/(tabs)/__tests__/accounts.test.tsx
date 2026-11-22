@@ -18,6 +18,9 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: jest.fn() }),
 }));
 
+let mockNfcAvailable = false;
+jest.mock('@/features/nfc/useNfcEntry', () => ({ useNfcAvailable: () => mockNfcAvailable }));
+
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   ...jest.requireActual('expo-router'),
@@ -236,6 +239,19 @@ describe('AccountsScreen', () => {
     expect(result.getByText('Failed to load accounts.')).toBeTruthy();
     fireEvent.press(result.getByRole('button', { name: 'Try again' }));
     expect(refetch).toHaveBeenCalled();
+  });
+
+  test('"Scan card" is only there on a phone with NFC, and opens the scan screen', async () => {
+    mockResult({ data: SAMPLE, isLoading: false, isError: false });
+    mockNfcAvailable = false;
+    expect((await renderScreen()).queryByTestId('accounts-scan-card')).toBeNull();
+
+    mockNfcAvailable = true;
+    const result = await renderScreen();
+    mockPush.mockClear();
+    await fireEvent.press(result.getByTestId('accounts-scan-card'));
+    expect(mockPush).toHaveBeenCalledWith('/nfc/scan');
+    mockNfcAvailable = false;
   });
 
   test('empty: icon, one sentence, and "Add account" opens the account form', async () => {

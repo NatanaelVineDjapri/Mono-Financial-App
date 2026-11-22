@@ -4,16 +4,23 @@
 // src/core/account/validate.ts. The Valas account has its own form (src/features/valas): ?kind=valas
 // creates it, ?id= of the Valas account changes it.
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { showToast } from '@/components/toast-store';
 import { today as todayLocal } from '@/core/clock';
+import { useDb } from '@/data/db/DbProvider';
+import { invalidateAfterWrite } from '@/data/queryKeys';
+import { unlinkCard } from '@/domain/cards/links';
 import type { AccountFormValues, AccountValidationContext, PlainAccountType } from '@/core/account/validate';
 import { AccountForm } from '@/features/accounts/form/AccountForm';
 import { useAccountFormData, useChangeAccountSubmit, useCreateAccountSubmit } from '@/features/accounts/form/useAccountForm';
+import { useAccountCardLink, useNfcAvailable } from '@/features/nfc/useNfcEntry';
 import { ValasFormScreen } from '@/features/valas/ValasFormScreen';
-import { accountNotFoundMessage, backLabel, retryLabel, txDetailLoadError } from '@/i18n';
+import { accountNotFoundMessage, backLabel, cancelLabel, nfcUnlinkBody, nfcUnlinkConfirm, nfcUnlinkTitle, nfcUnlinked, retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -29,6 +36,11 @@ function AccountEditScreen() {
   const { data, isLoading, isError, refetch } = useAccountFormData(editId);
   const create = useCreateAccountSubmit();
   const change = useChangeAccountSubmit(data?.edit);
+  const db = useDb();
+  const queryClient = useQueryClient();
+  const nfcAvailable = useNfcAvailable();
+  const { data: cardLink } = useAccountCardLink(editId);
+  const [unlinkOpen, setUnlinkOpen] = useState(false);
   // The date is read once per visit: the form judges "later than today" against one fixed day.
   const today = useMemo(() => todayLocal(), []);
 
@@ -71,15 +83,40 @@ function AccountEditScreen() {
     return <ValasFormScreen editId={editId} />;
   }
 
-  return <AccountForm
-      mode={editId != null ? 'edit' : 'add'}
-      initial={initial}
-      context={context}
-      valasExists={data.hasValas}
-      onChooseValas={editId == null ? () => router.replace({ pathname: '/account/edit', params: { kind: 'valas' } } as never) : undefined}
-      onCancel={() => router.back()}
-      onSubmit={editId != null ? change : create}
-    />;
+  return (
+    <>
+      <AccountForm
+        mode={editId != null ? 'edit' : 'add'}
+        initial={initial}
+        context={context}
+        valasExists={data.hasValas}
+        onChooseValas={editId == null ? () => router.replace({ pathname: '/account/edit', params: { kind: 'valas' } } as never) : undefined}
+        onFillFromCard={editId == null && nfcAvailable ? () => router.replace('/nfc/scan' as never) : undefined}
+        linkedCard={editId != null && cardLink ? { last4: cardLink.last4, onUnlink: () => setUnlinkOpen(true) } : undefined}
+        onCancel={() => router.back()}
+        onSubmit={editId != null ? change : create}
+      />
+      <ConfirmDialog
+        visible={unlinkOpen}
+        icon="info"
+        iconColor={MonoColors.text}
+        title={nfcUnlinkTitle()}
+        message={[{ text: nfcUnlinkBody(cardLink?.last4 ?? '') }]}
+        cancelLabel={cancelLabel()}
+        confirmLabel={nfcUnlinkConfirm()}
+        onCancel={() => setUnlinkOpen(false)}
+        onConfirm={() => {
+          setUnlinkOpen(false);
+          if (editId == null) return;
+          void unlinkCard(db, editId).then(async () => {
+            await invalidateAfterWrite(queryClient);
+            showToast(nfcUnlinked());
+          });
+        }}
+        testID="account-unlink-dialog"
+      />
+    </>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -220,3 +220,34 @@ test('hidden-amounts mode masks the figures inside an error sentence', async () 
   expect(result.getByText(/Rp••••••••/)).toBeTruthy();
   await act(async () => useHideAmounts.getState().setHidden(false));
 });
+
+describe('AccountForm: the e-money card entries', () => {
+  test('a new account on a phone with NFC offers "fill in from a card"; without the callback it is not there', async () => {
+    const onFillFromCard = jest.fn();
+    const result = await (await renderForm({ onFillFromCard })).view;
+    await fireEvent.press(result.getByTestId('account-fill-from-card'));
+    expect(onFillFromCard).toHaveBeenCalledTimes(1);
+
+    const without = await (await renderForm()).view;
+    expect(without.queryByTestId('account-fill-from-card')).toBeNull();
+  });
+
+  test('changing an account never offers it, and shows the unlink row only for an account that has a card', async () => {
+    const edit = { mode: 'edit' as const, initial: { ...FRESH, name: 'E-money Mandiri', type: 'ewallet' as const } };
+    const onFillFromCard = jest.fn();
+    const plain = await (await renderForm({ ...edit, onFillFromCard })).view;
+    expect(plain.queryByTestId('account-fill-from-card')).toBeNull();
+    expect(plain.queryByTestId('account-unlink-card')).toBeNull();
+
+    const onUnlink = jest.fn();
+    const linked = await (await renderForm({ ...edit, linkedCard: { last4: '7731', onUnlink } })).view;
+    await fireEvent.press(linked.getByTestId('account-unlink-card'));
+    expect(onUnlink).toHaveBeenCalledTimes(1);
+    expect(linked.getByText(/7731/)).toBeTruthy(); // the last 4 digits, nothing else of the card
+  });
+
+  test('a new account never shows the unlink row', async () => {
+    const result = await (await renderForm({ linkedCard: { last4: '7731', onUnlink: jest.fn() } })).view;
+    expect(result.queryByTestId('account-unlink-card')).toBeNull();
+  });
+});

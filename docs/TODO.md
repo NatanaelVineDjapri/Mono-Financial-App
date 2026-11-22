@@ -30,3 +30,21 @@ Daftar ini untuk hal yang tidak bisa dibuktikan lewat Jest. Centang kalau sudah.
 - [ ] Tes manual nama panggilan: Pengaturan → Profil → Nama panggilan; cek sapaan di Ringkasan berubah, dan kosongkan lalu cek kembali ke sapaan bawaan.
 - [ ] Tes manual pengeluaran tetap: buat satu dengan nominal lebih besar dari saldo akun, lalu buka sheet konfirmasinya; harus ada teks merah "Short by …" dan tombol Catat mati. Ubah/ simpan template saat database menolak: harus ada pesan di atas Simpan, bukan diam.
 - [ ] Belum di-commit: seluruh pekerjaan impor notifikasi dan NetCashFlowCard.
+
+## Scan kartu e-money (NFC): kode sudah jadi, belum pernah dicoba dengan kartu fisik
+
+Emulator tidak punya NFC. Untuk melihat semua layar tanpa kartu: Lainnya, Dev tools, nyalakan "Pretend card", pilih skenario, "Open Scan card".
+
+- [ ] Build ulang dev build supaya modul `react-native-nfc-manager` ikut: `npx expo run:android --port 8081` (di ponsel yang punya NFC).
+- [ ] Mandiri e-money: scan, cek "Saldo di kartu" sama dengan struk atau aplikasi Livin'. Ini adaptor yang diberi status stabil, tetapi letak nomor kartu di jawaban `00 B3` belum ada di sumber publik, jadi nomor dicari lewat awalan 6032. Kalau terbaca "belum didukung", kirim hasil `/dev/import-sampler`-nya atau bilang ke aku.
+- [ ] Flazz (generasi 2), TapCash, Brizzi: scan, lalu cocokkan angkanya dengan struk atau aplikasi banknya. Semua percobaan; TapCash paling tidak pasti (nomor kartu belum tentu terbaca, kalau begitu kartunya dibilang belum didukung). Brizzi bisa berlabel "perkiraan".
+- [ ] Flazz generasi 1 dan JakCard: harus "Kartu ini belum didukung" (Flazz gen 1 saldonya terenkripsi, JakCard belum ada cara baca nomornya).
+- [ ] Kartu debit atau kredit: harus "Kartu ini belum didukung", dan tidak ada nomor kartu bank yang pernah tampil.
+- [ ] Kartu terlepas di tengah baca: "Kartu terlepas terlalu cepat", lalu "Coba lagi" jalan.
+- [ ] NFC dimatikan lalu dinyalakan: "NFC belum aktif", "Buka pengaturan NFC" membuka pengaturan, kembali ke MONO langsung menunggu kartu.
+- [ ] Ponsel tanpa NFC: tombol "Scan kartu" dan "Isi dari kartu e-money" tersembunyi, dan aplikasi tetap bisa dipasang.
+- [ ] Scan kartu yang sama dua kali: kali kedua langsung dikenali (halaman hasil, bukan "Kartu baru").
+- [ ] Buat cadangan, pulihkan, scan lagi: kartu tetap dikenali.
+- [ ] "Catat penyesuaian": cek saldo akun jadi sama dengan kartu, transaksinya bertuliskan "Penyesuaian saldo dari kartu", dan "Urungkan" mengembalikannya.
+- [ ] Akun e-wallet yang tertaut: Ubah akun, "Lepas tautan kartu" hanya melepas tautan; akun dan transaksinya tetap.
+- [ ] Keputusan: kategori "Penyesuaian saldo" kini ada di daftar kategori semua orang (dibuat oleh migrasi). Kalau tidak mau muncul untuk yang tidak memakai NFC, bilang; bisa diubah jadi dibuat saat penyesuaian pertama.

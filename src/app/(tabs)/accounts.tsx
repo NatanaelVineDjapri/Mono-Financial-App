@@ -21,6 +21,7 @@ import { invalidateAfterWrite } from '@/data/queryKeys';
 import { reorderAccounts } from '@/data/repo/accounts';
 import type { AccountsOverview, AccountsOverviewAccount } from '@/domain/balances';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
+import { useNfcAvailable } from '@/features/nfc/useNfcEntry';
 import { useLatestFxUpdate } from '@/features/fx/useLatestFxUpdate';
 import {
     accountsEmptyBody,
@@ -34,6 +35,7 @@ import {
     addAccountLabel,
     exchangeRatesLabel,
     exchangeRatesUpdatedLabel,
+    nfcScanButton,
     retryLabel,
     tabLabel,
     transferAccountsLabel,
@@ -115,6 +117,8 @@ export default function AccountsScreen() {
     void refetch();
   }, [refetch]);
   const onAddAccount = useCallback(() => router.push('/account/edit' as never), [router]);
+  const nfcAvailable = useNfcAvailable();
+  const onScanCard = useCallback(() => router.push('/nfc/scan' as never), [router]);
   const onTransfer = useCallback(() => router.push({ pathname: '/tx/add', params: { type: 'transfer' } }), [router]);
   const onOpenAccount = useCallback(
     (id: number) => router.push({ pathname: '/account/[id]', params: { id: String(id) } }),
@@ -157,6 +161,7 @@ export default function AccountsScreen() {
           <Text style={styles.emptyTitle}>{accountsEmptyTitle()}</Text>
           <Text style={styles.emptyBody}>{accountsEmptyBody()}</Text>
           <Button label={addAccountLabel()} icon="plus" onPress={onAddAccount} />
+          {nfcAvailable && <Button label={nfcScanButton()} icon="scan" variant="secondary" onPress={onScanCard} testID="accounts-scan-card" />}
         </View>
       </View>
     );
@@ -192,6 +197,7 @@ export default function AccountsScreen() {
           <Button label={transferAccountsLabel()} icon="transfer" onPress={onTransfer} style={styles.buttonFlex} />
           <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={onAddAccount} style={styles.buttonFlex} />
         </View>
+        {nfcAvailable && <Button label={nfcScanButton()} icon="scan" variant="secondary" onPress={onScanCard} testID="accounts-scan-card" />}
         <View style={styles.footerRow}>
           <Icon name="lock" size={16} color={MonoColors.textMeta} />
           <Text style={styles.footerNote}>{accountsNoLoginNote()}</Text>
