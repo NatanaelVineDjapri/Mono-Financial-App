@@ -6,7 +6,7 @@ import { BarChart } from 'react-native-gifted-charts';
 
 import { Card } from '@/components/Card';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { millionsFixed } from '@/core/chartScale';
+import { axisLabel, millionsFixed, niceScale } from '@/core/chartScale';
 import { formatDayMonth, monthAbbrev, monthName } from '@/core/date';
 import { rp, shownCompact } from '@/core/money';
 import type { ReportTrendRow } from '@/domain/reports';
@@ -29,10 +29,12 @@ import { MonoText } from '@/theme/typography';
 
 import { ReportTable } from './ReportTable';
 
-const CHART_HEIGHT = 104;
-const BAR_WIDTH = 16;
-const INNER_GAP = 3;
-const PAIR_GAP = 12;
+// The same bars as the Overview's cash flow card (gold income against grey expenses, a labelled y axis with its gridlines, the
+// month under each pair), sized for six months instead of twelve.
+const CHART_HEIGHT = 130;
+const BAR_WIDTH = 14;
+const INNER_GAP = 2; // between the two bars of a month
+const PAIR_GAP = 10; // between months
 const EXPENSE_BAR = MonoColors.textDisabled;
 // The library reads `animationDuration` but its types don't declare it. Without a zero
 // duration its label timers still fire after the card has gone away.
@@ -58,16 +60,21 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
     .map(row => cashFlowValuesText(monthAbbrev(row.period), shownCompact(rp(row.income), hidden), shownCompact(rp(row.expense), hidden)))
     .join('; ');
 
-  const maxValue = Math.max(1, ...rows.flatMap(row => [row.income, row.expense]));
+  const scale = niceScale(Math.max(1, ...rows.flatMap(row => [row.income, row.expense])));
   const barData = rows.flatMap(row => [
     {
       value: row.income,
+      // the month sits under the pair: the label box is as wide as the two bars and is centred
+      label: monthAbbrev(row.period),
+      labelWidth: BAR_WIDTH * 2 + INNER_GAP + PAIR_GAP,
       frontColor: MonoColors.accent,
       spacing: INNER_GAP,
+      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond, textAlign: 'center' as const },
     },
     {
       value: row.expense,
       frontColor: EXPENSE_BAR,
+      label: '',
       spacing: PAIR_GAP,
     },
   ]);
@@ -76,8 +83,14 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
     <Card style={styles.card} testID="reports-trend">
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">{reportsSixMonthTrendTitle()}</Text>
-        <Text style={styles.caption}>{reportsTrendCaption()}</Text>
+        <View style={styles.legend}>
+          <View style={[styles.swatch, { backgroundColor: MonoColors.accent }]} />
+          <Text style={styles.legendText}>{incomeCardLabel()}</Text>
+          <View style={[styles.swatch, { backgroundColor: EXPENSE_BAR }]} />
+          <Text style={styles.legendText}>{expensesCardLabel()}</Text>
+        </View>
       </View>
+      <Text style={styles.caption}>{reportsTrendCaption()}</Text>
 
       <View accessible accessibilityRole="image" accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}>
         <BarChart
@@ -88,10 +101,15 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
           initialSpacing={4}
           endSpacing={4}
           barBorderRadius={3}
-          maxValue={maxValue}
-          hideRules
-          hideYAxisText
-          noOfSections={1}
+          hideRules={false}
+          rulesColor={MonoColors.border}
+          rulesType="solid"
+          yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
+          xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
+          hideYAxisText={hidden}
+          noOfSections={scale.ticks.length - 1}
+          yAxisLabelTexts={scale.ticks.map(t => axisLabel(t, scale.top))}
+          maxValue={scale.top}
           yAxisThickness={0}
           xAxisThickness={0}
           backgroundColor="transparent"
@@ -100,13 +118,6 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
           isAnimated={false}
           {...NO_ANIMATION}
         />
-      </View>
-
-      <View style={styles.legend}>
-        <View style={[styles.swatch, { backgroundColor: MonoColors.accent }]} />
-        <Text style={styles.legendText}>{incomeCardLabel()}</Text>
-        <View style={[styles.swatch, { backgroundColor: EXPENSE_BAR }]} />
-        <Text style={styles.legendText}>{expensesCardLabel()}</Text>
       </View>
 
       <ReportTable
@@ -131,11 +142,11 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
 
 const styles = StyleSheet.create({
   card: { gap: 12 },
-  header: { gap: 2 },
+  header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, rowGap: 6 },
   title: { ...MonoText.titleM, color: MonoColors.text },
   caption: { ...MonoText.caption, color: MonoColors.textMeta },
-  legend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  swatch: { width: 10, height: 10, borderRadius: 2 },
-  legendText: { ...MonoText.caption, color: MonoColors.textSecond, marginRight: 8 },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  swatch: { width: 8, height: 8, borderRadius: 2 },
+  legendText: { ...MonoText.caption, color: MonoColors.textSecond, marginRight: 6 },
   note: { ...MonoText.caption, color: MonoColors.textMeta },
 });
