@@ -116,6 +116,29 @@ describe('Account detail', () => {
     expect(useAccountBalanceHistory).toHaveBeenCalledWith(1, '6M');
   });
 
+  test('changing the range keeps the chart on screen (dimmed) until the new range is there, and then follows it', async () => {
+    const hook = useAccountBalanceHistory as jest.Mock;
+    mockData(BCA, ACTIVITY, {}, SAMPLE_HISTORY);
+    const result = await renderScreen();
+    expect(result.getByText(accountChangeVsLabel('1M'))).toBeTruthy();
+    expect(result.getByTestId('account-range-1M').props.accessibilityState.selected).toBe(true);
+
+    // 6M is pressed: the hook answers with the 1M data still in place, marked as a placeholder
+    hook.mockReturnValue({ data: SAMPLE_HISTORY, isPlaceholderData: true });
+    await fireEvent.press(result.getByTestId('account-range-6M'));
+    expect(result.getByTestId('account-chart')).toBeTruthy(); // not emptied out
+    expect(result.getByTestId('account-range-6M').props.accessibilityState.selected).toBe(true);
+    expect(result.getByText(accountChangeVsLabel('1M'))).toBeTruthy(); // the numbers on screen are still the 1M ones
+    expect(flat(result.getByTestId('account-hero-delta')).opacity).toBe(0.5);
+
+    // the 6M data arrives
+    hook.mockReturnValue({ data: SAMPLE_HISTORY, isPlaceholderData: false });
+    await act(async () => result.rerender(<SafeAreaProvider initialMetrics={METRICS}><AccountDetailScreen /></SafeAreaProvider>));
+    expect(result.getByText(accountChangeVsLabel('6M'))).toBeTruthy();
+    expect(flat(result.getByTestId('account-hero-delta')).opacity).toBeUndefined();
+    expect(result.getByTestId('account-chart')).toBeTruthy();
+  });
+
   test('where the balance comes from: opening, money in (green), money out (red), current', async () => {
     mockData(BCA);
     const result = await renderScreen();

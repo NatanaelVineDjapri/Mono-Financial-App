@@ -62,6 +62,12 @@ export function AccountBalanceChart({ detail }: AccountBalanceChartProps) {
   const historyQuery = useAccountBalanceHistory(detail.id, range);
   const history = historyQuery?.data;
   const hidden = useHideAmounts(s => s.hidden);
+  // While another range is loading, the previous range's line stays on screen (dimmed) instead of the chart emptying out.
+  // What is drawn (the dates under the axis, the "vs last month" text) follows the range the data belongs to, which
+  // only changes once the new data is there.
+  const stale = historyQuery?.isPlaceholderData === true;
+  const [shownRange, setShownRange] = useState<AccountChartRange>(range);
+  if (history != null && !stale && shownRange !== range) setShownRange(range); // adjusted while rendering, not in an effect
 
   const changeAmount = history?.changeAmount ?? 0;
   const rose = changeAmount > 0;
@@ -121,23 +127,24 @@ export function AccountBalanceChart({ detail }: AccountBalanceChartProps) {
       <Amount value={detail.balance} variant="displayS" testID="account-balance" />
 
       {history != null && (
-        <View style={styles.deltaRow} testID="account-hero-delta">
+        <View style={[styles.deltaRow, stale && styles.stale]} testID="account-hero-delta">
           <View style={[styles.chip, { backgroundColor: rose ? CHIP_FILL_POSITIVE : fell ? CHIP_FILL_NEGATIVE : MonoColors.surface }]}>
             {(rose || fell) && <Triangle up={rose} color={deltaTone} />}
             <Text style={[styles.chipText, { color: deltaTone }]}>{deltaText}</Text>
           </View>
-          <Text style={styles.vsText}>{accountChangeVsLabel(range)}</Text>
+          <Text style={styles.vsText}>{accountChangeVsLabel(shownRange)}</Text>
         </View>
       )}
 
       {hasChart && (
         <LineAreaChart
           footer={rangePill}
+          dimmed={stale}
           values={values}
           axis={axis}
           yLabel={tick => yLabel(tick, axis.high)}
           xLabelIndexes={labelIndexes(points.length, X_LABELS_MAX)}
-          xLabel={index => xLabel(range, points[index].date)}
+          xLabel={index => xLabel(shownRange, points[index].date)}
           hideYLabels={hidden}
           accessibilityLabel={chartLabel}
           testID="account-chart"
@@ -189,6 +196,7 @@ const styles = StyleSheet.create({
   rangeTabText: { ...MonoText.bodyStrong, color: MonoColors.textSecond },
   rangeTabTextSelected: { color: MonoColors.bg },
   pressed: { opacity: 0.7 },
+  stale: { opacity: 0.5 },
   tooltipDate: { ...MonoText.caption, color: MonoColors.textSecond },
   tooltipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   tooltipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: MonoColors.accent },

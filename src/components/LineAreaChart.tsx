@@ -73,9 +73,11 @@ export interface LineAreaChartProps {
   testID?: string;
   // Sits inside the same panel, under the plot (the range pill of the account detail), so the chart and its controls are one card.
   footer?: ReactNode;
+  // The plot is shown at half strength while newer data is on its way (the footer's buttons stay as they are).
+  dimmed?: boolean;
 }
 
-export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hideYLabels = false, renderTooltip, accessibilityLabel, testID, footer }: LineAreaChartProps) {
+export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hideYLabels = false, renderTooltip, accessibilityLabel, testID, footer, dimmed = false }: LineAreaChartProps) {
   const [width, setWidth] = useState(0);
   const [active, setActive] = useState<number | null>(null);
 
@@ -100,7 +102,7 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
   return (
     <View style={styles.panel} testID={testID}>
       <View
-        style={styles.body}
+        style={[styles.body, dimmed && styles.dimmed]}
         accessible
         accessibilityRole="image"
         accessibilityLabel={accessibilityLabel}
@@ -185,6 +187,7 @@ const styles = StyleSheet.create({
   panel: { backgroundColor: MonoColors.surface, borderRadius: radius.lg, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 },
   body: { height: INNER_H },
   footer: { marginTop: 16 },
+  dimmed: { opacity: 0.5 },
   yLabel: { ...MonoText.caption, position: 'absolute', left: 0, color: MonoColors.textMeta },
   xLabel: { ...MonoText.caption, position: 'absolute', width: 60, textAlign: 'center', color: MonoColors.textMeta },
   tooltip: {

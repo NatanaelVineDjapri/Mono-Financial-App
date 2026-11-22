@@ -1,6 +1,6 @@
 // Account detail reads. The screen only reads through these hooks; every figure comes from
 // src/domain/accountDetail.ts (views underneath) and is refetched after any write.
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { nowIso } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
@@ -39,5 +39,8 @@ export function useAccountBalanceHistory(id: number, range: AccountChartRange) {
   return useQuery({
     queryKey: [...queryKeys.accounts, 'history', id, range],
     queryFn: () => getAccountBalanceHistory(db, id, range, nowIso()),
+    // Changing the range keeps the previous range's line on screen until the new one is there (isPlaceholderData says
+    // so), instead of emptying the chart for a moment: a range read before comes from the cache and does not blink.
+    placeholderData: keepPreviousData,
   });
 }
