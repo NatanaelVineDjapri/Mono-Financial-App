@@ -1,6 +1,7 @@
 // "Six-month trend": six periods of income (gold) against expenses (grey), the exact
 // values in a table beneath (CLAUDE.md rule 7), and one rounding note. The current period
 // carries a `*` until its last day, so a partial month is never read as a finished one.
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
@@ -32,13 +33,32 @@ import { ReportTable } from './ReportTable';
 // The same bars as the Overview's cash flow card (gold income against grey expenses, a labelled y axis with its gridlines, the
 // month under each pair), sized for six months instead of twelve.
 const CHART_HEIGHT = 130;
-const BAR_WIDTH = 14;
 const INNER_GAP = 2; // between the two bars of a month
-const PAIR_GAP = 10; // between months
+const Y_AXIS_WIDTH = 36; // the gutter of the y axis labels
+const EDGE = 4; // room at the left and right end of the plot
+// Until the card has been measured the bars use these sizes; after that they are worked out from its width.
+const FALLBACK_BAR_WIDTH = 14;
+const FALLBACK_PAIR_GAP = 10;
+const MAX_BAR_WIDTH = 26;
+
+// The bars fill the width of the plot, whatever the phone: each month gets an equal slot, the pair of bars takes most of
+// it and the rest is the gap before the next month.
+export function barSizes(chartWidth: number, count: number): { bar: number; gap: number; slot: number } {
+  const plot = chartWidth - Y_AXIS_WIDTH - EDGE * 2;
+  if (chartWidth <= 0 || count <= 0 || plot <= 0) {
+    return { bar: FALLBACK_BAR_WIDTH, gap: FALLBACK_PAIR_GAP, slot: FALLBACK_BAR_WIDTH * 2 + INNER_GAP + FALLBACK_PAIR_GAP };
+  }
+  const slot = plot / count;
+  const gap = Math.max(6, slot * 0.3);
+  const bar = Math.min(MAX_BAR_WIDTH, (slot - gap - INNER_GAP) / 2);
+  return { bar, gap: slot - 2 * bar - INNER_GAP, slot };
+}
 const EXPENSE_BAR = MonoColors.textDisabled;
 // The library reads `animationDuration` but its types don't declare it. Without a zero
 // duration its label timers still fire after the card has gone away.
 const NO_ANIMATION = { animationDuration: 0 };
+// Also read by the library and missing from its types: the width of the y axis gutter, which the bar sizes are worked out from.
+const AXIS_WIDTH = { yAxisLabelWidth: Y_AXIS_WIDTH };
 
 function signedMillions(value: number): string {
   return value > 0 ? `+${millionsFixed(value)}` : millionsFixed(value);
@@ -55,6 +75,8 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
   // its input while cloning it; this component opts out of the compiler.
   'use no memo';
   const hidden = useHideAmounts(s => s.hidden);
+  const [chartWidth, setChartWidth] = useState(0);
+  const { bar, gap } = barSizes(chartWidth, rows.length);
 
   const valuesText = rows
     .map(row => cashFlowValuesText(monthAbbrev(row.period), shownCompact(rp(row.income), hidden), shownCompact(rp(row.expense), hidden)))
@@ -66,7 +88,7 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
       value: row.income,
       // the month sits under the pair: the label box is as wide as the two bars and is centred
       label: monthAbbrev(row.period),
-      labelWidth: BAR_WIDTH * 2 + INNER_GAP + PAIR_GAP,
+      labelWidth: bar * 2 + INNER_GAP,
       frontColor: MonoColors.accent,
       spacing: INNER_GAP,
       labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond, textAlign: 'center' as const },
@@ -75,7 +97,7 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
       value: row.expense,
       frontColor: EXPENSE_BAR,
       label: '',
-      spacing: PAIR_GAP,
+      spacing: gap,
     },
   ]);
 
@@ -92,14 +114,19 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
       </View>
       <Text style={styles.caption}>{reportsTrendCaption()}</Text>
 
-      <View accessible accessibilityRole="image" accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}>
+      <View
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}
+        onLayout={event => setChartWidth(Math.round(event.nativeEvent.layout.width))}
+      >
         <BarChart
           data={barData}
           height={CHART_HEIGHT}
-          barWidth={BAR_WIDTH}
-          spacing={PAIR_GAP}
-          initialSpacing={4}
-          endSpacing={4}
+          barWidth={bar}
+          spacing={gap}
+          initialSpacing={EDGE}
+          endSpacing={EDGE}
           barBorderRadius={3}
           hideRules={false}
           rulesColor={MonoColors.border}
@@ -117,6 +144,7 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
           disableScroll
           isAnimated={false}
           {...NO_ANIMATION}
+          {...AXIS_WIDTH}
         />
       </View>
 

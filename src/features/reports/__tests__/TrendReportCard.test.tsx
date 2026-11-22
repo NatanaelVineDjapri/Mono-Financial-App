@@ -1,13 +1,13 @@
 // "Six-month trend" is drawn like the Overview's cash flow bars: gold income against grey expenses, a labelled y axis with its
 // gridlines, the month under each pair, the legend next to the title. The exact values stay in the table beneath.
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import type { ReportTrendRow } from '@/domain/reports';
 import { expensesCardLabel, incomeCardLabel, reportsSixMonthTrendTitle } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 
-import { TrendReportCard } from '../TrendReportCard';
+import { TrendReportCard, barSizes } from '../TrendReportCard';
 
 // The chart library is replaced by a component that remembers what it was asked to draw.
 let mockBarProps: Record<string, any> = {};
@@ -29,6 +29,32 @@ const ROWS: ReportTrendRow[] = [
 
 const bars = (_view: unknown) => mockBarProps;
 
+describe('barSizes: the bars fill the plot', () => {
+  const INNER = 2;
+  const Y_AXIS = 36;
+  const EDGE = 4;
+
+  test.each([320, 360, 412, 600])('on a card %ipx wide, six months use the whole plot from edge to edge', width => {
+    const { bar, gap, slot } = barSizes(width, 6);
+    const plot = width - Y_AXIS - EDGE * 2;
+    expect(slot * 6).toBeCloseTo(plot, 5);
+    expect(2 * bar + INNER + gap).toBeCloseTo(slot, 5);
+    expect(bar).toBeGreaterThan(0);
+    expect(gap).toBeGreaterThanOrEqual(0);
+  });
+
+  test('a wider card gives wider bars, up to a limit', () => {
+    expect(barSizes(412, 6).bar).toBeGreaterThan(barSizes(320, 6).bar);
+    expect(barSizes(2000, 6).bar).toBeLessThanOrEqual(26);
+  });
+
+  test('before the card is measured (or with nothing to draw) it uses the fixed sizes', () => {
+    expect(barSizes(0, 6)).toMatchObject({ bar: 14, gap: 10 });
+    expect(barSizes(340, 0)).toMatchObject({ bar: 14, gap: 10 });
+    expect(barSizes(30, 6)).toMatchObject({ bar: 14, gap: 10 }); // narrower than the axis itself
+  });
+});
+
 describe('TrendReportCard', () => {
   afterEach(async () => await act(async () => useHideAmounts.getState().setHidden(false)));
 
@@ -42,6 +68,19 @@ describe('TrendReportCard', () => {
     expect(incomes.map((d: { label: string }) => d.label)).toEqual(['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov']);
     expect(expenses.every((d: { label: string }) => d.label === '')).toBe(true);
     expect(props.data.map((d: { value: number }) => d.value)).toEqual([7_500_000, 0, 0, 0, 0, 4_100_000, 0, 600_000, 7_500_000, 4_300_000, 14_400_000, 11_500_000]);
+  });
+
+  test('once the card is measured the bars grow to fill it, and the right side is no longer empty', async () => {
+    const view = await render(<TrendReportCard rows={ROWS} today="2026-11-22" partialPeriod="2026-11" />);
+    const before = bars(view);
+    expect(before.barWidth).toBe(14);
+    await fireEvent(view.getByRole('image'), 'layout', { nativeEvent: { layout: { width: 340, height: 200 } } });
+    const after = bars(view);
+    expect(after.barWidth).toBeGreaterThan(14);
+    // six slots of two bars, the gap inside the pair and the gap before the next month add up to the plot's width
+    const pair = after.barWidth * 2 + 2 + after.spacing;
+    expect(pair * 6 + after.initialSpacing + after.endSpacing + 36).toBeCloseTo(340, 3);
+    expect(after.data[0].labelWidth).toBeCloseTo(after.barWidth * 2 + 2, 5);
   });
 
   test('has the Overview axis: gridlines and labelled ticks up to a round ceiling that covers the biggest bar', async () => {
