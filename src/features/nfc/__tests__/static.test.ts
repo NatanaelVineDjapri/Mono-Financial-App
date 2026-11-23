@@ -1,5 +1,6 @@
 // Rules about the source itself (CLAUDE.md, the card scan): the card scan talks to no network and no AI, never writes a
-// card number or a response to a log or a store, declares no NFC intent filter, and asks for no permission but NFC.
+// card number or a response to a log or a store, declares one NFC intent filter (a card held to the phone opens the Scan kartu
+// screen, plugins/withNfcLaunch.js) and nothing else of the kind, and asks for no permission but NFC.
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -114,10 +115,19 @@ describe('the app declares only what the card scan needs', () => {
     expect(appJson.android.blockedPermissions ?? []).not.toContain('android.permission.NFC');
   });
 
-  test('no intent filter, no foreground service and no extra permission in the app config', () => {
+  test('no foreground service and no extra permission in the app config; the one intent filter comes from the plugin, not the config', () => {
     expect(appJson.android.intentFilters).toBeUndefined();
-    expect(JSON.stringify(appJson)).not.toMatch(/android\.nfc\.action|FOREGROUND_SERVICE|intentFilters/);
+    expect(JSON.stringify(appJson)).not.toMatch(/FOREGROUND_SERVICE|intentFilters/);
     expect(appJson.android.permissions).toBeUndefined();
+    expect(appJson.plugins).toContain('./plugins/withNfcLaunch');
+  });
+
+  test('the launch plugin declares ONE intent filter (TECH_DISCOVERED) and ONE tech list (IsoDep), no TAG or NDEF discovery', () => {
+    const plugin = fs.readFileSync(path.join(ROOT, 'plugins', 'withNfcLaunch.js'), 'utf8');
+    const rules = plugin.replace(/\/\/.*$/gm, '');
+    expect(rules.match(/android\.nfc\.action\.[A-Z_]+/g)).toEqual(['android.nfc.action.TECH_DISCOVERED']);
+    expect(rules.match(/android\.nfc\.tech\.\w+/g)).toEqual(['android.nfc.tech.IsoDep']);
+    expect(rules).not.toMatch(/FOREGROUND_SERVICE|<service|<receiver|BOOT_COMPLETED/);
   });
 
   test('the manifest of the library asks for NFC and says the hardware is optional', () => {
@@ -127,10 +137,14 @@ describe('the app declares only what the card scan needs', () => {
     expect(lib).not.toMatch(/intent-filter|<service|<receiver|<activity/);
   });
 
-  test('if the Android project is generated, its manifest has no NFC intent filter', () => {
+  test('if the Android project is generated, its manifest has no NFC filter but TECH_DISCOVERED with IsoDep', () => {
     const manifest = path.join(ROOT, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
     if (!fs.existsSync(manifest)) return;
     const text = fs.readFileSync(manifest, 'utf8');
-    expect(text).not.toMatch(/android\.nfc\.action\.(TECH|TAG|NDEF)_DISCOVERED/);
+    expect(text).not.toMatch(/android\.nfc\.action\.(TAG|NDEF)_DISCOVERED/);
+    if (!/android\.nfc\.action\.TECH_DISCOVERED/.test(text)) return; // generated before the launch plugin existed
+    expect(text.match(/android\.nfc\.action\.TECH_DISCOVERED/g)).toHaveLength(2); // the filter's action and its meta-data
+    const xml = path.join(ROOT, 'android', 'app', 'src', 'main', 'res', 'xml', 'nfc_tech_filter.xml');
+    expect(fs.readFileSync(xml, 'utf8').match(/android\.nfc\.tech\.\w+/g)).toEqual(['android.nfc.tech.IsoDep']);
   });
 });

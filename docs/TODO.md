@@ -43,6 +43,9 @@ Emulator tidak punya NFC. Untuk melihat semua layar tanpa kartu: Lainnya, Dev to
 - [ ] Kartu terlepas di tengah baca: "Kartu terlepas terlalu cepat", lalu "Coba lagi" jalan.
 - [ ] NFC dimatikan lalu dinyalakan: "NFC belum aktif", "Buka pengaturan NFC" membuka pengaturan, kembali ke MONO langsung menunggu kartu.
 - [ ] Ponsel tanpa NFC: tombol "Scan kartu" dan "Isi dari kartu e-money" tersembunyi, dan aplikasi tetap bisa dipasang.
+- [ ] Auto-buka (butuh build baru, karena manifest berubah): tutup MONO sepenuhnya lalu tempelkan kartu e-money ke belakang ponsel: MONO terbuka di layar Scan kartu dan membaca. Ulangi dengan MONO terbuka di layar lain, dan dengan MONO di latar belakang.
+- [ ] Auto-buka dengan kartu debit/kredit: MONO ikut terbuka (Android tidak bisa membedakan), layar Scan kartu menolak dengan pesan yang jelas dan tidak membaca nomornya.
+- [ ] Kalau ada aplikasi lain yang juga menangani IsoDep, Android bisa menampilkan pemilih aplikasi; catat apakah mengganggu.
 - [ ] Scan kartu yang sama dua kali: kali kedua langsung dikenali (halaman hasil, bukan "Kartu baru").
 - [ ] Buat cadangan, pulihkan, scan lagi: kartu tetap dikenali.
 - [ ] "Catat penyesuaian": cek saldo akun jadi sama dengan kartu, transaksinya bertuliskan "Penyesuaian saldo dari kartu", dan "Urungkan" mengembalikannya.

@@ -28,3 +28,22 @@ export async function isNfcAvailable(db: Db): Promise<boolean> {
     return false;
   }
 }
+
+// A card held to the phone opens the app on the Scan kartu screen (cold start, or while the app is running). Not for the pretend
+// reader of a development build, and not on a phone without NFC: there nothing ever calls back.
+export function watchCardTaps(onTap: () => void): () => void {
+  if (isMockActive()) return () => undefined;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded on first use, see above
+  const { launchedByCard, onCardTapped } = require('./nfcManagerReader') as typeof import('./nfcManagerReader');
+  let stopped = false;
+  void launchedByCard().then(yes => {
+    if (yes && !stopped) onTap();
+  });
+  const stop = onCardTapped(() => {
+    if (!stopped) onTap();
+  });
+  return () => {
+    stopped = true;
+    stop();
+  };
+}

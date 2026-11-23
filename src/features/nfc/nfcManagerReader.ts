@@ -1,6 +1,9 @@
-// The real reader: react-native-nfc-manager in reader mode, only while read() is running (the screen is open). No intent
-// filter is declared anywhere, so a card held to the phone never opens MONO by itself. The card is read as ISO-DEP and
-// everything sent to it goes through readCard -> createSafeIo (read commands only).
+// The real reader: react-native-nfc-manager in reader mode, only while read() is running (the screen is open). The card is
+// read as ISO-DEP and everything sent to it goes through readCard -> createSafeIo (read commands only).
+//
+// One thing happens outside the Scan kartu screen: Android may hand MONO a card that was held to the phone (the one intent filter
+// of plugins/withNfcLaunch.js). launchedByCard() and onCardTapped() only say THAT it happened, so the app can open the Scan kartu
+// screen; the tag in the system's intent is never looked at, and nothing is read from it.
 //
 // Nothing here logs: not a card number, not a balance, not a response.
 import NfcManager, { NfcAdapter, NfcEvents, NfcTech } from 'react-native-nfc-manager';
@@ -97,5 +100,31 @@ export function createNfcManagerReader(deps: RealReaderDeps): CardReader {
     async openSettings() {
       await NfcManager.goToNfcSetting();
     },
+  };
+}
+
+// Whether the app was opened by a card held to the phone (a cold start). Only a yes or no: the tag itself is dropped.
+export async function launchedByCard(): Promise<boolean> {
+  if (!(await startOnce())) return false;
+  try {
+    return (await NfcManager.getLaunchTagEvent()) != null;
+  } catch {
+    return false;
+  }
+}
+
+// Calls `onTap` when a card is held to the phone while the app is already running. Returns the way to stop listening.
+export function onCardTapped(onTap: () => void): () => void {
+  let active = true;
+  void startOnce().then(ok => {
+    if (!ok || !active) return;
+    NfcManager.setEventListener(NfcEvents.DiscoverBackgroundTag, () => {
+      void NfcManager.clearBackgroundTag().catch(() => undefined);
+      onTap();
+    });
+  });
+  return () => {
+    active = false;
+    NfcManager.setEventListener(NfcEvents.DiscoverBackgroundTag, null);
   };
 }

@@ -19,6 +19,7 @@ import { TabBar, fabCenterFromBottom, type TabBarItem } from '@/components/TabBa
 import { TabFabMenu, type TabFabMenuItem } from '@/components/TabFabMenu';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
 import { aiEntryRoute, useAiConfigured } from '@/features/ai_chat/aiEntry';
+import { NfcTapHost } from '@/features/nfc/NfcTapHost';
 import {
   addMenuAiAccessibilityLabel,
   addMenuManualAccessibilityLabel,
@@ -135,11 +136,15 @@ function CustomTabBar({ state, navigateToTab }: BottomTabBarProps) {
 
 export default function TabsLayout() {
   return (
-    <Tabs tabBar={props => <CustomTabBar {...props} />} screenOptions={{ headerShown: false, animation: 'none' }}>
-      {TAB_ROUTES.map(r => (
-        <Tabs.Screen key={r.name} name={r.name} />
-      ))}
-    </Tabs>
+    <>
+      {/* A card held to the phone opens the Scan kartu screen (Android hands the tag to MONO). */}
+      <NfcTapHost />
+      <Tabs tabBar={props => <CustomTabBar {...props} />} screenOptions={{ headerShown: false, animation: 'none' }}>
+        {TAB_ROUTES.map(r => (
+          <Tabs.Screen key={r.name} name={r.name} />
+        ))}
+      </Tabs>
+    </>
   );
 }
 

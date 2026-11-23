@@ -67,6 +67,7 @@
       "expo-sharing",
       "react-native-nfc-manager",
       "./plugins/withNfcManagerCompileSdk",
+      "./plugins/withNfcLaunch",
       [
         "expo-notifications",
         {
