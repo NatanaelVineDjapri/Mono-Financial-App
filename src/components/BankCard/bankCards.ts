@@ -55,6 +55,9 @@ export const BANK_CARDS: Record<string, BankCardStyle> = {
   'truemoney': { name: 'TrueMoney', bg: '#F58220', bgEnd: '#F6943F', fg: '#0A0A0A', pattern: 'diagonal' },
   'uangku': { name: 'Uangku', bg: '#3BB8EA', bgEnd: '#56C2ED', fg: '#0A0A0A', pattern: 'dots' },
   'yukk': { name: 'YUKK', bg: '#5C2D91', bgEnd: '#422068', fg: '#FFFFFF', pattern: 'waves' },
+  // Krom: the purple of krom.id's own mark (the italic "k" is #6C38D9). idn-finlogos has no Krom artwork, so like Stockbit
+  // the card shows the text wordmark; the colour is Krom's own, so unlike Stockbit it is not provisional.
+  'krom': { name: 'Krom', bg: '#6C38D9', bgEnd: '#4A22A8', fg: '#FFFFFF', pattern: 'diagonal', wordmark: true },
   'stockbit': { name: 'Stockbit', bg: '#00AB6B', bgEnd: '#24B780', fg: '#0A0A0A', pattern: 'grid', wordmark: true, logoVerified: false },
 };
 

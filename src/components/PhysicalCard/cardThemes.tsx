@@ -212,6 +212,35 @@ function BsiBackground() {
   );
 }
 
+// Krom: Krom's purple, with slanted bands that echo the lean of its italic "k", a soft glow top right and a dark swell
+// along the bottom edge. Static vector, like every card here.
+function KromBackground() {
+  return (
+    <Svg width="100%" height="100%" viewBox="0 0 358 226" preserveAspectRatio="none">
+      <Defs>
+        <LinearGradient id="krom-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor="#7A45E8" />
+          <Stop offset="55%" stopColor="#6C38D9" />
+          <Stop offset="100%" stopColor="#4A22A8" />
+        </LinearGradient>
+        <LinearGradient id="krom-band" x1="0%" y1="0%" x2="100%" y2="0%">
+          <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.16" />
+          <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.02" />
+        </LinearGradient>
+      </Defs>
+      <Rect width="358" height="226" fill="url(#krom-bg)" />
+      <Circle cx="330" cy="30" r="120" fill="#9A6BFF" fillOpacity="0.22" />
+      <Path d="M236 -10 L276 -10 L196 236 L156 236 Z" fill="url(#krom-band)" />
+      <Path d="M296 -10 L316 -10 L236 236 L216 236 Z" fill="url(#krom-band)" />
+      <Path
+        d="M-20 190 C 70 160, 150 205, 240 178 C 300 160, 340 175, 380 160 L 380 236 L -20 236 Z"
+        fill="#2E1470"
+        fillOpacity="0.38"
+      />
+    </Svg>
+  );
+}
+
 function CashBackground() {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 358 226" preserveAspectRatio="none">
@@ -408,6 +437,7 @@ const CARD_METADATA: Record<
   btpn: { tier: 'BTPN SINAYA', chip: 'silver', accent: '#F58220' },
   neobank: { tier: 'NEO DEBIT', chip: 'silver', accent: '#FFBE00' },
   citibank: { tier: 'CITI PRIORITY', chip: 'gold', accent: '#1C4882' },
+  krom: { tier: 'KROM DEBIT', chip: 'silver', accent: '#6C38D9' },
   stockbit: { tier: 'STOCKBIT RDN', chip: 'silver', accent: '#00AB6B' },
 
   // E-Wallets & Fintech
@@ -456,6 +486,7 @@ function buildPhysicalThemes(): Record<string, PhysicalCardTheme> {
     else if (slug === 'bni') renderBg = BniBackground;
     else if (slug === 'bri') renderBg = BriBackground;
     else if (slug === 'bsi') renderBg = BsiBackground;
+    else if (slug === 'krom') renderBg = KromBackground;
     else {
       renderBg = makeCardPatternBackground(
         slug,

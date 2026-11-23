@@ -32,6 +32,14 @@ describe('PhysicalCard Theme System', () => {
     expect(resolvePhysicalCardTheme(null, 'forex').name).toBe('Valas');
   });
 
+  test('Krom has its own purple card, with the bank name as the wordmark', async () => {
+    const theme = resolvePhysicalCardTheme('krom', 'bank');
+    expect(theme).toMatchObject({ name: 'Krom', cardTier: 'KROM DEBIT', bg: '#6C38D9', fg: '#FFFFFF' });
+    const view = await render(<PhysicalCard name="Bank KROM" type="bank" icon="krom" balance={3756} />);
+    expect(view.getAllByText('Krom').length).toBeGreaterThanOrEqual(1);
+    expect(view.getByText('KROM DEBIT')).toBeTruthy();
+  });
+
   test.each(Object.entries(PHYSICAL_CARD_THEMES))(
     '%s: keeps >= 4.5:1 contrast against bg and bgEnd',
     (_slug, theme) => {

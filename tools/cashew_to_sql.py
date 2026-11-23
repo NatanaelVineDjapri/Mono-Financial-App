@@ -37,7 +37,7 @@ ACCOUNTS = {
     'Rupiah': ('cash', None),
     'Mini Tabungan (Receh)': ('savings', None),
     'Stockbit': ('ewallet', 'stockbit'),  # the app lists the Stockbit mark with the e-wallet brands
-    'Bank KROM': ('bank', None),
+    'Bank KROM': ('bank', 'krom'),
     'Gopay Coin': ('ewallet', 'gopay'),
 }
 
