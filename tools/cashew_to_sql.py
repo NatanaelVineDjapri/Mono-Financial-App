@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Turns a Cashew CSV export into a MONO Finance SQL script (loaded in a development build, see src/dev/importSqlFile.ts).
 
-    python tools/cashew_to_sql.py <cashew.csv> <out.sql>
+    python tools/cashew_to_sql.py <cashew.csv> <out.sql> [--rates CNY=27353928,BND=141773797 --rates-at 2026-11-23T07:02:32+07:00]
 
 What it does, and why (the rules are CLAUDE.md's):
   - Money is a whole number: a Cashew amount like 48655.549999 is rounded half away from zero.
-  - One MONO account per Cashew account. Foreign-currency rows (Valas) and zero rows are left out and listed in the report.
+  - One MONO account per Cashew account. Zero rows are left out and listed in the report.
+  - Foreign-currency rows (a Cashew account in USD, CNY, ...) become POCKETS of one MONO "Valas" account. Only balance corrections
+    are supported there (the balance the person set), and they become the pocket's opening balance; anything else stops the script.
+    A pocket needs a rate (rupiah per 1 unit x 10,000, as the rate service gives it): pass them with --rates.
   - A Cashew transfer is TWO rows (Out and In, the same note, one second apart). MONO keeps ONE transfer row, so the pairs are
     found and merged. A transfer row that finds no partner is kept as an adjustment and reported.
   - "Koreksi Saldo" (a balance correction) that is not a transfer becomes the system category "Penyesuaian saldo".
@@ -16,6 +19,7 @@ What it does, and why (the rules are CLAUDE.md's):
   - The script runs with meta.guards_off = 1 (like a restore) and the app checks v_integrity_issues afterwards.
 The output holds real personal data: it goes in private/ (ignored by git), never in a commit.
 """
+import argparse
 import csv
 import re
 import sys
@@ -88,12 +92,25 @@ def read_rows(path: str):
     return out
 
 
-def main(csv_path: str, out_path: str) -> None:
+def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
     rows = read_rows(csv_path)
     report = []
 
-    skipped_currency = [r for r in rows if r['currency'] != 'IDR']
+    foreign = [r for r in rows if r['currency'] != 'IDR']
     rows = [r for r in rows if r['currency'] == 'IDR']
+    pockets = {}  # currency -> {'opening': minor units, 'since': date}
+    for r in foreign:
+        if r['category'] != 'Koreksi Saldo':
+            sys.exit(f"A {r['currency']} record that is not a balance correction ({r['dt']:%Y-%m-%d}): only corrections are supported for Valas pockets.")
+        minor = whole(str(Decimal(r['amount']) * 100))  # every currency here has 100 minor units; see src/core/currencyList.ts
+        pocket = pockets.setdefault(r['currency'], {'opening': 0, 'since': r['dt'].date()})
+        pocket['opening'] += minor
+        pocket['since'] = min(pocket['since'], r['dt'].date())
+    for code, pocket in pockets.items():
+        if pocket['opening'] < 0:
+            sys.exit(f'The {code} pocket would start below zero.')
+        if code not in rates:
+            sys.exit(f'No rate for {code}: pass --rates {code}=<rupiah per 1 {code} x 10000>.')
     skipped_zero = [r for r in rows if whole(r['amount']) == 0]
     rows = [r for r in rows if whole(r['amount']) != 0]
     for r in rows:
@@ -193,6 +210,15 @@ def main(csv_path: str, out_path: str) -> None:
     for order, name in enumerate(names):
         kind, icon = ACCOUNTS.get(name, ('bank', None))
         w(f"INSERT INTO accounts (name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES ({q(name)}, {q(kind)}, {opening[name]}, {q(first_day[name].isoformat())}, {q(icon) if icon else 'NULL'}, {order}, 0, {q(first_day[name].isoformat() + 'T00:00:00+07:00')});")
+    if pockets:
+        since = min(p['since'] for p in pockets.values())
+        w('-- the Valas account: one pocket per currency, the opening balance is the balance Cashew was told')
+        w(f"INSERT INTO accounts (name, type, opening_balance, opening_date, icon, sort_order, archived, created_at) VALUES ('Valas', 'forex', 0, {q(since.isoformat())}, 'valas', {len(names)}, 0, {q(since.isoformat() + 'T00:00:00+07:00')});")
+        for order, (code, p) in enumerate(sorted(pockets.items())):
+            w(f"INSERT INTO account_currencies (account_id, currency, opening_balance, opening_date, sort_order, archived) VALUES ((SELECT id FROM accounts WHERE name = 'Valas'), {q(code)}, {p['opening']}, {q(p['since'].isoformat())}, {order}, 0);")
+        w('-- the rates of the day (a pocket without one would be flagged by the integrity check)')
+        for code in sorted(pockets):
+            w(f"INSERT INTO fx_rates (currency, rate_e4, fetched_at, source) VALUES ({q(code)}, {rates[code]}, {q(rates_at)}, 'api');")
     w('')
     w('-- categories (one per kind; "Penyesuaian saldo" is the app\'s own system category)')
     used_cats = {(r['category'], r['kind']) for r in records}
@@ -219,7 +245,9 @@ def main(csv_path: str, out_path: str) -> None:
 
     # ---- the report (numbers only, nothing to commit)
     print(f'records: {len(records)}  transfers: {len(transfers)}  accounts: {len(names)}')
-    print(f'left out: {len(skipped_currency)} foreign-currency rows ({sorted({r["currency"] for r in skipped_currency})}), {len(skipped_zero)} zero rows, {len(unpaired)} transfer rows without a partner')
+    print(f'left out: {len(skipped_zero)} zero rows; transfer rows without a partner: {len(unpaired)}')
+    for code, p in sorted(pockets.items()):
+        print(f'  Valas / {code}: {p["opening"]:,} minor units from {p["since"]} at rate_e4 {rates[code]:,}')
     for name in names:
         print(f'  {name:24s} opening {opening[name]:>12,}  now {last_balance[name]:>12,}  lowest {lowest[name]:>12,}  from {first_day[name]}')
     print(f'total now: {sum(last_balance.values()):,}')
@@ -231,6 +259,11 @@ def main(csv_path: str, out_path: str) -> None:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description='Cashew CSV -> MONO SQL')
+    parser.add_argument('csv')
+    parser.add_argument('out')
+    parser.add_argument('--rates', default='', help='CODE=rate_e4,... for every foreign currency in the file')
+    parser.add_argument('--rates-at', default='', help='when the rates were fetched, ISO with offset')
+    args = parser.parse_args()
+    rate_map = {k: int(v) for k, v in (kv.split('=') for kv in args.rates.split(',') if kv)}
+    main(args.csv, args.out, rate_map, args.rates_at or datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '+07:00')
