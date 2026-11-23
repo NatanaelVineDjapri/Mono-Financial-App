@@ -160,20 +160,6 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" testID="account-form-scroll">
-        {mode === 'add' && !!onFillFromCard && (
-          <Pressable
-            onPress={onFillFromCard}
-            accessibilityRole="button"
-            accessibilityLabel={nfcFillFromCard()}
-            android_ripple={undefined}
-            style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
-            testID="account-fill-from-card"
-          >
-            <Icon name="scan" size={20} color={MonoColors.text} />
-            <Text style={styles.cardLinkText}>{nfcFillFromCard()}</Text>
-            <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
-          </Pressable>
-        )}
         <View>
           <Text style={styles.label}>{accountTypeSectionLabel()}</Text>
           <View style={styles.typeGrid} accessibilityRole="radiogroup">
@@ -218,6 +204,21 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
             </Text>
           )}
         </View>
+
+        {mode === 'add' && !!onFillFromCard && (
+          <Pressable
+            onPress={onFillFromCard}
+            accessibilityRole="button"
+            accessibilityLabel={nfcFillFromCard()}
+            android_ripple={undefined}
+            style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
+            testID="account-fill-from-card"
+          >
+            <Icon name="scan" size={20} color={MonoColors.text} />
+            <Text style={styles.cardLinkText}>{nfcFillFromCard()}</Text>
+            <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
+          </Pressable>
+        )}
 
         <View>
           <View style={styles.labelRow}>
