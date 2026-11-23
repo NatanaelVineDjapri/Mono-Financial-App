@@ -442,7 +442,8 @@ export interface QuickRecordRow {
   last_on: string;
 }
 
-export function listQuickRecordSources(db: Db, limit: number): Promise<QuickRecordRow[]> {
+// `since` (YYYY-MM-DD): only records on or after this day count towards how often something is recorded.
+export function listQuickRecordSources(db: Db, limit: number, since: string): Promise<QuickRecordRow[]> {
   return db.getAllAsync<QuickRecordRow>(
     `with txs as (
        select t.id as id,
@@ -457,6 +458,7 @@ export function listQuickRecordSources(db: Db, limit: number): Promise<QuickReco
          left join transaction_locations tl on tl.transaction_id = t.id
         where t.kind in ('income', 'expense')
           and t.currency = 'IDR'
+          and t.occurred_on >= $since
      ),
      cat_pairs as (
        select kind,
@@ -559,7 +561,7 @@ export function listQuickRecordSources(db: Db, limit: number): Promise<QuickReco
       where d.label_rank = 1
       order by d.use_count desc, d.last_on desc, d.label
       limit $limit`,
-    { $limit: limit },
+    { $limit: limit, $since: since },
   );
 }
 
