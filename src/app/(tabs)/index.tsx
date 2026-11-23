@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { DeferredMount } from '@/components/DeferredMount';
 import { useTabBarClearance } from '@/components/TabBar';
 import { accountShares } from '@/domain/overview';
 import { defaultTransactionFilters, type TxTypeFilter } from '@/domain/transactionFilters';
@@ -156,20 +157,20 @@ export default function OverviewScreen() {
         {quickRecords && quickRecords.length > 0 && <QuickRecordCard items={quickRecords} onOpenRecord={onOpenQuickRecord} />}
         <AnalysisBanner onPress={onOpenAnalysis} />
         {overview && <NetCashFlowCard ranges={overview.flowRanges} onOpenTransactions={onOpenTransactionsForType} />}
-        {overview && <CashFlowCard months={overview.cashFlow} />}
-        <WhereYourMoneyCard shares={accountShares(accounts)} />
-        {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
+        {/* The top of the screen is drawn first; the charts and lists below follow a moment later (DeferredMount). */}
+        <DeferredMount>
+          {overview && <CashFlowCard months={overview.cashFlow} />}
+          <WhereYourMoneyCard shares={accountShares(accounts)} />
+          {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
 
-        {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
-        {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
+          {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
+          {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
 
-        <FixedExpensesCard due={due} templates={recurringTemplates ?? []} onOpen={onOpenRecurring} />
-        {budget?.limit && <BudgetSummaryCard month={budget.month} limit={budget.limit} overCategory={overCategory} onOpen={onOpenBudgets} />}
-        
-        {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}
+          <FixedExpensesCard due={due} templates={recurringTemplates ?? []} onOpen={onOpenRecurring} />
+          {budget?.limit && <BudgetSummaryCard month={budget.month} limit={budget.limit} overCategory={overCategory} onOpen={onOpenBudgets} />}
 
-        
-        
+          {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}
+        </DeferredMount>
       </ScrollView>
     </View>
   );
