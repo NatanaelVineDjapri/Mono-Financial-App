@@ -11,7 +11,9 @@ What it does, and why (the rules are CLAUDE.md's):
     A pocket needs a rate (rupiah per 1 unit x 10,000, as the rate service gives it): pass them with --rates.
   - A Cashew transfer is TWO rows (Out and In, the same note, one second apart). MONO keeps ONE transfer row, so the pairs are
     found and merged. A transfer row that finds no partner is kept as an adjustment and reported.
-  - "Koreksi Saldo" (a balance correction) that is not a transfer becomes the system category "Penyesuaian saldo".
+  - "Koreksi Saldo" (a balance correction: the person told Cashew what the balance was) that is not a transfer is NOT income or
+    expense. By default the corrections are folded into the account's OPENING balance, so every balance today is the same but the
+    reports only hold real activity. With --keep-corrections they become records in the system category "Penyesuaian saldo".
   - A category is per kind in MONO (income / expense), so "Inside" used for both becomes two categories. A Cashew subcategory
     ("Makanan / Pacaran") becomes the description of the record.
   - Nothing here writes a balance. Each account gets an OPENING balance chosen so that the balance after the last correction
@@ -92,7 +94,7 @@ def read_rows(path: str):
     return out
 
 
-def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
+def main(csv_path: str, out_path: str, rates: dict, rates_at: str, keep_corrections: bool = False) -> None:
     rows = read_rows(csv_path)
     report = []
 
@@ -139,8 +141,12 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
 
     # ---- the other records
     records = []
+    corrections = []  # (account, when, value): folded into the opening balance unless kept as records
     for r in rows:
         if r['i'] in transfer_ids:
+            continue
+        if r['category'] == 'Koreksi Saldo' and not keep_corrections:
+            corrections.append((r['account'], r['dt'], r['value']))
             continue
         kind = 'expense' if r['value'] < 0 else 'income'
         if r['category'] == 'Koreksi Saldo':
@@ -167,11 +173,13 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
         if r['category'] == 'Koreksi Saldo' and r['note'].startswith(('Updated Total Balance', 'Saldo total diperbarui')):
             checkpoints.setdefault(r['account'], []).append((r['dt'], r['i'], rp_amount(r['note'].split('\n', 1)[1])))
 
-    names = [n for n in ACCOUNTS if any(e[2] == n for e in events)] + sorted({e[2] for e in events} - set(ACCOUNTS))
-    first_day, opening, last_balance, lowest = {}, {}, {}, {}
+    seen = {e[2] for e in events} | {c[0] for c in corrections}
+    names = [n for n in ACCOUNTS if n in seen] + sorted(seen - set(ACCOUNTS))
+    first_day, opening, last_balance, lowest, folded_total = {}, {}, {}, {}, {}
     for name in names:
         mine = [e for e in events if e[2] == name]
-        first_day[name] = mine[0][0].date()
+        folded = sum(c[2] for c in corrections if c[0] == name)
+        first_day[name] = min([e[0] for e in mine] + [c[1] for c in corrections if c[0] == name]).date()
         # running balance with opening 0, at every checkpoint
         running, at_check = 0, []
         marks = sorted(checkpoints.get(name, []), key=lambda c: (c[0], c[1]))
@@ -183,14 +191,14 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
             while mi < len(marks) and (marks[mi][0], marks[mi][1]) <= (e[0], e[1]):
                 at_check.append((marks[mi], running))
                 mi += 1
-        implied = [(m[2] - run) for m, run in at_check]
-        if implied:
+        implied = [(m[2] - run) for m, run in at_check] if keep_corrections else []
+        if keep_corrections and implied:
             chosen = implied[-1]  # the latest note is the truth for today
             spread = sorted(set(implied))
             if len(spread) > 1:
                 report.append(f'  {name}: the {len(implied)} correction notes imply openings from {spread[0]:,} to {spread[-1]:,}; the latest ({chosen:,}) is used')
         else:
-            chosen = -low
+            chosen = folded if not keep_corrections else -low
         if chosen < 0:
             report.append(f'  {name}: the latest note implies a NEGATIVE opening ({chosen:,}); opening set to 0 (the balance will differ from the note)')
             chosen = 0
@@ -198,6 +206,7 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
         final = chosen + sum(e[3] for e in mine)
         last_balance[name] = final
         lowest[name] = chosen + low
+        folded_total[name] = folded
 
     # ---- the SQL
     out = []
@@ -250,6 +259,8 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str) -> None:
         print(f'  Valas / {code}: {p["opening"]:,} minor units from {p["since"]} at rate_e4 {rates[code]:,}')
     for name in names:
         print(f'  {name:24s} opening {opening[name]:>12,}  now {last_balance[name]:>12,}  lowest {lowest[name]:>12,}  from {first_day[name]}')
+    if corrections and not keep_corrections:
+        print(f'{len(corrections)} balance corrections folded into the opening balances (not records)')
     print(f'total now: {sum(last_balance.values()):,}')
     if report:
         print('notes:')
@@ -263,7 +274,8 @@ if __name__ == '__main__':
     parser.add_argument('csv')
     parser.add_argument('out')
     parser.add_argument('--rates', default='', help='CODE=rate_e4,... for every foreign currency in the file')
+    parser.add_argument('--keep-corrections', action='store_true', help='keep balance corrections as records (Penyesuaian saldo) instead of folding them into the opening balance')
     parser.add_argument('--rates-at', default='', help='when the rates were fetched, ISO with offset')
     args = parser.parse_args()
     rate_map = {k: int(v) for k, v in (kv.split('=') for kv in args.rates.split(',') if kv)}
-    main(args.csv, args.out, rate_map, args.rates_at or datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '+07:00')
+    main(args.csv, args.out, rate_map, args.rates_at or datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '+07:00', args.keep_corrections)
