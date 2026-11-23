@@ -75,6 +75,7 @@ function CarouselItem({ index, offset, isLast, hiddenFromA11y, children }: { ind
     // The repeated copies exist only to make the row loop; screen readers get each account once.
     <Animated.View
       style={[styles.item, !isLast && styles.itemOverlap, style]}
+      renderToHardwareTextureAndroid
       accessibilityElementsHidden={hiddenFromA11y}
       importantForAccessibility={hiddenFromA11y ? 'no-hide-descendants' : 'auto'}
     >
@@ -153,6 +154,19 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
     [count, copies, startIndex, offset],
   );
 
+  // Letting go of the finger is not the end of a swipe: the row keeps gliding to its snap point. Jumping to the middle copy
+  // at that moment would cut the glide short, which is what made the row stutter. So a release only settles when there is
+  // nothing left to glide: no speed and already on a snap point. Every other swipe settles when the glide ends.
+  const onRelease = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const x = event.nativeEvent.contentOffset.x;
+      const speed = Math.abs(event.nativeEvent.velocity?.x ?? 0);
+      const onSnapPoint = Math.abs(x - Math.round(x / CARD_INTERVAL) * CARD_INTERVAL) < 1;
+      if (speed < 0.05 && onSnapPoint) settle(event);
+    },
+    [settle],
+  );
+
   const onPressCard = useCallback(
     (index: number, id: number) => {
       if (index === active) {
@@ -177,11 +191,12 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
         snapToInterval={CARD_INTERVAL}
         snapToAlignment="start"
         decelerationRate="fast"
+        disableIntervalMomentum
         scrollEventThrottle={16}
         onScroll={onScroll}
         onContentSizeChange={placeAtStart}
         onMomentumScrollEnd={settle}
-        onScrollEndDrag={settle}
+        onScrollEndDrag={onRelease}
         contentOffset={{ x: startIndex * CARD_INTERVAL, y: 0 }}
         contentContainerStyle={[styles.row, { paddingHorizontal: sidePadding }]}
         style={styles.scroller}
@@ -232,7 +247,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 16,
-    boxShadow: '0px 10px 24px rgba(0,0,0,0.5)',
+    boxShadow: '0px 8px 16px rgba(0,0,0,0.45)',
   },
   // Pulls the next card back so it tucks behind this one.
   itemOverlap: { marginRight: CARD_INTERVAL - CARD_WIDTH },

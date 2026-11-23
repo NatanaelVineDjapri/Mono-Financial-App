@@ -2,13 +2,14 @@
 // the exact-value table beneath (CLAUDE.md rule 7). Uses react-native-gifted-charts BarChart
 // for rendering with paired bars per month. Hidden mode masks the figures in the label and
 // the table (through <Amount>).
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { axisLabel, niceScale } from '@/core/chartScale';
+import { axisLabel, niceScale, PAIR_EDGE, PAIR_INNER_GAP, PAIR_Y_AXIS_WIDTH, pairedBarSizes } from '@/core/chartScale';
 import { monthAbbrev } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import type { OverviewMonthFlow } from '@/domain/overview';
@@ -27,17 +28,19 @@ import { MonoText } from '@/theme/typography';
 import { EXPENSE_BAR } from './palette';
 
 const CHART_HEIGHT = 130;
-const BAR_WIDTH = 8.5; // twelve months share one row: no scrolling
-const BAR_SPACING = 2; // between the two bars of a month
-const PAIR_GAP = 6; // between months
+// The bars are sized from the measured width of the card (src/core/chartScale), so all twelve months fit, the last one included.
 // The library reads `animationDuration` but its types don't declare it. Without a zero
 // duration its label timers still fire after the card has gone away.
 const NO_ANIMATION = { animationDuration: 0 };
+// Also read by the library and missing from its types: the y axis gutter, which the bar sizes are worked out from.
+const AXIS_WIDTH = { yAxisLabelWidth: PAIR_Y_AXIS_WIDTH };
 
 export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
   // Opts out of the React Compiler, which freezes the data it memoizes; see NetWorthHistoryCard.
   'use no memo';
   const hidden = useHideAmounts(s => s.hidden);
+  const [chartWidth, setChartWidth] = useState(0);
+  const { bar, gap } = pairedBarSizes(chartWidth, months.length);
   const scale = niceScale(Math.max(...months.flatMap(m => [m.income, m.expense])));
   
   const valuesText = months
@@ -50,16 +53,16 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
       value: m.income,
       // the month sits under the pair: the label box is as wide as the two bars and is centred
       label: monthAbbrev(m.period).charAt(0), // the initial only; the table below has the full month
-      labelWidth: BAR_WIDTH * 2 + BAR_SPACING,
+      labelWidth: bar * 2 + PAIR_INNER_GAP,
       frontColor: MonoColors.accent,
-      spacing: BAR_SPACING,
+      spacing: PAIR_INNER_GAP,
       labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond, textAlign: 'center' as const },
     },
     {
       value: m.expense,
       frontColor: EXPENSE_BAR,
       label: '',
-      spacing: PAIR_GAP,
+      spacing: gap,
     },
   ]);
 
@@ -80,14 +83,19 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
         {scale.top >= 1_000_000 ? `${lastTwelveMonthsLabel()} · ${axisInMillionsLabel()}` : lastTwelveMonthsLabel()}
       </Text>
 
-      <View accessible accessibilityRole="image" accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}>
+      <View
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={cashFlowAccessibilityLabel(valuesText)}
+        onLayout={event => setChartWidth(Math.round(event.nativeEvent.layout.width))}
+      >
         <BarChart
           data={barData}
           height={CHART_HEIGHT}
-          barWidth={BAR_WIDTH}
-          spacing={PAIR_GAP}
-          initialSpacing={4}
-          endSpacing={0}
+          barWidth={bar}
+          spacing={gap}
+          initialSpacing={PAIR_EDGE}
+          endSpacing={PAIR_EDGE}
           disableScroll
           barBorderRadius={3}
           hideRules={false}
@@ -105,6 +113,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           disablePress
           isAnimated={false}
           {...NO_ANIMATION}
+          {...AXIS_WIDTH}
         />
       </View>
 

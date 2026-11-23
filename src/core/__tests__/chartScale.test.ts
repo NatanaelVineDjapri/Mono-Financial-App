@@ -1,4 +1,4 @@
-import { axisLabel, labelIndexes, millions, millionsCallout, millionsFixed, niceRange, niceScale } from '../chartScale';
+import { axisLabel, labelIndexes, millions, millionsCallout, millionsFixed, niceRange, niceScale, PAIR_EDGE, PAIR_INNER_GAP, PAIR_Y_AXIS_WIDTH, pairedBarSizes } from '../chartScale';
 
 describe('niceScale', () => {
   test('the cash flow board: a 7,5 million high gives 0, 4, 8', () => {
@@ -106,5 +106,22 @@ describe('niceRange', () => {
 
   test('the gridlines are integers', () => {
     expect(niceRange(33, 71).ticks.every(Number.isInteger)).toBe(true);
+  });
+});
+
+describe('pairedBarSizes: every month fits the plot, the last one included', () => {
+  test.each([[320, 12], [360, 12], [412, 12], [320, 6], [412, 6]])('on a chart %ipx wide, %i months fill the plot from edge to edge and none runs past it', (width, count) => {
+    const { bar, gap, slot } = pairedBarSizes(width, count);
+    const plot = width - PAIR_Y_AXIS_WIDTH - PAIR_EDGE * 2;
+    expect(slot * count).toBeCloseTo(plot, 5);
+    expect(2 * bar + PAIR_INNER_GAP + gap).toBeCloseTo(slot, 5);
+    // the left edge, every pair with its gap, and the right edge add up to the chart's width: nothing is cut off
+    expect(PAIR_Y_AXIS_WIDTH + PAIR_EDGE + count * (2 * bar + PAIR_INNER_GAP + gap) + PAIR_EDGE).toBeCloseTo(width, 5);
+    expect(bar).toBeGreaterThan(0);
+  });
+
+  test('before the chart is measured (or with nothing to draw) it uses the fixed sizes', () => {
+    expect(pairedBarSizes(0, 12)).toMatchObject({ bar: 14, gap: 10 });
+    expect(pairedBarSizes(360, 0)).toMatchObject({ bar: 14, gap: 10 });
   });
 });

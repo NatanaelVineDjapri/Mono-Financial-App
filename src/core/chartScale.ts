@@ -103,3 +103,25 @@ export function labelIndexes(count: number, max: number): number[] {
   for (let i = count - 1; i >= 0; i -= stride) indexes.unshift(i);
   return indexes;
 }
+
+// Paired bars (income beside expense, a month each) that fill the width of the plot, whatever the phone: each month gets an
+// equal slot, the pair takes most of it and the rest is the gap before the next month. Used by the Overview's cash flow card
+// (twelve months) and the Reports trend card (six). `chartWidth` is the measured width of the chart including its y axis gutter.
+export const PAIR_INNER_GAP = 2; // between the two bars of a month
+export const PAIR_Y_AXIS_WIDTH = 36; // the gutter of the y axis labels
+export const PAIR_EDGE = 4; // room at the left and right end of the plot
+const PAIR_FALLBACK_BAR = 14;
+const PAIR_FALLBACK_GAP = 10;
+const PAIR_MAX_BAR = 26;
+const PAIR_MIN_GAP = 6;
+
+export function pairedBarSizes(chartWidth: number, count: number): { bar: number; gap: number; slot: number } {
+  const plot = chartWidth - PAIR_Y_AXIS_WIDTH - PAIR_EDGE * 2;
+  if (chartWidth <= 0 || count <= 0 || plot <= 0) {
+    return { bar: PAIR_FALLBACK_BAR, gap: PAIR_FALLBACK_GAP, slot: PAIR_FALLBACK_BAR * 2 + PAIR_INNER_GAP + PAIR_FALLBACK_GAP };
+  }
+  const slot = plot / count;
+  const gap = Math.max(PAIR_MIN_GAP, slot * 0.3);
+  const bar = Math.min(PAIR_MAX_BAR, (slot - gap - PAIR_INNER_GAP) / 2);
+  return { bar, gap: slot - 2 * bar - PAIR_INNER_GAP, slot };
+}

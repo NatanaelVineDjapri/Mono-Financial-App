@@ -7,7 +7,7 @@ import { BarChart } from 'react-native-gifted-charts';
 
 import { Card } from '@/components/Card';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { axisLabel, millionsFixed, niceScale } from '@/core/chartScale';
+import { axisLabel, millionsFixed, niceScale, PAIR_EDGE, PAIR_INNER_GAP, PAIR_Y_AXIS_WIDTH, pairedBarSizes } from '@/core/chartScale';
 import { formatDayMonth, monthAbbrev, monthName } from '@/core/date';
 import { rp, shownCompact } from '@/core/money';
 import type { ReportTrendRow } from '@/domain/reports';
@@ -33,26 +33,12 @@ import { ReportTable } from './ReportTable';
 // The same bars as the Overview's cash flow card (gold income against grey expenses, a labelled y axis with its gridlines, the
 // month under each pair), sized for six months instead of twelve.
 const CHART_HEIGHT = 130;
-const INNER_GAP = 2; // between the two bars of a month
-const Y_AXIS_WIDTH = 36; // the gutter of the y axis labels
-const EDGE = 4; // room at the left and right end of the plot
-// Until the card has been measured the bars use these sizes; after that they are worked out from its width.
-const FALLBACK_BAR_WIDTH = 14;
-const FALLBACK_PAIR_GAP = 10;
-const MAX_BAR_WIDTH = 26;
+const INNER_GAP = PAIR_INNER_GAP;
+const Y_AXIS_WIDTH = PAIR_Y_AXIS_WIDTH;
+const EDGE = PAIR_EDGE;
 
-// The bars fill the width of the plot, whatever the phone: each month gets an equal slot, the pair of bars takes most of
-// it and the rest is the gap before the next month.
-export function barSizes(chartWidth: number, count: number): { bar: number; gap: number; slot: number } {
-  const plot = chartWidth - Y_AXIS_WIDTH - EDGE * 2;
-  if (chartWidth <= 0 || count <= 0 || plot <= 0) {
-    return { bar: FALLBACK_BAR_WIDTH, gap: FALLBACK_PAIR_GAP, slot: FALLBACK_BAR_WIDTH * 2 + INNER_GAP + FALLBACK_PAIR_GAP };
-  }
-  const slot = plot / count;
-  const gap = Math.max(6, slot * 0.3);
-  const bar = Math.min(MAX_BAR_WIDTH, (slot - gap - INNER_GAP) / 2);
-  return { bar, gap: slot - 2 * bar - INNER_GAP, slot };
-}
+// The bars fill the width of the plot: the sizing is shared with the Overview's cash flow card (src/core/chartScale).
+export const barSizes = pairedBarSizes;
 const EXPENSE_BAR = MonoColors.textDisabled;
 // The library reads `animationDuration` but its types don't declare it. Without a zero
 // duration its label timers still fire after the card has gone away.
