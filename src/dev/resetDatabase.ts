@@ -18,12 +18,15 @@ const DELETE_ORDER = [
   'accounts',
 ] as const;
 
+// The clearing itself, for a caller that already holds the transaction (an import that must roll back whole).
+export async function clearEnteredData(txn: Db): Promise<void> {
+  await txn.runAsync("update meta set value = '1' where key = 'guards_off'");
+  for (const table of DELETE_ORDER) {
+    await txn.execAsync(`delete from ${table}`);
+  }
+  await txn.runAsync("update meta set value = '0' where key = 'guards_off'");
+}
+
 export async function resetDatabase(db: Db): Promise<void> {
-  await db.withExclusiveTransactionAsync(async txn => {
-    await txn.runAsync("update meta set value = '1' where key = 'guards_off'");
-    for (const table of DELETE_ORDER) {
-      await txn.execAsync(`delete from ${table}`);
-    }
-    await txn.runAsync("update meta set value = '0' where key = 'guards_off'");
-  });
+  await db.withExclusiveTransactionAsync(clearEnteredData);
 }

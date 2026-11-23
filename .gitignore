@@ -55,3 +55,6 @@ modules/**/android/.cxx/
 
 # Gradle caches of local Expo modules
 modules/**/android/.gradle/
+
+# personal data (converted exports), never committed
+private/

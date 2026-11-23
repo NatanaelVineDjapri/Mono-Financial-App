@@ -14,6 +14,7 @@ import { showToast } from '@/components/toast-store';
 import { setClockOverride } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
+import { pickAndImportSql } from '@/dev/importSqlFile';
 import { loadNovemberData } from '@/dev/loadNovemberData';
 import { importSamplerTitle } from '@/i18n';
 import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
@@ -34,6 +35,7 @@ function DevToolsContent() {
   const db = useDb();
   const queryClient = useQueryClient();
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [confirmingImport, setConfirmingImport] = useState(false);
   const router = useRouter();
   const mockCard = useMockCardStore();
 
@@ -85,6 +87,35 @@ function DevToolsContent() {
           </View>
         ) : (
           <Button label="Reset database" variant="secondary" onPress={() => setConfirmingReset(true)} />
+        )}
+
+        {confirmingImport ? (
+          <View style={styles.confirmRow}>
+            <Text style={styles.confirmText}>Replace everything with a .sql file you pick? The current data is cleared first, and put back if the file does not pass the integrity check.</Text>
+            <View style={styles.confirmButtons}>
+              <Button
+                label="Pick file"
+                variant="secondary"
+                style={styles.confirmButton}
+                onPress={() => {
+                  setConfirmingImport(false);
+                  void (async () => {
+                    try {
+                      const summary = await pickAndImportSql(db);
+                      await invalidateAfterWrite(queryClient);
+                      if (summary) showToast(`Imported ${summary.accounts} accounts and ${summary.transactions} records.`);
+                    } catch (err) {
+                      await invalidateAfterWrite(queryClient);
+                      showToast(err instanceof Error ? err.message : String(err));
+                    }
+                  })();
+                }}
+              />
+              <Button label="Cancel" variant="secondary" style={styles.confirmButton} onPress={() => setConfirmingImport(false)} />
+            </View>
+          </View>
+        ) : (
+          <Button label="Import a .sql file (replaces all data)" variant="secondary" onPress={() => setConfirmingImport(true)} />
         )}
 
         <Button
