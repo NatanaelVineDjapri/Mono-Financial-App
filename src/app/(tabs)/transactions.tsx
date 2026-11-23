@@ -288,7 +288,7 @@ export default function TransactionsScreen() {
 
   const listFilter = useMemo(() => ({ ...filters, search: debouncedSearch }), [filters, debouncedSearch]);
   const previewFilter = useMemo(() => ({ ...draftFilters, search: debouncedSearch }), [draftFilters, debouncedSearch]);
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransactionsList(listFilter);
+  const { data, isLoading, isError, isPlaceholderData, fetchNextPage, hasNextPage, isFetchingNextPage } = useTransactionsList(listFilter);
   const summary = useTransactionsFilterSummary(listFilter);
   const preview = useTransactionsFilterSummary(previewFilter);
   const pages = data?.pages ?? [];
@@ -356,6 +356,8 @@ export default function TransactionsScreen() {
     );
   }
 
+  // The previous filter's list stays up (dimmed) until the new one has loaded, so changing a filter does not blank the screen.
+  const stale = isPlaceholderData || summary.isPlaceholderData;
   const filtered = activeFilterCount > 0 || debouncedSearch.trim() !== '';
   const noResults = filtered && summary.data.count === 0;
   const rangeLabel = `${formatShortDate(summary.data.range.startDate)}–${formatShortDate(summary.data.range.endDate)}`;
@@ -440,6 +442,7 @@ export default function TransactionsScreen() {
       ) : (
         <FlatList
           testID="transactions-list"
+          style={stale ? styles.stale : undefined}
           data={pages}
           keyExtractor={item => item.period}
           ListHeaderComponent={
@@ -478,7 +481,7 @@ export default function TransactionsScreen() {
         accounts={filterOptions.accounts.map(account => ({ id: account.id, name: account.name }))}
         categories={filterOptions.categories.map(category => ({ id: category.id, name: category.name }))}
         resultCount={preview.data?.count ?? summary.data.count}
-        resultCountLoading={preview.isLoading}
+        resultCountLoading={preview.isLoading || preview.isPlaceholderData}
         onChange={updateDraftFilters}
         onReset={resetDraftFilters}
         onClose={closeFilterSheet}
@@ -526,6 +529,7 @@ const styles = StyleSheet.create({
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 
   listContent: { paddingHorizontal: 20, gap: 20 },
+  stale: { opacity: 0.5 },
 
   summaryCard: { backgroundColor: MonoColors.card, borderRadius: 16, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, marginBottom: 20 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, gap: 12 },

@@ -219,6 +219,14 @@ describe('TransactionsScreen', () => {
     });
   });
 
+  test('while the next filter loads, the previous list stays on screen (dimmed) instead of the screen going blank', async () => {
+    mockResult({ ...baseResult([OCT_PAGE]), isPlaceholderData: true });
+    const result = await renderScreen();
+    expect(result.getByTestId('tx-row-5')).toBeTruthy();
+    expect(result.getByTestId('tx-type-segmented')).toBeTruthy();
+    expect(result.getByTestId('transactions-list').props.style).toEqual({ opacity: 0.5 });
+  });
+
   test('typing in search debounces 250ms before reaching the hook', async () => {
     jest.useFakeTimers();
     mockResult(baseResult([OCT_PAGE]));
