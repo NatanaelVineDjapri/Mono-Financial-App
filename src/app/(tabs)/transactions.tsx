@@ -348,9 +348,21 @@ export default function TransactionsScreen() {
   }, [updateFilters]);
 
   if (isLoading || summary.isLoading || !firstPage || !summary.data) {
+    // Same tree as the loaded screen up to the toolbar, so the search box keeps what was typed and nothing is rebuilt when the
+    // data arrives: only the count line and the list are still missing.
     return (
       <View style={styles.screen}>
         <ScreenHeader title={tabLabel('transactions')} style={styles.header} right={<FilterButton onPress={openFilterSheet} activeCount={activeFilterCount} />} />
+        <View style={styles.toolbar}>
+          <Text style={styles.subtitle}>{' '}</Text>
+          <SearchField value={searchInput} onChangeText={setSearchInput} />
+          <Segmented
+            testID="tx-type-segmented"
+            options={TYPE_OPTIONS}
+            value={typeFilter}
+            onChange={value => onChangeTypeFilter(value as TxTypeFilter)}
+          />
+        </View>
         {(isError || summary.isError) && <Text style={styles.errorText}>{comingSoonMessage()}</Text>}
       </View>
     );

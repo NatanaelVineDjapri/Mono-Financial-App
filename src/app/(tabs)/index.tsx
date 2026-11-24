@@ -41,7 +41,7 @@ import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { countUnread } from '@/data/repo/notifications';
 import { listRecurring } from '@/domain/recurring';
-import { useTransactionsList } from '@/features/transactions/useTransactionsList';
+import { useTransactionsFilterSummary, useTransactionsList } from '@/features/transactions/useTransactionsList';
 import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 
@@ -65,6 +65,9 @@ export default function OverviewScreen() {
   const { data: quickRecords } = useQuickRecords();
   const monthFilter = useMemo(() => ({ ...defaultTransactionFilters(), search: '' }), []);
   const { data: txData } = useTransactionsList(monthFilter);
+  // Read here only to have it ready: the Transactions tab opens on this same filter, and finds its list and its totals already
+  // loaded instead of drawing an empty screen while it asks the database.
+  useTransactionsFilterSummary(monthFilter);
   const recentTxs = useMemo(() => txData?.pages[0]?.rows.slice(0, 5) ?? [], [txData]);
 
   const onOpenMore = useCallback(() => router.push('/more'), [router]);
@@ -108,8 +111,16 @@ export default function OverviewScreen() {
   // First launch: Welcome comes first, once.
   if (needsWelcome === true) return <Redirect href={"/welcome" as never} />;
 
+  // The same tree as the loaded screen (a ScrollView holding the top), so when the data arrives the drawn backdrop is kept
+  // and the rest is added under it, instead of the whole top being torn down and built again (which showed as a blank flash).
   if (accountsLoading || !accountsData) {
-    return <View style={styles.screen}>{top(null)}</View>;
+    return (
+      <View style={styles.screen}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll" scrollEnabled={false}>
+          {top(null)}
+        </ScrollView>
+      </View>
+    );
   }
 
   if (accountsData.accountCount === 0) {
