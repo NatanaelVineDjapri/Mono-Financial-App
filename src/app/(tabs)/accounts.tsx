@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { ListSkeleton } from '@/components/ListSkeleton';
 import { Button } from '@/components/Button';
 import { CardStack, type CardStackAccount } from '@/components/CardStack';
 import { HeaderButton } from '@/components/HeaderButton';
@@ -136,6 +137,7 @@ export default function AccountsScreen() {
     return (
       <View style={styles.screen}>
         <HeaderRow title={tabLabel('accounts')} right={<AccountsHeaderAction onPress={onAddAccount} />} />
+        <ListSkeleton rows={5} testID="accounts-skeleton" />
       </View>
     );
   }

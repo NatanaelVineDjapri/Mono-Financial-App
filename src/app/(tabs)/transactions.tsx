@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { ListSkeleton } from '@/components/ListSkeleton';
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
 import { FilterSheet } from '@/components/FilterSheet';
@@ -363,7 +364,7 @@ export default function TransactionsScreen() {
             onChange={value => onChangeTypeFilter(value as TxTypeFilter)}
           />
         </View>
-        {(isError || summary.isError) && <Text style={styles.errorText}>{comingSoonMessage()}</Text>}
+        {isError || summary.isError ? <Text style={styles.errorText}>{comingSoonMessage()}</Text> : <ListSkeleton rows={7} testID="transactions-skeleton" />}
       </View>
     );
   }
@@ -455,6 +456,10 @@ export default function TransactionsScreen() {
         <FlatList
           testID="transactions-list"
           style={stale ? styles.stale : undefined}
+          // Each item is a month: a few ahead and behind are kept ready, so a fast scroll does not outrun what is drawn.
+          initialNumToRender={3}
+          maxToRenderPerBatch={3}
+          windowSize={9}
           data={pages}
           keyExtractor={item => item.period}
           ListHeaderComponent={

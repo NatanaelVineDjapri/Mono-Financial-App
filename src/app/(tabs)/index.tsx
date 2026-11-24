@@ -21,6 +21,8 @@ import { FixedExpensesCard } from '@/features/overview/FixedExpensesCard';
 import { AnalysisBanner } from '@/features/overview/AnalysisBanner';
 import { HeroSection, type HeroChange } from '@/features/overview/HeroSection';
 import { NetCashFlowCard } from '@/features/overview/NetCashFlowCard';
+import { BelowHeroSkeleton, HeroSkeleton } from '@/features/overview/OverviewSkeleton';
+import { PreloadTabs } from '@/features/overview/PreloadTabs';
 import { QuickRecordCard } from '@/features/overview/QuickRecordCard';
 import { useQuickRecords } from '@/features/overview/useQuickRecords';
 import { useAvatarPose } from '@/features/profile/useAvatarPose';
@@ -117,7 +119,8 @@ export default function OverviewScreen() {
     return (
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll" scrollEnabled={false}>
-          {top(null)}
+          {top(<HeroSkeleton />)}
+          <BelowHeroSkeleton />
         </ScrollView>
       </View>
     );
@@ -169,7 +172,7 @@ export default function OverviewScreen() {
         <AnalysisBanner onPress={onOpenAnalysis} />
         {overview && <NetCashFlowCard ranges={overview.flowRanges} onOpenTransactions={onOpenTransactionsForType} />}
         {/* The top of the screen is drawn first; the charts and lists below follow a moment later (DeferredMount). */}
-        <DeferredMount>
+        <DeferredMount placeholderHeight={1400}>
           {overview && <CashFlowCard months={overview.cashFlow} />}
           <WhereYourMoneyCard shares={accountShares(accounts)} />
           {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
@@ -183,6 +186,8 @@ export default function OverviewScreen() {
           {recentTxs.length > 0 && <RecentTransactionsCard rows={recentTxs} onOpenTx={onOpenTx} onSeeAll={onOpenTransactions} />}
         </DeferredMount>
       </ScrollView>
+      {/* The other tabs are made ready in the background once this screen has settled. */}
+      <PreloadTabs />
     </View>
   );
 }

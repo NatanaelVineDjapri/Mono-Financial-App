@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ListSkeleton } from '@/components/ListSkeleton';
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
 import { HeaderButton } from '@/components/HeaderButton';
@@ -177,7 +178,14 @@ export default function BudgetsScreen() {
     />
   );
 
-  if (isLoading) return <View style={styles.screen}>{header}</View>;
+  if (isLoading) {
+    return (
+      <View style={styles.screen}>
+        {header}
+        <ListSkeleton rows={5} testID="budgets-skeleton" />
+      </View>
+    );
+  }
 
   if (isError || !data) {
     return (
