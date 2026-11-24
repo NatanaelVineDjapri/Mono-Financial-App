@@ -26,6 +26,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// How long after the first screen has settled a tap that opened the app is acted on.
+export const COLD_START_TAP_DELAY_MS = 300;
+
 export function NotificationsInit() {
   const db = useDb();
   const router = useRouter();
@@ -86,13 +89,17 @@ export function NotificationsInit() {
     };
   }, [db, queryClient]); // eslint-disable-line react-hooks/exhaustive-deps -- handleResponse only reads the router
 
-  // Handle the tap that opened the app (it was closed), once, as soon as the navigator is there.
+  // Handle the tap that opened the app (it was closed), once. The navigator being there is not enough: a push made while the first
+  // screen is still being built left a white screen that never went away (found on the release build, tapping a reminder with the
+  // app closed). So it waits until the first screen has settled (the same signal that lifts the splash), plus a moment.
   useEffect(() => {
-    if (!navigationReady || coldStartHandled.current) return;
+    if (!navigationReady || coldStartHandled.current) return undefined;
     coldStartHandled.current = true;
-    void Notifications.getLastNotificationResponseAsync().then(response => {
-      if (response) handleResponse(response);
-    });
+    return runAfterReady(() => {
+      void Notifications.getLastNotificationResponseAsync().then(response => {
+        if (response) handleResponse(response);
+      });
+    }, COLD_START_TAP_DELAY_MS);
   }, [navigationReady]); // eslint-disable-line react-hooks/exhaustive-deps -- handleResponse only reads the router
 
   return null;

@@ -198,6 +198,10 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
   return (
     <View style={styles.section}>
       <SectionHeader title={title} linkLabel={linkLabel} onPress={onOpenAll} />
+      {/* A plain card shape under the row: while the row is hidden (it is placed first), the slot is not an empty gap. The real
+          card, at full size and in the same place, covers it completely. */}
+      <View style={styles.slot}>
+        <View pointerEvents="none" style={[styles.placeholder, { left: sidePadding }]} testID="overview-account-placeholder" />
       <Animated.ScrollView
         ref={scrollRef}
         horizontal
@@ -240,6 +244,7 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
           );
         })}
       </Animated.ScrollView>
+      </View>
       {count > 1 && (
         <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {accounts.map((account, index) => (
@@ -256,6 +261,9 @@ const styles = StyleSheet.create({
   section: { gap: 12 },
   // Room above and below for the shadow and the rotated cards' corners.
   scroller: { flexGrow: 0, paddingVertical: 12 },
+  slot: { position: 'relative' },
+  // Where the focused card sits: 12 down (the scroller's own padding), centred.
+  placeholder: { position: 'absolute', top: 12, width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 16, backgroundColor: MonoColors.card, borderWidth: 1, borderColor: MonoColors.border },
   row: { alignItems: 'center' },
   item: {
     width: CARD_WIDTH,
