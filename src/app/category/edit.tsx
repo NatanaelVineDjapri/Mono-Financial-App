@@ -60,7 +60,6 @@ import {
   catFormUsageTitle,
   catFormUsageTransactions,
   catIconName,
-  catSavedToast,
   closeLabel,
   retryLabel,
   undoLabel,
@@ -145,7 +144,6 @@ function CategoryForm({ id, data }: { id: number | undefined; data: FormData }) 
       setSaveError(result.error);
       return;
     }
-    showToast(catSavedToast());
     router.back();
   };
 

@@ -12,7 +12,7 @@ import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Icon } from '@/components/Icon';
 import { MonoSwitch } from '@/components/MonoSwitch';
-import { showToast } from '@/components/toast-store';
+
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import {
@@ -20,7 +20,6 @@ import {
   aiDeleteKeyLabel,
   aiDeleteKeyMessage,
   aiDeleteKeyTitle,
-  aiKeyDeletedToast,
   aiSettingsKeyRowLabel,
   aiSettingsKeyRowValue,
   aiSettingsSwitchLabel,
@@ -68,7 +67,6 @@ export function AiSettingsSection({ onOpenSetup }: { onOpenSetup?: () => void })
     await invalidateAfterWrite(queryClient);
     setBusy(false);
     setConfirming(false);
-    showToast(aiKeyDeletedToast());
   };
 
   return (

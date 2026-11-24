@@ -4,10 +4,9 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { showToast } from '@/components/toast-store';
 import { ImportReviewView } from '@/features/import/ImportReviewView';
 import { useImportQueue, useImportQueueActions } from '@/features/import/useImportQueue';
-import { importSavedAll, importSavedSomeFailed } from '@/i18n';
+
 import { MonoColors } from '@/theme/tokens';
 
 export default function ImportReviewRoute() {
@@ -21,9 +20,8 @@ export default function ImportReviewRoute() {
   const onSaveAll = async () => {
     if (saving) return;
     setSaving(true);
-    const result = await actions.saveAll();
+    await actions.saveAll();
     setSaving(false);
-    showToast(result.failed > 0 ? importSavedSomeFailed(result.saved, result.failed) : importSavedAll(result.saved));
   };
 
   return <ImportReviewView items={data} saving={saving} onBack={() => router.back()} onOpen={id => router.push(`/import/edit/${id}` as never)} onSaveAll={() => void onSaveAll()} />;

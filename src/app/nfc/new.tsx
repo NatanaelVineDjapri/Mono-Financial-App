@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
-import { showToast } from '@/components/toast-store';
 import { nowIso } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
@@ -13,7 +12,7 @@ import { createAccountFromCard, linkCardToAccount } from '@/domain/cards/links';
 import { DEFAULT_ACCOUNT_NAME } from '@/domain/cards/types';
 import { NewCardView } from '@/features/nfc/NewCardView';
 import { useScanSession } from '@/features/nfc/scanSession';
-import { nfcAccountCreated, nfcLinkFailure } from '@/i18n';
+import { nfcLinkFailure } from '@/i18n';
 
 export default function NfcNewRoute() {
   const router = useRouter();
@@ -48,7 +47,6 @@ export default function NfcNewRoute() {
       return;
     }
     await invalidateAfterWrite(queryClient);
-    showToast(nfcAccountCreated(name.trim()));
     leaving.current = true;
     clear();
     router.replace({ pathname: '/account/[id]', params: { id: String(result.value.accountId) } } as never);

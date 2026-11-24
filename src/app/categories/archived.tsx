@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { HeaderRow } from '@/components/HeaderRow';
 import { Icon } from '@/components/Icon';
-import { showToast } from '@/components/toast-store';
+
 import { formatShortDate } from '@/core/date';
 import type { ArchivedCategoryRow } from '@/data/repo/categories';
 import { CategoryIcon } from '@/features/categories/CategoryIcon';
@@ -26,7 +26,6 @@ import {
   catListExpenseHeader,
   catListIncomeHeader,
   catListLoadError,
-  catRestoredToast,
   moreCategoriesTitle,
   retryLabel,
 } from '@/i18n';
@@ -90,8 +89,7 @@ export default function ArchivedCategoriesScreen() {
   }, [data, router]);
 
   const restore = async (id: number) => {
-    const result = await actions.restore(id);
-    if (result.ok) showToast(catRestoredToast());
+    await actions.restore(id);
   };
 
   const expense = (data ?? []).filter(r => r.kind === 'expense');

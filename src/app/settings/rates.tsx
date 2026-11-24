@@ -21,11 +21,9 @@ import {
   ratesManualInvalid,
   ratesManualLabel,
   ratesManualSave,
-  ratesManualSaved,
   ratesManualSubtitle,
   ratesManualTitle,
   ratesNoPockets,
-  ratesUpdatedToast,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 
@@ -48,8 +46,7 @@ export default function RatesRoute() {
     setFailure(null);
     try {
       const outcome = await actions.refresh();
-      if (outcome.status === 'updated') showToast(ratesUpdatedToast());
-      else if (outcome.status === 'failed') setFailure({ kind: outcome.kind, minutesLeft: outcome.kind === 'rate_limited' ? LOCKOUT_MINUTES : undefined });
+      if (outcome.status === 'failed') setFailure({ kind: outcome.kind, minutesLeft: outcome.kind === 'rate_limited' ? LOCKOUT_MINUTES : undefined });
       else if (outcome.status === 'skipped_locked') setFailure({ kind: 'rate_limited', minutesLeft: Math.max(1, LOCKOUT_MINUTES - minutesSince(outcome.lockedUntil)) });
       else if (outcome.status === 'skipped_cooldown') showToast(ratesCooldown(Math.max(1, 60 - minutesSince(outcome.lastSuccessAt))));
       else showToast(ratesNoPockets());
@@ -73,7 +70,6 @@ export default function RatesRoute() {
       setInvalid(true);
       return;
     }
-    showToast(ratesManualSaved(editing));
     setEditing(null);
   }, [actions, editing, text]);
 

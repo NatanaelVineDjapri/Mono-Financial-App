@@ -20,7 +20,7 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { MonoSwitch } from '@/components/MonoSwitch';
-import { showToast } from '@/components/toast-store';
+
 import { today } from '@/core/clock';
 import { monthLabel } from '@/core/date';
 import { rp, shown } from '@/core/money';
@@ -30,42 +30,40 @@ import { checkAllocation, saveBudget, setMonthlyLimit, type AllocationCheck, typ
 import { DomainError } from '@/domain/errors';
 import { useBudgetFormContext } from '@/features/budgets/useBudgets';
 import {
-    addCategoryBudgetLabel,
-    allocatedLabel,
-    allocationCheckLabel,
-    alreadyAllocatedLabel,
-    amountAboveZeroMessage,
-    budgetCategoryHelper,
-    budgetSavedToast,
-    budgetSaveFailedMessage,
-    budgetsErrorMessage,
-    cancelLabel,
-    categoryLabel,
-    categoryWithoutBudgetLabel,
-    chooseCategoryMessage,
-    closeLabel,
-    editCategoryBudgetTitle,
-    fullyAllocatedMessage,
-    guardMessage,
-    monthlyLimitForLabel,
-    monthlyLimitSavedToast,
-    monthlyLimitTitle,
-    noCategoriesLeftMessage,
-    overMonthlyLimitBy,
-    overMonthlyLimitHint,
-    overMonthlyLimitHintForLimit,
-    raisedFromLabel,
-    raiseMonthlyLimitToLabel,
-    repeatEveryMonthHelper,
-    repeatEveryMonthLabel,
-    retryLabel,
-    saveBudgetLabel,
-    saveLimitLabel,
-    stepLabel,
-    thisBudgetLabel,
-    totalAllocatedLabel,
-    totalMonthlyLimitLabel,
-    unallocatedMessage
+  addCategoryBudgetLabel,
+  allocatedLabel,
+  allocationCheckLabel,
+  alreadyAllocatedLabel,
+  amountAboveZeroMessage,
+  budgetCategoryHelper,
+  budgetSaveFailedMessage,
+  budgetsErrorMessage,
+  cancelLabel,
+  categoryLabel,
+  categoryWithoutBudgetLabel,
+  chooseCategoryMessage,
+  closeLabel,
+  editCategoryBudgetTitle,
+  fullyAllocatedMessage,
+  guardMessage,
+  monthlyLimitForLabel,
+  monthlyLimitTitle,
+  noCategoriesLeftMessage,
+  overMonthlyLimitBy,
+  overMonthlyLimitHint,
+  overMonthlyLimitHintForLimit,
+  raisedFromLabel,
+  raiseMonthlyLimitToLabel,
+  repeatEveryMonthHelper,
+  repeatEveryMonthLabel,
+  retryLabel,
+  saveBudgetLabel,
+  saveLimitLabel,
+  stepLabel,
+  thisBudgetLabel,
+  totalAllocatedLabel,
+  totalMonthlyLimitLabel,
+  unallocatedMessage,
 } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -197,7 +195,6 @@ function BudgetForm({ mode, context, preselectCategoryId }: { mode: Mode; contex
     try {
       if (mode === 'limit') {
         await setMonthlyLimit(db, context.month, amount, repeat);
-        showToast(monthlyLimitSavedToast(money(amount)));
       } else {
         await saveBudget(db, {
           month: context.month,
@@ -206,7 +203,6 @@ function BudgetForm({ mode, context, preselectCategoryId }: { mode: Mode; contex
           repeat,
           monthlyLimit: raisedLimit ?? undefined,
         });
-        showToast(budgetSavedToast(categoryName ?? '', money(amount)));
       }
       await invalidateAfterWrite(queryClient);
       router.back();

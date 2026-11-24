@@ -6,17 +6,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
-import { useHideAmounts } from '@/components/hide-amounts-store';
-import { showToast } from '@/components/toast-store';
 import { nowIso } from '@/core/clock';
-import { rp, shown } from '@/core/money';
+
 import { saveAccountChanges, saveNewAccount } from '@/core/account/save';
 import type { AccountFormValues } from '@/core/account/validate';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getAccountEditData, listAccountNames, type AccountEditData } from '@/domain/accountDetail';
 import { getForexAccountId } from '@/features/valas/forexAccount';
-import { accountChangesSavedMessage, accountCreatedMessage } from '@/i18n';
+import { accountChangesSavedMessage } from '@/i18n';
 
 import type { AccountSubmitResult } from './AccountForm';
 
@@ -50,7 +48,6 @@ export function useCreateAccountSubmit() {
       if (!result.ok) return result;
       await invalidateAfterWrite(queryClient);
       router.back();
-      showToast(accountCreatedMessage(values.name.trim(), shown(rp(values.openingBalance), useHideAmounts.getState().hidden)));
       return { ok: true };
     },
     [db, queryClient, router],
@@ -68,7 +65,6 @@ export function useChangeAccountSubmit(edit: AccountEditData | null | undefined)
       if (!result.ok) return result;
       await invalidateAfterWrite(queryClient);
       router.back();
-      showToast(accountChangesSavedMessage());
       return { ok: true };
     },
     [db, queryClient, router, edit],

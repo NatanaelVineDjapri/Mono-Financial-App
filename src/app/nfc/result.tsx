@@ -4,17 +4,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 
-import { useHideAmounts } from '@/components/hide-amounts-store';
-import { showToast } from '@/components/toast-store';
 import { nowIso } from '@/core/clock';
-import { rp, shown } from '@/core/money';
+
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
-import { previewAdjustment, recordAdjustment, undoAdjustment } from '@/domain/cards/adjustment';
+import { previewAdjustment, recordAdjustment } from '@/domain/cards/adjustment';
 import { findCardAccount } from '@/domain/cards/links';
 import { ResultView } from '@/features/nfc/ResultView';
 import { useScanSession } from '@/features/nfc/scanSession';
-import { nfcBalanceChanged, nfcRecorded, undoLabel } from '@/i18n';
+import { nfcBalanceChanged } from '@/i18n';
 
 export default function NfcResultRoute() {
   const router = useRouter();
@@ -56,14 +54,6 @@ export default function NfcResultRoute() {
     setBusy(false);
     if (result.ok) {
       await invalidateAfterWrite(queryClient);
-      const hidden = useHideAmounts.getState().hidden;
-      const { transactionId, balanceAfter } = result.value;
-      showToast(nfcRecorded(data.link.account_name, shown(rp(balanceAfter), hidden)), {
-        actionLabel: undoLabel(),
-        onAction: () => {
-          void undoAdjustment(db, transactionId).then(() => invalidateAfterWrite(queryClient));
-        },
-      });
       leaving.current = true;
       clear();
       router.replace({ pathname: '/account/[id]', params: { id: String(data.link.account_id) } } as never);

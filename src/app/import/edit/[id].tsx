@@ -6,12 +6,12 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { showToast } from '@/components/toast-store';
+
 import { today as todayLocal } from '@/core/clock';
 import { ImportEditView, type ImportEditChange } from '@/features/import/ImportEditView';
 import { useImportQueueActions, useImportQueueItem } from '@/features/import/useImportQueue';
 import { useTxFormData } from '@/features/transactions/form/useTxForm';
-import { importBackLabel, importItemGone, importRejectedToast, importSavedToast } from '@/i18n';
+import { importBackLabel, importItemGone } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -52,7 +52,6 @@ export default function ImportEditRoute() {
     setSaving(false);
     if (outcome.ok) {
       router.back();
-      showToast(importSavedToast());
     } else {
       setError(outcome.message);
     }
@@ -61,7 +60,6 @@ export default function ImportEditRoute() {
   const onReject = async () => {
     await actions.reject(id);
     router.back();
-    showToast(importRejectedToast());
   };
 
   return <ImportEditView item={item} data={formData} today={today} saving={saving} error={error} onBack={() => router.back()} onSave={(c, r) => void onSave(c, r)} onReject={() => void onReject()} />;

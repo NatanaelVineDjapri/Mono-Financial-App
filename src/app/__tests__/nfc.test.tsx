@@ -10,7 +10,7 @@ import { openMigratedTestDb } from '@/data/db/openTestDb';
 import type { Db } from '@/data/db/types';
 import { createAccount } from '@/domain/accounts';
 import { findCardAccount } from '@/domain/cards/links';
-import { importCategoryLabel, undoLabel } from '@/i18n';
+import { importCategoryLabel } from '@/i18n';
 import type { CardInfo } from '@/domain/cards/types';
 import { useScanSession } from '@/features/nfc/scanSession';
 import { MOCK_SCENARIOS, useMockCardStore, type MockScenario } from '@/features/nfc/mock/mockCardReader';
@@ -200,7 +200,7 @@ describe('Saldo kartu terbaca', () => {
     expect(useScanSession.getState().card).toBeNull();
   });
 
-  test('Catat penyesuaian records one expense, the two balances become equal, the snackbar offers Undo, and Undo puts it back', async () => {
+  test('Catat penyesuaian records one expense and the two balances become equal, with no confirmation text', async () => {
     const account = await openResult(84_000);
     await fireEvent.press(screen.getByTestId('nfc-record'));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/account/[id]', params: { id: String(account) } }));
@@ -209,14 +209,7 @@ describe('Saldo kartu terbaca', () => {
     expect(await mockDb.getFirstAsync('select balance from v_account_balance where id = ?', [account])).toEqual({ balance: 84_000 });
     expect(await mockDb.getAllAsync('select * from v_integrity_issues')).toEqual([]);
 
-    const toast = useToastStore.getState();
-    expect(toast.visible).toBe(true);
-    expect(toast.message).toBe('Penyesuaian dicatat. E-money Mandiri sekarang Rp84.000.');
-    expect(toast.actionLabel).toBe(undoLabel());
-
-    await act(async () => toast.onAction?.());
-    await waitFor(async () => expect(await mockDb.getFirstAsync('select balance from v_account_balance where id = ?', [account])).toEqual({ balance: 100_000 }));
-    expect((await mockDb.getFirstAsync<{ n: number }>('select count(*) as n from transactions'))!.n).toBe(0);
+    expect(useToastStore.getState().visible).toBe(false);
   });
 
   test('more on the card records an income', async () => {
@@ -275,7 +268,7 @@ describe('Kartu baru', () => {
     expect(account).toMatchObject({ name: 'E-money Mandiri', type: 'ewallet', opening_balance: 84_000 });
     expect((await findCardAccount(mockDb, 'fp-new'))?.account_id).toBe(account!.id);
     expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/account/[id]', params: { id: String(account!.id) } });
-    expect(useToastStore.getState().message).toBe('Akun E-money Mandiri dibuat.');
+    expect(useToastStore.getState().visible).toBe(false);
   });
 
   test('the name and the opening balance can be changed first', async () => {

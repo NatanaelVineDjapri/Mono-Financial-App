@@ -160,7 +160,7 @@ describe('the form for a new category', () => {
     expect(grid.getByLabelText('Label')).toBeTruthy();
   });
 
-  test('saving creates the category with the chosen type, name and icon, then goes back with a toast', async () => {
+  test('saving creates the category with the chosen type, name and icon, then goes back without a confirmation text', async () => {
     const result = await render(wrap(<CategoryEditScreen />));
     await fireEvent.press(result.getByTestId('category-kind-income'));
     await fireEvent.changeText(result.getByTestId('category-name-input'), '  Bonus ');
@@ -168,7 +168,7 @@ describe('the form for a new category', () => {
     await fireEvent.press(result.getByTestId('category-save'));
     expect(actions.create).toHaveBeenCalledWith({ kind: 'income', name: '  Bonus ', icon: 'wallet' });
     expect(mockBack).toHaveBeenCalled();
-    expect(useToastStore.getState().message).toBe('Kategori tersimpan.');
+    expect(useToastStore.getState().visible).toBe(false);
   });
 
   test('closing with unsaved input asks first; Lanjut mengubah stays, Buang leaves', async () => {
@@ -309,13 +309,13 @@ describe('the archived list', () => {
     expect(result.getByText('Kategori tidak pernah dihapus, hanya diarsipkan, supaya riwayatmu tidak berubah.')).toBeTruthy();
   });
 
-  test('Pulihkan restores at once (no dialog) and says so', async () => {
+  test('Pulihkan restores at once (no dialog) and shows no confirmation text', async () => {
     mockArchived.mockReturnValue(query(ARCHIVED));
     const result = await render(wrap(<ArchivedCategoriesScreen />));
     await fireEvent.press(result.getByTestId('archived-restore-3'));
     await act(async () => {});
     expect(actions.restore).toHaveBeenCalledWith(3);
-    expect(useToastStore.getState().message).toBe('Kategori dipulihkan.');
+    expect(useToastStore.getState().visible).toBe(false);
   });
 
   test('an empty list goes back to the main list by itself', async () => {

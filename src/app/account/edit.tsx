@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { showToast } from '@/components/toast-store';
+
 import { today as todayLocal } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
@@ -20,7 +20,7 @@ import { AccountForm } from '@/features/accounts/form/AccountForm';
 import { useAccountFormData, useChangeAccountSubmit, useCreateAccountSubmit } from '@/features/accounts/form/useAccountForm';
 import { useAccountCardLink, useNfcAvailable } from '@/features/nfc/useNfcEntry';
 import { ValasFormScreen } from '@/features/valas/ValasFormScreen';
-import { accountNotFoundMessage, backLabel, cancelLabel, nfcUnlinkBody, nfcUnlinkConfirm, nfcUnlinkTitle, nfcUnlinked, retryLabel, txDetailLoadError } from '@/i18n';
+import { accountNotFoundMessage, backLabel, cancelLabel, nfcUnlinkBody, nfcUnlinkConfirm, nfcUnlinkTitle, retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -110,7 +110,6 @@ function AccountEditScreen() {
           if (editId == null) return;
           void unlinkCard(db, editId).then(async () => {
             await invalidateAfterWrite(queryClient);
-            showToast(nfcUnlinked());
           });
         }}
         testID="account-unlink-dialog"

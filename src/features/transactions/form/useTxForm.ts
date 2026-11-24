@@ -1,28 +1,23 @@
 // The transaction form's reads and its two submit paths (add, edit). The route files stay thin:
 // they pick one of these and hand it to <TransactionForm>. Saving goes through
 // src/core/tx/save.ts (one exclusive SQLite transaction each); afterwards the lists refetch,
-// the screen closes and a snackbar states the result in numbers read back from the views, with
-// an Undo that lasts as long as the snackbar does.
+// and the screen closes. There is no confirmation text afterwards: the lists show the new record.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 
-import { useHideAmounts } from '@/components/hide-amounts-store';
-import { showToast } from '@/components/toast-store';
 import { nowIso } from '@/core/clock';
-import { money, rp, shown } from '@/core/money';
+
 import {
   saveNewTransaction,
   saveTransactionChanges,
-  undoNewTransaction,
-  undoTransactionChanges,
 } from '@/core/tx/save';
 import type { TxFormValues } from '@/core/tx/validate';
 import type { TxSource } from '@/data/repo/transactions';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { getTxFormData, type TxEditRecord, type TxFormData } from '@/domain/txForm';
-import { changesSavedMessage, txSavedMessage, undoFailedMessage, undoLabel } from '@/i18n';
+import { undoFailedMessage } from '@/i18n';
 
 import type { SubmitResult } from './TransactionForm';
 import type { TransactionLocationInput } from '@/core/tx/save';
@@ -38,8 +33,7 @@ export function useTxFormData(editId?: number) {
   });
 }
 
-// Add: save, close, then "Expense saved. BCA Tabungan is now Rp6.717.500." with Undo. `source` is where
-// the record came from: the form itself (default), or a reviewed receipt scan ('scan').
+// Add: save, then close. `source` is where the record came from: the form itself (default), or a reviewed receipt scan ('scan').
 export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'manual', location?: TransactionLocationInput | null) {
   const db = useDb();
   const queryClient = useQueryClient();
@@ -49,43 +43,16 @@ export function useAddSubmit(data: TxFormData | undefined, source: TxSource = 'm
     async (values: TxFormValues): Promise<SubmitResult> => {
       const result = await saveNewTransaction(db, values, nowIso(), source, location);
       if (!result.ok) return result;
-      const saved = result.value;
-
-      const hidden = useHideAmounts.getState().hidden;
-      const name = (id: number | null) => data?.accounts.find(a => a.id === id)?.name ?? '';
-      // A Valas pocket's balance is in its own currency (US$250,00), a rupiah account's in rupiah.
-      const fmt = (accountId: number | null, currency: string | null, balance: number) => {
-        const factor = data?.pockets.find(p => p.accountId === accountId && p.currency === currency)?.minorFactor;
-        return shown(currency && currency !== 'IDR' && factor != null ? money(balance, currency, factor) : rp(balance), hidden);
-      };
-      const message = txSavedMessage(
-        saved.type,
-        name(saved.accountId),
-        fmt(saved.accountId, saved.currency, saved.accountBalanceAfter),
-        saved.toAccountId != null ? name(saved.toAccountId) : undefined,
-        saved.toAccountBalanceAfter != null ? fmt(saved.toAccountId, saved.toCurrency, saved.toAccountBalanceAfter) : undefined,
-      );
 
       await invalidateAfterWrite(queryClient);
       router.back();
-      showToast(message, {
-        actionLabel: undoLabel(),
-        onAction: () => {
-          void (async () => {
-            const undone = await undoNewTransaction(db, saved.id);
-            if (undone.ok) await invalidateAfterWrite(queryClient);
-            else showToast(undone.message || undoFailedMessage());
-          })();
-        },
-      });
       return { ok: true };
     },
-    [db, queryClient, router, data, source, location],
+    [db, queryClient, router, source, location],
   );
 }
 
-// Edit: the same row is updated, then back to its detail with "Changes saved." and an Undo that
-// writes the old values back.
+// Edit: the same row is updated, then back to its detail.
 export function useEditSubmit(record: TxEditRecord | null | undefined, placeName?: string) {
   const db = useDb();
   const queryClient = useQueryClient();
@@ -99,16 +66,6 @@ export function useEditSubmit(record: TxEditRecord | null | undefined, placeName
 
       await invalidateAfterWrite(queryClient);
       router.back();
-      showToast(changesSavedMessage(), {
-        actionLabel: undoLabel(),
-        onAction: () => {
-          void (async () => {
-            const undone = await undoTransactionChanges(db, record.snapshot, nowIso());
-            if (undone.ok) await invalidateAfterWrite(queryClient);
-            else showToast(undone.message || undoFailedMessage());
-          })();
-        },
-      });
       return { ok: true };
     },
     [db, queryClient, router, record, placeName],

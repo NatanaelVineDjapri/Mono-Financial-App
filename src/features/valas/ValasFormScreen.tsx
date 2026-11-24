@@ -7,12 +7,12 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { showToast } from '@/components/toast-store';
+
 import { today as todayLocal } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { listAccountNames } from '@/domain/accountDetail';
-import { accountNotFoundMessage, backLabel, retryLabel, txDetailLoadError, valasCreatedToast, valasPocketAddedToast, valasPocketArchivedToast, valasSavedToast } from '@/i18n';
+import { accountNotFoundMessage, backLabel, retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -61,13 +61,11 @@ export function ValasFormScreen({ editId }: { editId?: number }) {
       const result = await actions.rename(editId, values.name);
       if (!result.ok) return result;
       router.back();
-      showToast(valasSavedToast());
       return { ok: true };
     }
     const result = await actions.create({ name: values.name, pockets: pocketsFromRows(values.rows, MINOR_FACTORS), openingDate: values.openingDate });
     if (!result.ok) return result;
     router.replace({ pathname: '/account/[id]', params: { id: String(result.value) } } as never);
-    showToast(valasCreatedToast(values.name.trim()));
     return { ok: true };
   };
 
@@ -84,7 +82,6 @@ export function ValasFormScreen({ editId }: { editId?: number }) {
         editId != null
           ? async currency => {
               const result = await actions.addPocket(editId, currency);
-              if (result.ok) showToast(valasPocketAddedToast(currency));
               return result.ok ? { ok: true } : result;
             }
           : undefined
@@ -93,7 +90,6 @@ export function ValasFormScreen({ editId }: { editId?: number }) {
         editId != null
           ? async currency => {
               const result = await actions.archivePocket(editId, currency);
-              if (result.ok) showToast(valasPocketArchivedToast(currency));
               return result.ok ? { ok: true } : result;
             }
           : undefined

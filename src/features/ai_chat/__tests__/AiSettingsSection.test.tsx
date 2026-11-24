@@ -104,6 +104,6 @@ describe('the key row and "Hapus kunci"', () => {
     await waitFor(() => expect(mockClearKey).toHaveBeenCalledTimes(1));
     expect(mockSetSetting).toHaveBeenCalledWith({ fake: 'db' }, 'ai_enabled', '0');
     expect(useChatStore.getState().messages).toHaveLength(0);
-    await waitFor(() => expect(useToastStore.getState().message).toBe('Kunci dihapus.'));
+    expect(useToastStore.getState().visible).toBe(false);
   });
 });

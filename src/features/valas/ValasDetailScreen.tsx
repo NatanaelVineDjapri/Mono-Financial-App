@@ -9,10 +9,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
-import { showToast } from '@/components/toast-store';
+
 import { today as todayLocal } from '@/core/clock';
 import { useStatsCollapsed } from '@/features/transactions/statsStore';
-import { accountDetailLoadError, accountNotFoundMessage, backLabel, retryLabel, valasPocketAddedToast } from '@/i18n';
+import { accountDetailLoadError, accountNotFoundMessage, backLabel, retryLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -79,7 +79,6 @@ export function ValasDetailScreen({ accountId }: { accountId: number }) {
     const result = await actions.addPocket(accountId, code);
     if (result.ok) {
       setError(null);
-      showToast(valasPocketAddedToast(code));
     } else {
       setError(result.message);
     }

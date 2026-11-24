@@ -9,14 +9,14 @@ import { AmountField } from '@/components/AmountField';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { showToast } from '@/components/toast-store';
+
 import { nowIso } from '@/core/clock';
 import { addDays, formatShortDate } from '@/core/date';
 import { rp, shown } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { DomainError } from '@/domain/errors';
 import { confirmRecurring, nextDue, skipRecurring } from '@/domain/recurring';
-import { deleteTransaction } from '@/domain/transactions';
+
 import {
   couldNotSaveMessage,
   guardMessage,
@@ -28,11 +28,9 @@ import {
   recurringDate,
   recurringPayFrom,
   recurringRecord,
-  recurringSavedToast,
   recurringSkip,
   recurringSkipNote,
   recurringUsualAmount,
-  undoLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -73,23 +71,13 @@ function Sheet({ due }: { due: NonNullable<ReturnType<typeof useConfirmSheet['ge
     setBusy(true);
     setSaveErr('');
     try {
-      const result = await confirmRecurring(
+      await confirmRecurring(
         db,
         { recurringId: due.recurring_id, dueOn: due.due_on, accountId: due.account_id, categoryId: due.category_id, amount, date: due.due_on, description: due.name },
         nowIso(),
       );
       await qc.invalidateQueries();
       closeConfirmSheet();
-      showToast(
-        recurringSavedToast(acctName, shown(rp(result.balanceAfter), hidden)),
-        {
-          actionLabel: undoLabel(),
-          onAction: async () => {
-            await deleteTransaction(db, result.transactionId);
-            await qc.invalidateQueries();
-          },
-        },
-      );
     } catch (error) {
       // The database refused (e.g. the balance changed meanwhile): said in words, and the sheet stays open.
       setSaveErr(error instanceof DomainError ? guardMessage(error.code, error.context) : couldNotSaveMessage());
