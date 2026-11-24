@@ -69,12 +69,11 @@ test('Mulai works with no nickname at all', async () => {
   expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
 });
 
-test('a profile picture can be chosen before Mulai and is handed over with it', async () => {
+test('there is no profile picture to choose on Welcome: it only made the screen longer, and it is chosen later in Settings', async () => {
   await open();
-  await fireEvent.press(screen.getByTestId('welcome-avatar-row'));
-  await fireEvent.press(await screen.findByTestId('avatar-option-thumbs_up'));
+  expect(screen.queryByTestId('welcome-avatar-row')).toBeNull();
   await fireEvent.press(screen.getByTestId('welcome-start'));
-  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), '', 'thumbs_up');
+  expect(mockFinish).toHaveBeenCalledWith(expect.anything(), '', null); // the default picture until then
 });
 
 test('"Punya berkas cadangan? Pulihkan" opens Backup', async () => {

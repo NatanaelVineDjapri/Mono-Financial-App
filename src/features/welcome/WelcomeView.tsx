@@ -1,5 +1,6 @@
 // Welcome (first launch, board Welcome): the MONO mark, the mascot, a serif title, three promises, an optional
-// nickname and "Mulai". Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup, and when a restore has put
+// nickname and "Mulai". There is no picture to choose here: it made the screen longer than the phone, so it scrolled; the profile
+// picture is chosen later in Settings (the default one is used until then). Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup, and when a restore has put
 // data on the phone the screen steps aside by itself. No tab bar here, and the system back button leaves the app
 // instead of returning to the screen that sent the person here.
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,8 +19,6 @@ import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 import {
   welcomeBody,
-  profileAvatarSub,
-  profileAvatarTitle,
   welcomeNicknameHint,
   welcomeNicknameLabel,
   welcomeNicknameOptional,
@@ -36,10 +35,6 @@ import {
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
-
-import { AvatarPickerSheet } from '@/features/profile/AvatarPickerSheet';
-import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
-import type { AvatarPoseId } from '@/features/profile/avatarPoses';
 
 import { MascotVideo } from './MascotVideo';
 import { useNeedsWelcome } from './useNeedsWelcome';
@@ -62,8 +57,6 @@ export function WelcomeView() {
   const needs = useNeedsWelcome();
   const [nickname, setNickname] = useState('');
   const [busy, setBusy] = useState(false);
-  const [avatar, setAvatar] = useState<AvatarPoseId | null>(null);
-  const [avatarSheet, setAvatarSheet] = useState(false);
 
   // Welcome is the first screen of a first launch: once it is up, the brand splash can go (src/core/appReady).
   useEffect(() => {
@@ -88,7 +81,7 @@ export function WelcomeView() {
     if (busy) return;
     setBusy(true);
     try {
-      await finishWelcome(db, nickname, avatar);
+      await finishWelcome(db, nickname, null);
       await invalidateAfterWrite(queryClient);
       router.replace('/(tabs)' as never);
     } catch {
@@ -140,22 +133,6 @@ export function WelcomeView() {
           />
         </View>
 
-        <Pressable
-          onPress={() => setAvatarSheet(true)}
-          accessibilityRole="button"
-          accessibilityLabel={`${profileAvatarTitle()}, ${profileAvatarSub()}`}
-          android_ripple={undefined}
-          style={({ pressed }) => [styles.avatarRow, pressed && styles.avatarRowPressed]}
-          testID="welcome-avatar-row"
-        >
-          <ProfileAvatar poseId={avatar} size={44} />
-          <View style={styles.avatarText}>
-            <Text style={styles.avatarTitle}>{profileAvatarTitle()}</Text>
-            <Text style={styles.sub}>{profileAvatarSub()}</Text>
-          </View>
-          <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
-        </Pressable>
-
         <View style={styles.actions}>
           <Button label={welcomeStart()} onPress={() => void start()} loading={busy} style={styles.start} testID="welcome-start" />
           <Pressable
@@ -171,15 +148,6 @@ export function WelcomeView() {
           </Pressable>
         </View>
       </ScrollView>
-      <AvatarPickerSheet
-        visible={avatarSheet}
-        selected={avatar}
-        onSelect={id => {
-          setAvatar(id);
-          setAvatarSheet(false);
-        }}
-        onClose={() => setAvatarSheet(false)}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -199,10 +167,6 @@ const styles = StyleSheet.create({
   nicknameHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginHorizontal: 2 },
   cap: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   sub: { ...MonoText.caption, color: MonoColors.textMeta },
-  avatarRow: { marginHorizontal: 16, marginTop: 16, minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 16, borderWidth: 1, borderColor: MonoColors.border, backgroundColor: MonoColors.surface },
-  avatarRowPressed: { opacity: 0.85 },
-  avatarText: { flex: 1 },
-  avatarTitle: { ...MonoText.bodyStrong, color: MonoColors.text },
   actions: { paddingHorizontal: 16, paddingTop: 20, alignItems: 'center' },
   start: { alignSelf: 'stretch' },
   restore: { minHeight: 44, flexDirection: 'row', alignItems: 'center', marginTop: 4 },
