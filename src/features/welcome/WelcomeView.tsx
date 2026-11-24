@@ -13,6 +13,7 @@ import { Button } from '@/components/Button';
 import { Field } from '@/components/Field';
 import { Icon, type IconName } from '@/components/Icon';
 import { showToast } from '@/components/toast-store';
+import { markAppReady } from '@/core/appReady';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 import {
@@ -63,6 +64,11 @@ export function WelcomeView() {
   const [busy, setBusy] = useState(false);
   const [avatar, setAvatar] = useState<AvatarPoseId | null>(null);
   const [avatarSheet, setAvatarSheet] = useState(false);
+
+  // Welcome is the first screen of a first launch: once it is up, the brand splash can go (src/core/appReady).
+  useEffect(() => {
+    if (needs === true) markAppReady();
+  }, [needs]);
 
   // A restore (or anything else) that put data on the phone means there is nothing left to welcome.
   useEffect(() => {

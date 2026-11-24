@@ -5,11 +5,12 @@
 // underneath); nothing is computed here. Empty state when no accounts exist.
 import { Redirect, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DeferredMount } from '@/components/DeferredMount';
 import { useTabBarClearance } from '@/components/TabBar';
+import { markAppReady } from '@/core/appReady';
 import { accountShares } from '@/domain/overview';
 import { defaultTransactionFilters, type TxTypeFilter } from '@/domain/transactionFilters';
 import { useAccountsOverview } from '@/features/accounts/useAccountsOverview';
@@ -71,6 +72,11 @@ export default function OverviewScreen() {
   // loaded instead of drawing an empty screen while it asks the database.
   useTransactionsFilterSummary(monthFilter);
   const recentTxs = useMemo(() => txData?.pages[0]?.rows.slice(0, 5) ?? [], [txData]);
+
+  // The first data is in and this screen is about to be drawn: the brand splash can go (src/core/appReady).
+  useEffect(() => {
+    if (!accountsLoading && accountsData) markAppReady();
+  }, [accountsLoading, accountsData]);
 
   const onOpenMore = useCallback(() => router.push('/more'), [router]);
   const onOpenAccount = useCallback((id: number) => router.push({ pathname: '/account/[id]', params: { id: String(id) } }), [router]);

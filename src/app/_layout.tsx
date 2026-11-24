@@ -24,6 +24,7 @@ import { getSetting } from '@/data/repo/settings';
 import { useBlockScreenshots } from '@/features/ai_chat/useBlockScreenshots';
 import { FxAutoUpdate } from '@/features/fx/FxAutoUpdate';
 import { ImportSync } from '@/features/import/ImportSync';
+import { ReadyOnOtherRoute } from '@/features/startup/ReadyOnOtherRoute';
 import { RecurringConfirmHost } from '@/features/recurring/RecurringConfirmHost';
 import { NotificationsInit } from '@/features/notifications/NotificationsInit';
 import { initialLanguage, useLanguage } from '@/i18n/lang';
@@ -43,25 +44,6 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: Infinity, retry: 0 } },
 });
 
-// Hidden-amounts mode (CLAUDE.md rule 12) starts from the existing `hide_on_launch`
-// setting — there is no UI to change it yet (that toggle is Phase 7), only this
-// initial read.
-function HiddenAmountsInit() {
-  const db = useDb();
-
-  useEffect(() => {
-    let cancelled = false;
-    getSetting(db, 'hide_on_launch').then(value => {
-      if (!cancelled) useHideAmounts.getState().setHidden(value === '1');
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [db]);
-
-  return null;
-}
-
 // "Block screenshots" (settings.block_screenshots, on by default) covers the whole app, not
 // just the AI screens: FLAG_SECURE also hides the app in the recent-apps preview.
 function BlockScreenshotsInit() {
@@ -69,9 +51,10 @@ function BlockScreenshotsInit() {
   return null;
 }
 
-// The UI language and number format. They are read before anything is drawn, so a person who chose
-// Indonesian or international format never sees a flash of defaults; and the tree below is drawn
-// again when either changes, because text and figures are read at render time.
+// The UI language, the number format and Hide amounts on launch (CLAUDE.md rule 12: `hide_on_launch` starts the mode). They are
+// read before anything is drawn, so a person who chose Indonesian or international format never sees a flash of defaults, and
+// one who hides amounts on launch never sees a figure for a moment before they are hidden; and the tree below is drawn again
+// when the language or the format changes, because text and figures are read at render time.
 function LanguageGate({ children }: { children: ReactNode }) {
   const db = useDb();
   const language = useLanguage(s => s.language);
@@ -80,13 +63,14 @@ function LanguageGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getSetting(db, 'language'), getSetting(db, 'number_format')])
-      .then(([langVal, numVal]) => {
+    Promise.all([getSetting(db, 'language'), getSetting(db, 'number_format'), getSetting(db, 'hide_on_launch')])
+      .then(([langVal, numVal, hideVal]) => {
         if (!cancelled) {
           useLanguage.getState().setLanguage(initialLanguage(langVal));
           if (numVal === 'en_US' || numVal === 'id_ID') {
             setNumberFormat(numVal);
           }
+          useHideAmounts.getState().setHidden(hideVal === '1');
         }
       })
       .catch(() => {})
@@ -131,7 +115,6 @@ export default function RootLayout() {
           <ThemeProvider value={navTheme}>
             <SplashBrand />
             <DbProvider>
-              <HiddenAmountsInit />
               <BlockScreenshotsInit />
               <NotificationsInit />
               <ImportSync />
@@ -146,6 +129,7 @@ export default function RootLayout() {
                   off everywhere. */}
                 <Stack screenOptions={{ headerShown: false }} />
                 <ToastHost />
+                <ReadyOnOtherRoute />
                 <RecurringConfirmHost />
               </LanguageGate>
             </DbProvider>
