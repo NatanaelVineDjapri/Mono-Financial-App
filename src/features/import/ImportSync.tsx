@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
+import { runAfterReady } from '@/core/appReady';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 
@@ -37,14 +38,19 @@ export function ImportSync() {
         // Nothing to do: the next sync tries again.
       }
     };
-    void prune(db);
-    void run();
+    // The live listener below is attached at once, so no notification is lost; reading what the service kept while the app was
+    // closed, and syncing the apps, start once the first screen has settled.
+    const cancelStartupWork = runAfterReady(() => {
+      void prune(db);
+      void run();
+    }, 800);
     const live = addNotificationListener(raw => void ingestor.push(raw));
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') void run();
     });
     return () => {
       cancelled = true;
+      cancelStartupWork();
       live?.remove();
       subscription.remove();
     };

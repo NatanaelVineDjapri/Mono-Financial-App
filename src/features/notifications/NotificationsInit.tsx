@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AppState } from 'react-native';
 
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { runAfterReady } from '@/core/appReady';
 import { useDb } from '@/data/db/DbProvider';
 import { markRead } from '@/data/repo/notifications';
 import { pruneNotifications } from '@/data/repo/notifications';
@@ -52,13 +53,12 @@ export function NotificationsInit() {
     // Set up Android channels once.
     void setupNotificationChannels();
 
-    // Prune old inbox items on launch.
-    void pruneNotifications(db, new Date().toISOString()).then(() =>
-      invalidateAfterWrite(queryClient),
-    );
-
-    // Initial schedule sync.
-    void syncNotifications(db);
+    // Prune old inbox items on launch, and plan the reminders: nobody is waiting for either, so they start once the first screen
+    // has settled instead of competing with it for the database and the JS thread.
+    const cancelStartupWork = runAfterReady(() => {
+      void pruneNotifications(db, new Date().toISOString()).then(() => invalidateAfterWrite(queryClient));
+      void syncNotifications(db);
+    }, 800);
 
     // Handle taps while app is running.
     const sub = Notifications.addNotificationResponseReceivedListener(handleResponse);
@@ -79,6 +79,7 @@ export function NotificationsInit() {
     });
 
     return () => {
+      cancelStartupWork();
       sub.remove();
       appStateSub.remove();
       hideSub();

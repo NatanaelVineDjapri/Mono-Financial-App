@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
+import { runAfterReady } from '@/core/appReady';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 import { autoUpdateRates } from '@/domain/fx';
@@ -26,12 +27,14 @@ export function FxAutoUpdate() {
         // Nothing to do: the next time the app opens it tries again.
       }
     };
-    void run();
+    // A network call nobody is waiting for: after the first screen has settled.
+    const cancelStartupWork = runAfterReady(() => void run(), 1500);
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') void run();
     });
     return () => {
       cancelled = true;
+      cancelStartupWork();
       subscription.remove();
     };
   }, [db, queryClient]);
