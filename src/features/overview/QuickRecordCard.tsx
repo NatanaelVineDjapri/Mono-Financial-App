@@ -69,11 +69,11 @@ export function QuickRecordCard({ items, onOpenRecord }: QuickRecordCardProps) {
 
 const styles = StyleSheet.create({
   section: { gap: 12 },
-  card: { marginHorizontal: 16, paddingHorizontal: 12, paddingVertical: 12 },
-  row: { flexDirection: 'row', gap: 8 },
+  card: { marginHorizontal: 16, paddingHorizontal: 8, paddingVertical: 12 },
+  row: { flexDirection: 'row', gap: 4 },
   // Up to five equal shares fit one row on a 390dp screen without scrolling; fewer items
   // stay left-aligned instead of stretching across the whole card.
-  item: { flexGrow: 1, flexBasis: 0, maxWidth: 72, alignItems: 'center', gap: 6 },
+  item: { flexGrow: 1, flexBasis: 0, maxWidth: 80, alignItems: 'center', gap: 6 },
   pressed: { opacity: 0.7 },
   avatar: {
     width: 44,

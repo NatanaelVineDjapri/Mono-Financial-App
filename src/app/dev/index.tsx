@@ -19,6 +19,7 @@ import { loadNovemberData } from '@/dev/loadNovemberData';
 import { importSamplerTitle } from '@/i18n';
 import { loadSampleData, loadSampleDataWithValas } from '@/dev/loadSample';
 import { resetDatabase } from '@/dev/resetDatabase';
+import { scheduleTestNotification } from '@/dev/testNotification';
 import { MOCK_SCENARIOS, useMockCardStore } from '@/features/nfc/mock/mockCardReader';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -136,6 +137,19 @@ function DevToolsContent() {
         <Link href="/dev/cards" asChild>
           <Button label="Kartu Fisik Bank (Preview)" variant="secondary" />
         </Link>
+
+        <Button
+          label="Test notification in 10 s (daily reminder)"
+          variant="secondary"
+          onPress={() => void scheduleTestNotification('daily').then(r => showToast(r === 'scheduled' ? 'Scheduled: it arrives in 10 s. Leave the app to see it in the shade.' : 'Notifications are not allowed for MONO.'))}
+          testID="dev-test-notif-daily"
+        />
+        <Button
+          label="Test notification in 10 s (bill reminder)"
+          variant="secondary"
+          onPress={() => void scheduleTestNotification('bill_due').then(r => showToast(r === 'scheduled' ? 'Scheduled: it arrives in 10 s. With Hide amounts on it carries no amount.' : 'Notifications are not allowed for MONO.'))}
+          testID="dev-test-notif-bill"
+        />
 
         <Link href="/dev/import-sampler" asChild>
           <Button label={importSamplerTitle()} variant="secondary" />

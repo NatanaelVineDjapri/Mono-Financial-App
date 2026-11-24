@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
 import { MonoSwitch } from '@/components/MonoSwitch';
 import { Sheet } from '@/components/Sheet';
@@ -15,7 +16,7 @@ import { SheetHeader } from '@/components/SheetHeader';
 import { useDb } from '@/data/db/DbProvider';
 import { getSetting, setSetting } from '@/data/repo/settings';
 import { invalidateAfterWrite } from '@/data/queryKeys';
-import { scheduleSync } from '@/features/notifications/scheduler';
+import { notificationsHideAmounts, scheduleSync } from '@/features/notifications/scheduler';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 import {
@@ -163,9 +164,12 @@ export default function NotificationSettingsScreen() {
   const load = useCallback(async () => {
     const all: Setting = {};
     const keys = ['notif_enabled','quiet_start','quiet_end','notif_daily','notif_daily_time',
-      'notif_bill_h1','notif_bill_overdue','notif_budget_near','notif_budget_over','notif_goal','notif_backup','hide_amounts'];
+      'notif_bill_h1','notif_bill_overdue','notif_budget_near','notif_budget_over','notif_goal','notif_backup','hide_on_launch'];
+    // A setting that is not there stays absent, so the default below applies (an empty string would pass for a value:
+    // after restoring an older backup, "Quiet hours" read ".undefined – .undefined").
     for (const k of keys) {
-      all[k] = (await getSetting(db, k)) ?? '';
+      const value = await getSetting(db, k);
+      if (value != null && value !== '') all[k] = value;
     }
     setSettings(all);
     const { status } = await Notifications.getPermissionsAsync();
@@ -198,7 +202,8 @@ export default function NotificationSettingsScreen() {
   const dailyTime = settings.notif_daily_time ?? '20:00';
   const quietStart = settings.quiet_start ?? '22:00';
   const quietEnd = settings.quiet_end ?? '06:00';
-  const hideAmounts = settings.hide_amounts === '1';
+  const hiddenNow = useHideAmounts(s => s.hidden);
+  const hideAmounts = notificationsHideAmounts(settings, hiddenNow);
 
   // Warn if daily time falls in quiet hours
   function isInQuietHours(timeStr: string): boolean {

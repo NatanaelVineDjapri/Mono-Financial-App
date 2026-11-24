@@ -13,7 +13,7 @@
 // Everything that follows the finger runs on the UI thread from one scroll offset (a shared
 // value), so there is no React re-render per frame. Only the committed index (for the tap
 // behaviour) is JS state, set when a swipe settles.
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -22,6 +22,8 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
+  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 
@@ -120,6 +122,14 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
   const middle = Math.floor(copies / 2);
   const startIndex = count * middle;
   const offset = useSharedValue(startIndex * CARD_INTERVAL);
+  // The row first draws at its left end and is then moved to the middle copy (Android ignores `contentOffset`): that jump was
+  // visible every time the app opened. It stays invisible until it is in place, with a short timeout in case it never gets there.
+  const ready = useSharedValue(startIndex === 0 ? 1 : 0);
+  const revealStyle = useAnimatedStyle(() => ({ opacity: ready.value }));
+  useEffect(() => {
+    if (startIndex === 0) return;
+    ready.set(withDelay(400, withTiming(1, { duration: 120 })));
+  }, [startIndex, ready]);
   const scrollRef = useRef<Animated.ScrollView>(null);
   const placed = useRef(false);
   const [active, setActive] = useState(startIndex);
@@ -134,7 +144,11 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
     if (placed.current || startIndex === 0) return;
     placed.current = true;
     scrollRef.current?.scrollTo({ x: startIndex * CARD_INTERVAL, animated: false });
-  }, [startIndex]);
+    // One frame later, once the scroll has been drawn at the new place.
+    requestAnimationFrame(() => {
+      ready.set(withTiming(1, { duration: 120 }));
+    });
+  }, [startIndex, ready]);
 
   const settle = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -199,7 +213,7 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
         onScrollEndDrag={onRelease}
         contentOffset={{ x: startIndex * CARD_INTERVAL, y: 0 }}
         contentContainerStyle={[styles.row, { paddingHorizontal: sidePadding }]}
-        style={styles.scroller}
+        style={[styles.scroller, revealStyle]}
         testID="overview-account-carousel"
       >
         {items.map(({ index, copy, account }) => {

@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { AndroidImportance, AndroidNotificationVisibility } from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { useHideAmounts } from '../../components/hide-amounts-store';
 import type { Db } from '../../data/db/types';
 import { getLastBackupAt } from '../../data/repo/backupLog';
 import { listRecurring } from '../../data/repo/recurring';
@@ -65,6 +66,13 @@ export function scheduleSync(db: Db): void {
   _debounceTimer = setTimeout(() => void syncNotifications(db), 500);
 }
 
+// Hide amounts (CLAUDE.md rule 10): a reminder carries no amount while the mode is on. The text is written when the reminder is
+// scheduled, not when it fires, so the mode in force when it is scheduled decides: the toggle as it is now, or "Hide on launch",
+// which will switch it on at the next open. (The old `hide_amounts` setting was never written by anything.)
+export function notificationsHideAmounts(settings: Record<string, string>, hiddenNow: boolean = useHideAmounts.getState().hidden): boolean {
+  return hiddenNow || settings.hide_on_launch === '1';
+}
+
 // ── Core sync ─────────────────────────────────────────────────────────────────
 export async function syncNotifications(db: Db): Promise<void> {
   const settings = await getAllSettings(db);
@@ -107,23 +115,31 @@ export async function syncNotifications(db: Db): Promise<void> {
     }
   }
 
-  const hideAmounts = settings.hide_amounts === '1';
+  const hideAmounts = notificationsHideAmounts(settings);
 
-  // Schedule new.
+  // Schedule new, and again any reminder that was written under the other Hide amounts mode (its text would show or hide an
+  // amount the person no longer wants shown or hidden).
   for (const item of desired) {
-    if (existingMap.has(item.key)) continue; // already scheduled
+    const scheduled = existingMap.get(item.key);
+    if (scheduled) {
+      const wrote = (scheduled.content.data as { hide?: boolean } | null)?.hide;
+      if (wrote === hideAmounts) continue; // already scheduled, and written the right way
+      await Notifications.cancelScheduledNotificationAsync(item.key);
+    }
     const rendered = renderNotification(item.payload, { hideAmounts });
     await Notifications.scheduleNotificationAsync({
       identifier: item.key,
       content: {
         title: rendered.title,
         body: rendered.body,
-        data: { key: item.key, kind: item.kind },
-        ...(Platform.OS === 'android' ? { channelId: channelFor(item.kind) } : {}),
+        data: { key: item.key, kind: item.kind, hide: hideAmounts },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: item.at,
+        // The Android channel belongs to the trigger: set on the content it was ignored, and every reminder landed in the
+        // default channel instead of "bills", "budgets" or "reminders".
+        ...(Platform.OS === 'android' ? { channelId: channelFor(item.kind) } : {}),
       },
     });
   }
