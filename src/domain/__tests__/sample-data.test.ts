@@ -8,7 +8,7 @@ import { createAccount, createValasAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
 import { insertFxRate } from '../../data/repo/fx';
 import type { Db } from '../../data/db/types';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { getAccountBalance, getPocketValue } from '../balances';
 import { createBudget, getBudgetStatus, getMonthBudget, setMonthlyLimit } from '../budget';
 import { createGoal, listGoalProgress } from '../goals';
@@ -21,7 +21,7 @@ import { addExpense, addIncome, addTransfer } from '../transactions';
 const NOW = '2026-10-28T10:00:00+07:00';
 
 async function buildIdrSample() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
 
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const cash = await createAccount(db, { name: 'Cash wallet', type: 'cash', openingBalance: 450000, openingDate: '2026-01-01' }, NOW);

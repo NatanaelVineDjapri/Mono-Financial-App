@@ -62,7 +62,7 @@ describe('migration 10 -> 11', () => {
     expect(before.events).toHaveLength(1);
     expect(before.locations).toHaveLength(1);
 
-    await expect(runMigrations(db, 10)).resolves.toBe(LATEST_SCHEMA_VERSION);
+    await expect(runMigrations(db, 10, 12)).resolves.toBe(12);
 
     expect(await read()).toEqual(before);
     expect(await db.getFirstAsync('select * from v_net_worth')).toMatchObject({ net_worth: 8880000 });
@@ -71,7 +71,7 @@ describe('migration 10 -> 11', () => {
   test('every view, trigger and index comes back with the same SQL', async () => {
     const db = await atVersion10();
     const before = await schemaObjects(db);
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     const after = await schemaObjects(db);
     expect(after.filter(o => before.some(b => b.name === o.name))).toEqual(before);
     // the only new objects are the queue's own index
@@ -81,14 +81,14 @@ describe('migration 10 -> 11', () => {
   test('the table keeps its shape: only the source CHECK changed', async () => {
     const db = await atVersion10();
     const before = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     const after = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
     expect(after).toBe(before.replace("'scan'))", "'scan','import','nfc'))"));
   });
 
   test('import is accepted, an unknown source is still refused, and the guards still work', async () => {
     const db = await atVersion10();
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     await insertImported(db, 'import');
     expect(await db.getFirstAsync("select source from transactions where description = 'Kopi'")).toEqual({ source: 'import' });
     await expect(insertImported(db, 'bogus')).rejects.toThrow(/CHECK constraint failed/);
@@ -104,14 +104,14 @@ describe('migration 10 -> 11', () => {
 
   test('deleting a transaction still takes its location with it (the cascade survived)', async () => {
     const db = await atVersion10();
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     await db.runAsync('delete from transactions where id = 5');
     expect(await db.getAllAsync('select * from transaction_locations')).toEqual([]);
   });
 
   test('the queue: parsed fields only, one row per notification, kind and category may be empty', async () => {
     const db = await atVersion10();
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     const columns = (await db.getAllAsync<{ name: string }>('pragma table_info(import_queue)')).map(c => c.name);
     expect(columns).toEqual(['id', 'package', 'app_name', 'account_id', 'kind', 'amount_idr', 'merchant', 'category_id', 'guessed', 'occurred_at', 'fingerprint', 'status', 'created_at']);
     // nothing in the table could hold a notification's title or text
@@ -132,7 +132,7 @@ describe('migration 10 -> 11', () => {
 
   test('an account that has queued items cannot be deleted from under them', async () => {
     const db = await atVersion10();
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     await db.runAsync("insert into import_queue (package, app_name, account_id, kind, amount_idr, occurred_at, fingerprint, created_at) values ('p', 'P', 3, 'expense', 1000, ?, 'f', ?)", [NOW, NOW]);
     await db.execAsync('pragma foreign_keys = on');
     await expect(db.runAsync('delete from accounts where id = 3')).rejects.toThrow();
@@ -140,7 +140,7 @@ describe('migration 10 -> 11', () => {
 
   test('running it again does nothing (the source is already allowed)', async () => {
     const db = await atVersion10();
-    await runMigrations(db, 10);
+    await runMigrations(db, 10, 12);
     await expect(migrations[10](db)).rejects.toThrow(/already exists/); // the tables are not created twice
   });
 });

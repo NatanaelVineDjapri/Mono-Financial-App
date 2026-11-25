@@ -1,4 +1,4 @@
-import { openTestDb } from '@/data/db/openTestDb';
+import { openMigratedTestDb } from '@/data/db/openTestDb';
 import { createBudget, setMonthlyLimit } from '@/data/repo/budgets';
 import { listCategories } from '@/data/repo/categories';
 import { createAccount } from '@/domain/accounts';
@@ -12,7 +12,7 @@ const NOW = '2026-10-28T10:00:00+07:00';
 const TODAY = '2026-10-28';
 
 async function sample() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA Rahasia', type: 'bank', openingBalance: 1_200_000, openingDate: '2026-05-01' }, NOW);
   const categories = await listCategories(db);
   const byName = (n: string) => categories.find(c => c.name === n)!.id;
@@ -80,7 +80,7 @@ describe('what the AI review is allowed to see', () => {
   });
 
   test('a period that cannot be scored yet gives nothing to send', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const data = await getAnalysis(db, '2026-10', TODAY);
     expect(await buildAnalysisAiInput(db, data)).toBeNull();
   });

@@ -36,6 +36,7 @@ const guardMessages: Record<GuardCode, (ctx: GuardMessageContext) => string> = {
   recurring_needs_idr_account: () => 'Recurring expenses are only available for IDR accounts.',
   forex_account_exists: () => 'A Valas account already exists. Add the currency to that account.',
   card_link_needs_ewallet: () => 'Only an e-wallet account can be linked to a card.',
+  subcategory_category_mismatch: () => 'That sub-category belongs to another category. Choose one of this category, or none.',
 };
 
 export function guardMessage(code: GuardCode, ctx: GuardMessageContext = {}): string {
@@ -1700,6 +1701,8 @@ export function txFieldErrorMessage(error: TxErrorInput, rpFormat: (n: number) =
       return { text: 'Choose a category so this counts toward the right budget.' };
     case 'category_kind_mismatch':
       return { text: 'Choose a category that matches the transaction type.' };
+    case 'subcategory_mismatch':
+      return { text: 'Choose a sub-category of this category, or none.' };
     case 'account_required':
       return { text: 'Choose an account.' };
     case 'to_account_required':
@@ -1742,6 +1745,8 @@ export function txDbErrorMessage(
       return "This account didn't exist yet on that date.";
     case 'category_kind_mismatch':
       return 'Choose a category that matches the transaction type.';
+    case 'subcategory_category_mismatch':
+      return 'That sub-category belongs to another category. Choose one of this category, or none.';
     case 'insufficient_balance':
       return ctx.shortfallFormatted ? `Short by ${ctx.shortfallFormatted}. Pick another account or lower the amount.` : 'Not enough balance in this account.';
     case 'currency_not_in_account':

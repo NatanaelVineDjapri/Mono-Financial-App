@@ -2,14 +2,14 @@ import { createAccount, createValasAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
 import { insertFxRate } from '../../data/repo/fx';
 import { getTransaction } from '../../data/repo/transactions';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { DomainError } from '../errors';
 import { addExpense, addIncome, addTransfer, deleteTransaction, updateTransaction } from '../transactions';
 
 const NOW = '2026-07-01T00:00:00+07:00'; // after every occurredOn date used below
 
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const cash = await createAccount(db, { name: 'Cash', type: 'cash', openingBalance: 450000, openingDate: '2026-01-01' }, NOW);
   const valas = await createValasAccount(

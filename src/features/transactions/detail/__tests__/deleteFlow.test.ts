@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 
 import { useToastStore } from '@/components/toast-store';
-import { openTestDb } from '@/data/db/openTestDb';
+import { openMigratedTestDb } from '@/data/db/openTestDb';
 import { listCategories } from '@/data/repo/categories';
 import { getPocketBalanceNow } from '@/data/repo/transactionDetail';
 import { createAccount } from '@/domain/accounts';
@@ -13,7 +13,7 @@ import { deleteTransactionWithUndo } from '../deleteFlow';
 const NOW = '2026-07-01T10:30:00+07:00';
 
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const gopay = await createAccount(db, { name: 'GoPay', type: 'ewallet', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);

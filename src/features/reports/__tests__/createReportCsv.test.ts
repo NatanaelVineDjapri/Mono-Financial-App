@@ -3,7 +3,7 @@
 import { createAccount } from '../../../domain/accounts';
 import { addExpense, addIncome, addTransfer } from '../../../domain/transactions';
 import { listCategories } from '../../../data/repo/categories';
-import { openTestDb } from '../../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../../data/db/openTestDb';
 import type { Db } from '../../../data/db/types';
 import {
   buildCsv,
@@ -16,7 +16,7 @@ import {
 const NOW = '2026-10-28T12:41:09+07:00';
 
 async function fixture(): Promise<Db> {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const cash = await createAccount(db, { name: 'Cash', type: 'cash', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);

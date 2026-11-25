@@ -8,7 +8,8 @@ import { listAccountsForForm } from '../data/repo/accounts';
 import { getCategory, listCategories } from '../data/repo/categories';
 import { listLatestRates } from '../data/repo/fx';
 import { getTransaction, type TransactionRow } from '../data/repo/transactions';
-import type { FormAccount, FormCategory, FormPocket, TxType } from '../core/tx/validate';
+import { getSubcategory, listFormSubcategories } from '../data/repo/subcategories';
+import type { FormAccount, FormCategory, FormPocket, FormSubcategory, TxType } from '../core/tx/validate';
 import { getTransactionLocation, type TransactionLocation } from '../data/repo/transactionLocations';
 
 export interface TxEditRecord {
@@ -17,6 +18,7 @@ export interface TxEditRecord {
   accountId: number;
   toAccountId: number | null;
   categoryId: number | null;
+  subcategoryId?: number | null;
   amount: number;
   amountTo: number | null;
   date: string;
@@ -34,6 +36,7 @@ export interface TxEditRecord {
 export interface TxFormData {
   accounts: FormAccount[];
   categories: FormCategory[];
+  subcategories?: FormSubcategory[]; // active ones of active categories, plus the edited record's own even if archived
   pockets: FormPocket[]; // the pockets of the Valas account (not archived)
   rates: Record<string, number>; // latest rate_e4 per foreign currency
   record: TxEditRecord | null;
@@ -72,9 +75,10 @@ interface PocketRow {
 }
 
 export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData> {
-  const [accountRows, categoryRows, row, pocketRows, rateRows] = await Promise.all([
+  const [accountRows, categoryRows, subcategoryRows, row, pocketRows, rateRows] = await Promise.all([
     listAccountsForForm(db),
     listCategories(db),
+    listFormSubcategories(db),
     editId != null ? getTransaction(db, editId) : Promise.resolve(null),
     db.getAllAsync<PocketRow>(
       `select b.account_id, b.currency, b.minor_factor, b.balance, p.opening_date
@@ -104,6 +108,12 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
     const kept = await getCategory(db, row.category_id);
     if (kept) categories.push({ id: kept.id, name: kept.name, kind: kept.kind });
   }
+  const subcategories: FormSubcategory[] = subcategoryRows.map(s => ({ id: s.id, categoryId: s.category_id, name: s.name }));
+  // The same for a sub-category archived since the record was saved: the record keeps it.
+  if (row?.subcategory_id != null && !subcategories.some(s => s.id === row.subcategory_id)) {
+    const kept = await getSubcategory(db, row.subcategory_id);
+    if (kept) subcategories.push({ id: kept.id, categoryId: kept.category_id, name: kept.name });
+  }
   const rates: Record<string, number> = Object.fromEntries(rateRows.map(r => [r.currency, r.rate_e4]));
 
   let record: TxEditRecord | null = null;
@@ -116,6 +126,7 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
       accountId: row.account_id,
       toAccountId: row.to_account_id,
       categoryId: row.category_id,
+      subcategoryId: row.subcategory_id ?? null,
       amount: row.amount,
       amountTo: row.amount_to,
       date: row.occurred_on,
@@ -128,5 +139,5 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
       location: await getTransactionLocation(db, row.id),
     };
   }
-  return { accounts, categories, pockets, rates, record };
+  return { accounts, categories, subcategories, pockets, rates, record };
 }

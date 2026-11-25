@@ -1,13 +1,13 @@
 import { openTestDb } from '../../openTestDb';
-import { LATEST_SCHEMA_VERSION, runMigrations } from '../index';
+import { runMigrations } from '../index';
 import { BACKUP_TABLES } from '../../../backup/export';
 
 describe('migration 9 -> 10 notifications', () => {
   test('creates notifications table and new settings keys', async () => {
     const db = openTestDb();
-    await runMigrations(db, 9);
+    await runMigrations(db, 9, 12);
 
-    expect(await db.getFirstAsync("SELECT value FROM meta WHERE key = 'schema_version'")).toEqual({ value: String(LATEST_SCHEMA_VERSION) });
+    expect(await db.getFirstAsync("SELECT value FROM meta WHERE key = 'schema_version'")).toEqual({ value: '12' });
     expect(await db.getFirstAsync('SELECT count(*) AS n FROM notifications')).toEqual({ n: 0 });
 
     const keys = ['notif_enabled','quiet_start','quiet_end','notif_daily','notif_daily_time',
@@ -21,7 +21,7 @@ describe('migration 9 -> 10 notifications', () => {
   test('maps backup_reminder -> notif_backup and removes old key', async () => {
     const db = openTestDb();
     await db.runAsync("INSERT OR REPLACE INTO settings (key, value) VALUES ('backup_reminder', '0')");
-    await runMigrations(db, 9);
+    await runMigrations(db, 9, 12);
 
     expect(await db.getFirstAsync("SELECT value FROM settings WHERE key = 'notif_backup'")).toEqual({ value: '0' });
     expect(await db.getFirstAsync("SELECT value FROM settings WHERE key = 'backup_reminder'")).toBeNull();
@@ -30,7 +30,7 @@ describe('migration 9 -> 10 notifications', () => {
   test('maps recurring_reminders -> notif_bill_h1 + notif_bill_overdue and removes old key', async () => {
     const db = openTestDb();
     await db.runAsync("INSERT OR REPLACE INTO settings (key, value) VALUES ('recurring_reminders', '1')");
-    await runMigrations(db, 9);
+    await runMigrations(db, 9, 12);
 
     expect(await db.getFirstAsync("SELECT value FROM settings WHERE key = 'notif_bill_h1'")).toEqual({ value: '1' });
     expect(await db.getFirstAsync("SELECT value FROM settings WHERE key = 'notif_bill_overdue'")).toEqual({ value: '1' });
@@ -43,7 +43,7 @@ describe('migration 9 -> 10 notifications', () => {
 
   test('notifications table integrity view passes', async () => {
     const db = openTestDb();
-    await runMigrations(db, 9);
+    await runMigrations(db, 9, 12);
     // Insert a valid row
     await db.runAsync(
       "INSERT INTO notifications (kind, dedupe_key, payload, created_at) VALUES ('daily', 'daily:2026-01-01', '{}', '2026-01-01T00:00:00+07:00')"

@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import { createAccount } from '../../../domain/accounts';
 import { addIncome } from '../../../domain/transactions';
 import { listCategories } from '../../repo/categories';
-import { openTestDb } from '../../db/openTestDb';
+import { openMigratedTestDb } from '../../db/openTestDb';
 import { LATEST_SCHEMA_VERSION } from '../../db/migrations';
 import { canonicalDataJson, exportBackup } from '../export';
 import { validateBackup } from '../validate';
@@ -11,7 +11,7 @@ const NOW = '2026-11-03T10:00:00+07:00';
 const sha256Hex = async (text: string) => createHash('sha256').update(text).digest('hex');
 
 async function validFile() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const file = await exportBackup(db, NOW, sha256Hex);
   return file;
@@ -63,7 +63,7 @@ describe('validateBackup', () => {
   });
 
   test('a broken internal reference (a transaction pointing at an account not in the file)', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
     const categoryId = (await listCategories(db, { kind: 'income' }))[0].id;
     await addIncome(db, { accountId, currency: 'IDR', categoryId, amount: 500000, occurredOn: '2026-01-05' }, NOW);

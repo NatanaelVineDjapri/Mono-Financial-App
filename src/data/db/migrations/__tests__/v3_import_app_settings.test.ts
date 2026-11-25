@@ -8,7 +8,7 @@ import { createAccount } from '../../../../domain/accounts';
 import { exportBackup } from '../../../backup/export';
 import { restoreBackup } from '../../../backup/restore';
 import { openMigratedTestDb, openTestDb } from '../../openTestDb';
-import { LATEST_SCHEMA_VERSION, runMigrations } from '../index';
+import { runMigrations } from '../index';
 
 const SAMPLE_SQL = fs.readFileSync(path.join(__dirname, '../../../../../tools/sample_data.sql'), 'utf8');
 const NOW = '2026-11-03T10:00:00+07:00';
@@ -21,7 +21,7 @@ describe('migration 2 -> 3: import_app_settings', () => {
     const before = await db.getAllAsync('select * from v_account_balance order by 1');
     const netWorth = await db.getFirstAsync('select * from v_net_worth');
 
-    await expect(runMigrations(db, 1)).resolves.toBe(LATEST_SCHEMA_VERSION);
+    await expect(runMigrations(db, 1, 12)).resolves.toBe(12);
 
     expect(await db.getAllAsync('select * from v_account_balance order by 1')).toEqual(before);
     expect(await db.getFirstAsync('select * from v_net_worth')).toEqual(netWorth);

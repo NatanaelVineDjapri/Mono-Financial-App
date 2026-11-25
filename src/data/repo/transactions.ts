@@ -13,6 +13,7 @@ export interface NewTransaction {
   toAccountId?: number | null;
   toCurrency?: string | null;
   categoryId?: number | null;
+  subcategoryId?: number | null; // optional: a label inside the category
   amount: number; // minor units of `currency`
   amountTo?: number | null; // minor units of `toCurrency`, transfers only
   amountIdr: number; // rupiah value when recorded
@@ -30,6 +31,7 @@ export interface TransactionRow {
   to_account_id: number | null;
   to_currency: string | null;
   category_id: number | null;
+  subcategory_id: number | null;
   amount: number;
   amount_to: number | null;
   amount_idr: number;
@@ -45,9 +47,9 @@ export interface TransactionRow {
 export async function insertTransaction(db: Db, input: NewTransaction, now: string): Promise<number> {
   const result = await db.runAsync(
     `insert into transactions
-      (kind, account_id, currency, to_account_id, to_currency, category_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at)
+      (kind, account_id, currency, to_account_id, to_currency, category_id, subcategory_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at)
      values
-      ($kind, $accountId, $currency, $toAccountId, $toCurrency, $categoryId, $amount, $amountTo, $amountIdr, $occurredOn, $description, $note, $source, $now, $now)`,
+      ($kind, $accountId, $currency, $toAccountId, $toCurrency, $categoryId, $subcategoryId, $amount, $amountTo, $amountIdr, $occurredOn, $description, $note, $source, $now, $now)`,
     {
       $kind: input.kind,
       $accountId: input.accountId,
@@ -55,6 +57,7 @@ export async function insertTransaction(db: Db, input: NewTransaction, now: stri
       $toAccountId: input.toAccountId ?? null,
       $toCurrency: input.toCurrency ?? null,
       $categoryId: input.categoryId ?? null,
+      $subcategoryId: input.subcategoryId ?? null,
       $amount: input.amount,
       $amountTo: input.amountTo ?? null,
       $amountIdr: input.amountIdr,
@@ -80,7 +83,7 @@ export async function updateTransaction(
   const params: Record<string, string | number | null> = { $id: id, $now: now };
   const map: Record<string, string> = {
     kind: 'kind', accountId: 'account_id', currency: 'currency', toAccountId: 'to_account_id', toCurrency: 'to_currency',
-    categoryId: 'category_id', amount: 'amount', amountTo: 'amount_to', amountIdr: 'amount_idr',
+    categoryId: 'category_id', subcategoryId: 'subcategory_id', amount: 'amount', amountTo: 'amount_to', amountIdr: 'amount_idr',
     occurredOn: 'occurred_on', description: 'description', note: 'note', source: 'source',
   };
   for (const [key, column] of Object.entries(map)) {
@@ -102,9 +105,9 @@ export async function deleteTransaction(db: Db, id: number): Promise<void> {
 export async function restoreTransaction(db: Db, row: TransactionRow): Promise<void> {
   await db.runAsync(
     `insert into transactions
-      (id, kind, account_id, currency, to_account_id, to_currency, category_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at)
+      (id, kind, account_id, currency, to_account_id, to_currency, category_id, subcategory_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at)
      values
-      ($id, $kind, $accountId, $currency, $toAccountId, $toCurrency, $categoryId, $amount, $amountTo, $amountIdr, $occurredOn, $description, $note, $source, $createdAt, $updatedAt)`,
+      ($id, $kind, $accountId, $currency, $toAccountId, $toCurrency, $categoryId, $subcategoryId, $amount, $amountTo, $amountIdr, $occurredOn, $description, $note, $source, $createdAt, $updatedAt)`,
     {
       $id: row.id,
       $kind: row.kind,
@@ -113,6 +116,7 @@ export async function restoreTransaction(db: Db, row: TransactionRow): Promise<v
       $toAccountId: row.to_account_id,
       $toCurrency: row.to_currency,
       $categoryId: row.category_id,
+      $subcategoryId: row.subcategory_id ?? null,
       $amount: row.amount,
       $amountTo: row.amount_to,
       $amountIdr: row.amount_idr,

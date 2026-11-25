@@ -2,14 +2,14 @@
 // src/domain/transactionsList.ts alone — the Transactions tab's own read path.
 import { createAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { addExpense, addIncome, addTransfer } from '../transactions';
 import { getCurrentPeriod, getEarliestPeriod, getTransactionsPage } from '../transactionsList';
 
 const NOW = '2026-10-28T10:00:00+07:00';
 
 async function buildOctoberSample() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const jago = await createAccount(db, { name: 'Jago Pocket', type: 'savings', openingBalance: 275000, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);

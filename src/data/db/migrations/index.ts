@@ -11,6 +11,7 @@ import { addTransactionLocations } from './v9_transaction_locations';
 import { addNotifications } from './v10_notifications';
 import { addImportQueue } from './v11_import_queue';
 import { addNfcCardLinks } from './v12_nfc_card_links';
+import { addSubcategories } from './v13_subcategories';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -33,6 +34,7 @@ export type Migration = (db: Db) => Promise<void>;
 //            transactions.source also accepts 'import'.
 //   11 -> 12: card_links (an e-money card paired with an e-wallet account: issuer, last 4 digits, fingerprint) and the two
 //            system categories of a balance adjustment; transactions.source also accepts 'nfc'.
+//   12 -> 13: subcategories (optional labels inside a category) and transactions.subcategory_id.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -45,6 +47,7 @@ export const migrations: Record<number, Migration> = {
   9: addNotifications,
   10: addImportQueue,
   11: addNfcCardLinks,
+  12: addSubcategories,
 };
 
 // The schema_version a database reaches once every migration above has run (never written by hand).
@@ -54,9 +57,10 @@ export const LATEST_SCHEMA_VERSION = Math.max(...Object.keys(migrations).map(Num
 // knows about, one migration per exclusive transaction, oldest first. A safety backup
 // before each step is src/data/backup's job once it exists (not yet — step 5).
 // Returns the resulting schema_version.
-export async function runMigrations(db: Db, currentVersion: number): Promise<number> {
+// `stopAt` (tests only): stop once the database is at that version, instead of running every migration.
+export async function runMigrations(db: Db, currentVersion: number, stopAt: number = Number.POSITIVE_INFINITY): Promise<number> {
   let version = currentVersion;
-  while (migrations[version]) {
+  while (migrations[version] && version < stopAt) {
     const migrate = migrations[version];
     const nextVersion = version + 1;
     await db.withExclusiveTransactionAsync(async txn => {

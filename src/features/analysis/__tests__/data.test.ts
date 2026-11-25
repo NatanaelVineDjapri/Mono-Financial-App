@@ -1,4 +1,4 @@
-import { openTestDb } from '@/data/db/openTestDb';
+import { openMigratedTestDb } from '@/data/db/openTestDb';
 import { createBudget, setMonthlyLimit } from '@/data/repo/budgets';
 import { listCategories } from '@/data/repo/categories';
 import { setSetting } from '@/data/repo/settings';
@@ -15,7 +15,7 @@ const TODAY = '2026-10-28';
 // 8.880.000, fixed expenses 1.201.990 a month, net worth up in each of the last 5 months) on top of a few
 // earlier months so the net worth rises step by step: 2,2 / 3,2 / 4,2 / 5,0 / 5,637 / 8,88 million.
 async function sample() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1_200_000, openingDate: '2026-05-01' }, NOW);
   const otherId = await createAccount(db, { name: 'Cash', type: 'cash', openingBalance: 0, openingDate: '2026-05-01' }, NOW);
   const categories = await listCategories(db);
@@ -128,7 +128,7 @@ describe('getAnalysis: the October 2026 sample', () => {
 
 describe('getAnalysis: not enough data', () => {
   test('an empty app cannot be scored and says what is missing', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const data = await getAnalysis(db, '2026-10', TODAY);
     expect(data.analysis.result.eligible).toBe(false);
     expect(data.analysis.insights).toBeNull();
@@ -139,7 +139,7 @@ describe('getAnalysis: not enough data', () => {
   });
 
   test('6 records and 9 days: the checks show what is there', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 100_000, openingDate: '2026-10-01' }, NOW);
     const categories = await listCategories(db);
     for (let day = 1; day <= 6; day++) {

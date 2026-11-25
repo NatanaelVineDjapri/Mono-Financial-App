@@ -8,7 +8,7 @@ import * as path from 'path';
 
 import type { Db } from '../../types';
 import { openTestDb } from '../../openTestDb';
-import { LATEST_SCHEMA_VERSION, runMigrations } from '../index';
+import { runMigrations } from '../index';
 import { addScanSource } from '../v2_scan_source';
 
 const SAMPLE_SQL = fs.readFileSync(path.join(__dirname, '../../../../../tools/sample_data.sql'), 'utf8');
@@ -69,7 +69,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(rowsBefore).toHaveLength(11);
     expect(eventsBefore).toHaveLength(2);
 
-    await expect(runMigrations(db, 1)).resolves.toBe(LATEST_SCHEMA_VERSION);
+    await expect(runMigrations(db, 1, 12)).resolves.toBe(12);
 
     expect(await db.getAllAsync('select * from transactions order by 1, 2, 3')).toEqual(rowsBefore);
     expect(await db.getAllAsync('select * from recurring_events order by 1, 2, 3')).toEqual(eventsBefore);
@@ -79,7 +79,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(await db.getAllAsync("select * from v_period_flow where period = '2026-10'")).toEqual([
       expect.objectContaining({ income: 7500000, expense: 4257000 }),
     ]);
-    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: String(LATEST_SCHEMA_VERSION) });
+    expect(await db.getFirstAsync("select value from meta where key = 'schema_version'")).toEqual({ value: '12' });
   });
 
   test('every view, trigger and index comes back with the same SQL (17 views, 23 triggers)', async () => {
@@ -88,7 +88,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
     expect(before.filter(o => o.type === 'view')).toHaveLength(17);
     expect(before.filter(o => o.type === 'trigger')).toHaveLength(23);
 
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
 
     // Later migrations add objects of their own (v3's table and triggers); everything that was
     // there before migration 1 -> 2 is unchanged, except the goal view that migration 6 -> 7 rebuilds.
@@ -100,14 +100,14 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
   test('the table keeps its shape: only the source CHECK changed', async () => {
     const db = await seeded();
     const before = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
     const after = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
     expect(after).toBe(before.replace("'recurring'))", "'recurring','scan','import','nfc'))"));
   });
 
   test('scan is accepted, an unknown source is still refused', async () => {
     const db = await seeded();
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
 
     await insertScan(db, 'scan');
     expect(await db.getFirstAsync("select source from transactions where description = 'Toko Sumber Rejeki'")).toEqual({ source: 'scan' });
@@ -117,14 +117,14 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
 
   test('the guards still work: the triggers were recreated, not lost', async () => {
     const db = await seeded();
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
     await expect(insertScan(db, 'scan', '2999-01-01')).rejects.toThrow('future_date');
     await expect(insertScan(db, 'scan', '2025-12-31')).rejects.toThrow('before_opening_date');
   });
 
   test('the foreign keys still work: deleting a transaction takes its fixed-expense event with it', async () => {
     const db = await seeded();
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
     expect(await db.getAllAsync('pragma foreign_key_check')).toEqual([]);
     expect(await db.getAllAsync('select * from v_integrity_issues')).toEqual([]);
 
@@ -135,7 +135,7 @@ describe('migration 1 -> 2: transactions.source accepts scan', () => {
 
   test('an empty database migrates too, and running it again changes nothing', async () => {
     const db = openTestDb();
-    await runMigrations(db, 1);
+    await runMigrations(db, 1, 12);
     await expect(addScanSource(db)).resolves.toBeUndefined();
     expect((await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql).toContain("'recurring','scan'");
   });

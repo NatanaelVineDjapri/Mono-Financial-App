@@ -5,7 +5,7 @@ import { getNetWorth } from '../../../domain/net-worth';
 import { addExpense, addIncome, addTransfer } from '../../../domain/transactions';
 import { listCategories } from '../../repo/categories';
 import { insertFxRate } from '../../repo/fx';
-import { openTestDb } from '../../db/openTestDb';
+import { openMigratedTestDb } from '../../db/openTestDb';
 import { canonicalDataJson, exportBackup } from '../export';
 import { restoreBackup } from '../restore';
 
@@ -13,7 +13,7 @@ const NOW = '2026-11-03T10:00:00+07:00';
 const sha256Hex = async (text: string) => createHash('sha256').update(text).digest('hex');
 
 async function richFixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const jago = await createAccount(db, { name: 'Jago', type: 'savings', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);
@@ -38,7 +38,7 @@ describe('restoreBackup: roundtrip', () => {
 
     // A different database, with its own unrelated data, standing in for "the device
     // being restored onto".
-    const target = openTestDb();
+    const target = (await openMigratedTestDb());
     await createAccount(target, { name: 'Unrelated account', type: 'cash', openingBalance: 999, openingDate: '2026-01-01' }, NOW);
 
     const result = await restoreBackup(target, JSON.stringify(file), NOW, sha256Hex);
@@ -56,7 +56,7 @@ describe('restoreBackup: roundtrip', () => {
 
 describe('restoreBackup: a bad file never touches the database', () => {
   test('not valid JSON', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const before = await getNetWorth(db);
     const result = await restoreBackup(db, '{not json', NOW, sha256Hex);
     expect(result).toMatchObject({ ok: false, reason: 'invalid', detail: { reason: 'not_json' } });
@@ -75,7 +75,7 @@ describe('restoreBackup: a bad file never touches the database', () => {
 
 describe('restoreBackup: rolls back entirely when the post-load integrity audit finds something', () => {
   test('a row that would leave a negative balance is rolled back, not partially restored', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const accountId = await createAccount(db, { name: 'A', type: 'cash', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
     const categoryId = (await listCategories(db, { kind: 'expense' }))[0].id;
     const file = await exportBackup(db, NOW, sha256Hex);
@@ -116,7 +116,7 @@ describe('restoreBackup: never touches backup_log', () => {
     const source = await richFixture();
     const file = await exportBackup(source.db, NOW, sha256Hex);
 
-    const target = openTestDb();
+    const target = (await openMigratedTestDb());
     await target.runAsync(
       "insert into backup_log (created_at, file_name, size_bytes, tx_count, kind) values ($createdAt, $fileName, $sizeBytes, $txCount, $kind)",
       { $createdAt: NOW, $fileName: 'pre-existing.json', $sizeBytes: 10, $txCount: 0, $kind: 'manual' },

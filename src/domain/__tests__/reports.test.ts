@@ -2,7 +2,7 @@ import { createAccount } from '../accounts';
 import { addExpense, addIncome } from '../transactions';
 import { listCategories } from '../../data/repo/categories';
 import { setSetting } from '../../data/repo/settings';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { calendarMonthEnd } from '../../core/date';
 import { getPeriodFlow, getReport, getSavingsRate, listCategorySpend, reportChangeBp } from '../reports';
 import { getNetWorthHistory } from '../net-worth';
@@ -10,7 +10,7 @@ import { getNetWorthHistory } from '../net-worth';
 const NOW = '2026-11-03T10:00:00+07:00';
 
 async function octoberSample() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);
   const byName = (n: string) => categories.find(c => c.name === n)!.id;
@@ -43,7 +43,7 @@ describe('domain reports', () => {
   });
 
   test('savings rate is null (not zero) when there is no income yet', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
     expect(await getSavingsRate(db, '2026-10')).toBeNull();
   });
@@ -56,7 +56,7 @@ describe('domain reports', () => {
   });
 
   test('period bucketing follows settings.month_start_day, not just the calendar month', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     await setSetting(db, 'month_start_day', '25');
     const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
     const salary = (await listCategories(db, { kind: 'income' })).find(c => c.name === 'Salary')!.id;
@@ -193,7 +193,7 @@ describe('getReport — net worth table', () => {
 
 describe('getReport — the empty state threshold', () => {
   test('less than 28 days of records is not enough; the 28th day is', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 0, openingDate: '2026-10-20' }, NOW);
 
     const at27 = await getReport(db, { period: '2026-11', range: 'month', todayIso: '2026-11-16T10:00:00+07:00' });
@@ -204,7 +204,7 @@ describe('getReport — the empty state threshold', () => {
   });
 
   test('a database with no accounts and no transactions has no report yet', async () => {
-    const report = await getReport(openTestDb(), { period: '2026-10', range: 'month', todayIso: TODAY });
+    const report = await getReport((await openMigratedTestDb()), { period: '2026-10', range: 'month', todayIso: TODAY });
     expect(report.hasData).toBe(false);
     expect(report.flow).toEqual({ income: 0, expense: 0, net: 0, savingsRateBp: null });
     expect(report.categories).toEqual([]);

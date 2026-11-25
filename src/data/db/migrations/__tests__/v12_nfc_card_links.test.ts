@@ -66,7 +66,7 @@ describe('migration 11 -> 12', () => {
     expect(before.events).toHaveLength(1);
     expect(before.locations).toHaveLength(1);
 
-    await expect(runMigrations(db, 11)).resolves.toBe(LATEST_SCHEMA_VERSION);
+    await expect(runMigrations(db, 11, 12)).resolves.toBe(12);
 
     expect(await read()).toEqual(before);
     expect(await db.getFirstAsync('select * from v_net_worth')).toMatchObject({ net_worth: 8880000 });
@@ -76,7 +76,7 @@ describe('migration 11 -> 12', () => {
   test('every view, trigger and index comes back with the same SQL; the only new objects are the two guards', async () => {
     const db = await atVersion11();
     const before = await schemaObjects(db);
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     const after = await schemaObjects(db);
     expect(after.filter(o => before.some(b => b.name === o.name))).toEqual(before);
     expect(after.filter(o => !before.some(b => b.name === o.name)).map(o => o.name).sort()).toEqual(['trg_card_link_account_type_upd', 'trg_card_link_ins']);
@@ -85,14 +85,14 @@ describe('migration 11 -> 12', () => {
   test('the table keeps its shape: only the source CHECK changed', async () => {
     const db = await atVersion11();
     const before = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     const after = (await db.getFirstAsync<{ sql: string }>("select sql from sqlite_master where name = 'transactions'"))!.sql;
     expect(after).toBe(before.replace("'import'))", "'import','nfc'))"));
   });
 
   test('nfc is accepted, an unknown source is still refused, and the guards still work', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await insertTx(db, 'nfc');
     expect(await db.getFirstAsync("select source from transactions where description = 'Penyesuaian'")).toEqual({ source: 'nfc' });
     await expect(insertTx(db, 'bogus')).rejects.toThrow(/CHECK constraint failed/);
@@ -107,14 +107,14 @@ describe('migration 11 -> 12', () => {
 
   test('deleting a transaction still takes its location with it (the cascade survived)', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await db.runAsync('delete from transactions where id = 5');
     expect(await db.getAllAsync('select * from transaction_locations')).toEqual([]);
   });
 
   test('the two system categories are made once, one per kind', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     const rows = await db.getAllAsync<{ kind: string; archived: number }>("select kind, archived from categories where name = 'Penyesuaian saldo' order by kind");
     expect(rows).toEqual([{ kind: 'expense', archived: 0 }, { kind: 'income', archived: 0 }]);
   });
@@ -122,7 +122,7 @@ describe('migration 11 -> 12', () => {
   test('a category the person already made with that name (any case) is reused, not doubled', async () => {
     const db = await atVersion11();
     await db.runAsync("insert into categories (name, kind, icon, sort_order, archived) values ('penyesuaian SALDO', 'expense', 'tag', 99, 0)");
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     expect(await db.getAllAsync("select name, kind from categories where name = 'Penyesuaian saldo' order by kind")).toEqual([
       { name: 'penyesuaian SALDO', kind: 'expense' },
       { name: 'Penyesuaian saldo', kind: 'income' },
@@ -131,7 +131,7 @@ describe('migration 11 -> 12', () => {
 
   test('card_links: only digits for the last 4, a known issuer, one card per account and one account per card', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await link(db, 3);
     expect(await db.getFirstAsync('select issuer, last4, fingerprint from card_links where account_id = 3')).toEqual({ issuer: 'mandiri', last4: '7731', fingerprint: 'f1' });
     await db.runAsync("update accounts set type = 'ewallet' where id = 4");
@@ -144,7 +144,7 @@ describe('migration 11 -> 12', () => {
 
   test('only an e-wallet account can be linked, and a linked account keeps its type', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await expect(link(db, 1)).rejects.toThrow(/card_link_needs_ewallet/); // a bank account
     await link(db, 3);
     await expect(db.runAsync("update accounts set type = 'bank' where id = 3")).rejects.toThrow(/account_type_locked/);
@@ -153,7 +153,7 @@ describe('migration 11 -> 12', () => {
 
   test('a restore (guards_off) may bring its links back without the guards', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await db.runAsync("update meta set value = '1' where key = 'guards_off'");
     await link(db, 1); // would be refused otherwise
     await db.runAsync("update meta set value = '0' where key = 'guards_off'");
@@ -162,7 +162,7 @@ describe('migration 11 -> 12', () => {
 
   test('the link goes with its account', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await db.runAsync("insert into accounts (name, type, opening_balance, opening_date, created_at) values ('Flazz', 'ewallet', 0, '2026-01-01', ?)", [NOW]);
     const id = (await db.getFirstAsync<{ id: number }>("select id from accounts where name = 'Flazz'"))!.id;
     await link(db, id, 'f9', '0001', 'flazz');
@@ -173,7 +173,7 @@ describe('migration 11 -> 12', () => {
 
   test('running it again does nothing harmful (the tables are not created twice)', async () => {
     const db = await atVersion11();
-    await runMigrations(db, 11);
+    await runMigrations(db, 11, 12);
     await expect(migrations[11](db)).rejects.toThrow(/already exists/);
   });
 });

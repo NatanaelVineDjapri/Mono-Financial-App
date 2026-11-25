@@ -1,13 +1,13 @@
 import { createAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { deleteTransaction } from '../transactions';
 import { archiveRecurring, confirmRecurring, createRecurring, listRecurringDue, nextDue, skipRecurring, updateRecurring } from '../recurring';
 
 const NOW = '2026-11-03T10:00:00+07:00';
 
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const categoryId = (await listCategories(db, { kind: 'expense' }))[0].id;
   const recurringId = await createRecurring(db, { name: 'Gym membership', amount: 200000, accountId, categoryId, dayOfMonth: 28, firstDueOn: '2026-10-28' }, NOW);

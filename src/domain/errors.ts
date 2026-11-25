@@ -19,6 +19,7 @@ export const GUARD_CODES = [
   'recurring_needs_idr_account',
   'forex_account_exists',
   'card_link_needs_ewallet',
+  'subcategory_category_mismatch',
 ] as const;
 
 export type GuardCode = (typeof GUARD_CODES)[number];

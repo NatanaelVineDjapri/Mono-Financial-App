@@ -1,4 +1,4 @@
-import { openTestDb } from '../../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../../data/db/openTestDb';
 import { getPocketBalanceNow } from '../../../data/repo/transactionDetail';
 import { getTransaction } from '../../../data/repo/transactions';
 import { createAccount } from '../../../domain/accounts';
@@ -27,7 +27,7 @@ const NOW = '2026-10-28T12:41:09+07:00';
 
 async function setup(hidden = false) {
   useChatStore.getState().reset();
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 6842500, openingDate: '2026-01-01' }, NOW);
   const cash = await createAccount(db, { name: 'Cash wallet', type: 'cash', openingBalance: 450000, openingDate: '2026-01-01' }, NOW);
   const gopay = await createAccount(db, { name: 'GoPay', type: 'ewallet', openingBalance: 312500, openingDate: '2026-01-01' }, NOW);

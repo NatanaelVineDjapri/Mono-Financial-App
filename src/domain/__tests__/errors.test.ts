@@ -11,6 +11,8 @@ const NOW = '2026-01-01T00:00:00+07:00';
 
 async function fixture() {
   const db = openTestDb();
+  // The v1 baseline (these tests need its guards without the later ones) plus the one column the repo now writes.
+  await db.execAsync('ALTER TABLE transactions ADD COLUMN subcategory_id INTEGER');
   const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const valas = await createAccount(db, { name: 'Valas', type: 'forex', openingBalance: 0, openingDate: '2026-01-01' }, NOW);
   await addPocket(db, valas, 'USD', 10000, '2026-01-01');
@@ -136,7 +138,7 @@ describe('throwDomainError recognises all 14 guard codes', () => {
   });
 
   test('all 14 codes are known (forex_account_exists needs the migrated schema and is exercised in features/valas)', () => {
-    expect(GUARD_CODES.length).toBe(15);
+    expect(GUARD_CODES.length).toBe(16);
   });
 });
 

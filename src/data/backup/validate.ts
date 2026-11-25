@@ -9,7 +9,7 @@ import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 const SUPPORTED_SCHEMA_VERSION = LATEST_SCHEMA_VERSION;
 
 // The schema version in which a backup table first appeared (the others have been there from the start).
-const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12 };
+const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12, subcategories: 13 };
 
 // Every checksum a file of `version` may legitimately carry: the tables as written by the app of that time, i.e. leaving
 // out any subset of the tables that did not exist yet.
@@ -47,15 +47,21 @@ function checkInternalReferences(data: BackupData): BackupTable | null {
   const categoryIds = idSet('categories');
   const recurringIds = idSet('recurring');
   const transactionIds = idSet('transactions');
+  const subcategoryIds = idSet('subcategories');
 
   for (const r of data.account_currencies) {
     if (!accountIds.has(row<{ account_id: unknown }>(r).account_id)) return 'account_currencies';
   }
   for (const r of data.transactions) {
-    const t = row<{ account_id: unknown; to_account_id: unknown; category_id: unknown }>(r);
+    const t = row<{ account_id: unknown; to_account_id: unknown; category_id: unknown; subcategory_id?: unknown }>(r);
     if (!accountIds.has(t.account_id)) return 'transactions';
     if (t.to_account_id !== null && !accountIds.has(t.to_account_id)) return 'transactions';
     if (t.category_id !== null && !categoryIds.has(t.category_id)) return 'transactions';
+    // A file from before sub-categories has no such column; a transaction without one has null.
+    if (t.subcategory_id != null && !subcategoryIds.has(t.subcategory_id)) return 'transactions';
+  }
+  for (const r of data.subcategories) {
+    if (!categoryIds.has(row<{ category_id: unknown }>(r).category_id)) return 'subcategories';
   }
   for (const r of data.budgets) {
     if (!categoryIds.has(row<{ category_id: unknown }>(r).category_id)) return 'budgets';

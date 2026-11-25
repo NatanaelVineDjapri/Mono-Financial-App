@@ -1,4 +1,4 @@
-import { openTestDb } from '../../db/openTestDb';
+import { openMigratedTestDb } from '../../db/openTestDb';
 import { createAccount } from '../accounts';
 import { listCategories } from '../categories';
 import {
@@ -19,7 +19,7 @@ import {
 const NOW = '2026-01-01T00:00:00+07:00';
 
 async function setup() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const categoryId = (await listCategories(db, { kind: 'expense' }))[0].id;
   return { db, accountId, categoryId };
@@ -79,7 +79,7 @@ describe('transactions repo', () => {
 
 describe('transactions repo: Transactions tab queries', () => {
   async function setupMonth() {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
     const jago = await createAccount(db, { name: 'Jago Pocket', type: 'savings', openingBalance: 275000, openingDate: '2026-01-01' }, NOW);
     const categories = await listCategories(db);
@@ -151,14 +151,14 @@ describe('transactions repo: Transactions tab queries', () => {
     const { db } = await setupMonth();
     const expense = await listCategoryTotals(db, '2026-10', 'expense');
     expect(expense).toEqual([
-      { category_id: expect.any(Number), category_name: 'Bills', category_icon: null, amount_idr: 1150000 },
-      { category_id: expect.any(Number), category_name: 'Shopping', category_icon: null, amount_idr: 812000 },
+      { category_id: expect.any(Number), category_name: 'Bills', category_icon: 'bolt', amount_idr: 1150000 },
+      { category_id: expect.any(Number), category_name: 'Shopping', category_icon: 'bag', amount_idr: 812000 },
     ]);
 
     const income = await listCategoryTotals(db, '2026-10', 'income');
     expect(income).toEqual([
-      { category_id: expect.any(Number), category_name: 'Salary', category_icon: null, amount_idr: 7000000 },
-      { category_id: expect.any(Number), category_name: 'Freelance', category_icon: null, amount_idr: 500000 },
+      { category_id: expect.any(Number), category_name: 'Salary', category_icon: 'wallet', amount_idr: 7000000 },
+      { category_id: expect.any(Number), category_name: 'Freelance', category_icon: 'briefcase', amount_idr: 500000 },
     ]);
   });
 });

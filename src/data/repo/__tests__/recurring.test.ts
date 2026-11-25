@@ -1,13 +1,13 @@
 import { createAccount } from '../accounts';
 import { listCategories } from '../categories';
-import { openTestDb } from '../../db/openTestDb';
+import { openMigratedTestDb } from '../../db/openTestDb';
 import { insertTransaction } from '../transactions';
 import { archiveRecurring, createRecurring, listRecurringDue, recordRecurringEvent, updateRecurring } from '../recurring';
 
 const NOW = '2026-01-01T00:00:00+07:00';
 
 async function setup() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const accountId = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-01-01' }, NOW);
   const categoryId = (await listCategories(db, { kind: 'expense' }))[0].id;
   return { db, accountId, categoryId };

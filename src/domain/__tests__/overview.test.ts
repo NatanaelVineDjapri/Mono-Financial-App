@@ -1,5 +1,5 @@
 import { addMonths } from '../../core/date';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { listCategories } from '../../data/repo/categories';
 import { createAccount } from '../accounts';
 import { accountShares, getOverviewData } from '../overview';
@@ -8,7 +8,7 @@ import { addExpense, addIncome } from '../transactions';
 const NOW = '2026-10-28T10:00:00+07:00';
 
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: '2026-04-01' }, NOW);
   const categories = await listCategories(db);
   const cat = (name: string) => categories.find(c => c.name === name)!.id;
@@ -45,7 +45,7 @@ describe('getOverviewData', () => {
   });
 
   test('early in the period only the days gone by count on both sides', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const bca = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 5000000, openingDate: '2026-08-01' }, NOW);
     const categories = await listCategories(db);
     const bills = categories.find(c => c.name === 'Bills')!.id;
@@ -77,7 +77,7 @@ describe('getOverviewData', () => {
   });
 
   test('a previous month with no spending has no percentage (undefined, not infinite)', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 100, openingDate: '2026-10-01' }, NOW);
     const data = await getOverviewData(db, '2026-10-28');
     expect(data.expenseChangeBp).toBe(0); // 0 vs 0
@@ -89,7 +89,7 @@ describe('getOverviewData', () => {
     expect((await getOverviewData(db, '2026-10-28')).netWorthChange).toBeNull();
 
     const real = new Date().toISOString().slice(0, 10);
-    const live = openTestDb();
+    const live = (await openMigratedTestDb());
     const opened = addMonths(`${real.slice(0, 7)}-01`, -2);
     const acc = await createAccount(live, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: opened }, NOW);
     const cats = await listCategories(live);
@@ -108,12 +108,12 @@ describe('year to date', () => {
     const year = Number(real.slice(0, 4));
 
     // Records start this year: no earlier month end to compare with.
-    const fresh = openTestDb();
+    const fresh = (await openMigratedTestDb());
     await createAccount(fresh, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: `${year}-01-01` }, NOW);
     expect((await getOverviewData(fresh, real)).netWorthYtdChange).toBeNull();
 
     // Records start in December last year: 31 Dec is the baseline.
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const acc = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1000000, openingDate: `${year - 1}-12-01` }, NOW);
     const cats = await listCategories(db);
     await addIncome(db, { accountId: acc, currency: 'IDR', categoryId: cats.find(c => c.name === 'Salary')!.id, amount: 500000, occurredOn: `${year}-01-01` }, real);

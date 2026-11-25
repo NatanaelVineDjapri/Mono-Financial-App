@@ -74,6 +74,7 @@ export interface AddIncomeOrExpenseInput {
   accountId: number;
   currency: string; // 'IDR' unless the account is forex
   categoryId: number;
+  subcategoryId?: number | null; // optional, a label inside the category
   amount: number; // minor units of `currency`
   occurredOn: string;
   description?: string;
@@ -99,6 +100,7 @@ export async function addIncome(db: Db, input: AddIncomeOrExpenseInput, now: str
         accountId: input.accountId,
         currency: input.currency,
         categoryId: input.categoryId,
+        subcategoryId: input.subcategoryId,
         amount: input.amount,
         amountIdr,
         occurredOn: input.occurredOn,
@@ -127,6 +129,7 @@ export async function addExpense(db: Db, input: AddIncomeOrExpenseInput, now: st
         accountId: input.accountId,
         currency: input.currency,
         categoryId: input.categoryId,
+        subcategoryId: input.subcategoryId,
         amount: input.amount,
         amountIdr,
         occurredOn: input.occurredOn,

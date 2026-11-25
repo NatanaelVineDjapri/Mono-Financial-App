@@ -1,5 +1,5 @@
 import { saveAccountChanges, saveNewAccount } from '../../core/account/save';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { listCategories } from '../../data/repo/categories';
 import { createAccount } from '../accounts';
 import { getAccountBalanceHistory, getAccountDetail, getAccountEditData, listAccountActivity, listAccountNames, type ActivityKind } from '../accountDetail';
@@ -11,7 +11,7 @@ const kindName = (k: ActivityKind) => k;
 
 // BCA Tabungan, as on the board: opening Rp1.200.000, 15.000.000 in, 9.357.500 out, 6.842.500 now.
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
   const jago = await createAccount(db, { name: 'Jago Pocket', type: 'savings', openingBalance: 275000, openingDate: '2026-01-01' }, NOW);
   const categories = await listCategories(db);
@@ -47,7 +47,7 @@ describe('getAccountDetail', () => {
   });
 
   test('an account with no records: all zero, balance is the opening balance', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const id = await createAccount(db, { name: 'Cash', type: 'cash', openingBalance: 450000, openingDate: '2026-01-01' }, NOW);
     expect(await getAccountDetail(db, id, '2026-10-28')).toMatchObject({ moneyIn: 0, moneyOut: 0, recordCount: 0, balance: 450000 });
   });
@@ -109,7 +109,7 @@ describe('getAccountEditData', () => {
 
 describe('saving accounts', () => {
   test('a new account is stored as typed (trimmed name) and starts at its opening balance', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const result = await saveNewAccount(db, { name: '  BCA Tabungan ', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01', icon: 'bca' }, NOW);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -117,7 +117,7 @@ describe('saving accounts', () => {
   });
 
   test('a duplicate name (any case) comes back as a message', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     await saveNewAccount(db, { name: 'GoPay', type: 'ewallet', openingBalance: 0, openingDate: '2026-01-01', icon: null }, NOW);
     const again = await saveNewAccount(db, { name: 'gopay', type: 'ewallet', openingBalance: 0, openingDate: '2026-01-01', icon: null }, NOW);
     expect(again).toEqual({ ok: false, message: 'You already have an account with this name.' });
@@ -172,7 +172,7 @@ describe('getAccountBalanceHistory', () => {
   });
 
   test('an account with no transactions produces flat points with delta 0', async () => {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const id = await createAccount(db, { name: 'Savings', type: 'savings', openingBalance: 500000, openingDate: '2026-01-01' }, NOW);
     const history = await getAccountBalanceHistory(db, id, '1M', '2026-10-28');
     expect(history.currentBalance).toBe(500000);

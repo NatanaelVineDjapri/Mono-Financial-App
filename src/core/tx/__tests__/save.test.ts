@@ -1,4 +1,4 @@
-import { openTestDb } from '../../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../../data/db/openTestDb';
 import { listCategories } from '../../../data/repo/categories';
 import { getPocketBalanceNow } from '../../../data/repo/transactionDetail';
 import { getTransaction } from '../../../data/repo/transactions';
@@ -11,7 +11,7 @@ import type { TxFormValues } from '../validate';
 const NOW = '2026-10-28T12:41:09+07:00';
 
 async function fixture() {
-  const db = openTestDb();
+  const db = (await openMigratedTestDb());
   const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 6842500, openingDate: '2026-01-01' }, NOW);
   const jago = await createAccount(db, { name: 'Jago Pocket', type: 'savings', openingBalance: 1275000, openingDate: '2026-03-01' }, NOW);
   const categories = await listCategories(db);

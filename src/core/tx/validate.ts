@@ -46,10 +46,19 @@ export interface FormCategory {
   kind: 'income' | 'expense';
 }
 
+// A sub-category the form can offer: an active one of an active category (or the one a record being edited already has).
+export interface FormSubcategory {
+  id: number;
+  categoryId: number;
+  name: string;
+}
+
 export interface TxFormValues {
   type: TxType;
   amount: number;
   categoryId: number | null;
+  // Optional, inside the category: null or left out for none. Ignored for a transfer (it has no category).
+  subcategoryId?: number | null;
   accountId: number | null; // the account (income, expense) or the From account (transfer)
   toAccountId: number | null; // transfer only
   // Valas only (left out means rupiah): the pocket the account side uses, the pocket a transfer goes
@@ -66,6 +75,7 @@ export interface ValidationContext {
   today: string; // 'YYYY-MM-DD', the local date
   accounts: FormAccount[];
   categories: FormCategory[];
+  subcategories?: FormSubcategory[]; // left out: not checked here (the schema's trigger is the backstop)
   allowForex?: boolean; // the Valas account may be used (through a pocket)
   pockets?: FormPocket[];
   rates?: Readonly<Record<string, number>>; // latest rate_e4 per foreign currency
@@ -77,6 +87,7 @@ export type TxErrorCode =
   | 'amount_required'
   | 'category_required'
   | 'category_kind_mismatch'
+  | 'subcategory_mismatch' // the sub-category is not one of the chosen category
   | 'account_required'
   | 'to_account_required'
   | 'forex_not_supported'
@@ -122,6 +133,10 @@ export function validateTx(values: TxFormValues, ctx: ValidationContext): TxFiel
       const category = ctx.categories.find(c => c.id === values.categoryId);
       if (!category) push({ field: 'category', code: 'category_required' });
       else if (category.kind !== values.type) push({ field: 'category', code: 'category_kind_mismatch' });
+      else if (values.subcategoryId != null && ctx.subcategories) {
+        const sub = ctx.subcategories.find(s => s.id === values.subcategoryId);
+        if (!sub || sub.categoryId !== values.categoryId) push({ field: 'category', code: 'subcategory_mismatch' });
+      }
     }
   }
 

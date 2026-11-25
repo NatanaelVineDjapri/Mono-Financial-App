@@ -1,6 +1,6 @@
 import { createAccount } from '../accounts';
 import { listCategories } from '../../data/repo/categories';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { setMonthlyLimit } from '../budget';
 import { addExpense, addIncome } from '../transactions';
 import { getCategoryStats, largestRemainderSharesBp } from '../categoryStats';
@@ -30,7 +30,7 @@ describe('largestRemainderSharesBp', () => {
 
 describe('getCategoryStats', () => {
   async function buildOctoberSample() {
-    const db = openTestDb();
+    const db = (await openMigratedTestDb());
     const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
     const categories = await listCategories(db);
     const cat = (name: string) => categories.find(c => c.name === name)!.id;
