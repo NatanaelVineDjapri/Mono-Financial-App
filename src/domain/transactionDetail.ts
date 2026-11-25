@@ -44,6 +44,7 @@ export interface TxDetail {
   toMinorFactor: number | null;
   amountIdr: number;
   category: { id: number; name: string; icon: string | null } | null;
+  subcategory?: { id: number; name: string } | null; // the optional label inside the category
   account: TxDetailAccount;
   toAccount: TxDetailAccount | null;
   // Foreign-currency income/expense only: the rate the rupiah value was struck at.
@@ -123,6 +124,7 @@ export async function getTransactionDetail(db: Db, id: number): Promise<TxDetail
     toMinorFactor: row.to_minor_factor,
     amountIdr: row.amount_idr,
     category: row.category_id != null ? { id: row.category_id, name: row.category_name ?? '', icon: row.category_icon } : null,
+    subcategory: row.subcategory_id != null ? { id: row.subcategory_id, name: row.subcategory_name ?? '' } : null,
     account,
     toAccount,
     rateE4: row.kind !== 'transfer' && row.currency !== 'IDR' ? impliedRateE4(row.amount_idr, row.amount, row.minor_factor) : null,

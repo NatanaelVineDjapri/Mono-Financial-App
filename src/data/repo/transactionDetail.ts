@@ -33,6 +33,8 @@ export interface TxDetailRow {
   to_account_icon: string | null;
   category_name: string | null;
   category_icon: string | null;
+  subcategory_id: number | null;
+  subcategory_name: string | null;
 }
 
 export async function getTxDetailRow(db: Db, id: number): Promise<TxDetailRow | null> {
@@ -42,13 +44,14 @@ export async function getTxDetailRow(db: Db, id: number): Promise<TxDetailRow | 
             c.minor_factor, tc.minor_factor as to_minor_factor,
             a.name as account_name, a.type as account_type, a.icon as account_icon,
             ta.name as to_account_name, ta.type as to_account_type, ta.icon as to_account_icon,
-            cat.name as category_name, cat.icon as category_icon
+            cat.name as category_name, cat.icon as category_icon, t.subcategory_id, sub.name as subcategory_name
      from v_tx t
      join currencies c on c.code = t.currency
      left join currencies tc on tc.code = t.to_currency
      join accounts a on a.id = t.account_id
      left join accounts ta on ta.id = t.to_account_id
      left join categories cat on cat.id = t.category_id
+     left join subcategories sub on sub.id = t.subcategory_id
      where t.id = $id`,
     { $id: id },
   );

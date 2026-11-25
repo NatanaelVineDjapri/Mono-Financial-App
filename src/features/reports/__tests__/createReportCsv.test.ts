@@ -85,11 +85,11 @@ describe('createTransactionsCsv', () => {
     expect(io.shared).toEqual(['file:///cache/mono-transactions-2026-10-01-to-2026-10-31.csv']);
 
     const lines = io.written[0].content.split('\r\n');
-    expect(lines[0]).toBe('Date,Type,Category,Account,Description,Amount,Currency,Amount (IDR),To account,To amount,To currency,Note');
+    expect(lines[0]).toBe('Date,Type,Category,Sub-category,Account,Description,Amount,Currency,Amount (IDR),To account,To amount,To currency,Note');
     // A description with a comma and quotes survives RFC 4180 escaping.
-    expect(lines.find(line => line.includes('Makan'))).toBe('2026-10-20,expense,Food & drink,BCA,"Makan, ""enak""",1425000,IDR,1425000,,,,');
+    expect(lines.find(line => line.includes('Makan'))).toBe('2026-10-20,expense,Food & drink,,BCA,"Makan, ""enak""",1425000,IDR,1425000,,,,');
     // A transfer names its destination account.
-    expect(lines.find(line => line.startsWith('2026-10-27'))).toBe('2026-10-27,transfer,,BCA,,200000,IDR,200000,Cash,200000,IDR,');
+    expect(lines.find(line => line.startsWith('2026-10-27'))).toBe('2026-10-27,transfer,,,BCA,,200000,IDR,200000,Cash,200000,IDR,');
   });
 
   test('only records inside the given dates are exported', async () => {

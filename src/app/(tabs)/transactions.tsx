@@ -17,6 +17,7 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { Segmented, type SegmentedOption } from '@/components/Segmented';
 import { useTabBarVisibility } from '@/components/tab-bar-visibility-store';
 import { useTabBarClearance } from '@/components/TabBar';
+import { categoryWithSub } from '@/core/categoryLabel';
 import { formatDayHeader, formatShortDate } from '@/core/date';
 import { money, rp, shown } from '@/core/money';
 import { activeTransactionFilterCount } from '@/domain/transactionFilters';
@@ -130,7 +131,7 @@ function txTitle(row: TxListRow): string {
 // view) would need its own date back in the subtitle — this one is always grouped.
 function txSubtitle(row: TxListRow): string {
   if (row.kind === 'transfer') return `${row.account_name} → ${row.to_account_name ?? ''}`;
-  return `${row.category_name ?? ''} · ${row.account_name}`;
+  return `${categoryWithSub(row.category_name ?? '', row.subcategory_name)} · ${row.account_name}`;
 }
 
 // Generic by kind, not yet per-category (no icon library reference for the 14 category

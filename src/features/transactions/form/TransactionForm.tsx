@@ -73,7 +73,7 @@ import { MonoText } from '@/theme/typography';
 
 import { exchangeSummary } from '@/features/valas/rates';
 import { BalanceAfterLine, BudgetNote, CurrencyAmountCard, ExchangeSummaryCard, LiveValueLine, PocketChips } from '@/features/valas/txParts';
-import { AccountField, AmountCard, CategoryRow, DateRow, ErrorLine, TextBox, TransferAccounts, type ErrorView } from './formParts';
+import { AccountField, AmountCard, CategoryRow, DateRow, ErrorLine, SubcategoryRow, TextBox, TransferAccounts, type ErrorView } from './formParts';
 import { AccountSheet, CategorySheet, DateSheet, type AccountSheetRole } from './formSheets';
 
 const QUICK_ADDS = [10000, 50000, 100000];
@@ -141,6 +141,7 @@ function initialValues(mode: 'add' | 'edit' | 'draft', data: TxFormData, today: 
       type: r.type,
       amount: r.amount,
       categoryId: r.categoryId,
+      subcategoryId: r.subcategoryId ?? null,
       accountId: r.accountId,
       toAccountId: r.toAccountId,
       currency: r.currency,
@@ -229,8 +230,8 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   }, [sheet]);
 
   const errors = useMemo(
-    () => validateTx(values, { today, accounts: data.accounts, categories: data.categories, allowForex, pockets: data.pockets, rates: data.rates }),
-    [values, today, data.accounts, data.categories, data.pockets, data.rates, allowForex],
+    () => validateTx(values, { today, accounts: data.accounts, categories: data.categories, subcategories: data.subcategories, allowForex, pockets: data.pockets, rates: data.rates }),
+    [values, today, data.accounts, data.categories, data.subcategories, data.pockets, data.rates, allowForex],
   );
   const visible = useMemo(() => visibleErrors(errors, touched, submitted), [errors, touched, submitted]);
 
@@ -238,6 +239,11 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const toAccount = data.accounts.find(a => a.id === values.toAccountId);
   const isTransfer = values.type === 'transfer';
   const kindCategories = useMemo(() => data.categories.filter(c => c.kind === values.type), [data.categories, values.type]);
+  // The sub-categories of the chosen category (none for a transfer): the optional second step under the category.
+  const categorySubs = useMemo(
+    () => (isTransfer || values.categoryId == null ? [] : (data.subcategories ?? []).filter(s => s.categoryId === values.categoryId)),
+    [data.subcategories, isTransfer, values.categoryId],
+  );
 
   // Valas: the pocket each side uses, the currency it is in, and what the typed amount is worth.
   const accountPockets = useMemo(() => pocketsOfAccount(data.pockets, values.accountId), [data.pockets, values.accountId]);
@@ -281,7 +287,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const switchToTransferInto = useCallback(
     (accountId: number) => {
       const other = data.accounts.find(a => a.type !== 'forex' && a.id !== accountId);
-      setValues(v => ({ ...v, type: 'transfer', categoryId: null, accountId: other?.id ?? null, toAccountId: accountId }));
+      setValues(v => ({ ...v, type: 'transfer', categoryId: null, subcategoryId: null, accountId: other?.id ?? null, toAccountId: accountId }));
       setTouched(new Set());
       setSubmitted(false);
       setServerError(null);
@@ -307,7 +313,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const changeType = (next: TxType) => {
     if (next === values.type) return;
     // The amount, date and description stay; a category belongs to its kind, so it goes.
-    setValues(v => ({ ...v, type: next, categoryId: null }));
+    setValues(v => ({ ...v, type: next, categoryId: null, subcategoryId: null }));
     setTouched(t => {
       const n = new Set(t);
       n.delete('category');
@@ -420,13 +426,15 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
             categories={kindCategories}
             selectedId={values.categoryId}
             onSelect={id => {
-              set({ categoryId: id });
+              set({ categoryId: id, subcategoryId: id === values.categoryId ? values.subcategoryId : null });
               touch('category');
             }}
             onMore={() => setSheet('category')}
             error={errorView('category')}
           />
         )}
+
+        {categorySubs.length > 0 && <SubcategoryRow subcategories={categorySubs} selectedId={values.subcategoryId ?? null} onSelect={id => set({ subcategoryId: id })} />}
 
         {isTransfer ? (
           <TransferAccounts
@@ -580,7 +588,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
         categories={kindCategories}
         selectedId={values.categoryId}
         onSelect={id => {
-          set({ categoryId: id });
+          set({ categoryId: id, subcategoryId: id === values.categoryId ? values.subcategoryId : null });
           touch('category');
           setSheet(null);
         }}

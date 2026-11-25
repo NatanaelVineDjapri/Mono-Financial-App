@@ -4718,3 +4718,81 @@ export function importStatsLine(read: number, queued: number, droppedText: strin
   const base = `Dibaca ${read} · masuk antrean ${queued}`;
   return droppedText ? `${base} · dibuang: ${droppedText}` : base;
 }
+
+// Sub-kategori (label opsional di dalam kategori).
+export function subcategoryLabel(): string {
+  return 'Sub-kategori · opsional';
+}
+
+export function subcategoryNone(): string {
+  return 'Tanpa';
+}
+
+// Mengelola sub-kategori (layar ubah kategori).
+export function catSubTitle(): string {
+  return 'Sub-kategori · opsional';
+}
+
+export function catSubHelp(): string {
+  return 'Pecah kategori ini jadi label yang lebih kecil, misalnya Sendiri dan Berdua. Tiap transaksi boleh memilih satu, atau tidak sama sekali.';
+}
+
+export function catSubEmpty(): string {
+  return 'Belum ada sub-kategori.';
+}
+
+export function catSubAddPlaceholder(): string {
+  return 'Sub-kategori baru, mis. Sendiri';
+}
+
+export function catSubAdd(): string {
+  return 'Tambah';
+}
+
+export function catSubUses(count: number): string {
+  return `${count} transaksi`;
+}
+
+export function catSubArchivedTag(): string {
+  return 'Diarsipkan';
+}
+
+export function catSubSaveName(): string {
+  return 'Simpan nama';
+}
+
+export function catSubArchive(): string {
+  return 'Arsipkan';
+}
+
+export function catSubRestore(): string {
+  return 'Pulihkan';
+}
+
+export function catSubDelete(): string {
+  return 'Hapus';
+}
+
+export function catSubErrorEmpty(): string {
+  return 'Isi namanya dulu.';
+}
+
+export function catSubErrorTooLong(max: number): string {
+  return `Maksimal ${max} karakter.`;
+}
+
+export function catSubErrorTaken(): string {
+  return 'Kategori ini sudah punya sub-kategori dengan nama itu.';
+}
+
+export function catSubErrorTakenArchived(): string {
+  return 'Ada sub-kategori yang diarsipkan dengan nama itu. Pulihkan, atau pakai nama lain.';
+}
+
+export function catSubErrorInUse(count: number): string {
+  return `${count} transaksi memakainya, jadi hanya bisa diarsipkan.`;
+}
+
+export function catSubErrorGone(): string {
+  return 'Sub-kategori itu sudah tidak ada.';
+}

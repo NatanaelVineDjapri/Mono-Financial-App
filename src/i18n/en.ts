@@ -4721,3 +4721,81 @@ export function importStatsLine(read: number, queued: number, droppedText: strin
   const base = `Read ${read} · queued ${queued}`;
   return droppedText ? `${base} · dropped: ${droppedText}` : base;
 }
+
+// Sub-categories (optional labels inside a category).
+export function subcategoryLabel(): string {
+  return 'Sub-category · optional';
+}
+
+export function subcategoryNone(): string {
+  return 'None';
+}
+
+// Managing sub-categories (the category edit screen).
+export function catSubTitle(): string {
+  return 'Sub-categories · optional';
+}
+
+export function catSubHelp(): string {
+  return 'Split this category into smaller labels, like Alone and Together. Each transaction can pick one, or none.';
+}
+
+export function catSubEmpty(): string {
+  return 'No sub-categories yet.';
+}
+
+export function catSubAddPlaceholder(): string {
+  return 'New sub-category, e.g. Alone';
+}
+
+export function catSubAdd(): string {
+  return 'Add';
+}
+
+export function catSubUses(count: number): string {
+  return count === 1 ? '1 transaction' : `${count} transactions`;
+}
+
+export function catSubArchivedTag(): string {
+  return 'Archived';
+}
+
+export function catSubSaveName(): string {
+  return 'Save name';
+}
+
+export function catSubArchive(): string {
+  return 'Archive';
+}
+
+export function catSubRestore(): string {
+  return 'Restore';
+}
+
+export function catSubDelete(): string {
+  return 'Delete';
+}
+
+export function catSubErrorEmpty(): string {
+  return 'Enter a name.';
+}
+
+export function catSubErrorTooLong(max: number): string {
+  return `Use at most ${max} characters.`;
+}
+
+export function catSubErrorTaken(): string {
+  return 'This category already has a sub-category with that name.';
+}
+
+export function catSubErrorTakenArchived(): string {
+  return 'An archived sub-category has that name. Restore it, or pick another name.';
+}
+
+export function catSubErrorInUse(count: number): string {
+  return count === 1 ? '1 transaction uses it, so it can only be archived.' : `${count} transactions use it, so it can only be archived.`;
+}
+
+export function catSubErrorGone(): string {
+  return 'That sub-category is gone.';
+}

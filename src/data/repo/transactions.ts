@@ -193,6 +193,7 @@ const TX_JOIN = `
   join accounts a on a.id = t.account_id
   left join accounts ta on ta.id = t.to_account_id
   left join categories c on c.id = t.category_id
+  left join subcategories sc on sc.id = t.subcategory_id
   join currencies cur on cur.code = t.currency
 `;
 
@@ -281,6 +282,7 @@ export interface TxListRow {
   to_currency: string | null;
   category_id: number | null;
   category_name: string | null;
+  subcategory_name?: string | null; // the optional label inside the category
   account_id: number;
   account_name: string;
   to_account_id: number | null;
@@ -292,7 +294,7 @@ async function listTransactionsWithFilter(db: Db, filter: TxListFilter): Promise
   const where = buildTxFilterSql(filter, params);
   return db.getAllAsync<TxListRow>(
     `select t.id, t.kind, t.occurred_on, t.description, t.note, t.amount, t.amount_idr, t.currency,
-            cur.minor_factor, t.amount_to, t.to_currency, t.category_id, c.name as category_name,
+            cur.minor_factor, t.amount_to, t.to_currency, t.category_id, c.name as category_name, sc.name as subcategory_name,
             t.account_id, a.name as account_name, t.to_account_id, ta.name as to_account_name
      ${TX_JOIN}
      where ${where}

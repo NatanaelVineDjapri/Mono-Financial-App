@@ -98,6 +98,7 @@ export interface ReportTransactionRow {
   amount_idr: number;
   currency: string;
   category_name: string | null;
+  subcategory_name: string | null;
   account_name: string;
   to_account_name: string | null;
   amount_to: number | null;
@@ -107,10 +108,11 @@ export interface ReportTransactionRow {
 export async function listTransactionsForRange(db: Db, fromDate: string, toDate: string): Promise<ReportTransactionRow[]> {
   return db.getAllAsync<ReportTransactionRow>(
     `select t.id, t.kind, t.occurred_on, t.description, t.note, t.amount, t.amount_idr, t.currency,
-            c.name as category_name, a.name as account_name, ta.name as to_account_name,
+            c.name as category_name, sc.name as subcategory_name, a.name as account_name, ta.name as to_account_name,
             t.amount_to, t.to_currency
      from transactions t
      left join categories c on c.id = t.category_id
+     left join subcategories sc on sc.id = t.subcategory_id
      join accounts a on a.id = t.account_id
      left join accounts ta on ta.id = t.to_account_id
      where t.occurred_on between $from and $to

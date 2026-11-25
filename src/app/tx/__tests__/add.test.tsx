@@ -371,7 +371,7 @@ describe('saving', () => {
     const { result, onSubmit } = await filledExpense();
     await fireEvent.press(result.getByRole('button', { name: 'Save expense' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 125000, categoryId: FOOD, accountId: 1, toAccountId: null, date: TODAY, description: 'Lunch with team', note: 'Makan siang' });
+    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 125000, categoryId: FOOD, subcategoryId: null, accountId: 1, toAccountId: null, date: TODAY, description: 'Lunch with team', note: 'Makan siang' });
   });
 
   test('Save is off while it saves, so a second tap cannot save twice', async () => {
@@ -454,6 +454,6 @@ describe('edit mode', () => {
     const result = await view;
     await typeAmount(result, '200000');
     await fireEvent.press(result.getByRole('button', { name: 'Save changes' }));
-    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 200000, categoryId: FOOD, accountId: 1, toAccountId: null, date: '2026-10-27', description: 'Lunch with team', note: 'Makan siang', currency: 'IDR', amountTo: null });
+    expect(onSubmit).toHaveBeenCalledWith({ type: 'expense', amount: 200000, categoryId: FOOD, subcategoryId: null, accountId: 1, toAccountId: null, date: '2026-10-27', description: 'Lunch with team', note: 'Makan siang', currency: 'IDR', amountTo: null });
   });
 });

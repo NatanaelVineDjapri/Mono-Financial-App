@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb, openTestDb } from '../../data/db/openTestDb';
 import { getMonthlyLimit, listBudgets } from '../../data/repo/budgets';
 import { listCategories } from '../../data/repo/categories';
 import {
@@ -29,7 +29,7 @@ const BILLS = 4;
 const HOUSING = 7;
 
 async function sampleDb() {
-  const db = openTestDb();
+  const db = await openMigratedTestDb();
   await db.execAsync(SAMPLE_SQL);
   return db;
 }
@@ -234,7 +234,7 @@ describe('saveBudget and setMonthlyLimit', () => {
   test('the form context lists only expense categories without a budget, and finds the edited one', async () => {
     const db = await sampleDb();
     const context = await getBudgetFormContext(db, '2026-10', SHOPPING);
-    expect(context.availableCategories.map(c => c.name)).toEqual(['Housing', 'Education', 'Gifts', 'Other']);
+    expect(context.availableCategories.map(c => c.name)).toEqual(['Housing', 'Education', 'Gifts', 'Other', 'Penyesuaian saldo']); // the last is the system category from migration v12
     expect(context.editing).toMatchObject({ category_id: SHOPPING, limit_amount: 700000 });
     expect(context.monthlyLimit).toEqual({ amount: 5000000, repeat: true });
   });

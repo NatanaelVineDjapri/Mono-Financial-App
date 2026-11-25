@@ -49,11 +49,12 @@ export async function createTransactionsCsv(
   try {
     const rows = await repo.listTransactionsForRange(db, input.start, input.end);
     const body = buildCsv([
-      ['Date', 'Type', 'Category', 'Account', 'Description', 'Amount', 'Currency', 'Amount (IDR)', 'To account', 'To amount', 'To currency', 'Note'],
+      ['Date', 'Type', 'Category', 'Sub-category', 'Account', 'Description', 'Amount', 'Currency', 'Amount (IDR)', 'To account', 'To amount', 'To currency', 'Note'],
       ...rows.map(row => [
         row.occurred_on,
         row.kind,
         row.category_name,
+        row.subcategory_name,
         row.account_name,
         row.description,
         row.amount,

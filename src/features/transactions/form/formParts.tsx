@@ -14,7 +14,7 @@ import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { rp, shown } from '@/core/money';
-import type { FormAccount, FormCategory } from '@/core/tx/validate';
+import type { FormAccount, FormCategory, FormSubcategory } from '@/core/tx/validate';
 import {
   amountAccessibilityLabel,
   amountFieldLabel,
@@ -33,6 +33,8 @@ import {
   toLabel,
   transferInfoBanner,
   yesterdayLabel,
+  subcategoryLabel,
+  subcategoryNone,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -196,6 +198,35 @@ export function CategoryRow({ categories, selectedId, onSelect, onMore, error }:
         {categories.length > CHIPS_BEFORE_MORE && <Chip label={moreCategoriesLabel()} selected={false} onPress={onMore} testID="tx-category-more" />}
       </ScrollView>
       {!!error && <ErrorLine error={error} testID="tx-category-error" />}
+    </View>
+  );
+}
+
+// The optional sub-category of the chosen category: "None" (the default) and one chip per sub-category. Shown only when the category
+// has any; tapping the chosen one again goes back to none.
+export interface SubcategoryRowProps {
+  subcategories: FormSubcategory[]; // of the chosen category
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+}
+
+export function SubcategoryRow({ subcategories, selectedId, onSelect }: SubcategoryRowProps) {
+  if (subcategories.length === 0) return null;
+  return (
+    <View testID="tx-subcategory-row">
+      <FieldLabel>{subcategoryLabel()}</FieldLabel>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow} accessibilityRole="radiogroup">
+        <Chip label={subcategoryNone()} selected={selectedId == null} onPress={() => onSelect(null)} testID="tx-subcategory-none" />
+        {subcategories.map(sub => (
+          <Chip
+            key={sub.id}
+            label={sub.name}
+            selected={sub.id === selectedId}
+            onPress={() => onSelect(sub.id === selectedId ? null : sub.id)}
+            testID={`tx-subcategory-${sub.id}`}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 }

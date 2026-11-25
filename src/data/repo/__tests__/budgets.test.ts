@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { openTestDb } from '../../db/openTestDb';
+import { openMigratedTestDb, openTestDb } from '../../db/openTestDb';
 import {
     createBudget,
     deleteMonthlyLimit,
@@ -65,7 +65,7 @@ describe('Budgets screen queries (Fase 4.4)', () => {
   const SAMPLE_SQL = fs.readFileSync(path.join(__dirname, '../../../../tools/sample_data.sql'), 'utf8');
 
   async function sampleDb() {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     await db.execAsync(SAMPLE_SQL);
     return db;
   }
@@ -103,7 +103,7 @@ describe('Budgets screen queries (Fase 4.4)', () => {
   test('getCategoryBudgetDetail reads one category: budget row, spend, month allocation, expenses', async () => {
     const db = await sampleDb();
     const detail = await getCategoryBudgetDetail(db, 4, '2026-10'); // Bills
-    expect(detail.category).toEqual({ id: 4, name: 'Bills', kind: 'expense', icon: null });
+    expect(detail.category).toEqual({ id: 4, name: 'Bills', kind: 'expense', icon: 'bolt' });
     expect(detail.budget).toMatchObject({ limit_amount: 1200000, spent: 1150000, remaining: 50000, over_by: 0, used_bp: 9583 });
     expect(detail.spent).toBe(1150000);
     expect(detail.monthlyLimit).toBe(5000000);
@@ -113,6 +113,6 @@ describe('Budgets screen queries (Fase 4.4)', () => {
 
   test('listCategoriesWithoutBudget leaves out budgeted and income categories', async () => {
     const db = await sampleDb();
-    expect((await listCategoriesWithoutBudget(db, '2026-10')).map(c => c.name)).toEqual(['Housing', 'Education', 'Gifts', 'Other']);
+    expect((await listCategoriesWithoutBudget(db, '2026-10')).map(c => c.name)).toEqual(['Housing', 'Education', 'Gifts', 'Other', 'Penyesuaian saldo']); // the last is the system category from migration v12
   });
 });

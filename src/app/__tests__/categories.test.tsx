@@ -15,6 +15,11 @@ import CategoriesScreen from '../categories';
 import CategoryEditScreen from '../category/edit';
 
 jest.mock('@/features/categories/useCategories');
+// The sub-categories section has its own tests (features/categories/__tests__/SubcategoriesSection): here it is an empty list.
+jest.mock('@/features/categories/useSubcategories', () => ({
+  useSubcategories: () => ({ data: [] }),
+  useSubcategoryActions: () => ({ create: jest.fn(), rename: jest.fn(), archive: jest.fn(), restore: jest.fn(), remove: jest.fn() }),
+}));
 const mockOverview = useCategoryOverview as jest.MockedFunction<typeof useCategoryOverview>;
 const mockArchived = useArchivedCategories as jest.MockedFunction<typeof useArchivedCategories>;
 const mockFormData = useCategoryFormData as jest.MockedFunction<typeof useCategoryFormData>;

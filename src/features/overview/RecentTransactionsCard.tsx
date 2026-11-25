@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { categoryWithSub } from '@/core/categoryLabel';
 import { money, rp, shown } from '@/core/money';
 import type { TxListRow } from '@/data/repo/transactions';
 import { recentTransactionsLabel, seeAllLabel, txKindLabel, txRowAccessibilityLabel } from '@/i18n';
@@ -21,7 +22,7 @@ function txTitle(row: TxListRow): string {
 
 function txSubtitle(row: TxListRow): string {
   if (row.kind === 'transfer') return `${row.account_name} → ${row.to_account_name ?? ''}`;
-  return `${row.category_name ?? ''} · ${row.account_name}`;
+  return `${categoryWithSub(row.category_name ?? '', row.subcategory_name)} · ${row.account_name}`;
 }
 
 function TxRow({ row, hidden, onPress }: { row: TxListRow; hidden: boolean; onPress: () => void }) {

@@ -19,6 +19,7 @@ import { CategoryIcon } from '@/features/categories/CategoryIcon';
 import { categoryErrorText } from '@/features/categories/errorText';
 import { CATEGORY_ICON_KEYS, DEFAULT_NEW_CATEGORY_ICON, resolveCategoryIcon } from '@/features/categories/icons';
 import { CATEGORY_NAME_MAX, checkCategoryName, type CategoryError } from '@/features/categories/rules';
+import { SubcategoriesSection } from '@/features/categories/SubcategoriesSection';
 import { useCategoryActions, useCategoryFormData } from '@/features/categories/useCategories';
 import {
   cancelLabel,
@@ -275,6 +276,9 @@ function CategoryForm({ id, data }: { id: number | undefined; data: FormData }) 
             </View>
           )
         )}
+
+        {/* The optional labels inside this category. Only for one that exists: a new category has nothing to attach them to yet. */}
+        {!isNew && <SubcategoriesSection categoryId={id as number} />}
 
         {!isNew && (
           <Pressable

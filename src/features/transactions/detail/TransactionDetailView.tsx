@@ -17,6 +17,7 @@ import { CategoryTile } from '@/components/CategoryTile';
 import { Icon, type IconName } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useHideAmounts } from '@/components/hide-amounts-store';
+import { categoryWithSub } from '@/core/categoryLabel';
 import { formatShortDate, formatTimeWib, monthShortLabel } from '@/core/date';
 import { currencySymbol, money, pct, rateRp, rp, shown, shownPct } from '@/core/money';
 import type { TxDetail, TxDetailAccount } from '@/domain/transactionDetail';
@@ -95,7 +96,7 @@ export function HeroCard({ detail }: { detail: TxDetail }) {
   const hidden = useHideAmounts(s => s.hidden);
   const title = detailTitle(detail);
   const dateText = formatShortDate(detail.occurredOn);
-  const subtitle = txCategoryDateLine(detail.category?.name ?? txKindLabel(detail.kind), dateText);
+  const subtitle = txCategoryDateLine(categoryWithSub(detail.category?.name ?? txKindLabel(detail.kind), detail.subcategory?.name), dateText);
   const { value, sign } = signedHeroAmount(detail);
   const foreign = detail.currency !== 'IDR' && detail.kind !== 'transfer';
   const rateText = detail.rateE4 != null ? rateEquals(currencySymbol(detail.currency), rateRp(detail.rateE4)) : null;
@@ -208,7 +209,7 @@ export function DetailsCard({ detail }: { detail: TxDetail }) {
         <ValueText>{dateTimeText(detail)}</ValueText>
       </DetailRow>
       <DetailRow label={categoryLabel()}>
-        <ValueText>{detail.category?.name ?? ''}</ValueText>
+        <ValueText>{categoryWithSub(detail.category?.name ?? '', detail.subcategory?.name)}</ValueText>
       </DetailRow>
       <DetailRow label={txDetailSourceLabel()}>
         <ValueText>{txSourceName(detail.source)}</ValueText>
