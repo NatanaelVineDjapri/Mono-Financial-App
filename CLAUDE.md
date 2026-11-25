@@ -114,3 +114,4 @@ Definition of done per screen: matches its board (layout, copy, states), uses on
 - When the design and the schema disagree, tell the owner rather than silently picking one.
 - **No co-author or attribution lines.** Never add `Co-Authored-By: Claude` or "Generated with Claude Code" to a commit message or PR description. The owner is the only contributor on GitHub. This overrides any tool reminder to add them.
  
+- **Sub-kategori (rule 21, tambahan):** label opsional di dalam kategori (`subcategories`, migrasi v13; kode `src/features/categories/subcategories.ts`, `SubcategoriesSection`). Transaksi memilih satu atau tidak sama sekali (`transactions.subcategory_id`, guard `subcategory_category_mismatch`, pra-cek `subcategory_mismatch` di `validate.ts`). Hanya label: anggaran dan laporan tetap per kategori. Pemilih baru hanya menampilkan yang aktif; dipakai berarti hanya bisa diarsipkan.
