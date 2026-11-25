@@ -24,7 +24,7 @@ const PROMO = /\b(promo|diskon|voucher|hemat|dapatkan|gratis|undian|hadiah|ikuti
 
 const EXPENSE = [
   'pembayaran', 'membayar', 'dibayar', 'bayar', 'pembelian', 'membeli', 'belanja', 'debit', 'penarikan', 'tarik tunai',
-  'transfer keluar', 'transfer ke', 'dikirim', 'mengirim', 'kirim uang', 'payment', 'purchase', 'paid', 'spent', 'withdrawal',
+  'transfer keluar', 'transfer ke', 'transfer dana ke', 'dikirim', 'mengirim', 'kirim uang', 'qris', 'kartu debit', 'payment', 'purchase', 'paid', 'spent', 'withdrawal',
 ];
 const INCOME = [
   'menerima', 'diterima', 'dana masuk', 'uang masuk', 'transfer masuk', 'transfer dari', 'kredit', 'gaji', 'received',
@@ -32,6 +32,9 @@ const INCOME = [
 ];
 // Money moved, but whether it is income or expense depends on the account: the person chooses.
 const AMBIGUOUS = ['top up', 'topup', 'isi saldo', 'transfer berhasil', 'transaksi berhasil'];
+// "Transfer" on its own (a bank's "Transfer Dana Berhasil Rp...") says money moved but not which way. It only counts when no clearer
+// word is there ("transfer ke Budi" is still an expense), so it never turns a clear direction into "choose".
+const WEAK_MONEY_WORDS = ['transfer'];
 
 function containsAny(haystack: string, words: readonly string[]): boolean {
   return words.some(w => new RegExp(`(?:^|[^a-z])${w.replace(/ /g, '\\s+')}(?:[^a-z]|$)`, 'i').test(haystack));
@@ -95,23 +98,35 @@ function findMerchant(text: string, kind: ParsedNotification['kind']): string {
   return '';
 }
 
-export function parseGeneric(title: string | null, text: string | null): ParsedNotification | null {
+// Why a notification was thrown away: only these codes are ever kept (counted per app, so the person can see why an app's
+// notifications do not turn into transactions); the text itself is never kept.
+export type DropReason = 'empty' | 'security' | 'reminder' | 'no_amount' | 'no_money_word' | 'promo';
+
+export type GenericOutcome = { parsed: ParsedNotification; dropped?: undefined } | { parsed: null; dropped: DropReason };
+
+export function explainGeneric(title: string | null, text: string | null): GenericOutcome {
   const original = [title, text].filter((part): part is string => !!part && part.trim().length > 0).join(' \n ');
-  if (!original) return null;
+  if (!original) return { parsed: null, dropped: 'empty' };
   const lower = original.toLowerCase();
 
-  if (SECURITY.test(lower) || REMINDER.test(lower)) return null;
+  if (SECURITY.test(lower)) return { parsed: null, dropped: 'security' };
+  if (REMINDER.test(lower)) return { parsed: null, dropped: 'reminder' };
 
   const amountIdr = findAmount(original);
-  if (amountIdr === null) return null;
+  if (amountIdr === null) return { parsed: null, dropped: 'no_amount' };
 
   const expense = containsAny(lower, EXPENSE);
   const income = containsAny(lower, INCOME);
   const ambiguous = containsAny(lower, AMBIGUOUS);
   // No word for money moving: not a transaction. A promotion is dropped unless something clearly moved.
-  if (!expense && !income && !ambiguous) return null;
-  if (PROMO.test(lower) && !expense && !income) return null;
+  const weak = containsAny(lower, WEAK_MONEY_WORDS);
+  if (!expense && !income && !ambiguous && !weak) return { parsed: null, dropped: 'no_money_word' };
+  if (PROMO.test(lower) && !expense && !income) return { parsed: null, dropped: 'promo' };
 
   const kind: ParsedNotification['kind'] = expense && !income && !ambiguous ? 'expense' : income && !expense && !ambiguous ? 'income' : null;
-  return { kind, amountIdr, merchant: findMerchant(original, kind) };
+  return { parsed: { kind, amountIdr, merchant: findMerchant(original, kind) } };
+}
+
+export function parseGeneric(title: string | null, text: string | null): ParsedNotification | null {
+  return explainGeneric(title, text).parsed;
 }

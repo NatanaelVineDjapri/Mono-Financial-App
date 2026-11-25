@@ -21,6 +21,7 @@ import { MonoSwitch } from '@/components/MonoSwitch';
 import { formatDateTime } from '@/core/date';
 import { isoFromMillis } from '@/core/clock';
 import type { ImportAppRow } from '@/data/repo/importApps';
+import type { AppImportStats, ImportStats } from '@/data/repo/importStats';
 import { ErrorLine } from '@/features/transactions/form/formParts';
 import {
   backLabel,
@@ -39,7 +40,9 @@ import {
   importFullEmpty,
   importFullGroup,
   importIntro,
+  importDropReason,
   importLastRead,
+  importStatsLine,
   importNativeMissing,
   importNeverRead,
   importNotifDesc,
@@ -74,6 +77,7 @@ import { importProblems, importSetupState, type AccessSnapshot } from './notific
 export interface ImportScreenViewProps {
   access: AccessSnapshot;
   apps: readonly ImportAppRow[];
+  stats?: ImportStats;
   pending: number;
   accountNames: ReadonlyMap<number, string>;
   message: string | null; // why the last change was refused
@@ -206,7 +210,7 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
       ) : (
         <View style={styles.card} testID="import-full-list">
           {full.map((app, index) => (
-            <AppRow key={app.package} app={app} first={index === 0} accountNames={accountNames} onToggle={props.onToggle} onPickAccount={props.onPickAccount} />
+            <AppRow key={app.package} app={app} first={index === 0} accountNames={accountNames} stats={props.stats?.[app.package]} onToggle={props.onToggle} onPickAccount={props.onPickAccount} />
           ))}
         </View>
       )}
@@ -220,7 +224,7 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
         <>
           <View style={styles.card} testID="import-detected-list">
             {generic.map((app, index) => (
-              <AppRow key={app.package} app={app} first={index === 0} accountNames={accountNames} onToggle={props.onToggle} onPickAccount={props.onPickAccount} />
+              <AppRow key={app.package} app={app} first={index === 0} accountNames={accountNames} stats={props.stats?.[app.package]} onToggle={props.onToggle} onPickAccount={props.onPickAccount} />
             ))}
           </View>
           <Text style={styles.helpText}>{importDetectedHelp()}</Text>
@@ -264,16 +268,30 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
 
 // ---------------------------------------------------------------- parts
 
+// "Read 5 · queued 1 · dropped: no Rp amount 4": counts only, so the person can see why an app's notifications do not turn into
+// transactions. Empty until the app has had a notification read.
+export function statsLine(stats: AppImportStats | undefined): string {
+  if (!stats || stats.read === 0) return '';
+  const reasons: (keyof AppImportStats)[] = ['no_amount', 'no_money_word', 'promo', 'reminder', 'security', 'empty', 'duplicate', 'no_account'];
+  const dropped = reasons
+    .filter(reason => stats[reason] > 0)
+    .map(reason => `${importDropReason(reason)} ${stats[reason]}`)
+    .join(', ');
+  return importStatsLine(stats.read, stats.queued, dropped);
+}
+
 function AppRow({
   app,
   first,
   accountNames,
+  stats,
   onToggle,
   onPickAccount,
 }: {
   app: ImportAppRow;
   first: boolean;
   accountNames: ReadonlyMap<number, string>;
+  stats?: AppImportStats;
   onToggle: (app: ImportAppRow, on: boolean) => void;
   onPickAccount: (app: ImportAppRow) => void;
 }) {
@@ -296,6 +314,11 @@ function AppRow({
         <View style={styles.flex}>
           <Text style={styles.rowTitle}>{app.app_name}</Text>
           <Text style={styles.caption}>{sub}</Text>
+          {!!statsLine(stats) && (
+            <Text style={styles.caption} testID={`import-app-stats-${app.package}`}>
+              {statsLine(stats)}
+            </Text>
+          )}
         </View>
       </Pressable>
       <MonoSwitch value={on} onValueChange={next => onToggle(app, next)} label={importAppSwitchLabel(app.app_name, on)} testID={`import-app-switch-${app.package}`} />

@@ -118,3 +118,18 @@ describe('parseNotification', () => {
     expect(parseNotification('com.example.wallet', 'Promo', 'Diskon besar Rp10.000')).toBeNull();
   });
 });
+
+describe('a bank saying only "transfer"', () => {
+  test('"Transfer Dana Berhasil Rp100.000" is read as money that moved, direction left for the person to choose', () => {
+    expect(parseGeneric('Transfer Dana Berhasil', 'Nominal Rp100.000')).toMatchObject({ kind: null, amountIdr: 100000 });
+  });
+
+  test('"transfer dana ke Budi Rp100.000" is an expense', () => {
+    expect(parseGeneric('Info', 'Transfer dana ke Budi Rp100.000')).toMatchObject({ kind: 'expense', amountIdr: 100000 });
+  });
+
+  test('a QRIS payment is an expense', () => {
+    expect(parseGeneric('QRIS', 'Pembayaran QRIS Rp25.000 di Kopi Kenangan')).toMatchObject({ kind: 'expense', amountIdr: 25000 });
+  });
+});
+

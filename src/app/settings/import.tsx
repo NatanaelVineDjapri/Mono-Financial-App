@@ -54,6 +54,7 @@ export default function ImportSettingsRoute() {
       <ImportScreenView
         access={access}
         apps={data.apps}
+        stats={data.stats}
         pending={data.pending}
         accountNames={accountNames}
         message={message}

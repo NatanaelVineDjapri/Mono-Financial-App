@@ -1456,3 +1456,5 @@ export const nfcUnlinkConfirm = pick(en.nfcUnlinkConfirm, id.nfcUnlinkConfirm);
 export const nfcUnlinked = pick(en.nfcUnlinked, id.nfcUnlinked);
 export const nfcLinkedCardRow = pick(en.nfcLinkedCardRow, id.nfcLinkedCardRow);
 export const nfcLinkFailure = pick(en.nfcLinkFailure, id.nfcLinkFailure);
+export const importDropReason = pick(en.importDropReason, id.importDropReason);
+export const importStatsLine = pick(en.importStatsLine, id.importStatsLine);

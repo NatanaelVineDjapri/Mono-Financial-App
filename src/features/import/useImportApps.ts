@@ -7,6 +7,7 @@ import { useCallback } from 'react';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite, queryKeys } from '@/data/queryKeys';
 import { listImportApps, type ImportAppRow } from '@/data/repo/importApps';
+import { getImportStats, type ImportStats } from '@/data/repo/importStats';
 import { activateImportApp, deactivateImportApp, ImportAppError, pendingReviewCount, setImportAppAccount, type ImportAppErrorCode } from '@/domain/importApps';
 
 import { pushAllowlist } from './notifications/sync';
@@ -16,13 +17,14 @@ export const importAppsKey = [...queryKeys.settings, 'import-apps'] as const;
 export interface ImportAppsData {
   apps: ImportAppRow[];
   pending: number;
+  stats: ImportStats; // per app: how many notifications were read and what became of them (counts only)
 }
 
 export function useImportApps() {
   const db = useDb();
   return useQuery({
     queryKey: importAppsKey,
-    queryFn: async (): Promise<ImportAppsData> => ({ apps: await listImportApps(db), pending: await pendingReviewCount(db) }),
+    queryFn: async (): Promise<ImportAppsData> => ({ apps: await listImportApps(db), pending: await pendingReviewCount(db), stats: await getImportStats(db) }),
     staleTime: 0,
   });
 }

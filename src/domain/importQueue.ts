@@ -14,6 +14,7 @@ import { saveNewTransaction, type SaveOutcome } from '../core/tx/save';
 import { validateTx, type TxFormValues } from '../core/tx/validate';
 import type { Db } from '../data/db/types';
 import { getImportApp } from '../data/repo/importApps';
+import { recordImportOutcome } from '../data/repo/importStats';
 import {
   countPending,
   forgetMerchant,
@@ -30,7 +31,7 @@ import {
   type QueueRowWithNames,
 } from '../data/repo/importQueue';
 import { merchantKey, suggestCategory } from '../features/import/categorize';
-import { parseNotification } from '../features/import/parsers';
+import { explainNotification } from '../features/import/parsers';
 import { importItemGone, importNeedsKind, txFieldErrorMessage } from '../i18n';
 import { getTxFormData } from './txForm';
 
@@ -59,12 +60,20 @@ export async function enqueueNotification(db: Db, raw: IncomingNotification): Pr
 
   // The account must still be a live rupiah one (the Valas account is never written by the import, rule 19).
   const account = await db.getFirstAsync<{ type: string; archived: number }>('select type, archived from accounts where id = $id', { $id: app.account_id });
-  if (!account || account.archived === 1 || account.type === 'forex') return 'ignored';
+  if (!account || account.archived === 1 || account.type === 'forex') {
+    await recordImportOutcome(db, raw.package, 'no_account');
+    return 'ignored';
+  }
 
   // The longer of the two texts usually holds the whole message.
   const body = raw.bigText && raw.bigText.length >= (raw.text?.length ?? 0) ? raw.bigText : raw.text;
-  const parsed = parseNotification(raw.package, raw.title, body);
-  if (!parsed) return 'ignored';
+  const outcome = explainNotification(raw.package, raw.title, body);
+  if (!outcome.parsed) {
+    // Only the reason is counted, never the text: it lets the person see why an app's notifications do not become transactions.
+    await recordImportOutcome(db, raw.package, outcome.dropped);
+    return 'ignored';
+  }
+  const parsed = outcome.parsed;
 
   const data = await getTxFormData(db);
   const remembered = await getMerchantCategory(db, merchantKey(parsed.merchant));
@@ -85,6 +94,7 @@ export async function enqueueNotification(db: Db, raw: IncomingNotification): Pr
     fingerprint: fingerprintOf(raw.package, parsed.kind, parsed.amountIdr, parsed.merchant, raw.postedAt),
     createdAt: nowIso(),
   });
+  await recordImportOutcome(db, raw.package, added ? 'queued' : 'duplicate');
   return added ? 'added' : 'ignored';
 }
 

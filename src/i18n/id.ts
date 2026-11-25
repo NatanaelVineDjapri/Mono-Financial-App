@@ -4686,3 +4686,30 @@ export function nfcLinkFailure(reason: string): string {
       return couldNotSaveMessage();
   }
 }
+
+// What became of an app's notifications (counts only): "Dibaca 5 · masuk antrean 1 · dibuang 4: tanpa nominal 4".
+export function importDropReason(reason: string): string {
+  switch (reason) {
+    case 'security':
+      return 'kode keamanan';
+    case 'reminder':
+      return 'pengingat tagihan';
+    case 'no_amount':
+      return 'tanpa nominal Rp';
+    case 'no_money_word':
+      return 'tanpa kata transaksi';
+    case 'promo':
+      return 'promo';
+    case 'duplicate':
+      return 'kembar';
+    case 'no_account':
+      return 'akun tidak ada';
+    default:
+      return 'kosong';
+  }
+}
+
+export function importStatsLine(read: number, queued: number, droppedText: string): string {
+  const base = `Dibaca ${read} · masuk antrean ${queued}`;
+  return droppedText ? `${base} · dibuang: ${droppedText}` : base;
+}

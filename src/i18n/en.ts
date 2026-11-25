@@ -4689,3 +4689,30 @@ export function nfcLinkFailure(reason: string): string {
       return couldNotSaveMessage();
   }
 }
+
+// What became of an app's notifications (counts only): "Read 5 · queued 1 · dropped: no amount 4".
+export function importDropReason(reason: string): string {
+  switch (reason) {
+    case 'security':
+      return 'security code';
+    case 'reminder':
+      return 'bill reminder';
+    case 'no_amount':
+      return 'no Rp amount';
+    case 'no_money_word':
+      return 'no payment word';
+    case 'promo':
+      return 'promo';
+    case 'duplicate':
+      return 'duplicate';
+    case 'no_account':
+      return 'no account';
+    default:
+      return 'empty';
+  }
+}
+
+export function importStatsLine(read: number, queued: number, droppedText: string): string {
+  const base = `Read ${read} · queued ${queued}`;
+  return droppedText ? `${base} · dropped: ${droppedText}` : base;
+}
