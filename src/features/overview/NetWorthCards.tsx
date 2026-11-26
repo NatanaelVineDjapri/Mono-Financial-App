@@ -107,9 +107,8 @@ export function NetWorthHistoryCard({ history, goalTarget, onOpenSummary }: NetW
           {netWorthHistoryTitle()}
         </Text>
         {onOpenSummary && (
-          <Pressable onPress={onOpenSummary} accessibilityRole="link" accessibilityLabel={summaryOpen()} android_ripple={undefined} style={styles.summaryLink} testID="nw-history-summary-link">
-            <Text style={styles.summaryText}>{summaryOpen()}</Text>
-            <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
+          <Pressable onPress={onOpenSummary} accessibilityRole="button" accessibilityLabel={summaryOpen()} hitSlop={8} android_ripple={undefined} style={styles.summaryButton} testID="nw-history-summary-link">
+            <Icon name="trend" size={16} color={MonoColors.textMeta} />
           </Pressable>
         )}
       </View>
@@ -220,8 +219,17 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, rowGap: 4 },
   title: { ...MonoText.titleM, color: MonoColors.text },
   caption: { ...MonoText.caption, color: MonoColors.textMeta },
-  summaryLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44 },
-  summaryText: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  summaryButton: {
+    width: 32,
+    height: 32,
+    marginVertical: -4, // no taller than the title, so the card keeps its height
+    borderRadius: 16,
+    backgroundColor: MonoColors.surface,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   stack: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', gap: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
   rowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },

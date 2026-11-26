@@ -31,7 +31,7 @@ import {
   summaryOpen,
   type GreetingKind,
 } from '@/i18n';
-import { MonoColors, radius } from '@/theme/tokens';
+import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 import { CHIP_FILL_NEGATIVE, CHIP_FILL_POSITIVE } from './palette';
@@ -185,6 +185,18 @@ export function HeroSection({
         <View style={styles.labelRow}>
           <Text style={styles.label}>{netWorthLabel()}</Text>
           <View style={styles.topRightControls}>
+            {onOpenSummary && (
+              <Pressable
+                onPress={onOpenSummary}
+                accessibilityRole="button"
+                accessibilityLabel={summaryOpen()}
+                hitSlop={8}
+                style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+                testID="hero-summary-link"
+              >
+                <Icon name="trend" size={16} color={MonoColors.textMeta} />
+              </Pressable>
+            )}
             <Pressable
               onPress={onShine}
               accessibilityRole="button"
@@ -215,12 +227,6 @@ export function HeroSection({
           {!!note && <Text style={styles.note}>{note}</Text>}
           {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
           {change && <ChangeChip change={change} hidden={hidden} />}
-          {onOpenSummary && (
-            <Pressable onPress={onOpenSummary} accessibilityRole="link" accessibilityLabel={summaryOpen()} android_ripple={undefined} style={styles.summaryLink} testID="hero-summary-link">
-              <Text style={styles.summaryText}>{summaryOpen()}</Text>
-              <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
-            </Pressable>
-          )}
         </Pressable>
 
         {(onAddTransaction || onTransfer || onScan) && (
@@ -287,6 +293,16 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   label: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   topRightControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: MonoColors.surface,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sparkleButton: {
     width: 28,
     height: 28,
@@ -307,8 +323,6 @@ const styles = StyleSheet.create({
   hideButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginVertical: -8 },
   pressed: { opacity: 0.7 },
   hideText: { ...MonoText.bodyS, fontFamily: MonoText.figureRow.fontFamily, color: MonoColors.textMeta },
-  summaryLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, alignSelf: 'flex-start' },
-  summaryText: { ...MonoText.bodyS, color: MonoColors.textSecond },
   balanceBlock: { gap: 8, marginTop: -2 },
   note: { ...MonoText.body, color: MonoColors.textSecond },
   changeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 10, rowGap: 6 },

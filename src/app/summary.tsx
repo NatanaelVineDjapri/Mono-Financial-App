@@ -46,7 +46,9 @@ import {
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-const RANGES: SummaryRange[] = ['month', '3m', '6m', 'year'];
+// The Current tab's ranges: this month, three and six months. A year is left to the History tab,
+// which already offers twelve months as a trend.
+const RANGES: SummaryRange[] = ['month', '3m', '6m'];
 const HISTORY: HistoryMonths[] = [3, 6, 12];
 
 function RunningNet({ data, hidden }: { data: SummaryData; hidden: boolean }) {

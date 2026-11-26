@@ -51,7 +51,15 @@ describe('SummaryScreen', () => {
     expect(view.getByTestId('summary-calendar-note').props.children).toContain('Rp');
   });
 
-  test('a category with sub-categories opens to them', async () => {
+  test('Current offers three ranges above the net total', async () => {
+    const view = await setup();
+    expect(view.getByTestId('summary-range-month')).toBeTruthy();
+    expect(view.getByTestId('summary-range-3m')).toBeTruthy();
+    expect(view.getByTestId('summary-range-6m')).toBeTruthy();
+    expect(view.queryByTestId('summary-range-year')).toBeNull();
+  });
+
+  test('a category with sub-categories lists them indented, without a tap', async () => {
     mockDb = await openMigratedTestDb();
     await mockDb.execAsync(SAMPLE_SQL);
     await mockDb.runAsync("insert into subcategories (category_id, name) values (1, 'Sendiri')");
@@ -65,8 +73,6 @@ describe('SummaryScreen', () => {
       </SafeAreaProvider>,
     );
     await waitFor(() => expect(view.getByTestId('summary-category-1')).toBeTruthy());
-    expect(view.queryByTestId('summary-subs-1')).toBeNull();
-    await fireEvent.press(view.getByTestId('summary-category-1'));
     expect(view.getByTestId('summary-subs-1')).toBeTruthy();
     expect(view.getByText('Sendiri')).toBeTruthy();
   });
