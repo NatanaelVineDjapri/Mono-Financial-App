@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   offlineMap: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: '#0C0C0C' },
   offlineRiver: { position: 'absolute', width: 70, height: 330, left: '58%', top: -74, backgroundColor: '#102C3A', borderLeftWidth: 3, borderRightWidth: 3, borderColor: '#17445A', transform: [{ rotate: '18deg' }] },
   offlineRoad: { position: 'absolute', backgroundColor: '#242424', borderColor: '#383838', borderWidth: 1 },
-  offlineRoadOne: { width: '125%', height: 18, left: '-12%', top: '42%', backgroundColor: '#493518', borderColor: '#8A6428', transform: [{ rotate: '-14deg' }] },
+  offlineRoadOne: { width: '125%', height: 18, left: '-12%', top: '42%', backgroundColor: '#2F343B', borderColor: '#5C6470', transform: [{ rotate: '-14deg' }] },
   offlineRoadTwo: { width: 10, height: '125%', left: '31%', top: '-12%', transform: [{ rotate: '24deg' }] },
   offlineRoadThree: { width: '120%', height: 7, left: '-10%', top: '67%', transform: [{ rotate: '8deg' }] },
   offlineRoadFour: { width: 6, height: '120%', left: '75%', top: '-10%', transform: [{ rotate: '-34deg' }] },

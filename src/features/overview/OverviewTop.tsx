@@ -23,7 +23,7 @@ const CENTRE = 'M -20 168 C 120 142 270 92 420 -12';
 const RIBBON = 'M -20 160 C 120 134 270 84 420 -22 L 420 -2 C 300 108 140 178 -20 176 Z';
 const SHEEN = 'M -20 176 C 140 178 300 108 420 -2';
 // A pale gold for the sheen: the accent lifted toward white, still the same hue.
-const SHEEN_COLOR = '#F3DFAE';
+const SHEEN_COLOR = '#E8ECF2';
 
 export function OverviewTop({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();

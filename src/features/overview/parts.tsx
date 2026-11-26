@@ -5,7 +5,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { Icon, type IconName } from '@/components/Icon';
 import { MonoColors } from '@/theme/tokens';
 
-import { GOLD, GOLD_LIGHT } from './palette';
+import { SILVER, SILVER_LIGHT } from './palette';
 
 // A filled triangle: up for a rise, down for a fall. The direction is the signal; the
 // colour only reinforces it.
@@ -24,8 +24,8 @@ export function GoldDisc({ icon }: { icon: IconName }) {
       <Svg width={40} height={40} viewBox="0 0 40 40" style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="goldDisc" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={GOLD_LIGHT} />
-            <Stop offset="1" stopColor={GOLD} />
+            <Stop offset="0" stopColor={SILVER_LIGHT} />
+            <Stop offset="1" stopColor={SILVER} />
           </LinearGradient>
         </Defs>
         <Path d="M20 0 a20 20 0 1 0 0.001 0 Z" fill="url(#goldDisc)" />

@@ -1,7 +1,7 @@
-// "Top categories": the Transactions ring at 140 (stroke 16, round caps, gap 5) with the
+// "Top categories": the Transactions donut at 140 (stroke 24) with the
 // largest category's share in the centre, a legend with each share (largest-remainder,
 // one decimal, same buckets as Reports), and an "Amounts" link to /reports. Colours: the
-// largest gold, then #A3A3A3, #737373, #525252, Others #3A3A3A. Hidden mode masks the
+// largest silver, then the darker steps of CHART_CATEGORY_COLORS. Hidden mode masks the
 // shares and every amount, in the legend, the centre and the accessibility label.
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -22,7 +22,7 @@ import { CHART_CATEGORY_COLORS, MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 const RING = 140;
-const STROKE = 16;
+const STROKE = 24; // thick enough for the pale band around the hole
 
 export interface TopCategoriesCardProps {
   shares: ShareRow[];

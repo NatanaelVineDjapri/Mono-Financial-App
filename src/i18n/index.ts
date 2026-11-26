@@ -1477,3 +1477,4 @@ export const catSubErrorTaken = pick(en.catSubErrorTaken, id.catSubErrorTaken);
 export const catSubErrorTakenArchived = pick(en.catSubErrorTakenArchived, id.catSubErrorTakenArchived);
 export const catSubErrorInUse = pick(en.catSubErrorInUse, id.catSubErrorInUse);
 export const catSubErrorGone = pick(en.catSubErrorGone, id.catSubErrorGone);
+export const budgetTodayMarker = pick(en.budgetTodayMarker, id.budgetTodayMarker);

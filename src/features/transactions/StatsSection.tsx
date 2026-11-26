@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Amount } from '@/components/Amount';
-import { Icon, type IconName } from '@/components/Icon';
+import { Icon } from '@/components/Icon';
+import { IconRing } from '@/components/IconRing';
 import { RingChart } from '@/components/RingChart';
 import { Segmented } from '@/components/Segmented';
 import { pct, rp, shown } from '@/core/money';
 import type { CategoryStat } from '@/domain/categoryStats';
 import type { PeriodSummary, TxListFilter } from '@/domain/transactionsList';
+import { CategoryIcon } from '@/features/categories/CategoryIcon';
 import {
   categoryRowAccessibilityLabel,
   hideStatsLabel,
@@ -67,19 +69,19 @@ function SummaryRow({
   );
 }
 
-function categoryIcon(kind: 'income' | 'expense'): IconName {
-  return kind === 'income' ? 'wallet' : 'receipt';
-}
+// The donut: its own diameter and thickness. With the badges it needs size + 36 across.
+const RING_DIAMETER = 240;
+const RING_STROKE = 38;
 
 function CategoryRow({
   stat,
-  kind,
+  hidden,
   selected,
   last,
   onPress,
 }: {
   stat: CategoryStat;
-  kind: 'income' | 'expense';
+  hidden: boolean;
   selected: boolean;
   last: boolean;
   onPress: (id: number) => void;
@@ -91,23 +93,24 @@ function CategoryRow({
       onPress={() => onPress(stat.id)}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={categoryRowAccessibilityLabel(label, percentFormatted, rp(stat.amountIdr))}
+      accessibilityLabel={categoryRowAccessibilityLabel(label, percentFormatted, shown(rp(stat.amountIdr), hidden))}
       style={[styles.categoryRow, !last && styles.categoryRowDivider, selected && styles.categoryRowSelected]}
       testID={`stats-category-row-${stat.id}`}
     >
-      <View style={styles.categoryIcon}>
-        <Icon name={categoryIcon(kind)} size={16} color={MonoColors.textSecond} />
-      </View>
+      <IconRing valueBp={stat.shareBp} color={stat.color}>
+        <CategoryIcon iconKey={stat.icon} size={20} color={MonoColors.text} />
+      </IconRing>
       <View style={styles.categoryMain}>
-        <View style={styles.categoryTopLine}>
-          <Text style={styles.categoryName} numberOfLines={2}>
-            {label}
-          </Text>
-          <Text style={styles.categoryPercent}>{percentFormatted}</Text>
-        </View>
+        <Text style={styles.categoryName} numberOfLines={2}>
+          {label}
+        </Text>
         <View style={styles.shareTrack}>
           <View style={[styles.shareFill, { width: `${stat.shareBp / 100}%`, backgroundColor: stat.color }]} />
         </View>
+      </View>
+      <View style={styles.categoryRight}>
+        <Amount value={stat.amountIdr} variant="figureS" />
+        <Text style={styles.categoryPercent}>{percentFormatted}</Text>
       </View>
     </Pressable>
   );
@@ -162,7 +165,15 @@ export function StatsSection({
           <>
             <View style={styles.ringWrap}>
               <RingChart
-                segments={categories.map(category => ({ id: category.id, label: category.label || othersLabel(), valueIdr: category.amountIdr, color: category.color }))}
+                segments={categories.map(category => ({
+                  id: category.id,
+                  label: category.label || othersLabel(),
+                  valueIdr: category.amountIdr,
+                  color: category.color,
+                  badge: <CategoryIcon iconKey={category.icon} size={18} color={MonoColors.text} />,
+                }))}
+                size={RING_DIAMETER}
+                strokeWidth={RING_STROKE}
                 limitIdr={limitIdr}
                 centerLabel={centerLabel}
                 centerValue={shown(rp(total), hidden)}
@@ -201,7 +212,7 @@ export function StatsSection({
               <CategoryRow
                 key={stat.id}
                 stat={stat}
-                kind={effectiveKind}
+                hidden={hidden}
                 selected={selectedCategoryId === stat.id}
                 last={index === categories.length - 1}
                 onPress={onSelectCategory}
@@ -229,14 +240,13 @@ const styles = StyleSheet.create({
   transferNote: { ...MonoText.caption, color: MonoColors.textMeta, paddingTop: 12 },
   card2: { backgroundColor: MonoColors.card, borderRadius: 16, padding: 16, marginBottom: 20, gap: 16 },
   categoryList: { gap: 4 },
-  categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 44, borderRadius: radius.md },
+  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 44, borderRadius: radius.md },
   categoryRowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },
   categoryRowSelected: { backgroundColor: MonoColors.surface },
-  categoryIcon: { width: 32, height: 32, borderRadius: radius.md, backgroundColor: MonoColors.surface, alignItems: 'center', justifyContent: 'center' },
-  categoryMain: { flex: 1, gap: 6 },
-  categoryTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  categoryMain: { flex: 1, minWidth: 96, gap: 8 },
+  categoryRight: { alignItems: 'flex-end', gap: 2, marginLeft: 'auto' },
   categoryName: { ...MonoText.body, color: MonoColors.text, flexShrink: 1 },
-  categoryPercent: { ...MonoText.bodyS, color: MonoColors.textSecond },
+  categoryPercent: { ...MonoText.caption, color: MonoColors.textMeta },
   shareTrack: { height: 4, borderRadius: 2, backgroundColor: MonoColors.surface, overflow: 'hidden' },
   shareFill: { height: 4, borderRadius: 2 },
 });

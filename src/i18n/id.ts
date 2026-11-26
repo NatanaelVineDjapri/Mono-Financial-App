@@ -4796,3 +4796,8 @@ export function catSubErrorInUse(count: number): string {
 export function catSubErrorGone(): string {
   return 'Sub-kategori itu sudah tidak ada.';
 }
+
+// Penanda pada bar anggaran bulanan.
+export function budgetTodayMarker(): string {
+  return 'Hari ini';
+}

@@ -86,3 +86,13 @@ describe('ProgressBar', () => {
     expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 });
+
+describe('ProgressBar: the Today mark', () => {
+  test('draws the mark and its word, and none without one', async () => {
+    const marked = await render(<ProgressBar valueBp={8514} label="October" thick marker={{ atBp: 9032, label: 'Today' }} testID="bar" />);
+    expect(marked.getByTestId('bar-marker', { includeHiddenElements: true })).toBeTruthy();
+    expect(marked.getByText('Today', { includeHiddenElements: true })).toBeTruthy();
+    const plain = await render(<ProgressBar valueBp={8514} label="October" thick testID="plain" />);
+    expect(plain.queryByTestId('plain-marker', { includeHiddenElements: true })).toBeNull();
+  });
+});

@@ -3,7 +3,7 @@
 // `limit` — the category's *current* monthly limit, used as one constant reference for
 // every bar (there is no historical per-month limit to compare against instead). A bar
 // whose spend is over that limit draws in `negative`, with its value label bold and
-// red; every other bar and label stays neutral grey/white. The dashed line is built from
+// red; every other bar is the silver series colour with a neutral label. The dashed line is built from
 // plain Views, not a native dashed border (Android's support for `borderStyle: 'dashed'`
 // is unreliable) or Skia (this is a straight line; a Canvas would be overkill) — a row of
 // fixed-width dashes, generous enough to outrun any phone width, clipped by the
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   column: { flex: 1, height: CHART_HEIGHT, justifyContent: 'flex-end', alignItems: 'center', gap: 4 },
   barLabel: { ...MonoText.caption, color: MonoColors.textSecond },
   barLabelOver: { fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.negative },
-  bar: { width: BAR_WIDTH, backgroundColor: MonoColors.textSecond, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
+  bar: { width: BAR_WIDTH, backgroundColor: MonoColors.accent, borderTopLeftRadius: 10, borderTopRightRadius: 10 },
   barOver: { backgroundColor: MonoColors.negative },
 
   table: { flexDirection: 'row' },

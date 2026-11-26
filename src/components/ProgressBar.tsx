@@ -43,6 +43,7 @@ import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
 const HEIGHT = 8;
+const THICK_HEIGHT = 20;
 const MAX_DRAWN_OVER_BP = 5000;
 const STRIPE_GAP = 6; // guessed: dense enough to read as a pattern at 8px tall
 const STRIPE_WIDTH = 5; // guessed stroke width
@@ -77,6 +78,11 @@ export interface ProgressBarProps {
   // stops at full in the accent colour, with no red stripes and no "Over by" row. The label still
   // carries the real percentage. Budgets never set this.
   capAtFull?: boolean;
+  // A tall pill instead of the 8px bar (the month's budget).
+  thick?: boolean;
+  // A mark across the bar at this point of the 0..10000bp scale, with its word above ("Today" on the month's budget).
+  // Decoration: the screen says the days left in words.
+  marker?: { atBp: number; label: string };
   style?: ViewStyle;
   testID?: string;
 }
@@ -137,7 +143,7 @@ function WaveFill({ width }: { width: number }) {
   );
 }
 
-export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: labelOverride, wavy = false, capAtFull = false, style, testID }: ProgressBarProps) {
+export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: labelOverride, wavy = false, capAtFull = false, thick = false, marker, style, testID }: ProgressBarProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const [fillWidth, setFillWidth] = useState(0);
   const realBp = Math.max(0, valueBp);
@@ -154,11 +160,20 @@ export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: la
   const showOverRow = isOver && overAmount != null;
   const overNominalText = showOverRow ? shown(rp(overAmount!, false), hidden) : undefined;
   const accessibilityLabel = labelOverride ?? progressAccessibilityLabel(label, usedPct, showOverRow ? overNominalText : undefined);
+  const markerAt = marker ? Math.min(Math.max(marker.atBp, 0), 10000) / scaleBp : 0;
 
   return (
     <View style={style} testID={testID}>
+      {marker && (
+        // two weighted spacers put the word over the mark, and it can never run off either end
+        <View style={styles.markerWordRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={{ flexGrow: markerAt }} />
+          <Text style={styles.markerWord}>{marker.label}</Text>
+          <View style={{ flexGrow: 1 - markerAt }} />
+        </View>
+      )}
       <View
-        style={isWavy ? styles.waveTrack : styles.track}
+        style={isWavy ? styles.waveTrack : [styles.track, thick && styles.trackThick]}
         accessible
         accessibilityRole="progressbar"
         accessibilityLabel={accessibilityLabel}
@@ -176,7 +191,7 @@ export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: la
             </View>
           </>
         ) : (
-          <View style={[styles.fill, { width: `${fillFraction * 100}%` }]} testID={testID ? `${testID}-fill` : undefined} />
+          <View style={[styles.fill, thick && !isOver && styles.fillThick, { width: `${fillFraction * 100}%` }]} testID={testID ? `${testID}-fill` : undefined} />
         )}
         {overFraction > 0 && (
           <View style={[styles.overflow, isWavy && styles.overflowWavy, { width: `${overFraction * 100}%` }]} testID={testID ? `${testID}-overflow` : undefined}>
@@ -187,10 +202,11 @@ export function ProgressBar({ valueBp, label, overAmount, accessibilityLabel: la
               // flat fill instead of crashing the screen; native keeps the real stripes.
               <View style={styles.overflowFallback} />
             ) : (
-              <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, isWavy ? WAVE_STROKE : HEIGHT)}</Canvas>
+              <Canvas style={StyleSheet.absoluteFill}>{stripes(VIRTUAL_WIDTH, isWavy ? WAVE_STROKE : thick ? THICK_HEIGHT : HEIGHT)}</Canvas>
             )}
           </View>
         )}
+        {marker && <View style={[styles.markerLine, { left: `${markerAt * 100}%` }]} testID={testID ? `${testID}-marker` : undefined} />}
       </View>
       {showOverRow && (
         <View style={styles.overRow}>
@@ -222,6 +238,11 @@ const styles = StyleSheet.create({
     backgroundColor: MonoColors.border,
   },
   fill: { backgroundColor: MonoColors.accent },
+  trackThick: { height: THICK_HEIGHT, borderRadius: THICK_HEIGHT / 2 },
+  fillThick: { borderRadius: THICK_HEIGHT / 2 },
+  markerLine: { position: 'absolute', top: 0, bottom: 0, width: 2, marginLeft: -1, backgroundColor: MonoColors.text },
+  markerWordRow: { flexDirection: 'row', marginBottom: 4 },
+  markerWord: { ...MonoText.caption, color: MonoColors.bg, backgroundColor: MonoColors.text, borderRadius: 6, overflow: 'hidden', paddingHorizontal: 6 },
   overflow: { overflow: 'hidden' },
   // The wavy track has no clip of its own, so the striped segment rounds itself. Its height is the gold line's own
   // thickness (not the track's), centred on the rail, so the red part is exactly as thick as the gold part.

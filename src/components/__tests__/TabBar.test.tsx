@@ -274,7 +274,7 @@ describe('TabBar', () => {
   test('never uses the amber accent for a tab (gold is the + only)', async () => {
     const result = await renderBar();
     const active = flat(result.getByRole('tab', { name: 'Overview' }).parent?.props.style);
-    expect(active.backgroundColor).not.toBe('#E3C27A');
+    expect(active.backgroundColor).not.toBe('#C7CDD6');
   });
 
   describe('label visibility', () => {

@@ -80,7 +80,7 @@ function MonthCard({ overview, limit, hidden }: { overview: BudgetOverview; limi
         <Text style={styles.meta}>{budgetLimitLabel(shown(rp(limit.monthly_limit), hidden))}</Text>
       </View>
       <Amount value={limit.total_spent} variant="displayS" style={styles.hero} />
-      <BudgetBar subject={monthTotalSubject(monthLabel(overview.month))} figures={monthFigures(limit)} layout="month" hidden={hidden} testID="budget-month" />
+      <BudgetBar subject={monthTotalSubject(monthLabel(overview.month))} figures={monthFigures(limit)} layout="month" hidden={hidden} todayBp={overview.elapsedBp} testID="budget-month" />
       {overview.daysLeft !== null && (
         <View style={styles.infoRows}>
           <InfoRow label={daysLeftInLabel(monthName(overview.month))} value={String(overview.daysLeft)} testID="budget-days-left" />

@@ -4799,3 +4799,8 @@ export function catSubErrorInUse(count: number): string {
 export function catSubErrorGone(): string {
   return 'That sub-category is gone.';
 }
+
+// The mark on the month's budget bar.
+export function budgetTodayMarker(): string {
+  return 'Today';
+}

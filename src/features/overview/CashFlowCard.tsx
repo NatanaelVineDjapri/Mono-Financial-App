@@ -1,4 +1,4 @@
-// "Cash flow": six months of income (gold) against expenses (#737373) as paired bars, with
+// "Cash flow": six months of income (silver) against expenses (#737373) as paired bars, with
 // the exact-value table beneath (CLAUDE.md rule 7). Uses react-native-gifted-charts BarChart
 // for rendering with paired bars per month. Hidden mode masks the figures in the label and
 // the table (through <Amount>).
@@ -33,6 +33,10 @@ const CHART_HEIGHT = 130;
 // duration its label timers still fire after the card has gone away.
 const NO_ANIMATION = { animationDuration: 0 };
 // Also read by the library and missing from its types: the y axis gutter, which the bar sizes are worked out from.
+// Round tops only (the floor stays square). Read by the library, missing from its types like the two above.
+const roundedTops = (width: number) => ({ barBorderTopLeftRadius: Math.min(width / 2, 8), barBorderTopRightRadius: Math.min(width / 2, 8) });
+// A dotted grid; the two lengths are read by the library and missing from its types as well.
+const DOTTED_RULES = { dashWidth: 2, dashGap: 6 };
 const AXIS_WIDTH = { yAxisLabelWidth: PAIR_Y_AXIS_WIDTH };
 
 export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
@@ -47,7 +51,7 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
     .map(m => cashFlowValuesText(monthAbbrev(m.period), shown(rp(m.income), hidden), shown(rp(m.expense), hidden)))
     .join('; ');
 
-  // Transform data for paired bars: income (gold) + expense (grey) per month
+  // Transform data for paired bars: income (silver) + expense (grey) per month
   const barData = months.flatMap((m, i) => [
     {
       value: m.income,
@@ -97,10 +101,11 @@ export function CashFlowCard({ months }: { months: OverviewMonthFlow[] }) {
           initialSpacing={PAIR_EDGE}
           endSpacing={PAIR_EDGE}
           disableScroll
-          barBorderRadius={3}
+          {...roundedTops(bar)}
           hideRules={false}
           rulesColor={MonoColors.border}
-          rulesType="solid"
+          rulesType="dashed"
+          {...DOTTED_RULES}
           xAxisThickness={0}
           yAxisThickness={0}
           yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}

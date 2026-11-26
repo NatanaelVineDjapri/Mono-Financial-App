@@ -205,6 +205,17 @@ describe('TransactionsScreen', () => {
     expect(result.queryByText('Expense Rp3.940.000')).toBeNull();
   });
 
+  test('a category row shows its amount and share, and says no amount aloud in hidden mode', async () => {
+    mockResult(baseResult([OCT_PAGE]));
+    const shownOnes = await renderScreen();
+    expect(shownOnes.getByTestId('stats-category-row-1').props.accessibilityLabel).toContain('Rp1.425.000');
+
+    await act(() => useHideAmounts.getState().setHidden(true));
+    const label = shownOnes.getByTestId('stats-category-row-1').props.accessibilityLabel;
+    expect(label).toContain('Food & drink');
+    expect(label).not.toContain('1.425.000');
+  });
+
   test('switching the type chip to Income is passed through to the hook', async () => {
     mockResult(baseResult([OCT_PAGE]));
     const result = await renderScreen();

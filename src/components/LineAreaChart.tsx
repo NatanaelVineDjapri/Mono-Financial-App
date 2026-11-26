@@ -1,5 +1,5 @@
-// A balance-over-time line in the style of the Overview's net cash flow chart: a dark panel, a dashed grid, a gold line with a
-// soft halo and a gradient fill beneath it, a haloed point at the end, and a touch scrub with a tooltip. Drawn by hand with
+// A balance-over-time line in the style of the Overview's net cash flow chart: a dark panel, a dotted grid, a thick silver
+// line with a deep fade beneath it, a haloed point at the end, and a touch scrub with a tooltip. Drawn by hand with
 // react-native-svg (no chart library), so the curve, the gradient and the halo look the same on every screen that uses it.
 //
 // The curve is a Catmull-Rom spline whose control points are clamped between the two points they join, so a steep
@@ -7,7 +7,9 @@
 // Presentation only: the values come from the caller (views), the axis from src/core/chartScale.
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Line, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Line, Path } from 'react-native-svg';
+
+import { AreaGradient, CHART_LINE_WIDTH, DottedGrid } from '@/components/chartParts';
 
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -119,18 +121,11 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
           <>
             <Svg width={width} height={INNER_H} style={StyleSheet.absoluteFill}>
               <Defs>
-                <LinearGradient id="lineAreaFill" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor={MonoColors.accent} stopOpacity={0.26} />
-                  <Stop offset="0.6" stopColor={MonoColors.accent} stopOpacity={0.08} />
-                  <Stop offset="1" stopColor={MonoColors.accent} stopOpacity={0} />
-                </LinearGradient>
+                <AreaGradient id="lineAreaFill" />
               </Defs>
-              {axis.ticks.map(tick => (
-                <Line key={`grid-${tick}`} x1={plotLeft} x2={plotRight} y1={yAt(tick)} y2={yAt(tick)} stroke={MonoColors.border} strokeWidth={1} strokeDasharray={[2, 6]} />
-              ))}
+              <DottedGrid xs={xLabelIndexes.map(xAt)} ys={axis.ticks.map(yAt)} left={plotLeft} right={plotRight} top={TOP_PAD} bottom={TOP_PAD + CHART_H} />
               <Path d={area} fill="url(#lineAreaFill)" />
-              <Path d={line} fill="none" stroke={MonoColors.accent} strokeOpacity={0.14} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
-              <Path d={line} fill="none" stroke={MonoColors.accent} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d={line} fill="none" stroke={MonoColors.accent} strokeWidth={CHART_LINE_WIDTH} strokeLinecap="round" strokeLinejoin="round" />
               {last && <Circle cx={last.x} cy={last.y} r={9} fill={MonoColors.accent} fillOpacity={0.16} />}
               {last && <Circle cx={last.x} cy={last.y} r={4} fill={MonoColors.accent} />}
               {active !== null && points[active] && (

@@ -1,9 +1,10 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { Text } from 'react-native';
 
-import { RingChart, hitTestSegment, layoutArcs, type RingSegment } from '../RingChart';
+import { BADGE_SIZE, RingChart, hitTestSegment, layoutArcs, type RingSegment } from '../RingChart';
 
 const OCT_EXPENSE_SEGMENTS: RingSegment[] = [
-  { id: 1, label: 'Food & drink', valueIdr: 1425000, color: '#E3C27A' },
+  { id: 1, label: 'Food & drink', valueIdr: 1425000, color: '#C7CDD6' },
   { id: 4, label: 'Bills', valueIdr: 1150000, color: '#A3A3A3' },
   { id: 3, label: 'Shopping', valueIdr: 812000, color: '#737373' },
   { id: 2, label: 'Transport', valueIdr: 540000, color: '#525252' },
@@ -109,6 +110,31 @@ describe('RingChart (rendered)', () => {
     const locationX = 110 + RADIUS * Math.cos(rad);
     const locationY = 110 + RADIUS * Math.sin(rad);
     fireEvent(ring, 'press', { nativeEvent: { locationX, locationY } });
+    expect(onSegmentPress).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('RingChart with badges', () => {
+  const withBadges = OCT_EXPENSE_SEGMENTS.map(segment => ({ ...segment, badge: <Text>{segment.label}</Text> }));
+
+  test('an arc wide enough carries its badge; a narrow one goes without', async () => {
+    const segments = [...withBadges.slice(0, 2), { id: 9, label: 'Tiny', valueIdr: 10000, color: '#474D56', badge: <Text>Tiny</Text> }];
+    const result = await render(<RingChart segments={segments} centerLabel="Spent" centerValue="x" accessibilityLabel="a" testID="ring" />);
+    expect(result.getByTestId('ring-badge-1')).toBeTruthy();
+    expect(result.getByTestId('ring-badge-4')).toBeTruthy();
+    expect(result.queryByTestId('ring-badge-9')).toBeNull();
+  });
+
+  test('the room made for the badges is taken off a tap, so it still lands on its segment', async () => {
+    const onSegmentPress = jest.fn();
+    const result = await render(
+      <RingChart segments={withBadges} centerLabel="Spent" centerValue="x" accessibilityLabel="a" onSegmentPress={onSegmentPress} testID="ring" />,
+    );
+    const radius = (220 - 16) / 2;
+    const rad = ((100 - 90) * Math.PI) / 180; // 100 degrees clockwise: inside Food & drink (0 to 120)
+    fireEvent(result.getByTestId('ring'), 'press', {
+      nativeEvent: { locationX: BADGE_SIZE / 2 + 110 + radius * Math.cos(rad), locationY: BADGE_SIZE / 2 + 110 + radius * Math.sin(rad) },
+    });
     expect(onSegmentPress).toHaveBeenCalledWith(1);
   });
 });

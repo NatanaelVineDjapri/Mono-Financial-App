@@ -1,6 +1,8 @@
-// Transactions tab, Fase 4.3c: the statistics area's ring chart. Size 220, stroke 16,
-// round caps, starts at 12 o'clock and runs clockwise — a dark (`raised`) full track
-// behind, then one coloured arc per segment. With a limit, each arc's length is its own
+// The ring chart (Transactions statistics, the Overview's top categories). A donut that starts at 12 o'clock and runs
+// clockwise: a dark (`raised`) full track behind, then one coloured arc per segment, cut square with a thin gap. A thick
+// donut (stroke 24 or more) also gets a pale band around its hole, and a segment may carry a `badge` (its category
+// icon) that sits on the outer edge at the middle of its arc, when the arc is wide enough not to crowd its neighbours.
+// With a limit, each arc's length is its own
 // share of the limit (over limit: falls back to a full-360 share split, same as no
 // limit, plus a thin `negative` ring outside marking it over — never only colour: the
 // centre text and the category list beneath both say "over" in words too). Without a
@@ -13,7 +15,7 @@
 // so hit-testing uses the wrapping Pressable's own locationX/Y instead of a Skia
 // measurement, and needs no measurement step at all.
 import { Canvas, Path } from '@shopify/react-native-skia';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
@@ -22,7 +24,12 @@ import { MonoText } from '@/theme/typography';
 
 export const RING_SIZE = 220;
 const STROKE_WIDTH = 16;
-const GAP_PX = 5;
+const GAP_PX = 3;
+export const BADGE_SIZE = 36;
+// Narrower arcs go without a badge: two badges this far apart (or more) never touch.
+const BADGE_MIN_SWEEP_DEG = 20;
+const BAND_MIN_STROKE = 24;
+const BAND_WIDTH = 10;
 const MIN_SWEEP_DEG = 1.5; // keeps a very small share visibly drawn instead of a degenerate sliver
 const START_DEG = -90; // Skia's own 0deg = 3 o'clock; this is 12 o'clock
 const FILL_DURATION_MS = 400;
@@ -35,6 +42,7 @@ export interface RingSegment {
   label: string;
   valueIdr: number;
   color: string;
+  badge?: ReactNode; // drawn on the ring's outer edge
 }
 
 export interface RingChartProps {
@@ -159,15 +167,21 @@ export function RingChart({
   const progress = useFillProgress(FILL_DURATION_MS, reducedMotion);
   const { arcs, isOverLimit } = layoutArcs(segments, limitIdr);
 
-  const trackPath = arcPathD(center, center, radius, 0, 359.9);
+  // Room around the ring for the badges, which sit centred on its outer edge.
+  const pad = segments.some(segment => segment.badge != null) ? BADGE_SIZE / 2 : 0;
+  const box = size + pad * 2;
+  const mid = center + pad;
+
+  const trackPath = arcPathD(mid, mid, radius, 0, 359.9);
+  const bandPath = strokeWidth >= BAND_MIN_STROKE ? arcPathD(mid, mid, radius - strokeWidth / 2 + BAND_WIDTH / 2, 0, 359.9) : null;
 
   const overRadius = radius + strokeWidth / 2 + OVER_RING_GAP + OVER_RING_WIDTH / 2;
-  const overPath = arcPathD(center, center, overRadius, 0, 359.9);
+  const overPath = arcPathD(mid, mid, overRadius, 0, 359.9);
 
   const segmentPaths = arcs.map(arc => {
     const trimmedSweep = Math.max(0, arc.sweepDeg - gapDeg);
     const drawnSweep = arc.sweepDeg > 0 ? Math.max(MIN_SWEEP_DEG, trimmedSweep) * progress : 0;
-    const path = drawnSweep > 0 ? arcPathD(center, center, radius, arc.startDeg + gapDeg / 2, drawnSweep) : null;
+    const path = drawnSweep > 0 ? arcPathD(mid, mid, radius, arc.startDeg + gapDeg / 2, drawnSweep) : null;
     return { ...arc, path };
   });
 
@@ -175,9 +189,9 @@ export function RingChart({
     Platform.OS === 'web' ? (
       // react-native-skia needs an explicit CanvasKit/WASM bootstrap on web (LoadSkiaWeb)
       // this Android-only app never sets up — same fallback reasoning as ProgressBar.tsx.
-      <View style={[styles.webFallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: MonoColors.raised }]} />
+      <View style={{ width: box, height: box, borderRadius: box / 2, backgroundColor: MonoColors.raised }} />
     ) : (
-      <Canvas style={{ width: size, height: size }}>
+      <Canvas style={{ width: box, height: box }}>
         <Path path={trackPath} color={MonoColors.raised} style="stroke" strokeWidth={strokeWidth} strokeCap="round" />
         {segmentPaths.map(
           segment =>
@@ -188,11 +202,12 @@ export function RingChart({
                 color={segment.color}
                 style="stroke"
                 strokeWidth={strokeWidth}
-                strokeCap="round"
+                strokeCap="butt"
                 opacity={selectedId != null && selectedId !== segment.id ? 0.35 : 1}
               />
             ),
         )}
+        {bandPath && <Path path={bandPath} color="rgba(255,255,255,0.14)" style="stroke" strokeWidth={BAND_WIDTH} />}
         {isOverLimit && <Path path={overPath} color={MonoColors.negative} style="stroke" strokeWidth={OVER_RING_WIDTH} strokeCap="round" />}
       </Canvas>
     );
@@ -200,7 +215,7 @@ export function RingChart({
   return (
     <Pressable
       testID={testID}
-      style={[styles.wrap, { width: size, height: size }]}
+      style={[styles.wrap, { width: box, height: box }]}
       accessible
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
@@ -208,13 +223,37 @@ export function RingChart({
         onSegmentPress &&
         (event => {
           const { locationX, locationY } = event.nativeEvent;
-          const hit = hitTestSegment(arcs, locationX, locationY, size, strokeWidth);
+          const hit = hitTestSegment(arcs, locationX - pad, locationY - pad, size, strokeWidth);
           if (hit != null) onSegmentPress(hit);
         })
       }
     >
-      {canvasBody}
-      <View style={styles.centerWrap} pointerEvents="none">
+      {/* no touches on the drawing: a tap's coordinates are then always the wrapper's own */}
+      <View pointerEvents="none">{canvasBody}</View>
+      {segments.map((segment, index) => {
+        const arc = arcs[index];
+        if (segment.badge == null || arc.sweepDeg < BADGE_MIN_SWEEP_DEG) return null;
+        const rad = ((arc.startDeg + arc.sweepDeg / 2 - 90) * Math.PI) / 180;
+        return (
+          <View
+            key={segment.id}
+            pointerEvents="none"
+            style={[
+              styles.badge,
+              {
+                left: mid + (size / 2) * Math.cos(rad) - BADGE_SIZE / 2,
+                top: mid + (size / 2) * Math.sin(rad) - BADGE_SIZE / 2,
+                borderColor: segment.color,
+                opacity: selectedId != null && selectedId !== segment.id ? 0.35 : 1,
+              },
+            ]}
+            testID={testID ? `${testID}-badge-${segment.id}` : undefined}
+          >
+            {segment.badge}
+          </View>
+        );
+      })}
+      <View style={[styles.centerWrap, { width: size - strokeWidth * 2 - 4 }]} pointerEvents="none">
         <CenterText label={centerLabel} value={centerValue} sub={centerSub} valueSize={centerValueSize} compact={size < RING_SIZE} />
       </View>
     </Pressable>
@@ -242,14 +281,14 @@ function CenterText({ label, value, sub, valueSize, compact }: { label: string; 
   return (
     <>
       <Text style={[MonoText.caption, { color: MonoColors.textMeta, textTransform: 'uppercase' }]} numberOfLines={compact ? 1 : undefined}>{label}</Text>
-      <Text style={[MonoText.figureL, { color: MonoColors.text, fontSize }]}>{value}</Text>
-      {!!sub && <Text style={[MonoText.bodyS, { color: MonoColors.textSecond }]}>{sub}</Text>}
+      <Text style={[MonoText.figureL, { color: MonoColors.text, fontSize, textAlign: 'center' }]}>{value}</Text>
+      {!!sub && <Text style={[MonoText.caption, { color: MonoColors.textSecond, textAlign: 'center' }]}>{sub}</Text>}
     </>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
-  webFallback: {},
-  centerWrap: { position: 'absolute', alignItems: 'center', gap: 2, paddingHorizontal: 24 },
+  badge: { position: 'absolute', width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: BADGE_SIZE / 2, borderWidth: 2.5, backgroundColor: MonoColors.card, alignItems: 'center', justifyContent: 'center' },
+  centerWrap: { position: 'absolute', alignItems: 'center', gap: 2 },
 });

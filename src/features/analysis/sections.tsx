@@ -1,5 +1,5 @@
 // The pieces of the Analysis screen (boards Analyze and Analyze-States). They only draw what they are given: the
-// score, the sentences and the links all arrive ready-made from data.ts and copy.ts. Gold (#E3C27A) is for the
+// score, the sentences and the links all arrive ready-made from data.ts and copy.ts. Silver (the accent) is for the
 // score and its bars; red appears only inside the existing striped "over" bar. No colour carries meaning alone:
 // the band, the points and the change are always written out.
 import { Pressable, StyleSheet, Text, View } from 'react-native';

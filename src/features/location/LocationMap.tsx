@@ -84,6 +84,6 @@ export function LocationMap({ latE6, lngE6, onStateChange, children }: LocationM
 
 const styles = StyleSheet.create({
   pinWrap: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  pinRing: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(227,194,122,0.22)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.78)', shadowColor: '#000000', shadowOpacity: 0.35, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
+  pinRing: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(199,205,214,0.22)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.78)', shadowColor: '#000000', shadowOpacity: 0.35, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   pinDot: { width: 18, height: 18, borderRadius: 9, backgroundColor: MonoColors.text, borderWidth: 4, borderColor: MonoColors.accent },
 });

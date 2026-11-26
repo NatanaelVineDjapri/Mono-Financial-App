@@ -165,6 +165,13 @@ export function availablePerDay(remaining: number, daysLeft: number): number | n
   return Math.floor((2 * remaining + daysLeft) / (2 * daysLeft));
 }
 
+// How much of the period has gone by, today included, in basis points (the "Today" mark on the month's bar).
+export function elapsedShareBp(daysLeft: number, totalDays: number): number {
+  if (totalDays <= 0) return 0;
+  const gone = Math.min(Math.max(totalDays - daysLeft, 0), totalDays);
+  return Math.floor((gone * 20000 + totalDays) / (2 * totalDays));
+}
+
 export interface BudgetOverview extends BudgetOverviewData {
   currentMonth: string;
   isCurrent: boolean;
@@ -173,6 +180,7 @@ export interface BudgetOverview extends BudgetOverviewData {
   months: string[]; // every month the picker offers, current first, back to the oldest data
   daysLeft: number | null; // current month only: days after today until the period ends
   availablePerDay: number | null;
+  elapsedBp: number | null; // current month only: the share of the period gone by, today included
   isEmpty: boolean; // no monthly limit and no category budget
   monthCreated: boolean; // ensureMonth copied a repeating limit into the current month
 }
@@ -208,6 +216,7 @@ export async function getBudgetOverview(db: Db, month: string | null, todayIso: 
     months: monthsBetween(floor, currentMonth, startDay),
     daysLeft,
     availablePerDay: daysLeft !== null && data.limit ? availablePerDay(data.limit.remaining, daysLeft) : null,
+    elapsedBp: daysLeft !== null ? elapsedShareBp(daysLeft, daysBetween(periodStart(target, startDay), periodEnd(target, startDay)) + 1) : null,
     isEmpty: data.limit === null && data.categories.length === 0,
     monthCreated,
   };

@@ -1,4 +1,4 @@
-// "Six-month trend": six periods of income (gold) against expenses (grey), the exact
+// "Six-month trend": six periods of income (silver) against expenses (grey), the exact
 // values in a table beneath (CLAUDE.md rule 7), and one rounding note. The current period
 // carries a `*` until its last day, so a partial month is never read as a finished one.
 import { useState } from 'react';
@@ -30,7 +30,7 @@ import { MonoText } from '@/theme/typography';
 
 import { ReportTable } from './ReportTable';
 
-// The same bars as the Overview's cash flow card (gold income against grey expenses, a labelled y axis with its gridlines, the
+// The same bars as the Overview's cash flow card (silver income against grey expenses, a labelled y axis with its gridlines, the
 // month under each pair), sized for six months instead of twelve.
 const CHART_HEIGHT = 130;
 const INNER_GAP = PAIR_INNER_GAP;
@@ -44,6 +44,10 @@ const EXPENSE_BAR = MonoColors.textDisabled;
 // duration its label timers still fire after the card has gone away.
 const NO_ANIMATION = { animationDuration: 0 };
 // Also read by the library and missing from its types: the width of the y axis gutter, which the bar sizes are worked out from.
+// Round tops only (the floor stays square). Read by the library, missing from its types like the two above.
+const roundedTops = (width: number) => ({ barBorderTopLeftRadius: Math.min(width / 2, 8), barBorderTopRightRadius: Math.min(width / 2, 8) });
+// A dotted grid; the two lengths are read by the library and missing from its types as well.
+const DOTTED_RULES = { dashWidth: 2, dashGap: 6 };
 const AXIS_WIDTH = { yAxisLabelWidth: Y_AXIS_WIDTH };
 
 function signedMillions(value: number): string {
@@ -113,10 +117,11 @@ export function TrendReportCard({ rows, today, partialPeriod }: TrendReportCardP
           spacing={gap}
           initialSpacing={EDGE}
           endSpacing={EDGE}
-          barBorderRadius={3}
+          {...roundedTops(bar)}
           hideRules={false}
           rulesColor={MonoColors.border}
-          rulesType="solid"
+          rulesType="dashed"
+          {...DOTTED_RULES}
           yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
           xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
           hideYAxisText={hidden}

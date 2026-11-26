@@ -19,6 +19,7 @@ import {
     saveBudget,
     setMonthlyLimit,
     updateBudget,
+    elapsedShareBp,
 } from '../budget';
 
 const SAMPLE_SQL = fs.readFileSync(path.join(__dirname, '../../../tools/sample_data.sql'), 'utf8');
@@ -325,5 +326,23 @@ describe('domain budget', () => {
       await ensureMonth(db, '2027-01');
       expect(await getMonthlyLimit(db, '2027-01')).toEqual({ month: '2027-01', amount: 1000000, repeat: 1 });
     });
+  });
+});
+
+describe('elapsedShareBp (the Today mark)', () => {
+  test('28 Oct 2026: 3 of 31 days left, so 28/31 gone', () => {
+    expect(elapsedShareBp(3, 31)).toBe(9032);
+  });
+
+  test('the last day is the whole bar, and nonsense stays inside it', () => {
+    expect(elapsedShareBp(0, 30)).toBe(10000);
+    expect(elapsedShareBp(40, 30)).toBe(0);
+    expect(elapsedShareBp(0, 0)).toBe(0);
+  });
+
+  test('the overview carries it for the current month only', async () => {
+    const db = await sampleDb();
+    expect((await getBudgetOverview(db, null, '2026-10-28')).elapsedBp).toBe(9032);
+    expect((await getBudgetOverview(db, '2026-09', '2026-10-28')).elapsedBp).toBeNull();
   });
 });

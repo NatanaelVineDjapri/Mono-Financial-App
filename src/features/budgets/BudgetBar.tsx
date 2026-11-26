@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { pct, rp, shown } from '@/core/money';
-import { budgetBarAccessibilityLabel, budgetLeftLabel, budgetRemainingLabel, overBy, usedPctLabel } from '@/i18n';
+import { budgetBarAccessibilityLabel, budgetLeftLabel, budgetRemainingLabel, budgetTodayMarker, overBy, usedPctLabel } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -41,10 +41,11 @@ export interface BudgetBarProps {
   figures: BudgetFigures;
   layout: BudgetBarLayout;
   hidden: boolean;
+  todayBp?: number | null; // month layout, current month: where today falls
   testID?: string;
 }
 
-export function BudgetBar({ subject, figures, layout, hidden, testID }: BudgetBarProps) {
+export function BudgetBar({ subject, figures, layout, hidden, todayBp, testID }: BudgetBarProps) {
   const isOver = figures.overBy > 0;
   const usedText = usedPctLabel(pct(figures.usedBp));
   const remainingText = shown(rp(Math.max(figures.remaining, 0)), hidden);
@@ -58,6 +59,8 @@ export function BudgetBar({ subject, figures, layout, hidden, testID }: BudgetBa
         // The summary card uses the flat token-based bar. Category rows keep their
         // existing treatment because this redesign is scoped to the summary card.
         wavy={layout === 'category'}
+        thick={layout === 'month'}
+        marker={layout === 'month' && todayBp != null ? { atBp: todayBp, label: budgetTodayMarker() } : undefined}
         testID={testID ? `${testID}-bar` : undefined}
       />
       <View style={styles.footer}>

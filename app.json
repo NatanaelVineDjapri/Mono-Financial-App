@@ -76,7 +76,7 @@
         "expo-notifications",
         {
           "icon": "./assets/brand/mono-mark.png",
-          "color": "#B8972E",
+          "color": "#C7CDD6",
           "sounds": [],
           "androidMode": "default"
         }

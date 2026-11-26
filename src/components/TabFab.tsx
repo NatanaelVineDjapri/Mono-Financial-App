@@ -18,7 +18,7 @@ export const TAB_FAB_SIZE = 64;
 export const TAB_FAB_RAISE = 32;
 export const TAB_FAB_RING = 7;
 
-const FILL = '#E3C27A';
+const FILL = '#C7CDD6';
 const ICON_COLOR = '#0A0A0A';
 const PRESSED_SCALE = 0.96;
 const PRESS_MS = 90;
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: FILL,
     boxShadow: [
       { offsetX: 0, offsetY: 0, blurRadius: 0, spreadDistance: TAB_FAB_RING, color: MonoColors.bg },
-      { offsetX: 0, offsetY: 8, blurRadius: 24, color: 'rgba(227,194,122,0.28)' },
+      { offsetX: 0, offsetY: 8, blurRadius: 24, color: 'rgba(199,205,214,0.28)' },
     ],
   },
   press: {

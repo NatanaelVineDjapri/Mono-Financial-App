@@ -132,23 +132,23 @@ export function HeroSection({
               <Stop offset="100%" stopColor="#0B0B0D" />
             </LinearGradient>
             <LinearGradient id="hero-ambient" x1="100%" y1="0%" x2="30%" y2="80%">
-              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.18" />
-              <Stop offset="50%" stopColor="#E5C07B" stopOpacity="0.04" />
-              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0" />
+              <Stop offset="0%" stopColor="#C7CDD6" stopOpacity="0.18" />
+              <Stop offset="50%" stopColor="#C7CDD6" stopOpacity="0.04" />
+              <Stop offset="100%" stopColor="#C7CDD6" stopOpacity="0" />
             </LinearGradient>
             <LinearGradient id="hero-gold-stroke-1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.08" />
-              <Stop offset="50%" stopColor="#E5C07B" stopOpacity="0.55" />
-              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0.15" />
+              <Stop offset="0%" stopColor="#C7CDD6" stopOpacity="0.08" />
+              <Stop offset="50%" stopColor="#C7CDD6" stopOpacity="0.55" />
+              <Stop offset="100%" stopColor="#C7CDD6" stopOpacity="0.15" />
             </LinearGradient>
             <LinearGradient id="hero-gold-stroke-2" x1="0%" y1="0%" x2="100%" y2="100%">
               <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.03" />
-              <Stop offset="45%" stopColor="#FFF2D6" stopOpacity="0.32" />
-              <Stop offset="100%" stopColor="#E5C07B" stopOpacity="0.08" />
+              <Stop offset="45%" stopColor="#EEF1F6" stopOpacity="0.32" />
+              <Stop offset="100%" stopColor="#C7CDD6" stopOpacity="0.08" />
             </LinearGradient>
             <LinearGradient id="hero-wave-fill" x1="100%" y1="0%" x2="0%" y2="100%">
-              <Stop offset="0%" stopColor="#E5C07B" stopOpacity="0.08" />
-              <Stop offset="60%" stopColor="#E5C07B" stopOpacity="0.02" />
+              <Stop offset="0%" stopColor="#C7CDD6" stopOpacity="0.08" />
+              <Stop offset="60%" stopColor="#C7CDD6" stopOpacity="0.02" />
               <Stop offset="100%" stopColor="#000000" stopOpacity="0" />
             </LinearGradient>
           </Defs>
@@ -169,9 +169,9 @@ export function HeroSection({
             <Defs>
               <LinearGradient id="hero-sheen" x1="0" y1="0" x2="1" y2="0">
                 <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
-                <Stop offset="25%" stopColor="#FFF2D6" stopOpacity="0.2" />
+                <Stop offset="25%" stopColor="#EEF1F6" stopOpacity="0.2" />
                 <Stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.55" />
-                <Stop offset="75%" stopColor="#E5C07B" stopOpacity="0.28" />
+                <Stop offset="75%" stopColor="#C7CDD6" stopOpacity="0.28" />
                 <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
               </LinearGradient>
             </Defs>

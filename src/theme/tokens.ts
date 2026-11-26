@@ -1,6 +1,6 @@
 import { DarkTheme } from 'expo-router';
 
-// Strictly monochrome base, plus amber/green/red for graphics and sign. Twelve colour
+// Strictly monochrome base, plus silver/green/red for graphics and sign. Twelve colour
 // tokens total — colour is never the only signal (sign, icon and words always go with
 // it). See DESIGN.md section 3.
 export const MonoColors = {
@@ -13,7 +13,7 @@ export const MonoColors = {
   textMeta: '#8A8A8A', // small captions (AA 5.6:1)
   textDisabled: '#737373', // disabled and placeholder ONLY
   border: '#2B2B2B', // 1px hairlines
-  accent: '#E3C27A', // graphics ONLY: chart's main series, progress fill, selected bar
+  accent: '#C7CDD6', // silver. Graphics ONLY: + button, icon discs, chart series, progress fill
   positive: '#4ADE80', // plus-signed amounts: income, net worth up, spending down
   negative: '#FF6B6B', // minus-signed amounts, spending up, over-budget, errors
 } as const;
@@ -31,7 +31,7 @@ export const HeaderChrome = { fill: '#151516', border: '#272728' } as const;
 // then Others" colouring and never used for interactive UI. Colour is still never the
 // only signal here — every slice's name, share and percent are also in the category
 // list beneath the ring (CLAUDE.md rule 7's "exact-value table").
-export const CHART_CATEGORY_COLORS = [MonoColors.accent, '#A3A3A3', '#737373', '#525252', '#3A3A3A'] as const;
+export const CHART_CATEGORY_COLORS = [MonoColors.accent, '#9AA3B0', '#7A828E', '#5E6570', '#474D56'] as const;
 
 export type AmountKind = 'income' | 'expense' | 'transfer';
 

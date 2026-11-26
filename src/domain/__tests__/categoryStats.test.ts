@@ -66,7 +66,7 @@ describe('getCategoryStats', () => {
   test('assigns the 5-colour chart palette in order, largest category first', async () => {
     const db = await buildOctoberSample();
     const { categories } = await getCategoryStats(db, '2026-10', 'expense', true);
-    expect(categories.map(c => c.color)).toEqual(['#E3C27A', '#A3A3A3', '#737373', '#525252', '#3A3A3A']);
+    expect(categories.map(c => c.color)).toEqual(['#C7CDD6', '#9AA3B0', '#7A828E', '#5E6570', '#474D56']);
   });
 
   test('income categories are bucketed separately from expense (no "Others" when under the cap)', async () => {

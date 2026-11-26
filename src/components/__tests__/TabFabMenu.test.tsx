@@ -54,7 +54,7 @@ describe('TabFabMenu', () => {
     for (const key of ['scan', 'ai', 'manual']) {
       const style = flat(result.getByTestId(`menu-${key}`));
       expect(style).toMatchObject({ width: 56, height: 56, borderRadius: 28, borderWidth: 1 });
-      expect(style.backgroundColor).not.toBe('#E3C27A');
+      expect(style.backgroundColor).not.toBe('#C7CDD6');
     }
   });
 
@@ -138,6 +138,6 @@ describe('TabFab with the menu', () => {
 
   test('stays gold, the one gold control: opening the menu changes only its icon turn', async () => {
     const result = await render(<TabFab label="Add transaction" onPress={() => {}} open testID="fab" />);
-    expect(flat(result.getByTestId('fab').parent!)).toMatchObject({ backgroundColor: '#E3C27A', width: 64, height: 64 });
+    expect(flat(result.getByTestId('fab').parent!)).toMatchObject({ backgroundColor: '#C7CDD6', width: 64, height: 64 });
   });
 });

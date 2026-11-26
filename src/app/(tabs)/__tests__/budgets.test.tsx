@@ -68,6 +68,7 @@ const OCTOBER: BudgetOverview = {
   months: ['2026-10', '2026-09', '2026-08', '2026-07', '2026-06'],
   daysLeft: 3,
   availablePerDay: 247667,
+  elapsedBp: 9032,
   isEmpty: false,
   monthCreated: false,
 };
@@ -83,6 +84,7 @@ const EMPTY_SEPTEMBER: BudgetOverview = {
   nextMonth: '2026-10',
   daysLeft: null,
   availablePerDay: null,
+  elapsedBp: null,
   isEmpty: true,
 };
 
