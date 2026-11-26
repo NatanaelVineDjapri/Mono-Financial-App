@@ -32,7 +32,7 @@ const store = () => useChatStore.getState();
 // What the model and the validation need: today, and the accounts' balances of THIS moment.
 export async function loadChatContext(env: ChatEnv): Promise<InterpretContext> {
   const data = await getTxFormData(env.db);
-  return { today: env.today(), accounts: data.accounts, categories: data.categories };
+  return { today: env.today(), accounts: data.accounts, categories: data.categories, subcategories: data.subcategories ?? [] };
 }
 
 function format(env: ChatEnv): (n: number) => string {
@@ -253,6 +253,7 @@ export async function saveEditedDraft(env: ChatEnv, draft: Draft, values: TxForm
     amount: values.amount,
     amountCheck: null,
     categoryId: values.categoryId,
+    subcategoryId: values.subcategoryId ?? null,
     accountId: values.accountId,
     toAccountId: values.toAccountId,
     unknownTarget: null,

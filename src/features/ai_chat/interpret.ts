@@ -9,7 +9,7 @@
 //   error         the call failed; nothing changed
 // A tap on a clarification chip never calls the model again (fillDrafts below).
 import { addDays } from '../../core/date';
-import type { FormAccount, FormCategory, ValidationContext } from '../../core/tx/validate';
+import type { FormAccount, FormCategory, FormSubcategory, TxType, ValidationContext } from '../../core/tx/validate';
 import {
   aiMsgAskAccount,
   aiMsgAskAccountAndCategory,
@@ -31,7 +31,7 @@ import {
   type DraftField,
 } from './draft';
 import { getKey } from './keystore';
-import { matchAccount, matchCategory } from './match';
+import { matchAccount, matchCategory, matchName, matchSubcategory, subcategoriesNamedIn } from './match';
 import { errorMessage, draftsReadyText, outOfScopeMessage, type ErrorMessage, type OutOfScopeMessage } from './messages';
 import { buildRequest } from './prompt';
 import { parseAiResponse, type AiResponse, type AiTransaction } from './schema';
@@ -111,7 +111,10 @@ export function processResponse(response: AiResponse, message: string, ctx: Inte
     return { kind: 'out_of_scope', reason, ...outOfScopeMessage(reason) };
   }
   const candidates = [...extractAmountCandidates(message), ...(previousMessage ? extractAmountCandidates(previousMessage) : [])];
-  const drafts = response.transactions.map((t, index) => buildDraft(t, index, message, candidates, ctx));
+  const drafts = response.transactions.map((t, index) =>
+    // with one transaction the whole typed message is about it, so a sub-category named anywhere in it counts
+    buildDraft(t, index, message, candidates, ctx, response.transactions.length === 1 ? message : ''),
+  );
   return resultFromDrafts(evaluateDrafts(drafts, ctx), ctx, message);
 }
 
@@ -145,7 +148,51 @@ function typedTransferTarget(message: string, modelName: string | null): string 
   return m ? m[1].trim() : null;
 }
 
-function buildDraft(t: AiTransaction, index: number, message: string, candidates: AmountCandidate[], ctx: InterpretContext): Draft {
+interface ResolvedCategory {
+  categoryId: number | null;
+  subcategoryId: number | null;
+}
+
+// The category and, when the message names one, the sub-category inside it. A sub-category is the
+// most specific signal, so its own parent wins: first the one the model put in "subcategory", then one
+// the person typed by name (even if the model left it out or picked another category), then one the
+// model left in "category". Two candidates are never guessed between.
+function resolveCategory(t: AiTransaction, type: TxType | null, ctx: InterpretContext, typed: string): ResolvedCategory {
+  if (type == null || type === 'transfer') return { categoryId: null, subcategoryId: null };
+  const subs: FormSubcategory[] = (ctx.subcategories ?? []).filter(s => ctx.categories.find(c => c.id === s.categoryId)?.kind === type);
+  const under = (sub: FormSubcategory) => ({ categoryId: sub.categoryId, subcategoryId: sub.id });
+
+  if (t.subcategory) {
+    const named = matchName(t.subcategory, subs).item;
+    if (named) return under(named);
+  }
+
+  const category = matchCategory(t.category, type, ctx.categories).item;
+  const mentioned = subcategoriesNamedIn([t.description, typed], subs);
+  if (category) {
+    // A name that is ambiguous across categories becomes clear once the parent is known.
+    const inside = mentioned.filter(s => s.categoryId === category.id);
+    const sub = (t.subcategory ? matchSubcategory(t.subcategory, category.id, subs).item : null) ?? (inside.length === 1 ? inside[0] : null);
+    if (sub) return { categoryId: category.id, subcategoryId: sub.id };
+    if (inside.length === 0 && mentioned.length === 1) return under(mentioned[0]);
+    return { categoryId: category.id, subcategoryId: null };
+  }
+
+  const named = matchName(t.category, subs).item ?? (mentioned.length === 1 ? mentioned[0] : null);
+  return named ? under(named) : { categoryId: null, subcategoryId: null };
+}
+
+// "Makan ayam, pacaran" under the sub-category Pacaran: the label already says it, so the description is
+// "Makan ayam". Only a part set apart by a comma, "&", "+", "/", " - " or "dan" is dropped; "kado pacaran" stays.
+function withoutLabel(description: string, label: string | undefined): string {
+  if (!label) return description;
+  const name = label.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const apart = '(?:\\s*[,&+/]\\s*|\\s+-\\s+|\\s+(?:dan|and)\\s+)';
+  const rest = description.replace(new RegExp(`${apart}${name}$`, 'iu'), '').replace(new RegExp(`^${name}${apart}`, 'iu'), '').trim();
+  return rest || description;
+}
+
+function buildDraft(t: AiTransaction, index: number, message: string, candidates: AmountCandidate[], ctx: InterpretContext, typed: string): Draft {
   const type = t.type;
   const account = matchAccount(t.account, ctx.accounts).item;
 
@@ -160,7 +207,8 @@ function buildDraft(t: AiTransaction, index: number, message: string, candidates
     }
   }
 
-  const category = type === 'transfer' ? null : matchCategory(t.category, type, ctx.categories).item;
+  const category = resolveCategory(t, type, ctx, typed);
+  const label = ctx.subcategories?.find(s => s.id === category.subcategoryId)?.name;
   const { date, stated } = resolveDate(t, ctx.today);
 
   return {
@@ -169,8 +217,9 @@ function buildDraft(t: AiTransaction, index: number, message: string, candidates
     amount: t.amount,
     amountText: t.amount_text,
     amountCheck: t.amount != null ? checkAmount(t, candidates) : null,
-    description: t.description.trim().slice(0, 60),
-    categoryId: category?.id ?? null,
+    description: withoutLabel(t.description.trim(), label).slice(0, 60),
+    categoryId: category.categoryId,
+    subcategoryId: category.subcategoryId,
     accountId: account?.id ?? null,
     toAccountId,
     date,

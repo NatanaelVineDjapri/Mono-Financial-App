@@ -23,6 +23,7 @@ import type { Draft } from '../draft';
 export interface Names {
   accounts: ReadonlyMap<number, string>;
   categories: ReadonlyMap<number, string>;
+  subcategories?: ReadonlyMap<number, string>;
 }
 
 export interface Row {
@@ -55,12 +56,19 @@ export function amountView(kind: TxType, amount: number | null, hidden: boolean)
 export function draftRows(draft: Draft, names: Names, hidden: boolean): Row[] {
   const kind = draftKind(draft);
   const account = (id: number | null) => (id != null ? names.accounts.get(id) : undefined) ?? aiDraftNotSet();
+  // "Food & drink · Pacaran": the category, then the optional sub-category inside it.
+  const category = () => {
+    const name = draft.categoryId != null ? names.categories.get(draft.categoryId) : undefined;
+    if (!name) return aiDraftNotSet();
+    const sub = draft.subcategoryId != null ? names.subcategories?.get(draft.subcategoryId) : undefined;
+    return sub ? `${name} · ${sub}` : name;
+  };
   const rows: Row[] = [];
   if (kind === 'transfer') {
     rows.push({ key: 'from', label: aiDraftFromRow(), value: account(draft.accountId) });
     rows.push({ key: 'to', label: aiDraftToRow(), value: account(draft.toAccountId) });
   } else {
-    rows.push({ key: 'category', label: aiDraftCategoryRow(), value: (draft.categoryId != null ? names.categories.get(draft.categoryId) : undefined) ?? aiDraftNotSet() });
+    rows.push({ key: 'category', label: aiDraftCategoryRow(), value: category() });
     rows.push({ key: 'account', label: aiDraftAccountRow(), value: account(draft.accountId) });
   }
   rows.push({ key: 'date', label: aiDraftDateRow(), value: formatShortDate(draft.date) });

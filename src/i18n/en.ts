@@ -1983,7 +1983,7 @@ export function aiSetupSentItem1(): string {
 }
 
 export function aiSetupSentItem2(): string {
-  return 'Account and category names, so drafts match your data';
+  return 'Account, category and sub-category names, so drafts match your data';
 }
 
 export function aiSetupSentItem3(): string {

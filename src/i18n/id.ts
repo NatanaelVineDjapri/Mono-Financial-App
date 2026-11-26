@@ -1981,7 +1981,7 @@ export function aiSetupSentItem1(): string {
 }
 
 export function aiSetupSentItem2(): string {
-  return 'Nama akun dan nama kategori, supaya draf cocok dengan datamu';
+  return 'Nama akun, kategori, dan sub-kategori, supaya draf cocok dengan datamu';
 }
 
 export function aiSetupSentItem3(): string {

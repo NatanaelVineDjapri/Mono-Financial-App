@@ -29,6 +29,7 @@ export interface Draft {
   amountCheck: AmountCheck | null;
   description: string;
   categoryId: number | null;
+  subcategoryId: number | null; // an optional label inside the category; null for none
   accountId: number | null;
   toAccountId: number | null;
   date: string; // always resolved: written date, computed relative date, or today
@@ -56,6 +57,7 @@ export function toFormValues(d: Draft): TxFormValues {
     type: d.type as TxType,
     amount: d.amount as number,
     categoryId: d.type === 'transfer' ? null : d.categoryId,
+    subcategoryId: d.type === 'transfer' ? null : d.subcategoryId,
     accountId: d.accountId,
     toAccountId: d.type === 'transfer' ? d.toAccountId : null,
     date: d.date,
@@ -115,7 +117,7 @@ export function fillDrafts(drafts: readonly Draft[], field: 'account' | 'categor
     if (field === 'to_account' && account && d.type === 'transfer' && d.toAccountId == null) {
       return { ...d, toAccountId: id, unknownTarget: null };
     }
-    if (field === 'category' && category && d.type === category.kind && d.categoryId == null) return { ...d, categoryId: id };
+    if (field === 'category' && category && d.type === category.kind && d.categoryId == null) return { ...d, categoryId: id, subcategoryId: null };
     return d;
   });
   return evaluateDrafts(filled, ctx);
@@ -140,7 +142,7 @@ export function chooseAmount(drafts: readonly Draft[], draftId: string, amount: 
 export function convertToExpense(drafts: readonly Draft[], draftId: string, ctx: ValidationContext): Draft[] {
   const next = drafts.map(d => {
     if (d.id !== draftId || d.type !== 'transfer') return d;
-    return { ...d, type: 'expense' as const, toAccountId: null, unknownTarget: null, categoryId: null };
+    return { ...d, type: 'expense' as const, toAccountId: null, unknownTarget: null, categoryId: null, subcategoryId: null };
   });
   return evaluateDrafts(next, ctx);
 }

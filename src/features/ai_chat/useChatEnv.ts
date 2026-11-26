@@ -41,6 +41,7 @@ export function useChatNames(): Names {
     () => ({
       accounts: new Map((data?.accounts ?? []).map(a => [a.id, a.name] as const)),
       categories: new Map((data?.categories ?? []).map(c => [c.id, c.name] as const)),
+      subcategories: new Map((data?.subcategories ?? []).map(s => [s.id, s.name] as const)),
     }),
     [data],
   );

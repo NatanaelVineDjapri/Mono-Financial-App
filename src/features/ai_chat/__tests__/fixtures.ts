@@ -1,5 +1,5 @@
 // Shared by the AI chat tests: the sample dataset's accounts and a few categories.
-import type { FormAccount, FormCategory, ValidationContext } from '../../../core/tx/validate';
+import type { FormAccount, FormCategory, FormSubcategory, ValidationContext } from '../../../core/tx/validate';
 import type { AiResponse, AiTransaction } from '../schema';
 
 export const TODAY = '2026-10-28';
@@ -20,7 +20,14 @@ export const CATEGORIES: FormCategory[] = [
   { id: 21, name: 'Other income', kind: 'income' },
 ];
 
+export const SUBCATEGORIES: FormSubcategory[] = [
+  { id: 100, categoryId: 10, name: 'Pacaran' },
+  { id: 101, categoryId: 10, name: 'Makan di luar' },
+  { id: 102, categoryId: 11, name: 'Parkir' },
+];
+
 export const CTX: ValidationContext = { today: TODAY, accounts: ACCOUNTS, categories: CATEGORIES };
+export const CTX_SUB: ValidationContext = { today: TODAY, accounts: ACCOUNTS, categories: CATEGORIES, subcategories: SUBCATEGORIES };
 
 export function tx(overrides: Partial<AiTransaction> = {}): AiTransaction {
   return {
@@ -29,6 +36,7 @@ export function tx(overrides: Partial<AiTransaction> = {}): AiTransaction {
     amount_text: null,
     description: '',
     category: null,
+    subcategory: null,
     account: null,
     to_account: null,
     date: null,

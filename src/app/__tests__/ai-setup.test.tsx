@@ -67,7 +67,7 @@ describe('K1: what the screen says', () => {
     expect(screen.getByText('FITUR OPSIONAL')).toBeTruthy();
     expect(screen.getByText(/Kamu cek, lalu simpan/)).toBeTruthy();
 
-    for (const text of ['DIKIRIM KE GEMINI', 'Pesan yang kamu ketik', 'Nama akun dan nama kategori, supaya draf cocok dengan datamu', 'Tanggal hari ini', 'TIDAK DIKIRIM', 'Saldo, riwayat transaksi, anggaran, dan target', 'Berkas cadangan']) {
+    for (const text of ['DIKIRIM KE GEMINI', 'Pesan yang kamu ketik', 'Nama akun, kategori, dan sub-kategori, supaya draf cocok dengan datamu', 'Tanggal hari ini', 'TIDAK DIKIRIM', 'Saldo, riwayat transaksi, anggaran, dan target', 'Berkas cadangan']) {
       expect(screen.getByText(text)).toBeTruthy();
     }
   });

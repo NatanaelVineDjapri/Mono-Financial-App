@@ -1,7 +1,7 @@
 // Names to ids (CLAUDE.md rule 9): never a guess. An exact name wins; then a unique alias or
 // prefix ("bca", "gopay", "cash"); then, for names of five letters or more, a single candidate
 // within two typos. Two or more candidates, or none, is "not mentioned" and the person is asked.
-import type { FormAccount, FormCategory, TxType } from '../../core/tx/validate';
+import type { FormAccount, FormCategory, FormSubcategory, TxType } from '../../core/tx/validate';
 
 export type MatchKind = 'exact' | 'alias' | 'fuzzy' | 'ambiguous' | 'none';
 
@@ -72,4 +72,20 @@ export function matchAccount(input: string | null | undefined, accounts: readonl
 export function matchCategory(input: string | null | undefined, type: TxType | null, categories: readonly FormCategory[]): Match<FormCategory> {
   if (type == null || type === 'transfer') return { item: null, kind: 'none' };
   return matchName(input, categories.filter(c => c.kind === type));
+}
+
+// A sub-category belongs to exactly one category, so only that category's own sub-categories are
+// offered. The parent is already chosen; a name from another category is not a match.
+export function matchSubcategory(input: string | null | undefined, categoryId: number, subcategories: readonly FormSubcategory[]): Match<FormSubcategory> {
+  return matchName(input, subcategories.filter(s => s.categoryId === categoryId));
+}
+
+// The sub-categories named outright in any of the texts ("makan ayam, pacaran"): a whole word or
+// phrase, never a fragment. The caller treats two or more as unknown, never a guess.
+export function subcategoriesNamedIn(texts: readonly string[], subcategories: readonly FormSubcategory[]): FormSubcategory[] {
+  const haystacks = texts.map(t => ` ${normalizeName(t)} `);
+  return subcategories.filter(s => {
+    const name = normalizeName(s.name);
+    return name.length > 0 && haystacks.some(h => h.includes(` ${name} `));
+  });
 }

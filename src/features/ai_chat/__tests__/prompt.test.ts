@@ -13,9 +13,32 @@ describe('buildRequest', () => {
       today: '2026-10-28',
       weekday: 'Rabu',
       accounts: ['BCA Tabungan', 'Cash wallet', 'GoPay', 'Jago Pocket'],
-      categories: { expense: ['Food & drink', 'Transport', 'Shopping', 'Bills'], income: ['Salary', 'Other income'] },
+      categories: {
+        expense: [{ name: 'Food & drink' }, { name: 'Transport' }, { name: 'Shopping' }, { name: 'Bills' }],
+        income: [{ name: 'Salary' }, { name: 'Other income' }],
+      },
       message: 'kopi 25rb pake gopay',
     });
+  });
+
+  test('sub-categories are listed under their own category, by name only', () => {
+    const ctx = {
+      ...CTX,
+      subcategories: [
+        { categoryId: 10, name: 'Pacaran' },
+        { categoryId: 10, name: 'Makan di luar' },
+        { categoryId: 11, name: 'Parkir' },
+      ],
+    };
+    const input = userInput(buildRequest('pacaran 25rb', ctx));
+    expect(input.categories.expense).toEqual([
+      { name: 'Food & drink', subcategories: ['Pacaran', 'Makan di luar'] },
+      { name: 'Transport', subcategories: ['Parkir'] },
+      { name: 'Shopping' },
+      { name: 'Bills' },
+    ]);
+    expect(input.categories.income).toEqual([{ name: 'Salary' }, { name: 'Other income' }]);
+    expect(JSON.stringify(input)).not.toContain('categoryId');
   });
 
   test('no balance, id, opening date or amount of the person reaches the request', () => {

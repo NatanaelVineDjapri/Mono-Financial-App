@@ -14,7 +14,7 @@ import {
 import type { callGemini } from '../client';
 import { blockedText, checkAmountText } from '../messages';
 import { MAX_CHARS } from '../config';
-import { ACCOUNTS, CTX, replyText, response, tx } from './fixtures';
+import { ACCOUNTS, CTX, CTX_SUB, replyText, response, tx } from './fixtures';
 
 type Call = typeof callGemini;
 type Reply = Awaited<ReturnType<Call>>;
@@ -85,6 +85,86 @@ describe('a clear message', () => {
     const d = deps(reply('create_transactions', [{ ...kopi, description: 'x'.repeat(100) }]));
     const result = kind(await interpret('kopi 25rb pake gopay', CTX, null, d), 'drafts');
     expect(result.drafts[0].description).toHaveLength(60);
+  });
+});
+
+describe('subcategory matching', () => {
+  test('a subcategory named in the model reply maps to its parent and subcategoryId', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Makan ayam',
+      category: 'Food & drink', subcategory: 'Pacaran', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('makan ayam, pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0]).toMatchObject({ categoryId: 10, subcategoryId: 100 });
+  });
+
+  test('a subcategory name placed in the category field still resolves', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Makan ayam',
+      category: 'Pacaran', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('makan ayam pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0]).toMatchObject({ categoryId: 10, subcategoryId: 100 });
+  });
+
+  test('a subcategory word in the description is detected under the matched parent', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Pacaran',
+      category: 'Food & drink', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0]).toMatchObject({ categoryId: 10, subcategoryId: 100 });
+  });
+
+  test('a typed sub-category counts even when the model leaves it out, and is not repeated in the description', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Makan ayam dan pacaran',
+      category: 'Food & drink', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('makan ayam, pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0]).toMatchObject({ categoryId: 10, subcategoryId: 100, description: 'Makan ayam' });
+  });
+
+  test('a typed sub-category brings its own category when the model picked another', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Makan ayam',
+      category: 'Shopping', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('makan ayam, pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0]).toMatchObject({ categoryId: 10, subcategoryId: 100 });
+  });
+
+  test('a sub-category word that is part of the description stays there', async () => {
+    const d = deps(reply('create_transactions', [{
+      amount: 25000, amount_text: '25k', description: 'Kado pacaran',
+      category: 'Shopping', subcategory: 'Pacaran', account: 'GoPay',
+    }]));
+    const result = kind(await interpret('kado pacaran 25k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0].description).toBe('Kado pacaran');
+  });
+
+  test('with two transactions, a word typed for one does not label the other', async () => {
+    const d = deps(reply('create_transactions', [
+      { amount: 25000, amount_text: '25k', description: 'Nonton, pacaran', category: 'Food & drink', account: 'GoPay' },
+      { amount: 5000, amount_text: '5k', description: 'Kopi', category: 'Food & drink', account: 'GoPay' },
+    ]));
+    const result = kind(await interpret('nonton pacaran 25k, kopi 5k', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts.map(x => x.subcategoryId)).toEqual([100, null]);
+  });
+
+  test('without subcategories in context, subcategoryId is null', async () => {
+    const d = deps(reply('create_transactions', [kopi]));
+    const result = kind(await interpret('kopi 25rb pake gopay', CTX, null, d), 'drafts');
+    expect(result.drafts[0].subcategoryId).toBeNull();
+  });
+
+  test('a transfer has no subcategory', async () => {
+    const d = deps(reply('create_transactions', [{
+      type: 'transfer', amount: 500000, amount_text: '500rb',
+      description: 'Ke Jago', account: 'bca', to_account: 'jago',
+    }]));
+    const result = kind(await interpret('transfer 500rb bca ke jago', CTX_SUB, null, d), 'drafts');
+    expect(result.drafts[0].subcategoryId).toBeNull();
   });
 });
 

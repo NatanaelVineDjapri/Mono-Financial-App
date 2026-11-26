@@ -1,5 +1,5 @@
-import { matchAccount, matchCategory, matchName, normalizeName } from '../match';
-import { ACCOUNTS, CATEGORIES } from './fixtures';
+import { matchAccount, matchCategory, matchName, matchSubcategory, normalizeName, subcategoriesNamedIn } from '../match';
+import { ACCOUNTS, CATEGORIES, SUBCATEGORIES } from './fixtures';
 
 describe('matchName', () => {
   test('exact, ignoring case and punctuation', () => {
@@ -48,5 +48,20 @@ describe('matchName', () => {
     expect(matchCategory('Food & drink', 'income', CATEGORIES).item).toBeNull();
     expect(matchCategory('Food & drink', 'transfer', CATEGORIES).item).toBeNull();
     expect(matchCategory('Food & drink', null, CATEGORIES).item).toBeNull();
+  });
+
+  test('matchSubcategory finds a sub-category of the given parent', () => {
+    expect(matchSubcategory('Pacaran', 10, SUBCATEGORIES)).toMatchObject({ kind: 'exact', item: { id: 100 } });
+    expect(matchSubcategory('Parkir', 11, SUBCATEGORIES)).toMatchObject({ kind: 'exact', item: { id: 102 } });
+    expect(matchSubcategory('Parkir', 10, SUBCATEGORIES)).toEqual({ kind: 'none', item: null }); // wrong parent
+    expect(matchSubcategory(null, 10, SUBCATEGORIES)).toEqual({ kind: 'none', item: null });
+  });
+
+  test('subcategoriesNamedIn finds names typed as whole words', () => {
+    const ids = (...texts: string[]) => subcategoriesNamedIn(texts, SUBCATEGORIES).map(s => s.id);
+    expect(ids('makan ayam, Pacaran 25k')).toEqual([100]);
+    expect(ids('', 'parkir motor')).toEqual([102]);
+    expect(ids('pacaran sambil parkir')).toEqual([100, 102]);
+    expect(ids('pacarannya mahal', 'no match here')).toEqual([]);
   });
 });
