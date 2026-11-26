@@ -185,18 +185,6 @@ export function HeroSection({
         <View style={styles.labelRow}>
           <Text style={styles.label}>{netWorthLabel()}</Text>
           <View style={styles.topRightControls}>
-            {onOpenSummary && (
-              <Pressable
-                onPress={onOpenSummary}
-                accessibilityRole="button"
-                accessibilityLabel={summaryOpen()}
-                hitSlop={8}
-                style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
-                testID="hero-summary-link"
-              >
-                <Icon name="trend" size={16} color={MonoColors.textMeta} />
-              </Pressable>
-            )}
             <Pressable
               onPress={onShine}
               accessibilityRole="button"
@@ -229,7 +217,7 @@ export function HeroSection({
           {change && <ChangeChip change={change} hidden={hidden} />}
         </Pressable>
 
-        {(onAddTransaction || onTransfer || onScan) && (
+        {(onAddTransaction || onTransfer || onScan || onOpenSummary) && (
           <View style={styles.actionRow}>
             {onAddTransaction && (
               <Pressable
@@ -271,6 +259,20 @@ export function HeroSection({
                 <Icon name="scan" size={18} color={MonoColors.text} />
               </Pressable>
             )}
+
+            {onOpenSummary && (
+              <Pressable
+                onPress={onOpenSummary}
+                accessibilityRole="button"
+                accessibilityLabel={summaryOpen()}
+                hitSlop={4}
+                android_ripple={undefined}
+                style={({ pressed }) => [styles.iconPill, pressed && styles.pressed]}
+                testID="hero-summary-link"
+              >
+                <Icon name="trend" size={18} color={MonoColors.text} />
+              </Pressable>
+            )}
           </View>
         )}
       </View>
@@ -293,16 +295,6 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   label: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase' },
   topRightControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: MonoColors.surface,
-    borderWidth: 1,
-    borderColor: MonoColors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   sparkleButton: {
     width: 28,
     height: 28,
@@ -331,18 +323,22 @@ const styles = StyleSheet.create({
   vs: { ...MonoText.bodyS, color: MonoColors.textSecond },
   actionRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
     marginTop: 6,
   },
   primaryPill: {
-    height: 40,
+    flex: 1,
+    minWidth: 88,
+    minHeight: 40,
+    justifyContent: 'center',
     borderRadius: 20,
     backgroundColor: MonoColors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 18,
+    paddingHorizontal: 8,
   },
   primaryPillText: {
     ...MonoText.bodyStrong,
@@ -350,13 +346,16 @@ const styles = StyleSheet.create({
     color: '#0A0A0A',
   },
   secondaryPill: {
-    height: 40,
+    flex: 1,
+    minWidth: 88,
+    minHeight: 40,
+    justifyContent: 'center',
     borderRadius: 20,
     backgroundColor: MonoColors.raised,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   secondaryPillText: {
     ...MonoText.bodyStrong,
