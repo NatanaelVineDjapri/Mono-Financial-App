@@ -19,6 +19,7 @@ const TOP_PAD = 10; // room for the last point's halo above the highest gridline
 const X_LABEL_H = 24;
 const Y_LABEL_W = 44; // the gutter for the y axis labels
 const RIGHT_PAD = 12;
+const END_LABEL_RISE = 26; // how far above the last point its label starts
 const TOOLTIP_W = 156;
 const TOOLTIP_H = 62;
 const INNER_H = TOP_PAD + CHART_H + X_LABEL_H;
@@ -77,14 +78,22 @@ export interface LineAreaChartProps {
   footer?: ReactNode;
   // The plot is shown at half strength while newer data is on its way (the footer's buttons stay as they are).
   dimmed?: boolean;
+  // A dashed horizontal line at this value (the goal on net worth history). The caller's axis must include it.
+  referenceValue?: number;
+  // A short figure written beside the last point. The caller masks it when amounts are hidden.
+  endLabel?: string;
+  // The tighter panel of the Overview's net cash flow chart, for a chart that sits inside a card.
+  compact?: boolean;
+  // Wider than usual when the y labels are long ("100 jt"), so they stay on one line.
+  yGutter?: number;
 }
 
-export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hideYLabels = false, renderTooltip, accessibilityLabel, testID, footer, dimmed = false }: LineAreaChartProps) {
+export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hideYLabels = false, renderTooltip, accessibilityLabel, testID, footer, dimmed = false, referenceValue, endLabel, compact = false, yGutter = Y_LABEL_W }: LineAreaChartProps) {
   const [width, setWidth] = useState(0);
   const [active, setActive] = useState<number | null>(null);
 
   const count = values.length;
-  const plotLeft = hideYLabels ? 6 : Y_LABEL_W;
+  const plotLeft = hideYLabels ? 6 : yGutter;
   const plotRight = Math.max(plotLeft + 40, width - RIGHT_PAD);
   const plotW = plotRight - plotLeft;
   const stepX = count > 1 ? plotW / (count - 1) : 0;
@@ -102,7 +111,7 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
   };
 
   return (
-    <View style={styles.panel} testID={testID}>
+    <View style={[styles.panel, compact && styles.panelCompact]} testID={testID}>
       <View
         style={[styles.body, dimmed && styles.dimmed]}
         accessible
@@ -125,6 +134,9 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
               </Defs>
               <DottedGrid xs={xLabelIndexes.map(xAt)} ys={axis.ticks.map(yAt)} left={plotLeft} right={plotRight} top={TOP_PAD} bottom={TOP_PAD + CHART_H} />
               <Path d={area} fill="url(#lineAreaFill)" />
+              {referenceValue != null && (
+                <Line x1={plotLeft} x2={plotRight} y1={yAt(referenceValue)} y2={yAt(referenceValue)} stroke={MonoColors.textSecond} strokeWidth={1.5} strokeDasharray={[6, 5]} />
+              )}
               <Path d={line} fill="none" stroke={MonoColors.accent} strokeWidth={CHART_LINE_WIDTH} strokeLinecap="round" strokeLinejoin="round" />
               {last && <Circle cx={last.x} cy={last.y} r={9} fill={MonoColors.accent} fillOpacity={0.16} />}
               {last && <Circle cx={last.x} cy={last.y} r={4} fill={MonoColors.accent} />}
@@ -138,7 +150,7 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
 
             {!hideYLabels &&
               axis.ticks.map(tick => (
-                <Text key={`y-${tick}`} style={[styles.yLabel, { top: yAt(tick) - 8, width: Y_LABEL_W - 8 }]} accessibilityElementsHidden importantForAccessibility="no">
+                <Text key={`y-${tick}`} style={[styles.yLabel, { top: yAt(tick) - 8, width: yGutter - 8 }]} accessibilityElementsHidden importantForAccessibility="no">
                   {yLabel(tick)}
                 </Text>
               ))}
@@ -153,6 +165,17 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
                 {xLabel(index)}
               </Text>
             ))}
+
+            {endLabel != null && last && (
+              // Above the point, or under it when the point is too near the top.
+              <Text
+                style={[styles.endLabel, { right: Math.max(0, width - last.x - 4), top: last.y >= END_LABEL_RISE ? last.y - END_LABEL_RISE : last.y + 10 }]}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              >
+                {endLabel}
+              </Text>
+            )}
 
             {active !== null && points[active] && (
               <View
@@ -180,11 +203,13 @@ export function LineAreaChart({ values, axis, yLabel, xLabelIndexes, xLabel, hid
 const styles = StyleSheet.create({
   // Room between the card's edge and everything in it: the axis labels, the plot and the range pill.
   panel: { backgroundColor: MonoColors.surface, borderRadius: radius.lg, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 },
+  panelCompact: { borderRadius: radius.md, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8 },
   body: { height: INNER_H },
   footer: { marginTop: 16 },
   dimmed: { opacity: 0.5 },
   yLabel: { ...MonoText.caption, position: 'absolute', left: 0, color: MonoColors.textMeta },
   xLabel: { ...MonoText.caption, position: 'absolute', width: 60, textAlign: 'center', color: MonoColors.textMeta },
+  endLabel: { ...MonoText.caption, position: 'absolute', fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text },
   tooltip: {
     position: 'absolute',
     width: TOOLTIP_W,

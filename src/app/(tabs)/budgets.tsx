@@ -29,6 +29,7 @@ import { rp, shown } from '@/core/money';
 import type { BudgetCategoryRow, BudgetMonthRow, BudgetOverview } from '@/domain/budget';
 import { BudgetBar, budgetBarLabel, type BudgetFigures } from '@/features/budgets/BudgetBar';
 import { MonthSheet } from '@/features/budgets/MonthSheet';
+import { SavingsCard } from '@/features/budgets/SavingsCard';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
 import {
   addBudgetLabel,
@@ -213,12 +214,16 @@ export default function BudgetsScreen() {
     return (
       <View style={styles.screen}>
         {header}
-        <View style={styles.centerFill} testID="budgets-empty">
-          <Icon name="pie" size={26} color={MonoColors.textDisabled} />
-          <Text style={styles.emptyTitle}>{budgetsEmptyTitle(monthLabel(data.month))}</Text>
-          <Text style={styles.emptyBody}>{budgetsEmptyBody()}</Text>
-          <Button label={addBudgetLabel()} icon="plus" onPress={openAdd} />
-        </View>
+        <ScrollView contentContainerStyle={[styles.emptyContent, { paddingBottom: tabBarClearance }]}>
+          <View style={styles.emptyFill} testID="budgets-empty">
+            <Icon name="pie" size={26} color={MonoColors.textDisabled} />
+            <Text style={styles.emptyTitle}>{budgetsEmptyTitle(monthLabel(data.month))}</Text>
+            <Text style={styles.emptyBody}>{budgetsEmptyBody()}</Text>
+            <Button label={addBudgetLabel()} icon="plus" onPress={openAdd} />
+          </View>
+          {/* A savings target needs no budget, so it is offered here too. */}
+          <SavingsCard month={data.month} />
+        </ScrollView>
         {monthSheet}
       </View>
     );
@@ -229,6 +234,7 @@ export default function BudgetsScreen() {
       {header}
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]} testID="budgets-scroll">
         {data.limit && <MonthCard overview={data} limit={data.limit} hidden={hidden} />}
+        <SavingsCard month={data.month} />
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{byCategoryLabel()}</Text>
@@ -264,6 +270,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, gap: 16 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
+  // The empty state scrolls: its message fills what the savings card leaves, and nothing clips at large text.
+  emptyContent: { flexGrow: 1, paddingHorizontal: 20, gap: 16 },
+  emptyFill: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 24 },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BASE_WEIGHTS, COMPONENT_IDS, MIN_SPAN_DAYS, MIN_TRANSACTIONS } from '@/domain/health';
+import { analysisHowDrop } from '@/i18n';
 
 import HowScreen from '../analysis/how';
 
@@ -40,6 +41,11 @@ test('the thresholds are the ones the formula uses', async () => {
   expect(screen.getByText('Penuh di 20% atau lebih. Nol di 0% atau kurang. Di antaranya naik lurus.')).toBeTruthy();
   expect(screen.getByText('Penuh di 20% atau kurang. Nol di 40% atau lebih.')).toBeTruthy();
   expect(screen.getByText(`Skor muncul setelah minimal ${MIN_TRANSACTIONS} transaksi dan data ${MIN_SPAN_DAYS} hari.`)).toBeTruthy();
+});
+
+test('explains the savings-drop deduction with the numbers the formula uses', async () => {
+  await open();
+  expect(screen.getByText(analysisHowDrop(2, 15, 10))).toBeTruthy();
 });
 
 test('what the score means: the four bands and their ranges', async () => {

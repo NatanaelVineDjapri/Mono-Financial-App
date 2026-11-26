@@ -4804,3 +4804,149 @@ export function catSubErrorGone(): string {
 export function budgetTodayMarker(): string {
   return 'Today';
 }
+
+// Savings-drop penalty, savings budget and the Summary page.
+export function analysisDropTitle(): string {
+  return 'Saved less than last month';
+}
+export function analysisDropDetail(from: string, to: string): string {
+  return `Share of income saved: ${from} to ${to}`;
+}
+export function analysisDropPoints(points: number): string {
+  return `−${points}`;
+}
+export function analysisDropA11y(points: number, from: string, to: string): string {
+  return `Saved less than last month: ${from} to ${to}, ${points} points off`;
+}
+export function analysisHowDrop(step: number, max: number, day: number): string {
+  return `Saving a smaller share of your income than the month before takes points off: 1 for every ${step}% lost, up to ${max}. Not counted before day ${day} of the month.`;
+}
+export function savingsTitle(): string {
+  return 'Savings budget';
+}
+export function savingsPrompt(): string {
+  return 'Set how much you want to save each month. Saved means income minus expenses.';
+}
+export function savingsSetButton(): string {
+  return 'Set savings target';
+}
+export function savingsOfTarget(amount: string): string {
+  return `of ${amount}`;
+}
+export function savingsToGo(amount: string): string {
+  return `${amount} to go`;
+}
+export function savingsReached(): string {
+  return 'Target reached';
+}
+export function savingsShort(amount: string): string {
+  return `Spent ${amount} more than you earned`;
+}
+export function savingsEditLabel(): string {
+  return 'Edit savings target';
+}
+export function savingsEditTitle(): string {
+  return 'Savings target';
+}
+export function savingsFieldLabel(): string {
+  return 'Save each month';
+}
+export function savingsHelper(): string {
+  return 'Counted as the income minus the expenses of the month. Transfers between your accounts do not count.';
+}
+export function savingsSaveButton(): string {
+  return 'Save target';
+}
+export function savingsRemoveButton(): string {
+  return 'Remove target';
+}
+export function savingsA11y(saved: string, target: string, percent: string): string {
+  return `Saved ${saved} of ${target}, ${percent}`;
+}
+export function summaryTitle(): string {
+  return 'Summary';
+}
+export function summaryBack(): string {
+  return 'Overview';
+}
+export function summaryOpen(): string {
+  return 'See summary';
+}
+export function summaryTabCurrent(): string {
+  return 'Current';
+}
+export function summaryTabHistory(): string {
+  return 'History';
+}
+export function summaryRangeName(range: 'month' | '3m' | '6m' | 'year'): string {
+  return range === 'month' ? 'This month' : range === '3m' ? '3 months' : range === '6m' ? '6 months' : '1 year';
+}
+export function summaryMonths(count: number): string {
+  return `${count} months`;
+}
+export function summaryNet(): string {
+  return 'Net total';
+}
+export function summaryIncome(): string {
+  return 'Income';
+}
+export function summaryExpense(): string {
+  return 'Expenses';
+}
+export function summaryCorrection(): string {
+  return 'Balance correction';
+}
+export function summaryRunningTitle(): string {
+  return 'Net total over time';
+}
+export function summaryRunningA11y(from: string, to: string, end: string): string {
+  return `Net total from ${from} to ${to}, ending at ${end}`;
+}
+export function summaryWhereTitle(): string {
+  return 'Where it went';
+}
+export function summaryNoSub(): string {
+  return 'No sub-category';
+}
+export function summaryCategoryA11y(name: string, percent: string, amount: string): string {
+  return `${name}, ${percent}, ${amount}`;
+}
+export function summaryNoSpending(): string {
+  return 'No expenses in this period.';
+}
+export function summaryHeatTitle(): string {
+  return 'Spending calendar';
+}
+export function summaryHeatPick(): string {
+  return 'Tap a day to see what was spent.';
+}
+export function summaryHeatDay(date: string, amount: string): string {
+  return `${date}: ${amount}`;
+}
+export function summaryHeatPrev(): string {
+  return 'Previous month';
+}
+export function summaryHeatNext(): string {
+  return 'Next month';
+}
+export function summaryWeekday(index: number): string {
+  return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'][index];
+}
+export function summaryAllAccounts(): string {
+  return 'All accounts';
+}
+export function summaryHistoryTitle(): string {
+  return 'Income and expenses';
+}
+export function summaryHistoryA11y(values: string): string {
+  return `Income and expenses per month: ${values}`;
+}
+export function summaryHistoryMonthValues(month: string, income: string, expense: string): string {
+  return `${month} income ${income}, expenses ${expense}`;
+}
+export function summaryPartialNote(): string {
+  return '* This month is not over yet.';
+}
+export function summaryEmpty(): string {
+  return 'No records in this period.';
+}

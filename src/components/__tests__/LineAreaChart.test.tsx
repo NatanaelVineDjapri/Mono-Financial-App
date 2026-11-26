@@ -47,7 +47,7 @@ describe('LineAreaChart', () => {
     testID: 'chart',
   };
 
-  async function renderChart(over: Partial<typeof props> & { hideYLabels?: boolean } = {}) {
+  async function renderChart(over: Partial<typeof props> & { hideYLabels?: boolean; referenceValue?: number; endLabel?: string } = {}) {
     const view = await render(<LineAreaChart {...props} {...over} />);
     await fireEvent(view.getByTestId('chart-plot'), 'layout', { nativeEvent: { layout: { width: 320, height: 166 } } });
     return view;
@@ -84,6 +84,18 @@ describe('LineAreaChart', () => {
     const view = await renderChart({ hideYLabels: true });
     expect(view.queryByText('y500000', { includeHiddenElements: true })).toBeNull();
     expect(view.getByText('x0', { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  test('a reference line and an end label are drawn only when asked for', async () => {
+    const dashed = (tree: unknown) => JSON.stringify(tree).includes('[6,5]');
+    const plain = await renderChart();
+    expect(dashed(plain.toJSON())).toBe(false);
+    expect(plain.queryByText('1,3 jt', { includeHiddenElements: true })).toBeNull();
+    await plain.unmount();
+
+    const view = await renderChart({ referenceValue: 1_000_000, endLabel: '1,3 jt' });
+    expect(dashed(view.toJSON())).toBe(true);
+    expect(view.getByText('1,3 jt', { includeHiddenElements: true })).toBeTruthy();
   });
 
   test('draws nothing before it knows its width', async () => {

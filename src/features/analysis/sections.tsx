@@ -10,8 +10,9 @@ import { Icon, type IconName } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
-import type { EligibilityCheck, HealthBand } from '@/domain/health';
+import type { EligibilityCheck, HealthBand, SavingsDrop } from '@/domain/health';
 import { monthName, monthShortLabel } from '@/core/date';
+import { pct } from '@/core/money';
 import * as t from '@/i18n';
 
 import type { ImprovementCard, LinkTarget, PartRow, WatchCard } from './copy';
@@ -86,7 +87,28 @@ export function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-export function PartsCard({ rows, onGo }: { rows: PartRow[]; onGo: Go }) {
+// The one deduction (savingsDrop in src/domain/health), as the last line under the parts: it explains why the parts
+// add up to more than the score. Calm like the rest of the card: written out and signed, never red.
+function DropRow({ drop }: { drop: SavingsDrop }) {
+  const from = pct(drop.fromBp);
+  const to = pct(drop.toBp);
+  return (
+    <View style={[styles.partRow, styles.rowDivider, styles.dropRow]} accessible accessibilityLabel={t.analysisDropA11y(drop.points, from, to)} testID="analysis-drop">
+      <View style={styles.partIcon}><Icon name="arrow-down" size={20} color={MonoColors.text} /></View>
+      <View style={styles.partBody}>
+        <View style={styles.partTop}>
+          <View style={styles.partNameRow}>
+            <Text style={styles.partName}>{t.analysisDropTitle()}</Text>
+          </View>
+          <Text style={styles.partPoints}>{t.analysisDropPoints(drop.points)}</Text>
+        </View>
+        <Text style={styles.partDetail}>{t.analysisDropDetail(from, to)}</Text>
+      </View>
+    </View>
+  );
+}
+
+export function PartsCard({ rows, drop, onGo }: { rows: PartRow[]; drop: SavingsDrop | null; onGo: Go }) {
   return (
     <Card style={styles.listCard} testID="analysis-parts">
       {rows.map((row, i) => (
@@ -124,6 +146,7 @@ export function PartsCard({ rows, onGo }: { rows: PartRow[]; onGo: Go }) {
           </View>
         </View>
       ))}
+      {drop && <DropRow drop={drop} />}
     </Card>
   );
 }
@@ -288,6 +311,7 @@ const styles = StyleSheet.create({
   rowDivider: { borderTopWidth: 1, borderTopColor: MonoColors.border },
 
   partRow: { flexDirection: 'row', gap: 14, paddingHorizontal: 18, paddingVertical: 18, minHeight: 76 },
+  dropRow: { backgroundColor: MonoColors.raised },
   partIcon: { width: 40, height: 40, borderRadius: 14, borderWidth: 1, borderColor: MonoColors.border, backgroundColor: MonoColors.raised, alignItems: 'center', justifyContent: 'center' },
   partBody: { flex: 1, minWidth: 0 },
   partTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },

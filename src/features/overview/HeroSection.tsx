@@ -28,6 +28,7 @@ import {
   netWorthLabel,
   showAmountsLabel,
   showAmountsShortLabel,
+  summaryOpen,
   type GreetingKind,
 } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
@@ -55,6 +56,7 @@ export interface HeroSectionProps {
   onAddTransaction?: () => void;
   onTransfer?: () => void;
   onScan?: () => void;
+  onOpenSummary?: () => void; // the balance, and the link under it, open the Summary page
 }
 
 // The net worth change: a chip in the tone of its sign, then "vs <last month end>".
@@ -91,6 +93,7 @@ export function HeroSection({
   onAddTransaction,
   onTransfer,
   onScan,
+  onOpenSummary,
 }: HeroSectionProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const toggle = useHideAmounts(s => s.toggle);
@@ -158,7 +161,7 @@ export function HeroSection({
           <Path d="M 60 -15 C 160 45, 230 115, 360 75" stroke="url(#hero-gold-stroke-1)" strokeWidth="1.75" fill="none" />
           <Path d="M 90 -20 C 190 55, 260 135, 370 110" stroke="url(#hero-gold-stroke-2)" strokeWidth="1.25" fill="none" />
           <Path d="M 130 -20 C 220 70, 280 160, 390 145" stroke="rgba(255,255,255,0.07)" strokeWidth="1" fill="none" />
-          <Path d="M 170 -15 C 255 85, 305 185, 410 180" stroke="rgba(229,192,123,0.22)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
+          <Path d="M 170 -15 C 255 85, 305 185, 410 180" stroke="rgba(199,205,214,0.22)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
           <Path d="M 215 -10 C 290 100, 335 205, 430 205" stroke="rgba(255,255,255,0.05)" strokeWidth="0.8" fill="none" />
           <Path d="M 0 0 L 350 0" stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
         </Svg>
@@ -206,12 +209,19 @@ export function HeroSection({
           </View>
         </View>
 
-        <View style={styles.balanceBlock}>
+        {/* the whole block opens the Summary on touch; for a screen reader the link below does, so the balance is still read */}
+        <Pressable style={styles.balanceBlock} onPress={onOpenSummary} disabled={!onOpenSummary} accessible={false} android_ripple={undefined} testID="hero-open-summary">
           <Amount value={netWorth} variant="heroBalance" testID="hero-balance" />
           {!!note && <Text style={styles.note}>{note}</Text>}
           {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
           {change && <ChangeChip change={change} hidden={hidden} />}
-        </View>
+          {onOpenSummary && (
+            <Pressable onPress={onOpenSummary} accessibilityRole="link" accessibilityLabel={summaryOpen()} android_ripple={undefined} style={styles.summaryLink} testID="hero-summary-link">
+              <Text style={styles.summaryText}>{summaryOpen()}</Text>
+              <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
+            </Pressable>
+          )}
+        </Pressable>
 
         {(onAddTransaction || onTransfer || onScan) && (
           <View style={styles.actionRow}>
@@ -281,9 +291,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(229,192,123,0.12)',
+    backgroundColor: 'rgba(199,205,214,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(229,192,123,0.25)',
+    borderColor: 'rgba(199,205,214,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -297,6 +307,8 @@ const styles = StyleSheet.create({
   hideButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginVertical: -8 },
   pressed: { opacity: 0.7 },
   hideText: { ...MonoText.bodyS, fontFamily: MonoText.figureRow.fontFamily, color: MonoColors.textMeta },
+  summaryLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, alignSelf: 'flex-start' },
+  summaryText: { ...MonoText.bodyS, color: MonoColors.textSecond },
   balanceBlock: { gap: 8, marginTop: -2 },
   note: { ...MonoText.body, color: MonoColors.textSecond },
   changeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 10, rowGap: 6 },

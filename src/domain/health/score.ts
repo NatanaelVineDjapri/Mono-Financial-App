@@ -1,6 +1,7 @@
 // The financial health score, from a formula (no AI, no network, nothing stored): five parts, each a ratio
 // 0..100% of its weight, rounded half up to whole points; the score is the SUM of those rounded points, so the
-// figures on screen always add up. A part without data is skipped and its weight is shared among the others
+// figures on screen always add up. The one deduction: saving a smaller share than the period before takes points off
+// the sum (savingsDrop), shown as its own line. A part without data is skipped and its weight is shared among the others
 // (largest remainder, so the weights add up to exactly 100).
 import {
   BAND_FROM,
@@ -12,6 +13,8 @@ import {
   MIN_ACCOUNTS,
   MIN_SPAN_DAYS,
   MIN_TRANSACTIONS,
+  SAVINGS_DROP_MAX,
+  SAVINGS_DROP_STEP_BP,
   SAVINGS_FULL_BP,
   WEALTH_MAX_POINTS,
   YOUNG_PERIOD_DAYS,
@@ -21,6 +24,7 @@ import {
   type HealthComponent,
   type HealthInput,
   type HealthResult,
+  type SavingsDrop,
 } from './types';
 
 // a * b / c, rounded half away from zero, in BigInt: rupiah times basis points passes 2^53 for big amounts.
@@ -150,6 +154,17 @@ export function eligibilityChecks(i: HealthInput): EligibilityCheck[] {
   ];
 }
 
+// The penalty for saving less than the period before. Null when either period has no income (no rate to compare), when the
+// period is too young to judge, or when the share did not fall by a whole step.
+export function savingsDrop(i: HealthInput): SavingsDrop | null {
+  const before = i.previousIncome ?? 0;
+  if (before <= 0 || i.previousExpense === null || i.income <= 0 || i.dayOfPeriod < YOUNG_PERIOD_DAYS) return null;
+  const fromBp = mulDivRound(before - i.previousExpense, 10000, before);
+  const toBp = mulDivRound(i.income - i.expense, 10000, i.income);
+  const points = Math.min(SAVINGS_DROP_MAX, Math.floor((fromBp - toBp) / SAVINGS_DROP_STEP_BP));
+  return points > 0 ? { points, fromBp, toBp } : null;
+}
+
 export function computeHealth(input: HealthInput): HealthResult {
   const checks = eligibilityChecks(input);
   if (checks.some(c => !c.met)) return { eligible: false, checks };
@@ -166,6 +181,7 @@ export function computeHealth(input: HealthInput): HealthResult {
     return { id, points, max, ratioBp, skipped: raw.skipped, metric: raw.metric };
   });
 
-  const score = components.reduce((sum, c) => sum + c.points, 0);
-  return { eligible: true, score, band: bandFor(score), components, countedOf: counted.length };
+  const drop = savingsDrop(input);
+  const score = Math.max(0, components.reduce((sum, c) => sum + c.points, 0) - (drop?.points ?? 0));
+  return { eligible: true, score, band: bandFor(score), components, countedOf: counted.length, drop };
 }

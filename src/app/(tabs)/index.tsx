@@ -90,6 +90,7 @@ export default function OverviewScreen() {
   const onOpenBudgets = useCallback(() => router.push('/(tabs)/budgets'), [router]);
   const onOpenTx = useCallback((id: number) => router.push({ pathname: '/tx/[id]', params: { id: String(id) } }), [router]);
   const onOpenRecurring = useCallback(() => router.push('/recurring' as never), [router]);
+  const onOpenSummary = useCallback(() => router.push('/summary' as never), [router]);
   const onOpenReports = useCallback(() => router.push('/reports' as never), [router]);
   const onOpenGoals = useCallback(() => router.push('/goals' as never), [router]);
   const onAddAccount = useCallback(() => router.push('/account/edit' as never), [router]);
@@ -161,7 +162,7 @@ export default function OverviewScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll">
-        {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} onAddTransaction={onAddTransaction} onTransfer={onTransfer} onScan={onScan} />)}
+        {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} onAddTransaction={onAddTransaction} onTransfer={onTransfer} onScan={onScan} onOpenSummary={onOpenSummary} />)}
 
         {/* A little closer to the hero than the screen's 24 gap. */}
         <View style={styles.accountsUp}>
@@ -183,7 +184,7 @@ export default function OverviewScreen() {
           <WhereYourMoneyCard shares={accountShares(accounts)} />
           {goals && goals.length > 0 && <GoalCard goal={goals[0]} onOpenAll={onOpenGoals} />}
 
-          {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} />}
+          {overview && <NetWorthHistoryCard history={overview.netWorthHistory} goalTarget={goalTarget} onOpenSummary={onOpenSummary} />}
           {overview && <TopCategoriesCard shares={overview.topShares} onOpenReports={onOpenReports} />}
 
           <FixedExpensesCard due={due} templates={recurringTemplates ?? []} onOpen={onOpenRecurring} />

@@ -4801,3 +4801,149 @@ export function catSubErrorGone(): string {
 export function budgetTodayMarker(): string {
   return 'Hari ini';
 }
+
+// Potongan skor, budget tabungan, dan halaman rincian.
+export function analysisDropTitle(): string {
+  return 'Nabung lebih sedikit dari bulan lalu';
+}
+export function analysisDropDetail(from: string, to: string): string {
+  return `Porsi pemasukan yang ditabung: ${from} jadi ${to}`;
+}
+export function analysisDropPoints(points: number): string {
+  return `−${points}`;
+}
+export function analysisDropA11y(points: number, from: string, to: string): string {
+  return `Nabung lebih sedikit dari bulan lalu: ${from} jadi ${to}, dipotong ${points} poin`;
+}
+export function analysisHowDrop(step: number, max: number, day: number): string {
+  return `Kalau porsi pemasukan yang kamu tabung turun dari bulan sebelumnya, poinmu dipotong: 1 untuk tiap turun ${step}%, maksimal ${max}. Belum dihitung sebelum hari ke-${day}.`;
+}
+export function savingsTitle(): string {
+  return 'Budget tabungan';
+}
+export function savingsPrompt(): string {
+  return 'Tentukan mau nabung berapa tiap bulan. Yang ditabung = pemasukan dikurangi pengeluaran.';
+}
+export function savingsSetButton(): string {
+  return 'Atur target nabung';
+}
+export function savingsOfTarget(amount: string): string {
+  return `dari ${amount}`;
+}
+export function savingsToGo(amount: string): string {
+  return `Kurang ${amount}`;
+}
+export function savingsReached(): string {
+  return 'Target tercapai';
+}
+export function savingsShort(amount: string): string {
+  return `Pengeluaran ${amount} lebih besar dari pemasukan`;
+}
+export function savingsEditLabel(): string {
+  return 'Ubah target nabung';
+}
+export function savingsEditTitle(): string {
+  return 'Target nabung';
+}
+export function savingsFieldLabel(): string {
+  return 'Nabung tiap bulan';
+}
+export function savingsHelper(): string {
+  return 'Dihitung dari pemasukan dikurangi pengeluaran bulan itu. Transfer antar akunmu tidak dihitung.';
+}
+export function savingsSaveButton(): string {
+  return 'Simpan target';
+}
+export function savingsRemoveButton(): string {
+  return 'Hapus target';
+}
+export function savingsA11y(saved: string, target: string, percent: string): string {
+  return `Sudah ditabung ${saved} dari ${target}, ${percent}`;
+}
+export function summaryTitle(): string {
+  return 'Ringkasan keuangan';
+}
+export function summaryBack(): string {
+  return 'Ringkasan';
+}
+export function summaryOpen(): string {
+  return 'Lihat rincian';
+}
+export function summaryTabCurrent(): string {
+  return 'Sekarang';
+}
+export function summaryTabHistory(): string {
+  return 'Riwayat';
+}
+export function summaryRangeName(range: 'month' | '3m' | '6m' | 'year'): string {
+  return range === 'month' ? 'Bulan ini' : range === '3m' ? '3 bulan' : range === '6m' ? '6 bulan' : '1 tahun';
+}
+export function summaryMonths(count: number): string {
+  return `${count} bulan`;
+}
+export function summaryNet(): string {
+  return 'Total bersih';
+}
+export function summaryIncome(): string {
+  return 'Pemasukan';
+}
+export function summaryExpense(): string {
+  return 'Pengeluaran';
+}
+export function summaryCorrection(): string {
+  return 'Koreksi saldo';
+}
+export function summaryRunningTitle(): string {
+  return 'Total bersih dari waktu ke waktu';
+}
+export function summaryRunningA11y(from: string, to: string, end: string): string {
+  return `Total bersih dari ${from} sampai ${to}, berakhir di ${end}`;
+}
+export function summaryWhereTitle(): string {
+  return 'Ke mana saja';
+}
+export function summaryNoSub(): string {
+  return 'Tanpa sub-kategori';
+}
+export function summaryCategoryA11y(name: string, percent: string, amount: string): string {
+  return `${name}, ${percent}, ${amount}`;
+}
+export function summaryNoSpending(): string {
+  return 'Belum ada pengeluaran di periode ini.';
+}
+export function summaryHeatTitle(): string {
+  return 'Kalender pengeluaran';
+}
+export function summaryHeatPick(): string {
+  return 'Ketuk satu hari untuk lihat pengeluarannya.';
+}
+export function summaryHeatDay(date: string, amount: string): string {
+  return `${date}: ${amount}`;
+}
+export function summaryHeatPrev(): string {
+  return 'Bulan sebelumnya';
+}
+export function summaryHeatNext(): string {
+  return 'Bulan berikutnya';
+}
+export function summaryWeekday(index: number): string {
+  return ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'][index];
+}
+export function summaryAllAccounts(): string {
+  return 'Semua akun';
+}
+export function summaryHistoryTitle(): string {
+  return 'Pemasukan dan pengeluaran';
+}
+export function summaryHistoryA11y(values: string): string {
+  return `Pemasukan dan pengeluaran per bulan: ${values}`;
+}
+export function summaryHistoryMonthValues(month: string, income: string, expense: string): string {
+  return `${month} pemasukan ${income}, pengeluaran ${expense}`;
+}
+export function summaryPartialNote(): string {
+  return '* Bulan ini belum selesai.';
+}
+export function summaryEmpty(): string {
+  return 'Belum ada catatan di periode ini.';
+}

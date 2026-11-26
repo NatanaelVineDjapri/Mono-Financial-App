@@ -10,9 +10,10 @@
 // container exactly like ProgressBar.tsx's own striped overflow.
 //
 // The bars are decorative: wrapped in one accessible node with a sentence covering every
-// month and the limit (`categoryHistoryAccessibilityLabel`), same pattern as
-// ProgressBar's own track. The table underneath is the exact-value text DESIGN.md
-// requires of every chart (section 7), and reads normally — each cell is its own Text.
+// month's exact amount and the limit (`categoryHistoryAccessibilityLabel`), same pattern as
+// ProgressBar's own track. Under the bars there are only the month names: the owner chose to
+// drop the exact-value table here (an exception to CLAUDE.md rule 7), since every bar already
+// carries its amount above it.
 import { StyleSheet, Text, View } from 'react-native';
 
 import { monthAbbrev } from '@/core/date';
@@ -47,7 +48,7 @@ function DashedLine() {
 
 // Every bar with any spend gets its own compact value label above it (not only the ones
 // closest to the limit) — simpler than a "close enough to the limit" threshold, never
-// ambiguous, and the table below states every figure exactly regardless.
+// ambiguous, and the accessibility label states every figure exactly regardless.
 function Bar({ entry, limit, maxValue, hidden }: { entry: CategoryMonthSpend; limit: number; maxValue: number; hidden: boolean }) {
   const isOver = entry.spent > limit;
   const barHeight = maxValue > 0 ? Math.round((entry.spent / maxValue) * BAR_MAX_HEIGHT) : 0;
@@ -71,29 +72,29 @@ export function CategoryHistoryChart({ history, limit, hidden, testID }: Categor
         <Text style={styles.caption}>{dashedEqualsLimitLabel()}</Text>
       </View>
 
-      <View
-        style={styles.chart}
-        accessible
-        accessibilityRole="image"
-        accessibilityLabel={categoryHistoryAccessibilityLabel(monthsFormatted, shown(rp(limit), hidden))}
-      >
-        <View style={[styles.dashWrap, { bottom: limitFromBottom }]}>
-          <DashedLine />
+      <View style={styles.plot}>
+        {/* The dashed line is placed from this box's floor, which is the bars' floor: the month names stay outside it. */}
+        <View
+          style={styles.chart}
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel={categoryHistoryAccessibilityLabel(monthsFormatted, shown(rp(limit), hidden))}
+        >
+          <View style={[styles.dashWrap, { bottom: limitFromBottom }]} testID="category-history-limit">
+            <DashedLine />
+          </View>
+          <View style={styles.bars}>
+            {history.map(entry => (
+              <Bar key={entry.period} entry={entry} limit={limit} maxValue={maxValue} hidden={hidden} />
+            ))}
+          </View>
         </View>
-        <View style={styles.bars}>
+
+        <View style={styles.months}>
           {history.map(entry => (
-            <Bar key={entry.period} entry={entry} limit={limit} maxValue={maxValue} hidden={hidden} />
+            <Text key={entry.period} style={styles.month}>{monthAbbrev(entry.period)}</Text>
           ))}
         </View>
-      </View>
-
-      <View style={styles.table}>
-        {history.map(entry => (
-          <View key={entry.period} style={styles.tableCell}>
-            <Text style={styles.tableMonth}>{monthAbbrev(entry.period)}</Text>
-            <Text style={styles.tableValue}>{shown(rp(entry.spent), hidden)}</Text>
-          </View>
-        ))}
       </View>
     </View>
   );
@@ -105,6 +106,7 @@ const styles = StyleSheet.create({
   title: { ...MonoText.titleM, color: MonoColors.text },
   caption: { ...MonoText.caption, color: MonoColors.textSecond },
 
+  plot: { gap: 8 },
   chart: { height: CHART_HEIGHT, justifyContent: 'flex-end' },
   dashWrap: { position: 'absolute', left: 0, right: 0, height: 1, overflow: 'hidden' },
   dashRow: { flexDirection: 'row', gap: DASH_GAP },
@@ -117,8 +119,6 @@ const styles = StyleSheet.create({
   bar: { width: BAR_WIDTH, backgroundColor: MonoColors.accent, borderTopLeftRadius: 10, borderTopRightRadius: 10 },
   barOver: { backgroundColor: MonoColors.negative },
 
-  table: { flexDirection: 'row' },
-  tableCell: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: MonoColors.border },
-  tableMonth: { ...MonoText.caption, color: MonoColors.textSecond },
-  tableValue: { ...MonoText.bodyStrong, color: MonoColors.text },
+  months: { flexDirection: 'row', paddingTop: 8, borderTopWidth: 1, borderTopColor: MonoColors.border },
+  month: { ...MonoText.caption, flex: 1, textAlign: 'center', color: MonoColors.textSecond },
 });

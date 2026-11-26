@@ -88,6 +88,7 @@ async function analyzePeriod(db: Db, shared: Shared, period: string): Promise<Pe
     netWorthSeries: series.slice(-TREND_PERIODS),
     dayOfPeriod: daysBetween(start, end) + 1,
     previousExpense: previous ? previous.expense : null,
+    previousIncome: previous ? previous.income : null,
     transactionCount,
     dataSpanDays: earliestTx && earliestTx <= end ? daysBetween(earliestTx, end) + 1 : 0,
     accountCount,

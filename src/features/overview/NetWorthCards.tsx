@@ -1,18 +1,20 @@
-// "Net worth history" (a line over the last six month ends, the goal as a dashed line, and
-// the exact-value table) and "Where your money is" (one stacked bar by account, with a row
-// per slice). Line chart uses react-native-gifted-charts LineChart for rendering.
+// "Net worth history" (a line over the month ends, the goal as a dashed line, and the
+// exact-value table) and "Where your money is" (one stacked bar by account, with a row
+// per slice). The line is drawn like the Overview's net cash flow chart (src/components/LineAreaChart),
+// with the same pill switch under it.
 // All figures read from views (v_net_worth_by_month, account balances) and shares from
 // accountShares() in src/domain/overview.ts. Hidden mode masks amounts and shares.
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
 
 import { Amount } from '@/components/Amount';
 import { Card } from '@/components/Card';
 import { ChartTable } from '@/components/ChartTable';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { axisLabel, millionsCallout, niceScale } from '@/core/chartScale';
-import { monthAbbrev } from '@/core/date';
+import { Icon } from '@/components/Icon';
+import { LineAreaChart } from '@/components/LineAreaChart';
+import { axisLabel, labelIndexes, millionsCallout, niceRange } from '@/core/chartScale';
+import { monthAbbrev, monthLabel } from '@/core/date';
 import { pct, rp, shown, shownCompact, shownPct } from '@/core/money';
 import type { NetWorthMonth } from '@/domain/net-worth';
 import type { AccountShareRow } from '@/domain/overview';
@@ -25,6 +27,7 @@ import {
     rangeAllLabel,
     rangeOneYearLabel,
     rangeSixMonthsLabel,
+    summaryOpen,
     whereMoneyAccessibilityLabel,
     whereYourMoneyIsTitle
 } from '@/i18n';
@@ -33,11 +36,7 @@ import { MonoText } from '@/theme/typography';
 
 import { SHARE_COLORS } from './palette';
 
-const CHART_HEIGHT = 140;
-const PAD_X = 10;
-// The library reads `animationDuration` but its types don't declare it. Without a zero
-// duration its width/label timers still fire after the card has gone away.
-const NO_ANIMATION = { animationDuration: 0 };
+const X_LABELS_MAX = 4;
 
 type Range = '6M' | '1Y' | 'All';
 const RANGES: { key: Range; months: number | null; label: () => string }[] = [
@@ -49,26 +48,34 @@ const RANGES: { key: Range; months: number | null; label: () => string }[] = [
 export interface NetWorthHistoryCardProps {
   history: NetWorthMonth[];
   goalTarget?: number;
+  onOpenSummary?: () => void; // a tap on the card, or the link in it, opens the Summary page
 }
 
+// A y axis label, as on the net cash flow chart: millions once the axis reaches Rp1 million, thousands below it.
+function yLabel(value: number, top: number): string {
+  if (value === 0) return '0';
+  return top >= 1_000_000 ? millionsCallout(value) : axisLabel(value, top);
+}
+
+// The pill of the net cash flow card. The buttons are 36 high inside a 44 pill; hitSlop makes the touch target 44.
 function RangeSwitch({ value, onChange }: { value: Range; onChange: (range: Range) => void }) {
   return (
-    <View style={styles.rangeRow} accessibilityRole="tablist">
+    <View style={styles.rangeTabs} accessibilityRole="radiogroup">
       {RANGES.map(r => {
         const selected = r.key === value;
         return (
           <Pressable
             key={r.key}
             onPress={() => onChange(r.key)}
-            accessibilityRole="tab"
+            accessibilityRole="radio"
             accessibilityLabel={r.label()}
             accessibilityState={{ selected }}
+            hitSlop={{ top: 4, bottom: 4 }}
             android_ripple={undefined}
-            style={styles.rangeButton}
+            style={({ pressed }) => [styles.rangeTab, selected && styles.rangeTabSelected, pressed && !selected && styles.pressed]}
             testID={`overview-nw-range-${r.key}`}
           >
-            <Text style={[styles.rangeText, selected && styles.rangeTextSelected]}>{r.label()}</Text>
-            {selected && <View style={styles.rangeUnderline} />}
+            <Text style={[styles.rangeTabText, selected && styles.rangeTabTextSelected]}>{r.label()}</Text>
           </Pressable>
         );
       })}
@@ -76,63 +83,35 @@ function RangeSwitch({ value, onChange }: { value: Range; onChange: (range: Rang
   );
 }
 
-export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCardProps) {
-  // The React Compiler freezes the data it memoizes, and gifted-charts writes a marker onto its input while
-  // cloning it ("Cannot add new property 'isActiveClone'"), so this component opts out of the compiler.
-  'use no memo';
+export function NetWorthHistoryCard({ history, goalTarget, onOpenSummary }: NetWorthHistoryCardProps) {
   const hidden = useHideAmounts(s => s.hidden);
   const [range, setRange] = useState<Range>('1Y');
   if (history.length < 2) return null;
 
   const months = RANGES.find(r => r.key === range)?.months ?? null;
   const points = months == null ? history : history.slice(-months);
-  const scale = niceScale(Math.max(goalTarget ?? 0, ...points.map(p => p.netWorth)));
+  const values = points.map(p => p.netWorth);
+  // From zero, like the net cash flow chart, and always high enough to hold the goal line.
+  const axis = niceRange(Math.min(0, ...values), Math.max(0, goalTarget ?? 0, ...values));
+  const axisTop = Math.max(Math.abs(axis.low), Math.abs(axis.high));
+  const longestTick = Math.max(...axis.ticks.map(t => yLabel(t, axisTop).length));
   const valuesText = points.map(p => `${monthAbbrev(p.month)} ${shown(rp(p.netWorth), hidden)}`).join(', ');
 
-  // Transform data for LineChart
-  const lastValue = points[points.length - 1].netWorth;
-  const lineData = points.map((p, i) => {
-    const isLast = i === points.length - 1;
-    return {
-      value: p.netWorth,
-      label: monthAbbrev(p.month),
-      dataPointRadius: isLast ? 4.5 : 2,
-      dataPointColor: isLast ? MonoColors.card : MonoColors.accent,
-      dataPointStrokeColor: MonoColors.accent,
-      dataPointStrokeWidth: isLast ? 2 : 0,
-      labelTextStyle: { ...MonoText.caption, color: MonoColors.textSecond },
-      // The latest value sits by its own point (not in a row above the chart), so it reads
-      // as part of the line. Narrow width + left shift keeps it inside the card edge.
-      ...(isLast && {
-        dataPointLabelComponent: () => (
-          <Text numberOfLines={1} style={styles.pointLabel}>
-            {shownCompact(millionsCallout(lastValue), hidden)}
-          </Text>
-        ),
-        dataPointLabelWidth: 72,
-        dataPointLabelShiftX: -44,
-        dataPointLabelShiftY: -12,
-      }),
-    };
-  });
-
-  // Goal line data (if provided)
-  const goalData = goalTarget
-    ? points.map(() => ({
-        value: goalTarget,
-        // white dots on the goal line (the library's default is blue)
-        dataPointColor: MonoColors.text,
-        dataPointRadius: 2,
-      }))
-    : undefined;
-
   return (
+    // Touching the card opens the Summary; the chart and the range pill keep their own touches. A screen reader uses the
+    // link under the title instead, so the card's contents are still read one by one.
+    <Pressable onPress={onOpenSummary} disabled={!onOpenSummary} accessible={false} android_ripple={undefined} testID="nw-history-open-summary">
     <Card style={styles.card} testID="overview-net-worth-history">
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           {netWorthHistoryTitle()}
         </Text>
-        <RangeSwitch value={range} onChange={setRange} />
+        {onOpenSummary && (
+          <Pressable onPress={onOpenSummary} accessibilityRole="link" accessibilityLabel={summaryOpen()} android_ripple={undefined} style={styles.summaryLink} testID="nw-history-summary-link">
+            <Text style={styles.summaryText}>{summaryOpen()}</Text>
+            <Icon name="chevron-right" size={16} color={MonoColors.textSecond} />
+          </Pressable>
+        )}
       </View>
 
       {goalTarget != null && (
@@ -141,45 +120,31 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
         </View>
       )}
 
-      <View accessible accessibilityRole="image" accessibilityLabel={netWorthHistoryAccessibilityLabel(valuesText)}>
-        <LineChart
-          data={lineData}
-          data2={goalData}
-          // Every point has a value, so there is nothing to interpolate; this also skips the library's clone.
-          interpolateMissingValues={false}
-          height={CHART_HEIGHT}
-          spacing={points.length > 1 ? (300 - PAD_X * 2) / (points.length - 1) : 150}
-          initialSpacing={PAD_X}
-          endSpacing={PAD_X}
-          color={MonoColors.accent}
-          color2={MonoColors.textDisabled}
-          dataPointsColor2={MonoColors.text}
-          thickness={2}
-          strokeDashArray2={[4, 4]}
-          startFillColor="transparent"
-          startOpacity={0}
-          endOpacity={0}
-          hideDataPoints={false}
-          textColor={MonoColors.textSecond}
-          textFontSize={12}
-          xAxisLabelTextStyle={{ ...MonoText.caption, color: MonoColors.textSecond }}
-          yAxisTextStyle={{ ...MonoText.caption, color: MonoColors.textMeta }}
-          yAxisThickness={0}
-          xAxisThickness={0}
-          hideRules={false}
-          rulesColor={MonoColors.border}
-          rulesType="solid"
-          noOfSections={scale.ticks.length - 1}
-          yAxisLabelTexts={scale.ticks.map(t => axisLabel(t, scale.top))}
-          maxValue={scale.top}
-          hideYAxisText={hidden}
-          backgroundColor="transparent"
-          disableScroll
-          isAnimated={false}
-          {...NO_ANIMATION}
-          curved
-        />
-      </View>
+      <LineAreaChart
+        compact
+        values={values}
+        axis={axis}
+        yLabel={tick => yLabel(tick, axisTop)}
+        yGutter={Math.max(44, longestTick * 7 + 10)}
+        xLabelIndexes={labelIndexes(points.length, X_LABELS_MAX)}
+        xLabel={index => monthAbbrev(points[index].month)}
+        hideYLabels={hidden}
+        referenceValue={goalTarget || undefined}
+        endLabel={shownCompact(millionsCallout(values[values.length - 1]), hidden)}
+        accessibilityLabel={netWorthHistoryAccessibilityLabel(valuesText)}
+        testID="overview-nw-chart"
+        renderTooltip={index => (
+          <>
+            <Text style={styles.tooltipDate}>{monthLabel(points[index].month)}</Text>
+            <View style={styles.tooltipRow}>
+              <View style={styles.tooltipDot} />
+              <Text style={styles.tooltipAmount}>{shown(rp(points[index].netWorth), hidden)}</Text>
+            </View>
+          </>
+        )}
+      />
+
+      <RangeSwitch value={range} onChange={setRange} />
 
       <ChartTable
         rows={points.map(p => ({ label: monthAbbrev(p.month), values: [p.netWorth] }))}
@@ -189,6 +154,7 @@ export function NetWorthHistoryCard({ history, goalTarget }: NetWorthHistoryCard
       />
       <Text style={styles.caption}>{monthEndValuesNote()}</Text>
     </Card>
+    </Pressable>
   );
 }
 
@@ -232,16 +198,30 @@ export function WhereYourMoneyCard({ shares }: WhereYourMoneyCardProps) {
 const styles = StyleSheet.create({
   callouts: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   callout: { ...MonoText.caption, color: MonoColors.textSecond },
-  pointLabel: { ...MonoText.caption, fontFamily: MonoText.bodyStrong.fontFamily, color: MonoColors.text, textAlign: 'right' },
   card: { marginHorizontal: 16, gap: 12 },
-  rangeRow: { flexDirection: 'row', alignItems: 'center' },
-  rangeButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  rangeText: { ...MonoText.bodyS, color: MonoColors.textMeta },
-  rangeTextSelected: { ...MonoText.bodyStrong, fontSize: 13, color: MonoColors.text },
-  rangeUnderline: { position: 'absolute', bottom: 8, width: 18, height: 2, borderRadius: 1, backgroundColor: MonoColors.text },
+  rangeTabs: {
+    flexDirection: 'row',
+    minHeight: 44,
+    padding: 4,
+    borderRadius: 22,
+    backgroundColor: MonoColors.surface,
+    borderWidth: 1,
+    borderColor: MonoColors.border,
+  },
+  rangeTab: { flex: 1, minHeight: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18 },
+  rangeTabSelected: { backgroundColor: MonoColors.text },
+  rangeTabText: { ...MonoText.bodyStrong, color: MonoColors.textSecond },
+  rangeTabTextSelected: { color: MonoColors.bg },
+  pressed: { opacity: 0.7 },
+  tooltipDate: { ...MonoText.caption, color: MonoColors.textSecond },
+  tooltipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tooltipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: MonoColors.accent },
+  tooltipAmount: { ...MonoText.bodyStrong, fontSize: 13, color: MonoColors.text },
   header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, rowGap: 4 },
   title: { ...MonoText.titleM, color: MonoColors.text },
   caption: { ...MonoText.caption, color: MonoColors.textMeta },
+  summaryLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44 },
+  summaryText: { ...MonoText.bodyS, color: MonoColors.textSecond },
   stack: { flexDirection: 'row', height: 12, borderRadius: 6, overflow: 'hidden', gap: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
   rowDivider: { borderBottomWidth: 1, borderBottomColor: MonoColors.border },

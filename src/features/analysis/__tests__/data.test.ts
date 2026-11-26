@@ -46,7 +46,7 @@ async function sample() {
 }
 
 describe('getAnalysis: the October 2026 sample', () => {
-  test('builds the input from the views and scores 83, Sehat', async () => {
+  test('builds the input from the views and scores 82, Sehat', async () => {
     const { db } = await sample();
     const data = await getAnalysis(db, '2026-10', TODAY);
     const { input, result } = data.analysis;
@@ -59,7 +59,9 @@ describe('getAnalysis: the October 2026 sample', () => {
     expect(result.eligible).toBe(true);
     if (!result.eligible) return;
     expect(result.components.map(c => `${c.id}:${c.points}/${c.max}`)).toEqual(['savings:25/25', 'budget:21/25', 'emergency:7/20', 'fixed:15/15', 'wealth:15/15']);
-    expect(result.score).toBe(83);
+    // September saved 45,50% of its income, October 43,24%: one point for the drop
+    expect(result.drop).toEqual({ points: 1, fromBp: 4550, toBp: 4324 });
+    expect(result.score).toBe(82);
     expect(result.band).toBe('healthy');
     expect(data.analysis.overBudgets).toBe(1);
     expect(data.analysis.insights?.improvements.map(i => i.kind)).toEqual(['budget_over', 'emergency']);
@@ -89,7 +91,7 @@ describe('getAnalysis: the October 2026 sample', () => {
     const { db } = await sample();
     const { trend } = await getAnalysis(db, '2026-10', TODAY);
     expect(trend.map(t => t.period)).toEqual(['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']);
-    expect(trend[5]).toMatchObject({ score: 83, band: 'healthy', partial: true });
+    expect(trend[5]).toMatchObject({ score: 82, band: 'healthy', partial: true });
     expect(trend.slice(0, 5).every(t => !t.partial)).toBe(true);
     // May has 10 records at most and under a month of data: not scored yet
     expect(trend[0].score).toBeNull();

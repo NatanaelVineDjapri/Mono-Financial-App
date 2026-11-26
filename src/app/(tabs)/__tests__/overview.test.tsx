@@ -76,6 +76,11 @@ function renderScreen() {
   return render(<SafeAreaProvider initialMetrics={METRICS}>{<OverviewScreen />}</SafeAreaProvider>);
 }
 
+// The net worth line is drawn once the plot knows its width.
+function layoutNetWorthChart(result: Awaited<ReturnType<typeof renderScreen>>) {
+  return fireEvent(result.getByTestId('overview-nw-chart-plot'), 'layout', { nativeEvent: { layout: { width: 320, height: 166 } } });
+}
+
 function mockQuery<T>(hook: unknown, data: T | undefined, extra: object = {}) {
   (hook as jest.Mock).mockReturnValue({ data, isLoading: false, ...extra });
 }
@@ -252,7 +257,7 @@ describe('Overview', () => {
     expect(result.getByText('Where your money is')).toBeTruthy();
   });
 
-  test('a plus is green: the net worth chip, the cash flow change chip and the net figure stay white, Out is gold, In is green', async () => {
+  test('a plus is green: the net worth chip, the cash flow change chip and the net figure stay white, In is gold, Out is grey', async () => {
     mockFilled();
     const result = await renderScreen();
     const style = (node: { props: { style?: unknown } }) => Object.assign({}, ...[node.props.style].flat(Infinity).filter(Boolean));
@@ -426,19 +431,33 @@ describe('Overview', () => {
     const cash = within(result.getByTestId('overview-cash-flow'));
     for (const tick of ['0', '4', '8']) expect(cash.getByText(tick, { includeHiddenElements: true })).toBeTruthy(); // the axis is decorative: the table has the exact values
     expect(cash.getByText('Last 12 months · axis in Rp million')).toBeTruthy();
+    await layoutNetWorthChart(result);
     const worth = within(result.getByTestId('overview-net-worth-history'));
-    for (const tick of ['0', '10', '20', '30']) expect(worth.getByText(tick, { includeHiddenElements: true })).toBeTruthy();
+    for (const tick of ['0', '10 jt', '20 jt', '30 jt']) expect(worth.getByText(tick, { includeHiddenElements: true })).toBeTruthy();
     expect(worth.getByText('Goal · Rp30 jt')).toBeTruthy();
-    expect(worth.getByText('8,9 jt')).toBeTruthy();
+    expect(worth.getByText('8,9 jt', { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  test('touching the net worth chart reads out that month, masked when amounts are hidden', async () => {
+    mockFilled();
+    const result = await renderScreen();
+    await layoutNetWorthChart(result);
+    const touch = () => act(async () => result.getByTestId('overview-nw-chart-plot').props.onResponderGrant({ nativeEvent: { locationX: 9999 } }));
+    await touch();
+    expect(within(result.getByTestId('overview-nw-chart-tooltip')).getByText('Rp8.880.000')).toBeTruthy();
+    await act(async () => useHideAmounts.getState().setHidden(true));
+    await touch();
+    expect(within(result.getByTestId('overview-nw-chart-tooltip')).queryByText('Rp8.880.000')).toBeNull();
   });
 
   test('hidden mode masks the axis labels and the chart callouts too', async () => {
     mockFilled();
     await act(async () => useHideAmounts.getState().setHidden(true));
     const result = await renderScreen();
+    await layoutNetWorthChart(result);
     const worth = within(result.getByTestId('overview-net-worth-history'));
-    expect(worth.queryByText('30', { includeHiddenElements: true })).toBeNull();
-    expect(worth.queryByText('8,9 jt')).toBeNull();
+    expect(worth.queryByText('30 jt', { includeHiddenElements: true })).toBeNull();
+    expect(worth.queryByText('8,9 jt', { includeHiddenElements: true })).toBeNull();
     expect(worth.getByText('Goal · Rp•••')).toBeTruthy();
     expect(within(result.getByTestId('overview-cash-flow')).queryByText('8', { includeHiddenElements: true })).toBeNull();
   });

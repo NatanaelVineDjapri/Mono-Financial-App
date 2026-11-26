@@ -240,6 +240,28 @@ describe('parts skipped for lack of data (board Analyze-States)', () => {
   });
 });
 
+describe('the savings-drop deduction', () => {
+  // September saved 48,00% (7.500.000, 3.900.000 spent), October 43,24%: 4,76% lost, 2 points off 83.
+  const dropped: InsightInput = { ...OCTOBER, previousIncome: 7_500_000 };
+
+  test('one line under the parts, and the score already carries it', async () => {
+    await show(dataFor(dropped));
+    expect(text('analysis-ring-value')).toBe('81');
+    expect(screen.getByText('81 dari 100')).toBeTruthy();
+    expect(screen.getByText('Nabung lebih sedikit dari bulan lalu')).toBeTruthy();
+    expect(screen.getByText('Porsi pemasukan yang ditabung: 48,00% jadi 43,24%')).toBeTruthy();
+    expect(JSON.stringify(screen.getByText('−2').props.style)).not.toContain('#FF6B6B');
+    expect(screen.getByTestId('analysis-drop').props.accessibilityLabel).toBe(
+      'Nabung lebih sedikit dari bulan lalu: 48,00% jadi 43,24%, dipotong 2 poin',
+    );
+  });
+
+  test('no line when nothing is taken off', async () => {
+    await show(dataFor(OCTOBER));
+    expect(screen.queryByTestId('analysis-drop')).toBeNull();
+  });
+});
+
 describe('a low score (band Rawan)', () => {
   test('calm: the band is written, nothing is red, no blame', async () => {
     const input: InsightInput = { ...OCTOBER, income: 5_000_000, expense: 4_800_000, balance: 99_000_000, fixedMonthly: 0, netWorthSeries: [5, 4, 3, 4, 3, 2], budgets: [] };

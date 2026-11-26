@@ -1,4 +1,4 @@
-import { bandFor, computeHealth, distributeWeights, mulDivRound, wholePercentBp } from '../score';
+import { bandFor, computeHealth, distributeWeights, mulDivRound, savingsDrop, wholePercentBp } from '../score';
 import { BASE_WEIGHTS, type HealthInput, type HealthResult } from '../types';
 
 // The October 2026 sample (DATABASE.md section 6, the "Analyze" board): income 7.500.000, expenses 4.257.000,
@@ -276,4 +276,25 @@ test('the same data always gives the same score and nothing is mutated', () => {
   const copy = JSON.parse(JSON.stringify(OCTOBER)) as HealthInput;
   expect(computeHealth(OCTOBER)).toEqual(computeHealth(OCTOBER));
   expect(OCTOBER).toEqual(copy);
+});
+
+describe('the savings-drop penalty', () => {
+  const base = { income: 1000, expense: 800, previousIncome: 1000, previousExpense: 600, dayOfPeriod: 28 } as HealthInput;
+
+  test('40% saved last period, 20% now: ten points', () => {
+    expect(savingsDrop(base)).toEqual({ points: 10, fromBp: 4000, toBp: 2000 });
+  });
+
+  test('never more than fifteen', () => {
+    expect(savingsDrop({ ...base, expense: 1500 })?.points).toBe(15);
+  });
+
+  test('none when the share held or rose, before day 10, or without income to compare', () => {
+    expect(savingsDrop({ ...base, expense: 600 })).toBeNull();
+    expect(savingsDrop({ ...base, expense: 500 })).toBeNull();
+    expect(savingsDrop({ ...base, dayOfPeriod: 9 })).toBeNull();
+    expect(savingsDrop({ ...base, previousIncome: 0 })).toBeNull();
+    expect(savingsDrop({ ...base, previousIncome: undefined })).toBeNull();
+    expect(savingsDrop({ ...base, income: 0 })).toBeNull();
+  });
 });

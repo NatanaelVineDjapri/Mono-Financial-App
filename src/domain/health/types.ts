@@ -24,6 +24,16 @@ export const YOUNG_PERIOD_DAYS = 10; // before this day the previous full period
 export const MIN_TRANSACTIONS = 10;
 export const MIN_SPAN_DAYS = 28;
 export const MIN_ACCOUNTS = 1;
+// Saving a smaller share than the period before costs points: one for every 2 points of savings rate lost, up to 15.
+// Not before day YOUNG_PERIOD_DAYS of a period, when the salary may simply not be in yet.
+export const SAVINGS_DROP_STEP_BP = 200;
+export const SAVINGS_DROP_MAX = 15;
+
+export interface SavingsDrop {
+  points: number; // taken off the score (at least 1)
+  fromBp: number; // savings rate of the period before
+  toBp: number; // savings rate of this period
+}
 
 export type HealthBand = 'healthy' | 'fair' | 'weak' | 'needs_work';
 
@@ -52,6 +62,7 @@ export interface HealthInput {
   netWorthSeries: number[]; // net worth at the end of each period, oldest first, up to 6 points
   dayOfPeriod: number; // days into the running period (1 = first day)
   previousExpense: number | null; // expenses of the previous full period, null when there is none
+  previousIncome?: number | null; // its income; without it there is no savings-drop penalty
   transactionCount: number;
   dataSpanDays: number; // days between the first record and the end of the period
   accountCount: number;
@@ -86,5 +97,6 @@ export type HealthResult =
       band: HealthBand;
       components: HealthComponent[];
       countedOf: number; // how many of the 5 parts were counted
+      drop: SavingsDrop | null; // already taken off `score`
     }
   | { eligible: false; checks: EligibilityCheck[] };

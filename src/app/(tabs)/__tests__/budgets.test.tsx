@@ -4,9 +4,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import type { BudgetCategoryRow, BudgetOverview } from '@/domain/budget';
 import { useBudgetOverview } from '@/features/budgets/useBudgets';
+import { useSavingsStatus } from '@/features/budgets/useSavings';
 import BudgetsScreen from '../budgets';
 
 jest.mock('@/features/budgets/useBudgets');
+// The savings card draws nothing until its data arrives; only the test about it gives it some.
+jest.mock('@/features/budgets/useSavings', () => ({ useSavingsStatus: jest.fn(() => ({ data: undefined })) }));
 
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
@@ -285,6 +288,27 @@ describe('BudgetsScreen', () => {
     const result = await renderScreen();
     await fireEvent.press(result.getByRole('button', { name: 'Add category budget' }));
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/budget/edit', params: { month: '2026-10' } });
+  });
+
+  test('the savings card follows the month on screen, with or without a budget', async () => {
+    const savings = useSavingsStatus as jest.MockedFunction<typeof useSavingsStatus>;
+    const none = { target: null, income: 0, expense: 0, saved: 0, remaining: 0, progressBp: 0 };
+    savings.mockReturnValue({ data: none } as never);
+
+    mockData(OCTOBER);
+    const withBudget = await renderScreen();
+    expect(within(withBudget.getByTestId('budgets-scroll')).getByTestId('savings-card')).toBeTruthy();
+    expect(savings).toHaveBeenLastCalledWith('2026-10');
+    await act(() => withBudget.unmount());
+
+    mockData(EMPTY_SEPTEMBER);
+    const empty = await renderScreen();
+    expect(empty.getByTestId('budgets-empty')).toBeTruthy();
+    expect(empty.getByTestId('savings-card')).toBeTruthy();
+    expect(savings).toHaveBeenLastCalledWith('2026-09');
+    await fireEvent.press(empty.getByTestId('savings-set'));
+    expect(mockPush).toHaveBeenCalledWith('/budget/savings');
+    savings.mockReturnValue({ data: undefined } as never);
   });
 
   test('figures never truncate (no numberOfLines) so they wrap at 200% text', async () => {

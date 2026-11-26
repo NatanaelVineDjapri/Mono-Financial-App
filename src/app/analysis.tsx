@@ -73,7 +73,7 @@ function Body({ data, hidden, onGo, onHow, onAdd }: { data: AnalysisData; hidden
       <ScoreCard score={result.score} band={result.band} delta={delta} summary={summary} countedNote={countedNote(result.components, result.countedOf)} onHow={onHow} />
 
       <SectionHeader title={analysisSectionParts()} sub={analysisSectionPartsSub(result.score)} />
-      <PartsCard rows={rows} onGo={onGo} />
+      <PartsCard rows={rows} drop={result.drop} onGo={onGo} />
 
       <View style={styles.aiGap}>
         <AiAnalysisSection data={data} />
