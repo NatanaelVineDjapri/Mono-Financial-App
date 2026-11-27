@@ -5,7 +5,6 @@ import {
     IBMPlexSans_600SemiBold,
     IBMPlexSans_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans';
-import { Newsreader_400Regular } from '@expo-google-fonts/newsreader';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { preventScreenCaptureAsync } from 'expo-screen-capture';
@@ -93,7 +92,6 @@ export default function RootLayout() {
     IBMPlexSans_600SemiBold,
     IBMPlexSans_700Bold,
     IBMPlexMono_500Medium,
-    Newsreader_400Regular,
   });
 
   useEffect(() => {

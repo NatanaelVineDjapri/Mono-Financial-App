@@ -1,4 +1,4 @@
-// The greeting on Overview (the screen's one serif line). It follows the time of day in WIB:
+// The greeting on Overview (the screen's one large line). It follows the time of day in WIB:
 // "Good morning" from 5 to 11, "Good afternoon" 12 to 17, "Good evening" from 18 to 4. When the app
 // has been opened several times on the same day, it stops greeting and asks instead:
 // "How are you, Nael?". Pure: the hour and the number of opens go in, a kind comes out; the

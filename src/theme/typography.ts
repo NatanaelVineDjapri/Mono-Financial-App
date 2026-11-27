@@ -7,16 +7,15 @@ const UI = {
   semi: 'IBMPlexSans_600SemiBold',
   bold: 'IBMPlexSans_700Bold',
 };
-const SERIF = 'Newsreader_400Regular';
 const MONO = 'IBMPlexMono_500Medium';
 const tab = { fontVariant: ['tabular-nums'] } as const;
 
 // Consolidated to two display sizes per the TYPOGRAPHY.md engineering note
 // (displayL 48 for Overview, displayS 40 for everything else; displayM dropped).
 export const MonoText = {
-  displayL: { fontFamily: SERIF, fontSize: 48, lineHeight: 52, letterSpacing: -0.48, ...tab },
-  displayS: { fontFamily: SERIF, fontSize: 40, lineHeight: 44, letterSpacing: -0.4, ...tab },
-  titleL: { fontFamily: SERIF, fontSize: 32, lineHeight: 36 },
+  displayL: { fontFamily: UI.bold, fontSize: 48, lineHeight: 52, letterSpacing: -0.48, ...tab },
+  displayS: { fontFamily: UI.bold, fontSize: 40, lineHeight: 44, letterSpacing: -0.4, ...tab },
+  titleL: { fontFamily: UI.semi, fontSize: 28, lineHeight: 36 },
   figureXL: { fontFamily: UI.medium, fontSize: 44, lineHeight: 52, letterSpacing: -0.44, ...tab },
   figureL: { fontFamily: UI.medium, fontSize: 32, lineHeight: 40, ...tab },
   figureM: { fontFamily: UI.medium, fontSize: 22, lineHeight: 28, ...tab },
@@ -32,9 +31,8 @@ export const MonoText = {
   // Bottom navigation labels (TabBar.tsx): 500 for an inactive tab, 600 on the active pill.
   navLabel: { fontFamily: UI.medium, fontSize: 10.5, lineHeight: 12 },
   navLabelActive: { fontFamily: UI.semi, fontSize: 10.5, lineHeight: 12 },
-  // Overview (DESIGN.md "A. Overview"): the one serif greeting, the hero balance and the
-  // month cards' figure, all sans 700 except the greeting.
-  heroGreeting: { fontFamily: SERIF, fontSize: 28, lineHeight: 34 },
+  // Overview (DESIGN.md "A. Overview"): the greeting, the hero balance and the month cards' figure.
+  heroGreeting: { fontFamily: UI.semi, fontSize: 24, lineHeight: 34 },
   heroBalance: { fontFamily: UI.bold, fontSize: 40, lineHeight: 46, ...tab },
   figureCard: { fontFamily: UI.bold, fontSize: 20, lineHeight: 26, ...tab },
   chip: { fontFamily: UI.semi, fontSize: 13, lineHeight: 16, ...tab },

@@ -3,9 +3,7 @@
 // here adds money up. Over a limit the bar stays full with a striped red overflow and the
 // words "Over by Rp…" — red marks only the amount over (BudgetBar).
 //
-// Type: the hero total is Newsreader (displayS), the same family as the serif screen
-// title, per the board and the owner's call (Fase 4.4) — Budgets joins Accounts and
-// Overview as a screen that pairs a serif title with a serif hero number. Every other
+// Type: IBM Plex Sans throughout; the hero total is displayS (bold). Every other
 // size follows the Transactions tab (gutter 20, card radius 16, titleM section titles,
 // bodyStrong/bodyS rows, figureRow row amounts, figureS summary values).
 //

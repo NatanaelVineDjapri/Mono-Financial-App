@@ -2,9 +2,7 @@
 // safe-area inset, with an optional right-side slot (e.g. one or more HeaderButtons,
 // laid out in a row 8 apart).
 //
-// CLAUDE.md rule 6: every screen's title uses the serif titleL. Accounts and Overview
-// are the one exception to the "at most one serif moment per screen" rule — their own
-// hero balance (displayS/displayL) is also serif, per the design board.
+// CLAUDE.md rule 6: every screen's title uses titleL, in IBM Plex Sans like the rest of the app.
 //
 // At 200% text the right-side actions keep their full width (a chip's text never
 // truncates); the title is what shrinks and wraps.

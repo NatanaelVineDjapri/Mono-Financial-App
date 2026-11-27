@@ -115,14 +115,14 @@ describe('BudgetsScreen', () => {
     expect(card.getByText('Rp247.667')).toBeTruthy();
   });
 
-  test('header: serif title left, month chip and edit button right in the Filters style, 8 apart, padding 20 (in line with the cards), 16 to the card', async () => {
+  test('header: title left, month chip and edit button right in the Filters style, 8 apart, padding 20 (in line with the cards), 16 to the card', async () => {
     mockData(OCTOBER);
     const result = await renderScreen();
     const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 
     const header = result.getByTestId('budgets-header');
     expect(flat(header.props.style)).toMatchObject({ paddingHorizontal: 20, paddingBottom: 16 });
-    expect(flat(result.getByText('Budgets').props.style).fontFamily).toBe('Newsreader_400Regular');
+    expect(flat(result.getByText('Budgets').props.style).fontFamily).toBe('IBMPlexSans_600SemiBold');
 
     const chip = result.getByTestId('budget-month-chip');
     const edit = result.getByTestId('budget-edit-limit');
@@ -146,12 +146,12 @@ describe('BudgetsScreen', () => {
     expect(within(result.getByTestId('budgets-scroll')).getByTestId('budget-month-card')).toBeTruthy();
   });
 
-  test('the hero total uses the serif title family (Newsreader), like the screen title', async () => {
+  test('the hero total is sans bold, like every hero balance', async () => {
     mockData(OCTOBER);
     const result = await renderScreen();
     const hero = within(result.getByTestId('budget-month-card')).getByText('Rp4.257.000');
     const style = Object.assign({}, ...[hero.props.style].flat(Infinity).filter(Boolean));
-    expect(style.fontFamily).toBe('Newsreader_400Regular');
+    expect(style.fontFamily).toBe('IBMPlexSans_700Bold');
   });
 
   test('every bar carries the exact figures in its accessibility label', async () => {

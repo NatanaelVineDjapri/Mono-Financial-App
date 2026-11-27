@@ -477,7 +477,7 @@ export default function BackupScreen() {
         </Pressable>
       </View>
 
-      {/* Screen Title: serif "Backup & restore" */}
+      {/* Screen title: "Backup & restore" */}
       <HeaderRow title={backupScreenTitle()} withTopInset={false} />
 
       <ScrollView

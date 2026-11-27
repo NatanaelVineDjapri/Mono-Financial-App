@@ -45,7 +45,7 @@ describe('ScreenHeader', () => {
     expect(flatStyle).toMatchObject({ paddingRight: 16, paddingBottom: 12, paddingTop: 24 + 12 });
   });
 
-  test('always uses the serif titleL style (CLAUDE.md rule 6: screen titles are serif)', async () => {
+  test('always uses the titleL style', async () => {
     const result = await renderHeader({ title: 'Akun' });
     const flatStyle = Object.assign({}, ...[result.getByText('Akun').props.style].flat());
     expect(flatStyle.fontFamily).toBe(MonoText.titleL.fontFamily);

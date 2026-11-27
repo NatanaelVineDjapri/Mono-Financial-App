@@ -319,7 +319,7 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
-      {/* Screen Title: serif "Pengaturan" */}
+      {/* Screen title: "Pengaturan" */}
       <HeaderRow title={moreSettingsTitle()} withTopInset={false} />
 
       <ScrollView

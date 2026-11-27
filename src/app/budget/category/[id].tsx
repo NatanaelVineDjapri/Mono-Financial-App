@@ -170,7 +170,7 @@ export default function CategoryReviewScreen() {
             <Text style={styles.capLabel}>{spentLabel()}</Text>
             {budget && <Text style={styles.meta}>{budgetLimitLabel(m(budget.limit_amount))}</Text>}
           </View>
-          {/* The one serif moment on this screen: the title above is sans (titleM). */}
+          {/* The large figure of this screen: the title above is titleM. */}
           <Amount value={data.spent} variant="displayS" style={styles.hero} />
           {budget ? (
             <>

@@ -1,4 +1,4 @@
-// Welcome (first launch, board Welcome): the MONO mark, the mascot, a serif title, three promises, an optional
+// Welcome (first launch, board Welcome): the MONO mark, the mascot, a large title, three promises, an optional
 // nickname and "Mulai". There is no picture to choose here: it made the screen longer than the phone, so it scrolled; the profile
 // picture is chosen later in Settings (the default one is used until then). Shown once; "Punya berkas cadangan? Pulihkan" goes to Backup, and when a restore has put
 // data on the phone the screen steps aside by itself. No tab bar here, and the system back button leaves the app
