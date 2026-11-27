@@ -1901,6 +1901,14 @@ export function bankIconAccessibilityLabel(name: string): string {
   return `${name} icon`;
 }
 
+export const bankPickerChoose = () => 'Choose a bank or e-wallet';
+export const bankPickerCountryTitle = () => 'Choose a country';
+export const bankPickerCountrySubtitle = () => 'Then pick the bank or e-wallet';
+export const bankPickerBankSubtitle = () => 'Changes the icon and card colour only. The account stays in rupiah.';
+export const bankPickerBack = () => 'Back to countries';
+const BANK_COUNTRY_NAMES = { id: 'Indonesia', us: 'United States', eu: 'Europe', gb: 'United Kingdom', cn: 'China', sg: 'Singapore', jp: 'Japan', kr: 'South Korea', th: 'Thailand', au: 'Australia' };
+export const bankCountryName = (id: keyof typeof BANK_COUNTRY_NAMES) => BANK_COUNTRY_NAMES[id];
+
 export function accountPrivacyNote(): string {
   return 'No bank login or card number is needed. This is only a label you keep on this device.';
 }

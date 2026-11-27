@@ -9,7 +9,7 @@ import {
   View,
   type GestureResponderEvent,
 } from 'react-native';
-import { Logo } from 'idn-finlogos/react-native';
+import { SvgXml } from 'react-native-svg';
 
 import { Amount } from '@/components/Amount';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -17,6 +17,8 @@ import type { AccountType } from '@/data/repo/accounts';
 import { rp, shown } from '@/core/money';
 import { accountTypeTag, bankCardAccessibilityLabel } from '@/i18n';
 import { MonoText } from '@/theme/typography';
+import { BANK_CARDS } from '@/components/BankCard/bankCards';
+import { BrandLogo, logoRatio } from '@/components/BankCard/BrandLogo';
 import { BRAND_LOGOS, NEUTRAL_GLYPHS } from '@/components/BankCard/cardAssets';
 
 import { EmvChip } from './EmvChip';
@@ -86,17 +88,25 @@ function PhysicalCardImpl({
   const slug = icon ?? '';
   const brandSvg = BRAND_LOGOS[slug];
   const neutralSvg = NEUTRAL_GLYPHS[slug];
+  // A plate brand keeps its own colours, on a white plate that hugs the logo's shape.
+  const plate = BANK_CARDS[slug]?.plate === true;
+  const plateHeight = isStrip ? 18 : 24;
+  const plateWidth = plate ? Math.round(Math.min(isStrip ? 58 : 76, plateHeight * logoRatio(slug))) : 0;
 
-  const logoNode = brandSvg ? (
-    <Logo
-      svg={brandSvg}
+  const logoNode = plate ? (
+    <View style={styles.logoPlate} testID={`card-logo-plate-${slug}`}>
+      <BrandLogo slug={slug} width={plateWidth} height={plateHeight} />
+    </View>
+  ) : brandSvg ? (
+    <SvgXml
+      xml={brandSvg}
       width={isStrip ? 58 : 76}
       height={isStrip ? 18 : 24}
       preserveAspectRatio="xMinYMid meet"
     />
   ) : neutralSvg ? (
-    <Logo
-      svg={neutralSvg}
+    <SvgXml
+      xml={neutralSvg}
       width={isStrip ? 18 : 24}
       height={isStrip ? 18 : 24}
       color={fg}
@@ -203,7 +213,7 @@ function PhysicalCardImpl({
           <View style={styles.logoAndTier}>
             {logoNode}
             {type !== 'forex' && (
-              <Text style={[styles.cardTierBadge, { color: fg, opacity: 0.8 }]}>
+              <Text numberOfLines={1} style={[styles.cardTierBadge, { color: fg, opacity: 0.8 }]}>
                 {theme.cardTier}
               </Text>
             )}
@@ -325,6 +335,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 1,
+  },
+  logoPlate: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
   bankNameText: {
     ...MonoText.titleM,
@@ -332,6 +349,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   cardTierBadge: {
+    flexShrink: 1,
     fontSize: 10,
     fontFamily: MonoText.mono.fontFamily,
     fontWeight: '600',

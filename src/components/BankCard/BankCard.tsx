@@ -5,7 +5,6 @@
 // card surface is the one deliberate exception, on the same footing as the real logo
 // mark the rule already carves out. The nominal on a card always uses the card's own
 // `fg`, never green or red: no `kind` is ever passed to <Amount> here.
-import { Logo } from "idn-finlogos/react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
@@ -24,6 +23,7 @@ import {
   NEUTRAL_GLYPHS,
   SVG_BACKGROUNDS,
 } from "./cardAssets";
+import { BrandLogo } from "./BrandLogo";
 
 
 export interface BankCardProps {
@@ -91,7 +91,7 @@ export function BankCard({
   const neutral = NEUTRAL_CARDS[slug as keyof typeof NEUTRAL_CARDS];
   const fg = (brand ?? neutral).fg;
   const svgBackground = SVG_BACKGROUNDS[slug]; // overrides CARD_ASSETS when a PNG came out broken, see cardAssets.ts
-  const image = CARD_ASSETS[slug];
+  const image = CARD_ASSETS[slug] ?? CARD_ASSETS.default; // the banks abroad have no card picture here
   const isStrip = variant === "strip";
 
   // The Valas card's own flag-circle row already says "this is multi-currency" on its
@@ -120,25 +120,20 @@ export function BankCard({
     />
   );
 
-  const logo = brand?.wordmark ? (
-    <Text
-      style={[
-        isStrip ? styles.stripWordmark : styles.wordmark,
-        { color: fg },
-      ]}
-    >
-      {slug}
-    </Text>
+  const logo = brand?.plate ? (
+    <View style={styles.logoPlate}>
+      <BrandLogo slug={slug} width={isStrip ? STRIP_LOGO_HEIGHT : LOGO_HEIGHT} height={isStrip ? STRIP_LOGO_HEIGHT : LOGO_HEIGHT} />
+    </View>
   ) : brand ? (
-    <Logo
-      svg={BRAND_LOGOS[slug]}
+    <SvgXml
+      xml={BRAND_LOGOS[slug]}
       width={isStrip ? STRIP_LOGO_WIDTH : LOGO_WIDTH}
       height={isStrip ? STRIP_LOGO_HEIGHT : LOGO_HEIGHT}
       preserveAspectRatio="xMinYMid meet"
     />
   ) : (
-    <Logo
-      svg={NEUTRAL_GLYPHS[slug]}
+    <SvgXml
+      xml={NEUTRAL_GLYPHS[slug]}
       width={isStrip ? STRIP_GLYPH_SIZE : GLYPH_SIZE}
       height={isStrip ? STRIP_GLYPH_SIZE : GLYPH_SIZE}
       color={fg}
@@ -249,6 +244,7 @@ export function BankCard({
 }
 
 const styles = StyleSheet.create({
+  logoPlate: { alignSelf: "flex-start", backgroundColor: "#FFFFFF", borderRadius: 6, padding: 3 },
   carousel: { width: 300, height: 154 },
   list: { width: "100%", aspectRatio: 358 / 184 },
   card: { flex: 1, borderRadius: radius.lg, overflow: "hidden" },
@@ -274,7 +270,6 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   tagText: { ...MonoText.label, textTransform: "uppercase" },
-  wordmark: { ...MonoText.titleM, textTransform: "lowercase" },
   name: { ...MonoText.bodyStrong, marginBottom: 2 },
   balanceRow: { flexDirection: "row", alignItems: "baseline" },
   approx: { ...MonoText.figureM },
@@ -315,7 +310,6 @@ const styles = StyleSheet.create({
   },
   stripLeft: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
   stripName: { ...MonoText.bodyStrong, flexShrink: 1 },
-  stripWordmark: { ...MonoText.body, textTransform: "lowercase" },
   stripApprox: { ...MonoText.figureS },
   stripNative: { flexShrink: 1, textAlign: "right" },
   // 16/20, 600 (Fase 4.2c step 1) — no matching shared token, so this overrides figureS's

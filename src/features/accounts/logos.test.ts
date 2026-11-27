@@ -9,5 +9,15 @@ describe('account logo registry', () => {
     expect(guessAccountLogo('BCA Tabungan')).toBe('bca');
     expect(guessAccountLogo('GoPay utama')).toBe('gopay');
     expect(guessAccountLogo('Dompet TUNAI')).toBe('cash');
+    expect(guessAccountLogo('Blu BCA')).toBe('blu-bca');
+    expect(guessAccountLogo('Cash App')).toBe('cash-app');
+    expect(guessAccountLogo('Bank of America checking')).toBe('bank-of-america');
+    expect(guessAccountLogo('ShopeePay')).toBe('shopee-pay');
+    expect(guessAccountLogo('RDN Stockbit')).toBe('stockbit');
+  });
+
+  it('does not read a brand out of the middle of a word', () => {
+    expect(guessAccountLogo('Saving')).toBeNull();
+    expect(guessAccountLogo('Pendanaan usaha')).toBeNull();
   });
 });

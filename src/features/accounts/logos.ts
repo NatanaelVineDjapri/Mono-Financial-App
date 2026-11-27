@@ -1,5 +1,5 @@
-// The one registry for account-logo keys stored in accounts.icon. The artwork comes from
-// idn-finlogos; it is rendered by AccountLogo rather than copied into individual screens.
+// The one registry for account-logo keys stored in accounts.icon. The artwork is BRAND_ART (generated from
+// assets/bank-logos and idn-finlogos); it is rendered by AccountLogo rather than copied into individual screens.
 import { BANK_CARDS } from '@/components/BankCard/bankCards';
 
 export interface AccountLogoOption {
@@ -8,12 +8,9 @@ export interface AccountLogoOption {
   name: string;
 }
 
-// BANK_CARDS is the existing, verified catalogue used for account cards. Keep the database
-// value as its canonical slug so old accounts continue to work.
+// Keep the database value as its canonical slug so old accounts continue to work.
 export const ACCOUNT_LOGOS: Record<string, AccountLogoOption> = Object.fromEntries(
-  Object.entries(BANK_CARDS)
-    .filter(([key]) => key !== 'stockbit') // this card uses a provisional text wordmark, not logo artwork.
-    .map(([key, value]) => [key, { key, slug: key, name: value.name }]),
+  Object.entries(BANK_CARDS).map(([key, value]) => [key, { key, slug: key, name: value.name }]),
 );
 
 // These keys are legitimate non-brand account presentations. They deliberately resolve to
@@ -28,25 +25,28 @@ export function isAccountLogoKey(key: string | null | undefined): key is string 
   return !!accountLogoOption(key);
 }
 
+// What an account name may say, longest first, so "Blu BCA" is not read as BCA and "Cash App" not as cash. A word has to
+// stand on its own: "saving" is not ING and "pendanaan" is not DANA.
+const NEEDLES: { pattern: RegExp; key: string }[] = [
+  ...Object.entries(BANK_CARDS).flatMap(([key, value]) => [key.replaceAll('-', ' '), key, value.name.toLowerCase()].map(needle => ({ needle, key }))),
+  { needle: 'shopeepay', key: 'shopee-pay' },
+  { needle: 'bofa', key: 'bank-of-america' },
+  { needle: 'cashapp', key: 'cash-app' },
+  { needle: 'cash', key: 'cash' },
+  { needle: 'tunai', key: 'cash' },
+]
+  .sort((a, b) => b.needle.length - a.needle.length)
+  .map(({ needle, key }) => ({ pattern: new RegExp(`(^|[^a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9])`), key }));
+
 /** A conservative, case-insensitive convenience suggestion for a *new* account only. */
 export function guessAccountLogo(name: string, type?: string): string | null {
   if (type === 'forex') return null;
   const normalized = name.trim().toLowerCase();
   if (!normalized) return null;
-  const aliases: Record<string, string> = {
-    'shopeepay': 'shopee-pay',
-    'shopee pay': 'shopee-pay',
-    'cash': 'cash',
-    'tunai': 'cash',
-  };
-  for (const [needle, key] of Object.entries(aliases)) {
-    if (normalized.includes(needle)) return key;
-  }
-  return Object.keys(ACCOUNT_LOGOS).find(key => normalized.includes(key.replaceAll('-', ' ')) || normalized.includes(key)) ?? null;
+  return NEEDLES.find(({ pattern }) => pattern.test(normalized))?.key ?? null;
 }
 
 export function accountLogoOptionsForType(type: string): AccountLogoOption[] {
   if (type === 'cash' || type === 'forex') return [];
-  const ewalletKeys = new Set(['gopay', 'ovo', 'dana', 'shopee-pay', 'linkaja', 'astra-pay', 'doku', 'dutamoney', 'i-saku', 'jakone-pay', 'kaspro', 'netzme', 'otto-pay', 'paytren', 'pospay', 'speedcash', 'truemoney', 'uangku', 'yukk']);
-  return Object.values(ACCOUNT_LOGOS).filter(option => type === 'ewallet' ? ewalletKeys.has(option.key) : !ewalletKeys.has(option.key));
+  return Object.values(ACCOUNT_LOGOS).filter(option => (BANK_CARDS[option.key].wallet === true) === (type === 'ewallet'));
 }

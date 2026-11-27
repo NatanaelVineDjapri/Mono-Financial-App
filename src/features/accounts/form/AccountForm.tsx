@@ -7,7 +7,7 @@
 // form; Save is off while an error shows, and tapping it on an invalid form reveals what is wrong
 // instead of saving. An error is a 1.5 px red border, a warning icon and a sentence.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, Keyboard, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BankTile } from '@/components/BankCard';
@@ -37,6 +37,7 @@ import {
   accountTypeTileLabel,
   asOfDateLabel,
   bankIconAccessibilityLabel,
+  bankPickerChoose,
   cancelLabel,
   closeLabel,
   createAccountLabel,
@@ -46,7 +47,6 @@ import {
   nfcFillFromCard,
   nfcLinkedCardRow,
   nfcUnlinkRow,
-  noBankIconLabel,
   openingBalanceHelp,
   openingBalanceLabel,
   saveButtonLabel,
@@ -57,6 +57,7 @@ import {
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
+import { BankPickerSheet } from './BankPickerSheet';
 import { brandsForType, iconFitsType } from './brands';
 
 const FIELD_FILL = '#151516';
@@ -122,6 +123,8 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
   const dateError = errorView('openingDate');
 
   const brands = useMemo(() => brandsForType(values.type), [values.type]);
+  const [bankOpen, setBankOpen] = useState(false);
+  const closeBank = useCallback(() => setBankOpen(false), []);
 
   const changeType = (type: PlainAccountType) => {
     if (type === values.type) return;
@@ -273,34 +276,21 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
         {brands.length > 0 && (
           <View testID="account-icons">
             <Text style={styles.label}>{accountIconSectionLabel()}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.iconRow} accessibilityRole="radiogroup">
-              <Pressable
-                onPress={() => set({ icon: null })}
-                accessibilityRole="radio"
-                accessibilityLabel={noBankIconLabel()}
-                accessibilityState={{ selected: values.icon == null }}
-                android_ripple={undefined}
-                style={[styles.iconTile, values.icon == null && styles.iconTileSelected]}
-                testID="account-icon-none"
-              >
-                <BankTile icon={null} type={values.type} size={40} />
-              </Pressable>
-              {brands.map(brand => (
-                <Pressable
-                  key={brand.slug}
-                  onPress={() => set({ icon: brand.slug })}
-                  accessibilityRole="radio"
-                  accessibilityLabel={bankIconAccessibilityLabel(brand.name)}
-                  accessibilityState={{ selected: values.icon === brand.slug }}
-                  android_ripple={undefined}
-                  style={[styles.iconTile, values.icon === brand.slug && styles.iconTileSelected]}
-                  testID={`account-icon-${brand.slug}`}
-                >
-                  <BankTile icon={brand.slug} type={values.type} size={40} />
-                </Pressable>
-              ))}
-            </ScrollView>
-            <Text style={styles.help}>{selectedBrand ? selectedBrand.name : noBankIconLabel()}</Text>
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                setBankOpen(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={selectedBrand ? bankIconAccessibilityLabel(selectedBrand.name) : bankPickerChoose()}
+              android_ripple={undefined}
+              style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
+              testID="account-icon-open"
+            >
+              <BankTile icon={values.icon} type={values.type} size={40} />
+              <Text style={styles.cardLinkText}>{selectedBrand ? selectedBrand.name : bankPickerChoose()}</Text>
+              <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
+            </Pressable>
           </View>
         )}
 
@@ -354,6 +344,19 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
         }}
         onClose={() => setDateOpen(false)}
       />
+
+      {values.type !== 'cash' && (
+        <BankPickerSheet
+          visible={bankOpen}
+          type={values.type}
+          selected={values.icon}
+          onSelect={icon => {
+            set({ icon });
+            setBankOpen(false);
+          }}
+          onClose={closeBank}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -385,9 +388,6 @@ const styles = StyleSheet.create({
   dateText: { ...MonoText.body, color: MonoColors.text, flexShrink: 1 },
   help: { ...MonoText.caption, color: MonoColors.textMeta, marginTop: 10 },
 
-  iconRow: { gap: 10, paddingVertical: 4, paddingRight: 16 },
-  iconTile: { width: 56, height: 56, borderRadius: 16, borderWidth: 1, borderColor: FIELD_BORDER, backgroundColor: FIELD_FILL, alignItems: 'center', justifyContent: 'center' },
-  iconTileSelected: { borderColor: MonoColors.text, borderWidth: 1.5 },
 
   privacy: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   cardLink: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: FIELD_BORDER, backgroundColor: FIELD_FILL, borderRadius: 14 },

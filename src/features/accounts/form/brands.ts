@@ -1,50 +1,33 @@
-// Which brand marks the account form offers for each account type. The brands themselves (colour,
-// logo) are src/components/BankCard/bankCards.ts; this only splits that one list into banks and
-// e-wallets, since the table does not say which is which. A cash account has no brand (it has
-// its own card), and an account with no brand chosen falls back to its type's neutral card.
-import { BANK_CARDS } from '@/components/BankCard';
+// Which brand marks the account form offers for each account type and country. The brands themselves (colour,
+// logo, whether it is an e-wallet) are src/components/BankCard/bankCards.ts, the countries ../countries.ts. A cash
+// account has no brand (it has its own card), and an account with no brand chosen falls back to its type's neutral card.
+import { BANK_CARDS } from '@/components/BankCard/bankCards';
 import type { PlainAccountType } from '@/core/account/validate';
 
-const EWALLET_SLUGS = [
-  'gopay',
-  'ovo',
-  'dana',
-  'shopee-pay',
-  'linkaja',
-  'astra-pay',
-  'doku',
-  'dutamoney',
-  'i-saku',
-  'jakone-pay',
-  'kaspro',
-  'netzme',
-  'otto-pay',
-  'paytren',
-  'pospay',
-  'speedcash',
-  'truemoney',
-  'uangku',
-  'yukk',
-  'stockbit',
-] as const;
-
-const EWALLETS = new Set<string>(EWALLET_SLUGS);
+import { BANK_COUNTRIES, type BankCountry, type BankCountryId } from '../countries';
 
 export interface BrandOption {
   slug: string;
   name: string;
 }
 
+// E-wallets for an E-wallet account, banks for Bank and Savings.
+const fits = (slug: string, type: PlainAccountType) => (BANK_CARDS[slug].wallet === true) === (type === 'ewallet');
+
 function toOption(slug: string): BrandOption {
   return { slug, name: BANK_CARDS[slug].name };
 }
 
-// The brands to offer for a type: banks for Bank and Savings, e-wallets for E-wallet, none for Cash.
-export function brandsForType(type: PlainAccountType): BrandOption[] {
+// The brands to offer for a type, of one country or (without one) of all of them; none for Cash.
+export function brandsForType(type: PlainAccountType, country?: BankCountryId): BrandOption[] {
   if (type === 'cash') return [];
-  const slugs = Object.keys(BANK_CARDS);
-  const wanted = type === 'ewallet' ? slugs.filter(s => EWALLETS.has(s)) : slugs.filter(s => !EWALLETS.has(s));
-  return wanted.map(toOption);
+  const slugs = country ? (BANK_COUNTRIES.find(c => c.id === country)?.slugs ?? []) : Object.keys(BANK_CARDS);
+  return slugs.filter(slug => fits(slug, type)).map(toOption);
+}
+
+// The countries that have something to offer for a type.
+export function countriesForType(type: PlainAccountType): BankCountry[] {
+  return BANK_COUNTRIES.filter(country => brandsForType(type, country.id).length > 0);
 }
 
 // A chosen brand that the new type does not offer (Bank → E-wallet) is dropped.

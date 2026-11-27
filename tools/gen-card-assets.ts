@@ -15,7 +15,7 @@
 // `<Logo slug={...} />`. This still "uses the Logo component" as asked, it just supplies
 // an already-correct single-colour string rather than relying on Logo's own recolouring,
 // which does not apply here.
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,7 +41,7 @@ const OUT_FILE = join(ROOT, 'src/components/BankCard/cardAssets.ts');
 const ICONS_MAP_PATH = join(ROOT, 'node_modules/idn-finlogos/dist/icons-map.js');
 
 const pngFiles = readdirSync(PNG_DIR)
-  .filter(f => f.endsWith('.png'))
+  .filter(f => f.endsWith('@3x.png')) // a stray copy without the suffix is not a card picture
   .sort();
 const glyphFiles = readdirSync(GLYPH_DIR)
   .filter(f => f.endsWith('.svg'))
@@ -77,23 +77,32 @@ function forceSingleFill(xml: string, fg: string): string {
   return xml.replace(/fill="(?!none")[^"]*"/g, `fill="${fg}"`);
 }
 
+// A brand's own artwork: assets/bank-logos/<slug>.svg when there is one (logos idn-finlogos does not carry), else the
+// package's. Only these strings reach the app: importing the package itself would bundle all of its 500+ logos.
+const LOCAL_LOGO_DIR = join(ROOT, 'assets/bank-logos');
 const iconsMap: Record<string, string> = require(ICONS_MAP_PATH);
+const artOf = (slug: string, art?: string): string | undefined => {
+  const local = join(LOCAL_LOGO_DIR, `${slug}.svg`);
+  return existsSync(local) ? readFileSync(local, 'utf8').trim() : iconsMap[art ?? slug];
+};
+const escape = (svg: string) => svg.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+
 const missingLogos: string[] = [];
-const logoEntries = Object.entries(BANK_CARDS)
-  .filter(([, style]) => !style.wordmark) // stockbit: no idn-finlogos artwork, rendered as text instead
-  .map(([slug, style]) => {
-    const raw = iconsMap[slug];
-    if (!raw) {
-      missingLogos.push(slug);
-      return null;
-    }
-    const svg = forceSingleFill(raw, style.fg).replace(/`/g, '\\`');
-    return `  '${slug}': \`${svg}\`,`;
-  })
-  .filter((line): line is string => line !== null);
+const artEntries: string[] = [];
+const logoEntries: string[] = [];
+for (const [slug, style] of Object.entries(BANK_CARDS)) {
+  const raw = artOf(slug, style.art);
+  if (!raw) {
+    missingLogos.push(slug);
+    continue;
+  }
+  artEntries.push(`  '${slug}': \`${escape(raw)}\`,`);
+  // A plate brand is only ever drawn in its own colours.
+  if (!style.plate) logoEntries.push(`  '${slug}': \`${escape(forceSingleFill(raw, style.fg))}\`,`);
+}
 
 if (missingLogos.length > 0) {
-  console.error(`idn-finlogos has no artwork for: ${missingLogos.join(', ')} — add wordmark: true in bankCards.ts for these, like stockbit.`);
+  console.error(`No artwork for: ${missingLogos.join(', ')} (add assets/bank-logos/<slug>.svg, or set \`art\` in bankCards.ts).`);
   process.exit(1);
 }
 
@@ -121,9 +130,16 @@ ${glyphEntries.join('\n')}
 export const BRAND_LOGOS: Record<string, string> = {
 ${logoEntries.join('\n')}
 };
+
+// Every brand's logo in its own colours (account tiles, the bank picker, and the white plate on a card).
+export const BRAND_ART: Record<string, string> = {
+${artEntries.join('\n')}
+};
 `;
 
-writeFileSync(OUT_FILE, output);
+// keep the line endings the file already has, so a regeneration only shows what really changed
+const eol = existsSync(OUT_FILE) && readFileSync(OUT_FILE, 'utf8').includes(String.fromCharCode(13)) ? String.fromCharCode(13, 10) : String.fromCharCode(10);
+writeFileSync(OUT_FILE, output.split(String.fromCharCode(13)).join('').split(String.fromCharCode(10)).join(eol));
 console.log(
-  `Wrote ${pngEntries.length} card assets, ${glyphFiles.length} glyphs, ${svgBackgroundFiles.length} SVG background override(s) and ${logoEntries.length} brand logos to ${OUT_FILE}`,
+  `Wrote ${pngEntries.length} card assets, ${glyphFiles.length} glyphs, ${svgBackgroundFiles.length} SVG background override(s) and ${logoEntries.length} card logos and ${artEntries.length} brand artworks to ${OUT_FILE}`,
 );

@@ -72,24 +72,51 @@ describe('AccountForm: a new account', () => {
 });
 
 describe('icons', () => {
-  test('a bank offers bank marks and "No bank"; choosing one selects it and names it', async () => {
+  type View = Awaited<ReturnType<typeof render>>;
+  const openCountry = async (result: View, country = 'id') => {
+    await fireEvent.press(result.getByTestId('account-icon-open'));
+    await fireEvent.press(result.getByTestId(`bank-country-${country}`));
+  };
+
+  test("the picker shows countries first, then that country's banks; choosing one names it on the form", async () => {
     const result = await (await renderForm()).view;
     expect(result.getByText('Icon · optional')).toBeTruthy();
-    expect(result.getByTestId('account-icon-bca')).toBeTruthy();
-    expect(result.queryByTestId('account-icon-gopay')).toBeNull();
+    expect(result.queryByTestId('bank-picker')).toBeNull();
+    await fireEvent.press(result.getByTestId('account-icon-open'));
     expect(result.getByTestId('account-icon-none').props.accessibilityState).toMatchObject({ selected: true });
+    for (const country of ['id', 'us', 'eu', 'gb', 'cn', 'sg', 'jp', 'kr', 'th', 'au']) expect(result.getByTestId(`bank-country-${country}`)).toBeTruthy();
+    expect(result.queryByTestId('account-icon-bca')).toBeNull();
+    await fireEvent.press(result.getByTestId('bank-country-id'));
+    expect(result.queryByTestId('account-icon-gopay')).toBeNull();
+    expect(result.getByTestId('account-icon-bca').props.accessibilityLabel).toBe('BCA');
     await fireEvent.press(result.getByTestId('account-icon-bca'));
-    expect(result.getByTestId('account-icon-bca').props.accessibilityState).toMatchObject({ selected: true });
-    expect(result.getByTestId('account-icon-bca').props.accessibilityLabel).toBe('BCA icon');
     expect(within(result.getByTestId('account-icons')).getByText('BCA')).toBeTruthy();
+    expect(result.getByTestId('account-icon-open').props.accessibilityLabel).toBe('BCA icon');
   });
 
-  test('an e-wallet offers wallet marks; a chosen bank mark is dropped when the type changes', async () => {
+  test('a bank abroad can be chosen; back returns to the countries', async () => {
+    const harness = await renderForm();
+    const result = await harness.view;
+    await openCountry(result, 'cn');
+    expect(result.getByTestId('account-icon-icbc')).toBeTruthy();
+    expect(result.queryByTestId('account-icon-bca')).toBeNull();
+    await fireEvent.press(result.getByTestId('bank-picker-back'));
+    await fireEvent.press(result.getByTestId('bank-country-us'));
+    await fireEvent.press(result.getByTestId('account-icon-chase'));
+    await fireEvent.changeText(result.getByTestId('account-name'), 'Chase checking');
+    await fireEvent.press(result.getByRole('button', { name: 'Create account' }));
+    expect(harness.onSubmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'bank', icon: 'chase' }));
+  });
+
+  test('an e-wallet offers wallet marks and only the countries that have one; a chosen bank mark is dropped', async () => {
     const result = await (await renderForm({ initial: { ...FRESH, icon: 'bca' } })).view;
     await fireEvent.press(result.getByRole('radio', { name: 'E-wallet' }));
+    await fireEvent.press(result.getByTestId('account-icon-open'));
+    expect(result.getByTestId('account-icon-none').props.accessibilityState).toMatchObject({ selected: true });
+    expect(result.queryByTestId('bank-country-kr')).toBeNull();
+    await fireEvent.press(result.getByTestId('bank-country-id'));
     expect(result.getByTestId('account-icon-gopay')).toBeTruthy();
     expect(result.queryByTestId('account-icon-bca')).toBeNull();
-    expect(result.getByTestId('account-icon-none').props.accessibilityState).toMatchObject({ selected: true });
   });
 
   test('cash has no brand to pick (it has its own card)', async () => {
@@ -141,6 +168,8 @@ describe('saving', () => {
     const result = await view;
     await fireEvent.changeText(result.getByTestId('account-name'), 'BCA Tabungan');
     await fireEvent.changeText(result.getByTestId('tx-amount-input'), '1200000');
+    await fireEvent.press(result.getByTestId('account-icon-open'));
+    await fireEvent.press(result.getByTestId('bank-country-id'));
     await fireEvent.press(result.getByTestId('account-icon-bca'));
     await fireEvent.press(result.getByRole('button', { name: 'Create account' }));
     expect(onSubmit).toHaveBeenCalledWith({ name: 'BCA Tabungan', type: 'bank', openingBalance: 1200000, openingDate: TODAY, icon: 'bca' });
@@ -180,7 +209,7 @@ describe('editing an account', () => {
     expect(result.getByTestId('account-name').props.value).toBe('BCA Tabungan');
     expect(result.getByTestId('tx-amount-input').props.value).toBe('1.200.000');
     expect(result.getByText('As of 1 Jan 2026')).toBeTruthy();
-    expect(result.getByTestId('account-icon-bca').props.accessibilityState).toMatchObject({ selected: true });
+    expect(within(result.getByTestId('account-icons')).getByText('BCA')).toBeTruthy();
     expect(result.getByRole('button', { name: 'Save changes' })).toBeTruthy();
   });
 

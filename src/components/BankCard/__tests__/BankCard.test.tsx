@@ -28,7 +28,8 @@ function background(card: Awaited<ReturnType<typeof render>>, testID: string) {
 
 describe('BankCard assets', () => {
   test('every BANK_CARDS and NEUTRAL_CARDS slug has a working background, PNG or SVG', () => {
-    for (const slug of [...Object.keys(BANK_CARDS), ...Object.keys(NEUTRAL_CARDS)]) {
+    // (the banks abroad were added after the card pictures were drawn; PhysicalCard draws its own art)
+    for (const slug of [...Object.keys(BANK_CARDS).filter(s => !BANK_CARDS[s].abroad), ...Object.keys(NEUTRAL_CARDS)]) {
       expect(CARD_ASSETS[slug] ?? SVG_BACKGROUNDS[slug]).toBeDefined();
     }
   });
@@ -77,9 +78,9 @@ describe('BankCard', () => {
     expect(background(result, 'card')).toBeTruthy();
   });
 
-  test('stockbit renders the text wordmark, not a Logo', async () => {
-    const result = await render(<BankCard name="Stockbit" type="ewallet" icon="stockbit" balance={1000000} onPress={() => {}} />);
-    expect(result.getByText('stockbit')).toBeTruthy();
+  test('a bank abroad has no card picture of its own: the neutral one stands in', async () => {
+    const result = await render(<BankCard name="Chase" type="bank" icon="chase" balance={1000000} onPress={() => {}} testID="card" />);
+    expect(background(result, 'card').props.source).toBe(CARD_ASSETS.default);
   });
 
   // The flag-circle row already says "multi-currency" on its own — a "N MATA UANG" pill

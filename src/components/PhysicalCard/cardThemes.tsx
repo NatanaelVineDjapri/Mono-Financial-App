@@ -474,7 +474,8 @@ function buildPhysicalThemes(): Record<string, PhysicalCardTheme> {
   // 1. Process all BANK_CARDS entries
   for (const [slug, style] of Object.entries(BANK_CARDS)) {
     const meta = CARD_METADATA[slug] ?? {
-      tier: `${style.name.toUpperCase()} DEBIT`,
+      // abroad the app does not say what kind of card it is: the name alone
+      tier: style.abroad ? style.name.toUpperCase() : `${style.name.toUpperCase()} DEBIT`,
       chip: 'gold' as const,
       accent: style.bg,
     };

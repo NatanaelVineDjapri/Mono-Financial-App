@@ -1,6 +1,7 @@
-import { Logo } from 'idn-finlogos/react-native';
 import { StyleSheet, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
+import { BrandLogo } from '@/components/BankCard/BrandLogo';
 import { NEUTRAL_GLYPHS } from '@/components/BankCard/cardAssets';
 import type { AccountType } from '@/data/repo/accounts';
 import { accountLogoOption } from '@/features/accounts/logos';
@@ -26,9 +27,9 @@ export function AccountLogo({ iconKey, type, size = 36, testID }: { accountId?: 
       testID={testID}
     >
       {logo ? (
-        <Logo slug={logo.key} width={markSize} height={markSize} preserveAspectRatio="xMidYMid meet" testID={`${testID ?? 'account-logo'}-brand`} />
+        <BrandLogo slug={logo.key} width={markSize} height={markSize} testID={`${testID ?? 'account-logo'}-brand`} />
       ) : (
-        <Logo svg={NEUTRAL_GLYPHS[glyphKey]} width={markSize} height={markSize} color="#F5F5F5" testID={`${testID ?? 'account-logo'}-fallback`} />
+        <SvgXml xml={NEUTRAL_GLYPHS[glyphKey]} width={markSize} height={markSize} color="#F5F5F5" testID={`${testID ?? 'account-logo'}-fallback`} />
       )}
     </View>
   );

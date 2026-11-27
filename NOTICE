@@ -13,3 +13,17 @@ are original, and every conversation in the tests is made up.
 - dwierwink/scannertest (no licence stated): README and its algorithm notes, as a description of the protocol.
 
 Each adapter's header comment says which facts came from where, and which of them are not confirmed by a second source.
+
+Bank and e-wallet logos
+-----------------------
+All names and logos are trademarks of their owners and are used only to identify the account the person chose. The app is
+not affiliated with or endorsed by any of them.
+
+- idn-finlogos (github.com/hafidznoor/idn-finlogos): logo assets under CC BY-NC 4.0 (non-commercial use only). Colours of
+  some are changed to the card's text colour. A commercial release would need other artwork.
+- Simple Icons (simpleicons.org), CC0 1.0: chase, wells-fargo, discover, venmo, cash-app, zelle, robinhood (recoloured),
+  barclays, commerzbank, n26, revolut, bunq, klarna, monzo, starling, payoneer, rakuten.
+- Wikimedia Commons, marked public domain (simple text logos): capital-one, us-bank, santander, unicredit, lloyds,
+  natwest, bank-of-communications, smbc, westpac, kasikornbank. Editor metadata and CSS removed.
+- stockbit: redrawn from the icon of the Stockbit app (no open-licensed source was found).
+- Country flags: HatScripts/circle-flags (MIT), through react-native-svg-circle-country-flags.
