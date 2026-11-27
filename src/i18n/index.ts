@@ -974,6 +974,7 @@ export const catListTransferSub = pick(en.catListTransferSub, id.catListTransfer
 export const catListBudgetTag = pick(en.catListBudgetTag, id.catListBudgetTag);
 export const catListRowLabel = pick(en.catListRowLabel, id.catListRowLabel);
 export const catListRowLabelWithBudget = pick(en.catListRowLabelWithBudget, id.catListRowLabelWithBudget);
+export const catListRowSubs = pick(en.catListRowSubs, id.catListRowSubs);
 export const catListArchivedRow = pick(en.catListArchivedRow, id.catListArchivedRow);
 export const catListLoadError = pick(en.catListLoadError, id.catListLoadError);
 export const catFormNewTitle = pick(en.catFormNewTitle, id.catFormNewTitle);

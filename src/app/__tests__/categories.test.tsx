@@ -46,6 +46,7 @@ const OVERVIEW: CategoryOverview = {
   ],
   income: [{ id: 11, name: 'Salary', kind: 'income', icon: 'wallet', sort_order: 1, has_budget: 0 }],
   archivedCount: 2,
+  subNames: {},
 };
 
 const actions = {
@@ -79,6 +80,18 @@ describe('the list', () => {
     expect(within(result.getByTestId('category-row-2')).queryByText('Ada anggaran')).toBeNull();
     expect(result.getByText('Bukan pemasukan, bukan pengeluaran')).toBeTruthy();
     expect(result.getByLabelText('Transfer. Bukan pemasukan, bukan pengeluaran')).toBeTruthy();
+  });
+
+  test('sub-categories are listed under their own category, and a press on them opens it', async () => {
+    mockOverview.mockReturnValue(query({ ...OVERVIEW, subNames: { 1: ['Pacaran', 'Sendiri'] } }));
+    const result = await render(wrap(<CategoriesScreen />));
+    const subs = within(result.getByTestId('category-subs-1'));
+    expect(subs.getByText('Pacaran')).toBeTruthy();
+    expect(subs.getByText('Sendiri')).toBeTruthy();
+    expect(result.queryByTestId('category-subs-2')).toBeNull();
+    expect(result.getByLabelText('Food & drink, ada anggaran, ketuk untuk mengubah. Sub-kategori: Pacaran, Sendiri')).toBeTruthy();
+    await fireEvent.press(subs.getByText('Pacaran'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/category/edit', params: { id: '1' } });
   });
 
   test('a row says what it is and opens the form; the plus opens an empty one', async () => {

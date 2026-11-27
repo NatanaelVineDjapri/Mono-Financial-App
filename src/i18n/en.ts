@@ -4123,6 +4123,7 @@ export const catListTransferSub = () => `Not income, not expense`;
 export const catListBudgetTag = () => `Budget set`;
 export const catListRowLabel = (name: string) => `${name}, tap to edit`;
 export const catListRowLabelWithBudget = (name: string) => `${name}, budget set, tap to edit`;
+export const catListRowSubs = (names: string) => `Sub-categories: ${names}`;
 export const catListArchivedRow = (count: number) => `Archived, ${count}`;
 export const catListLoadError = () => `Categories could not be loaded.`;
 export const catFormNewTitle = () => `New category`;

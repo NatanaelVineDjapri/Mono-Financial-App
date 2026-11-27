@@ -8,6 +8,7 @@ import { periodOfDate } from '@/core/date';
 import type { Db } from '@/data/db/types';
 import * as repo from '@/data/repo/categories';
 import type { ArchivedCategoryRow, CategoryKind, CategoryListRow, CategoryRow } from '@/data/repo/categories';
+import { listFormSubcategories } from '@/data/repo/subcategories';
 import { getMonthStartDay } from '@/domain/transactionsList';
 
 import { DEFAULT_NEW_CATEGORY_ICON, resolveCategoryIcon } from './icons';
@@ -28,18 +29,22 @@ export interface CategoryOverview {
   expense: CategoryListRow[];
   income: CategoryListRow[];
   archivedCount: number;
+  subNames: Record<number, string[]>; // category id -> its active sub-categories, in their order
 }
 
 // The list screen: active categories only (so the headers count only those), with whether each has
 // a budget this month, and how many are archived.
 export async function getCategoryOverview(db: Db, todayIso: string): Promise<CategoryOverview> {
   const month = await currentMonth(db, todayIso);
-  const [expense, income, archivedCount] = await Promise.all([
+  const [expense, income, archivedCount, subs] = await Promise.all([
     repo.listActiveWithBudgetFlag(db, 'expense', month),
     repo.listActiveWithBudgetFlag(db, 'income', month),
     repo.countArchivedCategories(db),
+    listFormSubcategories(db),
   ]);
-  return { expense, income, archivedCount };
+  const subNames: Record<number, string[]> = {};
+  for (const sub of subs) (subNames[sub.category_id] ??= []).push(sub.name);
+  return { expense, income, archivedCount, subNames };
 }
 
 export async function listArchived(db: Db): Promise<ArchivedCategoryRow[]> {

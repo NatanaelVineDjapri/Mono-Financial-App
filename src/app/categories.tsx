@@ -1,5 +1,5 @@
 // Categories (board Categories): the active categories by kind with a "budget set" tag, the virtual
-// Transfer row, and a row to the archived ones. A category is never deleted, only archived
+// Transfer row, and a row to the archived ones. A category's sub-categories are listed indented under it. A category is never deleted, only archived
 // (CLAUDE.md rule 21). Back arrow returns to More.
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,6 +21,7 @@ import {
   catListLoadError,
   catListRowLabel,
   catListRowLabelWithBudget,
+  catListRowSubs,
   catListSystemHeader,
   catListTransferName,
   catListTransferSub,
@@ -32,17 +33,19 @@ import {
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-function CategoryRow({ row, last, onPress }: { row: CategoryListRow; last: boolean; onPress: () => void }) {
+function CategoryRow({ row, subs, last, onPress }: { row: CategoryListRow; subs: string[]; last: boolean; onPress: () => void }) {
   const hasBudget = row.has_budget === 1;
+  const label = hasBudget ? catListRowLabelWithBudget(row.name) : catListRowLabel(row.name);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={hasBudget ? catListRowLabelWithBudget(row.name) : catListRowLabel(row.name)}
+      accessibilityLabel={subs.length > 0 ? `${label}. ${catListRowSubs(subs.join(', '))}` : label}
       android_ripple={undefined}
-      style={({ pressed }) => [styles.row, !last && styles.rowDivider, pressed && styles.rowPressed]}
+      style={({ pressed }) => [!last && styles.rowDivider, pressed && styles.rowPressed]}
       testID={`category-row-${row.id}`}
     >
+      <View style={styles.row}>
       <View style={styles.tile}>
         <CategoryIcon iconKey={row.icon} />
       </View>
@@ -55,11 +58,22 @@ function CategoryRow({ row, last, onPress }: { row: CategoryListRow; last: boole
         </View>
       )}
       <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
+      </View>
+      {subs.length > 0 && (
+        <View style={styles.subs} testID={`category-subs-${row.id}`}>
+          {subs.map(name => (
+            <View key={name} style={styles.subRow}>
+              <View style={styles.branch} />
+              <Text style={styles.subName}>{name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </Pressable>
   );
 }
 
-function Section({ title, rows, onOpen, testID }: { title: string; rows: CategoryListRow[]; onOpen: (id: number) => void; testID: string }) {
+function Section({ title, rows, subNames, onOpen, testID }: { title: string; rows: CategoryListRow[]; subNames: Record<number, string[]>; onOpen: (id: number) => void; testID: string }) {
   return (
     <View style={styles.section} testID={testID}>
       <Text style={styles.sectionLabel} accessibilityRole="header">
@@ -67,7 +81,7 @@ function Section({ title, rows, onOpen, testID }: { title: string; rows: Categor
       </Text>
       <View style={styles.card}>
         {rows.map((row, i) => (
-          <CategoryRow key={row.id} row={row} last={i === rows.length - 1} onPress={() => onOpen(row.id)} />
+          <CategoryRow key={row.id} row={row} subs={subNames[row.id] ?? []} last={i === rows.length - 1} onPress={() => onOpen(row.id)} />
         ))}
       </View>
     </View>
@@ -110,8 +124,8 @@ export default function CategoriesScreen() {
 
         {data && (
           <>
-            <Section title={catListExpenseHeader(data.expense.length)} rows={data.expense} onOpen={open} testID="categories-expense" />
-            <Section title={catListIncomeHeader(data.income.length)} rows={data.income} onOpen={open} testID="categories-income" />
+            <Section title={catListExpenseHeader(data.expense.length)} rows={data.expense} subNames={data.subNames} onOpen={open} testID="categories-expense" />
+            <Section title={catListIncomeHeader(data.income.length)} rows={data.income} subNames={data.subNames} onOpen={open} testID="categories-income" />
 
             <View style={styles.section} testID="categories-system">
               <Text style={styles.sectionLabel} accessibilityRole="header">
@@ -172,6 +186,11 @@ const styles = StyleSheet.create({
   nameFlat: { ...MonoText.bodyStrong, fontSize: 14, color: MonoColors.text },
   sub: { ...MonoText.caption, color: MonoColors.textMeta },
   systemText: { flex: 1, gap: 2 },
+  // indented to start under the icon tile, with a branch from the category above to each sub-category
+  subs: { paddingLeft: 31, paddingRight: 14, paddingBottom: 10 },
+  subRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
+  branch: { width: 14, height: 18, marginTop: -14, borderLeftWidth: 1.5, borderBottomWidth: 1.5, borderBottomLeftRadius: 8, borderColor: MonoColors.textDisabled },
+  subName: { ...MonoText.bodyS, color: MonoColors.textSecond, flex: 1 },
   tag: { borderWidth: 1, borderColor: MonoColors.border, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   tagText: { ...MonoText.caption, color: MonoColors.textSecond },
   archivedRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14 },

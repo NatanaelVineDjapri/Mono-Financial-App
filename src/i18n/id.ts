@@ -4120,6 +4120,7 @@ export const catListTransferSub = () => `Bukan pemasukan, bukan pengeluaran`;
 export const catListBudgetTag = () => `Ada anggaran`;
 export const catListRowLabel = (name: string) => `${name}, ketuk untuk mengubah`;
 export const catListRowLabelWithBudget = (name: string) => `${name}, ada anggaran, ketuk untuk mengubah`;
+export const catListRowSubs = (names: string) => `Sub-kategori: ${names}`;
 export const catListArchivedRow = (count: number) => `Diarsipkan, ${count}`;
 export const catListLoadError = () => `Kategori tidak bisa dimuat.`;
 export const catFormNewTitle = () => `Kategori baru`;
