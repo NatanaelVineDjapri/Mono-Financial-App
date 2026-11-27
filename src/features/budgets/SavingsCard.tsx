@@ -16,6 +16,7 @@ import {
   savingsA11y,
   savingsEditLabel,
   savingsOfTarget,
+  savingsPercent,
   savingsPrompt,
   savingsReached,
   savingsSetButton,
@@ -76,6 +77,11 @@ export function SavingsCard({ month }: { month: string }) {
         <Text style={[styles.statusText, short && styles.statusShort]}>
           {short ? savingsShort(money(-saved)) : remaining > 0 ? savingsToGo(money(remaining)) : savingsReached()}
         </Text>
+        {!short && (
+          <Text style={styles.percent} testID="savings-percent">
+            {savingsPercent(pct(progressBp))}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -91,7 +97,8 @@ const styles = StyleSheet.create({
   body: { ...MonoText.body, color: MonoColors.textSecond },
   figures: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8, marginBottom: 12 },
   meta: { ...MonoText.bodyS, color: MonoColors.textSecond },
-  status: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8 },
+  status: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 6, marginTop: 8 },
   statusText: { ...MonoText.bodyS, color: MonoColors.textSecond, flexShrink: 1 },
   statusShort: { color: MonoColors.negative },
+  percent: { ...MonoText.bodyS, color: MonoColors.text, marginLeft: 'auto' },
 });

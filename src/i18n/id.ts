@@ -4836,6 +4836,9 @@ export function savingsToGo(amount: string): string {
 export function savingsReached(): string {
   return 'Target tercapai';
 }
+export function savingsPercent(percent: string): string {
+  return `${percent} tercapai`;
+}
 export function savingsShort(amount: string): string {
   return `Pengeluaran ${amount} lebih besar dari pemasukan`;
 }

@@ -1489,6 +1489,7 @@ export const savingsSetButton = pick(en.savingsSetButton, id.savingsSetButton);
 export const savingsOfTarget = pick(en.savingsOfTarget, id.savingsOfTarget);
 export const savingsToGo = pick(en.savingsToGo, id.savingsToGo);
 export const savingsReached = pick(en.savingsReached, id.savingsReached);
+export const savingsPercent = pick(en.savingsPercent, id.savingsPercent);
 export const savingsShort = pick(en.savingsShort, id.savingsShort);
 export const savingsEditLabel = pick(en.savingsEditLabel, id.savingsEditLabel);
 export const savingsEditTitle = pick(en.savingsEditTitle, id.savingsEditTitle);

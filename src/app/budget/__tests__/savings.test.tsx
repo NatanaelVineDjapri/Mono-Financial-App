@@ -65,6 +65,7 @@ describe('the card on the Budgets tab', () => {
     expect(screen.getByText('+Rp3.243.000')).toBeTruthy();
     expect(screen.getByText('dari Rp5.000.000')).toBeTruthy();
     expect(screen.getByText('Kurang Rp1.757.000')).toBeTruthy();
+    expect(screen.getByText('64,86% tercapai')).toBeTruthy();
     expect(barLabel()).toBe('Sudah ditabung Rp3.243.000 dari Rp5.000.000, 64,86%');
     await fireEvent.press(screen.getByLabelText('Ubah target nabung'));
     expect(mockRouter.push).toHaveBeenCalledWith('/budget/savings');
@@ -73,6 +74,7 @@ describe('the card on the Budgets tab', () => {
   test('past the target is good news: full bar, no striped overflow, the real share in the label', async () => {
     await showCard(2_000_000);
     expect(screen.getByText('Target tercapai')).toBeTruthy();
+    expect(screen.getByText('162,15% tercapai')).toBeTruthy();
     expect(screen.queryByTestId('savings-bar-overflow')).toBeNull();
     expect(barLabel()).toContain('162,15%');
   });
@@ -84,6 +86,7 @@ describe('the card on the Budgets tab', () => {
     await showCard(1_000_000);
     expect(screen.getByText('−Rp4.257.000')).toBeTruthy();
     expect(screen.getByText('Pengeluaran Rp4.257.000 lebih besar dari pemasukan')).toBeTruthy();
+    expect(screen.queryByTestId('savings-percent')).toBeNull();
   });
 
   test('follows the month it is given: a month without records has nothing saved', async () => {
