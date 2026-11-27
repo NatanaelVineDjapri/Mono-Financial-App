@@ -16,7 +16,7 @@ import { Icon } from '@/components/Icon';
 import { useTabBarClearance } from '@/components/TabBar';
 import { formatDateTime } from '@/core/date';
 import { useHideAmounts } from '@/components/hide-amounts-store';
-import { money, shown } from '@/core/money';
+import { money, rp, shown } from '@/core/money';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 import { reorderAccounts } from '@/data/repo/accounts';
@@ -40,6 +40,8 @@ import {
     retryLabel,
     tabLabel,
     transferAccountsLabel,
+  accArchivedRow,
+  accArchivedStill,
 } from '@/i18n';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
@@ -102,6 +104,21 @@ function ExchangeRatesRow({ latestFxUpdate, onPress }: { latestFxUpdate: string 
   );
 }
 
+// The way to the archived accounts. Their money is still part of net worth, so the row says how much that is.
+function ArchivedAccountsRow({ count, balance, hidden, onPress }: { count: number; balance: number; hidden: boolean; onPress: () => void }) {
+  const note = accArchivedStill(shown(rp(balance), hidden));
+  return (
+    <Pressable onPress={onPress} testID="accounts-archived-row" accessibilityRole="button" accessibilityLabel={`${accArchivedRow(count)}. ${note}`} style={styles.archivedRow}>
+      <Icon name="archive" size={20} color={MonoColors.textSecond} />
+      <View style={styles.archivedText}>
+        <Text style={styles.archivedTitle}>{accArchivedRow(count)}</Text>
+        <Text style={styles.archivedNote}>{note}</Text>
+      </View>
+      <Icon name="chevron-right" size={16} color={MonoColors.textMeta} />
+    </Pressable>
+  );
+}
+
 export default function AccountsScreen() {
   const router = useRouter();
   const db = useDb();
@@ -154,6 +171,10 @@ export default function AccountsScreen() {
     );
   }
 
+  const archivedRow = data.archived && (
+    <ArchivedAccountsRow count={data.archived.count} balance={data.archived.balance} hidden={hidden} onPress={() => router.push('/account/archived' as never)} />
+  );
+
   if (data.accountCount === 0) {
     return (
       <View style={styles.screen}>
@@ -164,6 +185,7 @@ export default function AccountsScreen() {
           <Text style={styles.emptyBody}>{accountsEmptyBody()}</Text>
           <Button label={addAccountLabel()} icon="plus" onPress={onAddAccount} />
           {nfcAvailable && <Button label={nfcScanButton()} icon="scan" variant="secondary" onPress={onScanCard} testID="accounts-scan-card" />}
+          {archivedRow}
         </View>
       </View>
     );
@@ -200,6 +222,7 @@ export default function AccountsScreen() {
           <Button label={addAccountLabel()} icon="plus" variant="secondary" onPress={onAddAccount} style={styles.buttonFlex} />
         </View>
         {nfcAvailable && <Button label={nfcScanButton()} icon="scan" variant="secondary" onPress={onScanCard} testID="accounts-scan-card" />}
+        {archivedRow}
         <View style={styles.footerRow}>
           <Icon name="lock" size={16} color={MonoColors.textMeta} />
           <Text style={styles.footerNote}>{accountsNoLoginNote()}</Text>
@@ -214,6 +237,10 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 20 },
   centerFill: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 32 },
   errorText: { ...MonoText.body, color: MonoColors.text, textAlign: 'center' },
+  archivedRow: { minHeight: 56, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: MonoColors.border },
+  archivedText: { flex: 1, gap: 2 },
+  archivedTitle: { ...MonoText.bodyStrong, color: MonoColors.text },
+  archivedNote: { ...MonoText.caption, color: MonoColors.textMeta },
   emptyTitle: { ...MonoText.bodyStrong, color: MonoColors.text, textAlign: 'center' },
   emptyBody: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
 

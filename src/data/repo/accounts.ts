@@ -212,3 +212,91 @@ export async function getPocketValue(db: Db, accountId: number, currency: string
     $currency: currency,
   });
 }
+
+// ---- archiving and deleting (the rules are src/domain/accounts.ts)
+
+export interface ArchivedAccountRow {
+  id: number;
+  name: string;
+  type: AccountType;
+  icon: string | null;
+  balance: number; // rupiah
+}
+
+export async function listArchivedAccountRows(db: Db): Promise<ArchivedAccountRow[]> {
+  return db.getAllAsync<ArchivedAccountRow>(
+    `select a.id, a.name, a.type, a.icon, vb.balance
+       from accounts a join v_account_balance vb on vb.id = a.id
+      where a.archived = 1
+      order by a.name`,
+  );
+}
+
+// How many archived accounts there are and what they still add to net worth.
+export async function getArchivedSummary(db: Db): Promise<{ count: number; balance: number }> {
+  return (await db.getFirstAsync<{ count: number; balance: number }>(
+    'select count(*) as count, coalesce(sum(balance), 0) as balance from v_account_balance where archived = 1',
+  ))!;
+}
+
+export interface AccountLinks {
+  type: AccountType;
+  archived: number;
+  openingBalance: number;
+  openingDate: string;
+  records: number; // transactions touching the account, on either side
+  fixedExpenses: number; // every fixed expense that points at it, stopped ones too
+  activeFixedExpenses: number;
+  goals: number;
+}
+
+export async function getAccountLinks(db: Db, id: number): Promise<AccountLinks | null> {
+  return db.getFirstAsync<AccountLinks>(
+    `select type, archived, opening_balance as openingBalance, opening_date as openingDate,
+            (select count(*) from transactions where account_id = $id or to_account_id = $id) as records,
+            (select count(*) from recurring where account_id = $id) as fixedExpenses,
+            (select count(*) from recurring where account_id = $id and archived = 0) as activeFixedExpenses,
+            (select count(*) from goals where account_id = $id) as goals
+       from accounts where id = $id`,
+    { $id: id },
+  );
+}
+
+export async function countTransfersBetween(db: Db, a: number, b: number): Promise<number> {
+  const row = await db.getFirstAsync<{ n: number }>(
+    'select count(*) as n from transactions where (account_id = $a and to_account_id = $b) or (account_id = $b and to_account_id = $a)',
+    { $a: a, $b: b },
+  );
+  return row!.n;
+}
+
+// Merges `from` into `to`: every record, link and the opening balance move, so the two balances become one and net worth
+// does not change. A transfer between the two would be a transfer to itself, and cancels out, so it is removed.
+// Runs inside the caller's transaction, with the guards off (the rows are only consistent once all have moved).
+export async function moveAccount(db: Db, from: number, to: number, now: string): Promise<void> {
+  const both = { $from: from, $to: to };
+  await db.runAsync('delete from transactions where (account_id = $from and to_account_id = $to) or (account_id = $to and to_account_id = $from)', both);
+  await db.runAsync('update transactions set account_id = $to, updated_at = $now where account_id = $from', { ...both, $now: now });
+  await db.runAsync('update transactions set to_account_id = $to, updated_at = $now where to_account_id = $from', { ...both, $now: now });
+  await db.runAsync('update recurring set account_id = $to where account_id = $from', both);
+  await db.runAsync('update goals set account_id = $to where account_id = $from', both);
+  await db.runAsync('update import_app_settings set account_id = $to where account_id = $from', both);
+  await db.runAsync('update import_queue set account_id = $to where account_id = $from', both);
+  await db.runAsync(
+    `update accounts set
+       opening_balance = opening_balance + (select opening_balance from accounts where id = $from),
+       opening_date = min(opening_date, (select opening_date from accounts where id = $from))
+     where id = $to`,
+    both,
+  );
+}
+
+// The account row itself, once nothing that must be kept points at it.
+export async function deleteAccountRow(db: Db, id: number): Promise<void> {
+  const at = { $id: id };
+  await db.runAsync('update import_app_settings set enabled = 0, account_id = null where account_id = $id', at);
+  await db.runAsync('delete from import_queue where account_id = $id', at);
+  await db.runAsync('delete from card_links where account_id = $id', at);
+  await db.runAsync('delete from account_currencies where account_id = $id', at);
+  await db.runAsync('delete from accounts where id = $id', at);
+}

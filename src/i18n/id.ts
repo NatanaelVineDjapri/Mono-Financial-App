@@ -4186,7 +4186,7 @@ export const catArchivedRowSub = (count: number, lastUsed: string) => `${count} 
 export const catArchivedRowSubNone = (count: number) => `${count} transaksi`;
 export const catArchivedRestore = () => `Pulihkan`;
 export const catArchivedRestoreLabel = (name: string) => `Pulihkan ${name}`;
-export const catArchivedFootnote = () => `Kategori tidak pernah dihapus, hanya diarsipkan, supaya riwayatmu tidak berubah.`;
+export const catArchivedFootnote = () => `Penghapusan tidak bisa dibatalkan. Catatan di kategori itu dipindah dulu ke kategori lain.`;
 export const catIconName = (key: string): string => {
   switch (key) {
     case 'food':
@@ -4959,3 +4959,38 @@ export function summaryPartialNote(): string {
 export function summaryEmpty(): string {
   return 'Belum ada catatan di periode ini.';
 }
+
+export const removeConfirmLabel = () => `Hapus`;
+export const removeRowLabel = (name: string) => `Hapus ${name}`;
+export const removeTitle = (name: string) => `Hapus ${name}?`;
+export const removeMoveTitle = () => `Pindahkan catatannya ke`;
+export const removeMoveSubtitle = (name: string) => `Pilih tujuan catatan ${name}`;
+export const removeFailed = () => `Gagal menghapus. Tidak ada yang berubah.`;
+export const catRemoveBody = (records: number, fixed: number, budgets: number, to: string | null) =>
+  [
+    to ? `Dipindah ke ${to}: ${records} transaksi dan ${fixed} pengeluaran tetap.` : '',
+    budgets > 0 ? `Anggarannya (${budgets}) dihapus.` : '',
+    `Sub-kategorinya ikut dihapus. Tidak bisa dibatalkan.`,
+  ].filter(Boolean).join(' ');
+export const catRemoveNoReplacement = () => `Tambah atau pulihkan kategori lain yang sejenis dulu.`;
+export const accArchiveButton = () => `Arsipkan akun`;
+export const accArchiveTitle = (name: string) => `Arsipkan ${name}?`;
+export const accArchiveBody = () => `Akun hilang dari daftar dan pilihan. Riwayatnya tetap ada dan saldonya tetap dihitung di kekayaan bersih. Bisa dipulihkan dari tab Akun.`;
+export const accArchiveConfirm = () => `Arsipkan`;
+export const accArchiveBlockedTitle = () => `Belum bisa diarsipkan`;
+export const accArchiveBlockedFixed = () => `Masih ada pengeluaran tetap yang memakai akun ini. Ganti akunnya atau hentikan dulu.`;
+export const accArchiveBlockedGoal = () => `Ada target yang mengikuti akun ini. Ubah atau hapus targetnya dulu.`;
+export const accArchivedRow = (count: number) => `Akun diarsipkan (${count})`;
+export const accArchivedStill = (amount: string) => `${amount} masih dihitung di kekayaan bersih`;
+export const accArchivedTitle = () => `Akun diarsipkan`;
+export const accArchivedIntro = () => `Akun ini disembunyikan dari daftar dan pilihan. Saldonya masih dihitung di kekayaan bersih sampai kamu menghapusnya.`;
+export const accRestore = () => `Pulihkan`;
+export const accRestoreLabel = (name: string) => `Pulihkan ${name}`;
+export const accRemoveEmptyBody = (amount: string) => `Akun ini tidak punya catatan. Saldo awalnya ${amount} hilang dari kekayaan bersih. Tidak bisa dibatalkan.`;
+export const accRemoveMoveBody = (records: number, transfers: number, to: string) =>
+  [
+    `Catatannya (${records}) dan saldonya pindah ke ${to}, jadi kekayaan bersih tidak berubah.`,
+    transfers > 0 ? `Transfer antara kedua akun (${transfers}) dihapus.` : '',
+    `Tidak bisa dibatalkan.`,
+  ].filter(Boolean).join(' ');
+export const accRemoveNoReplacement = () => `Tambah atau pulihkan akun rupiah lain dulu.`;

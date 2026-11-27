@@ -14,13 +14,14 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { today as todayLocal } from '@/core/clock';
 import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
+import { archiveAccount, type AccountRemovalError } from '@/domain/accounts';
 import { unlinkCard } from '@/domain/cards/links';
 import type { AccountFormValues, AccountValidationContext, PlainAccountType } from '@/core/account/validate';
 import { AccountForm } from '@/features/accounts/form/AccountForm';
 import { useAccountFormData, useChangeAccountSubmit, useCreateAccountSubmit } from '@/features/accounts/form/useAccountForm';
 import { useAccountCardLink, useNfcAvailable } from '@/features/nfc/useNfcEntry';
 import { ValasFormScreen } from '@/features/valas/ValasFormScreen';
-import { accountNotFoundMessage, backLabel, cancelLabel, nfcUnlinkBody, nfcUnlinkConfirm, nfcUnlinkTitle, retryLabel, txDetailLoadError } from '@/i18n';
+import { accArchiveBlockedFixed, accArchiveBlockedGoal, accArchiveBlockedTitle, accArchiveBody, accArchiveConfirm, accArchiveTitle, accountNotFoundMessage, backLabel, cancelLabel, closeLabel, removeFailed, nfcUnlinkBody, nfcUnlinkConfirm, nfcUnlinkTitle, retryLabel, txDetailLoadError } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -41,6 +42,20 @@ function AccountEditScreen() {
   const nfcAvailable = useNfcAvailable();
   const { data: cardLink } = useAccountCardLink(editId);
   const [unlinkOpen, setUnlinkOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveError, setArchiveError] = useState<AccountRemovalError | null>(null);
+  const closeArchive = () => {
+    setArchiveOpen(false);
+    setArchiveError(null);
+  };
+  const archive = async () => {
+    if (editId == null) return;
+    const result = await archiveAccount(db, editId);
+    if (!result.ok) return setArchiveError(result.error);
+    await invalidateAfterWrite(queryClient);
+    closeArchive();
+    router.dismissTo('/(tabs)/accounts' as never);
+  };
   // The date is read once per visit: the form judges "later than today" against one fixed day.
   const today = useMemo(() => todayLocal(), []);
 
@@ -93,8 +108,22 @@ function AccountEditScreen() {
         onChooseValas={editId == null ? () => router.replace({ pathname: '/account/edit', params: { kind: 'valas' } } as never) : undefined}
         onFillFromCard={editId == null && nfcAvailable ? () => router.replace('/nfc/scan' as never) : undefined}
         linkedCard={editId != null && cardLink ? { last4: cardLink.last4, onUnlink: () => setUnlinkOpen(true) } : undefined}
+        onArchive={editId != null ? () => setArchiveOpen(true) : undefined}
         onCancel={() => router.back()}
         onSubmit={editId != null ? change : create}
+      />
+      <ConfirmDialog
+        visible={archiveOpen}
+        icon="info"
+        iconColor={MonoColors.text}
+        title={archiveError ? accArchiveBlockedTitle() : accArchiveTitle(data.edit?.name ?? '')}
+        message={[{ text: archiveError == null ? accArchiveBody() : archiveError === 'in_fixed_expense' ? accArchiveBlockedFixed() : archiveError === 'in_goal' ? accArchiveBlockedGoal() : removeFailed() }]}
+        cancelLabel={cancelLabel()}
+        confirmLabel={archiveError ? closeLabel() : accArchiveConfirm()}
+        hideCancel={archiveError != null}
+        onCancel={closeArchive}
+        onConfirm={() => (archiveError ? closeArchive() : void archive())}
+        testID="account-archive-dialog"
       />
       <ConfirmDialog
         visible={unlinkOpen}

@@ -100,6 +100,17 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
     openingDate: a.opening_date,
   }));
   let pockets: FormPocket[] = pocketRows.map(p => ({ accountId: p.account_id, currency: p.currency, minorFactor: p.minor_factor, balance: p.balance, openingDate: p.opening_date }));
+  // The same for an account archived since the record was saved (the Valas account is never archived).
+  for (const accountId of [row?.account_id, row?.to_account_id]) {
+    if (accountId == null || accounts.some(a => a.id === accountId)) continue;
+    const kept = await db.getFirstAsync<{ id: number; name: string; type: FormAccount['type']; icon: string | null; opening_date: string; balance: number }>(
+      `select a.id, a.name, a.type, a.icon, a.opening_date, vb.balance
+         from accounts a join v_account_balance vb on vb.id = a.id
+        where a.id = $id and a.archived = 1`,
+      { $id: accountId },
+    );
+    if (kept) accounts.push({ id: kept.id, name: kept.name, type: kept.type, icon: kept.icon, balance: kept.balance, openingDate: kept.opening_date });
+  }
   const categories: FormCategory[] = categoryRows.map(c => ({ id: c.id, name: c.name, kind: c.kind }));
   // A new transaction only offers active categories. A record edited later may still carry a category
   // that has been archived since: it stays selectable here (so the person can keep it) but is not

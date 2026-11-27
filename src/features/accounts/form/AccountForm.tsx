@@ -29,6 +29,7 @@ import { ErrorLine, AmountCard, type ErrorView } from '@/features/transactions/f
 import { DateSheet } from '@/features/transactions/form/formSheets';
 import {
   accountFieldErrorMessage,
+  accArchiveButton,
   accountIconSectionLabel,
   accountNameLabel,
   accountNamePlaceholder,
@@ -80,11 +81,12 @@ export interface AccountFormProps {
   onFillFromCard?: () => void;
   // An account that has an e-money card: its last 4 digits and the way to unlink it (only the link goes).
   linkedCard?: { last4: string; onUnlink: () => void };
+  onArchive?: () => void; // edit mode only
   onCancel: () => void;
   onSubmit: (values: AccountFormValues) => Promise<AccountSubmitResult>;
 }
 
-export function AccountForm({ mode, initial, context, onChooseValas, valasExists = false, onFillFromCard, linkedCard, onCancel, onSubmit }: AccountFormProps) {
+export function AccountForm({ mode, initial, context, onChooseValas, valasExists = false, onFillFromCard, linkedCard, onArchive, onCancel, onSubmit }: AccountFormProps) {
   const insets = useSafeAreaInsets();
   const hidden = useHideAmounts(s => s.hidden);
   const [values, setValues] = useState<AccountFormValues>(initial);
@@ -309,6 +311,20 @@ export function AccountForm({ mode, initial, context, onChooseValas, valasExists
               <Text style={styles.cardLinkText}>{nfcUnlinkRow()}</Text>
               <Text style={styles.help}>{nfcLinkedCardRow(linkedCard.last4)}</Text>
             </View>
+          </Pressable>
+        )}
+
+        {mode === 'edit' && !!onArchive && (
+          <Pressable
+            onPress={onArchive}
+            accessibilityRole="button"
+            accessibilityLabel={accArchiveButton()}
+            android_ripple={undefined}
+            style={({ pressed }) => [styles.cardLink, pressed && styles.pressed]}
+            testID="account-archive"
+          >
+            <Icon name="archive" size={20} color={MonoColors.textSecond} />
+            <Text style={styles.cardLinkText}>{accArchiveButton()}</Text>
           </Pressable>
         )}
 

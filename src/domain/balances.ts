@@ -75,6 +75,7 @@ export interface AccountsOverview {
   accountCount: number;
   groups: AccountsOverviewGroup[]; // only types with at least one account, in GROUP_ORDER
   accounts?: AccountsOverviewAccount[];
+  archived?: { count: number; balance: number }; // only when there are archived accounts; still part of netWorth
 }
 
 async function withPockets(db: Db, row: AccountOverviewRow): Promise<AccountsOverviewAccount> {
@@ -90,10 +91,11 @@ async function withPockets(db: Db, row: AccountOverviewRow): Promise<AccountsOve
 }
 
 export async function getAccountsOverview(db: Db): Promise<AccountsOverview> {
-  const [rows, subtotalRows, netWorth] = await Promise.all([
+  const [rows, subtotalRows, netWorth, archived] = await Promise.all([
     repo.listAccountsForOverview(db),
     repo.listAccountGroupSubtotals(db),
     getNetWorth(db),
+    repo.getArchivedSummary(db),
   ]);
 
   const accounts = await Promise.all(rows.map(row => withPockets(db, row)));
@@ -116,5 +118,6 @@ export async function getAccountsOverview(db: Db): Promise<AccountsOverview> {
     accountCount: accounts.length,
     groups,
     accounts: orderedAccounts,
+    ...(archived.count > 0 ? { archived } : {}),
   };
 }

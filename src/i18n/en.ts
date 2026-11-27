@@ -4189,7 +4189,7 @@ export const catArchivedRowSub = (count: number, lastUsed: string) => `${count} 
 export const catArchivedRowSubNone = (count: number) => `${count} transactions`;
 export const catArchivedRestore = () => `Restore`;
 export const catArchivedRestoreLabel = (name: string) => `Restore ${name}`;
-export const catArchivedFootnote = () => `Categories are never deleted, only archived, so your history does not change.`;
+export const catArchivedFootnote = () => `Deleting cannot be undone. What was recorded under the category moves to another one first.`;
 export const catIconName = (key: string): string => {
   switch (key) {
     case 'food':
@@ -4962,3 +4962,38 @@ export function summaryPartialNote(): string {
 export function summaryEmpty(): string {
   return 'No records in this period.';
 }
+
+export const removeConfirmLabel = () => `Delete`;
+export const removeRowLabel = (name: string) => `Delete ${name}`;
+export const removeTitle = (name: string) => `Delete ${name}?`;
+export const removeMoveTitle = () => `Move its records to`;
+export const removeMoveSubtitle = (name: string) => `Choose where the records of ${name} go`;
+export const removeFailed = () => `Couldn't delete. Nothing was changed.`;
+export const catRemoveBody = (records: number, fixed: number, budgets: number, to: string | null) =>
+  [
+    to ? `Moving to ${to}: ${records} transactions and ${fixed} fixed expenses.` : '',
+    budgets > 0 ? `Its budgets (${budgets}) are removed.` : '',
+    `Its sub-categories are removed too. This can't be undone.`,
+  ].filter(Boolean).join(' ');
+export const catRemoveNoReplacement = () => `Add or restore another category of this kind first.`;
+export const accArchiveButton = () => `Archive account`;
+export const accArchiveTitle = (name: string) => `Archive ${name}?`;
+export const accArchiveBody = () => `It leaves the lists and pickers. Its history stays and its balance still counts in your net worth. You can restore it from the Accounts tab.`;
+export const accArchiveConfirm = () => `Archive`;
+export const accArchiveBlockedTitle = () => `Cannot archive yet`;
+export const accArchiveBlockedFixed = () => `A fixed expense still uses this account. Change its account or stop it first.`;
+export const accArchiveBlockedGoal = () => `A goal follows this account. Change or delete the goal first.`;
+export const accArchivedRow = (count: number) => `Archived accounts (${count})`;
+export const accArchivedStill = (amount: string) => `${amount} still counts in your net worth`;
+export const accArchivedTitle = () => `Archived accounts`;
+export const accArchivedIntro = () => `These accounts are hidden from lists and pickers. Their balances still count in your net worth until you delete them.`;
+export const accRestore = () => `Restore`;
+export const accRestoreLabel = (name: string) => `Restore ${name}`;
+export const accRemoveEmptyBody = (amount: string) => `It has no records. Its opening balance of ${amount} leaves your net worth. This can't be undone.`;
+export const accRemoveMoveBody = (records: number, transfers: number, to: string) =>
+  [
+    `Its records (${records}) and its balance move to ${to}, so your net worth does not change.`,
+    transfers > 0 ? `Transfers between the two accounts (${transfers}) are removed.` : '',
+    `This can't be undone.`,
+  ].filter(Boolean).join(' ');
+export const accRemoveNoReplacement = () => `Add or restore another rupiah account first.`;

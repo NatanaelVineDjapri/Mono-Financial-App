@@ -15,6 +15,15 @@ import CategoriesScreen from '../categories';
 import CategoryEditScreen from '../category/edit';
 
 jest.mock('@/features/categories/useCategories');
+// Deleting has its own database tests (domain/__tests__/removal): here only what the screen asks and shows.
+jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({}) }));
+jest.mock('@tanstack/react-query', () => ({ ...jest.requireActual('@tanstack/react-query'), useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
+const mockRemoval = jest.fn();
+const mockDelete = jest.fn();
+jest.mock('@/features/categories/removal', () => ({
+  getCategoryRemoval: (...args: unknown[]) => mockRemoval(...args),
+  deleteArchivedCategory: (...args: unknown[]) => mockDelete(...args),
+}));
 // The sub-categories section has its own tests (features/categories/__tests__/SubcategoriesSection): here it is an empty list.
 jest.mock('@/features/categories/useSubcategories', () => ({
   useSubcategories: () => ({ data: [] }),
@@ -315,7 +324,7 @@ const ARCHIVED: ArchivedCategoryRow[] = [
 ];
 
 describe('the archived list', () => {
-  test('groups by type with counts, the last use, a restore button per row and the never-deleted note', async () => {
+  test('groups by type with counts, the last use, a restore and a delete button per row and the note about deleting', async () => {
     mockArchived.mockReturnValue(query(ARCHIVED));
     const result = await render(wrap(<ArchivedCategoriesScreen />));
     expect(result.getByText('Diarsipkan')).toBeTruthy();
@@ -324,7 +333,8 @@ describe('the archived list', () => {
     expect(result.getByText('8 transaksi · 3 Aug 2026')).toBeTruthy();
     expect(result.getByText('0 transaksi')).toBeTruthy();
     expect(result.getByLabelText('Pulihkan Education')).toBeTruthy();
-    expect(result.getByText('Kategori tidak pernah dihapus, hanya diarsipkan, supaya riwayatmu tidak berubah.')).toBeTruthy();
+    expect(result.getByLabelText('Hapus Education')).toBeTruthy();
+    expect(result.getByText('Penghapusan tidak bisa dibatalkan. Catatan di kategori itu dipindah dulu ke kategori lain.')).toBeTruthy();
   });
 
   test('Pulihkan restores at once (no dialog) and shows no confirmation text', async () => {
@@ -334,6 +344,35 @@ describe('the archived list', () => {
     await act(async () => {});
     expect(actions.restore).toHaveBeenCalledWith(3);
     expect(useToastStore.getState().visible).toBe(false);
+  });
+
+  test('deleting an unused category only asks to confirm', async () => {
+    mockArchived.mockReturnValue(query(ARCHIVED));
+    mockRemoval.mockResolvedValue({ links: { records: 0, fixedExpenses: 0, budgets: 0 }, needsReplacement: false, replacements: [] });
+    mockDelete.mockResolvedValue({ ok: true });
+    const result = await render(wrap(<ArchivedCategoriesScreen />));
+    await fireEvent.press(result.getByTestId('archived-delete-4'));
+    await act(async () => {});
+    expect(result.getByText('Hapus Gifts?')).toBeTruthy();
+    expect(mockDelete).not.toHaveBeenCalled();
+    await fireEvent.press(result.getByText('Hapus'));
+    await act(async () => {});
+    expect(mockDelete).toHaveBeenCalledWith({}, 4, null, expect.any(String));
+  });
+
+  test('deleting a used category first asks where its records go', async () => {
+    mockArchived.mockReturnValue(query(ARCHIVED));
+    mockRemoval.mockResolvedValue({ links: { records: 8, fixedExpenses: 0, budgets: 1 }, needsReplacement: true, replacements: [{ id: 1, name: 'Food & drink' }] });
+    mockDelete.mockResolvedValue({ ok: true });
+    const result = await render(wrap(<ArchivedCategoriesScreen />));
+    await fireEvent.press(result.getByTestId('archived-delete-3'));
+    await act(async () => {});
+    expect(result.queryByText('Hapus Education?')).toBeNull();
+    await fireEvent.press(result.getByTestId('removal-to-1'));
+    expect(result.getByText('Dipindah ke Food & drink: 8 transaksi dan 0 pengeluaran tetap. Anggarannya (1) dihapus. Sub-kategorinya ikut dihapus. Tidak bisa dibatalkan.')).toBeTruthy();
+    await fireEvent.press(result.getByText('Hapus'));
+    await act(async () => {});
+    expect(mockDelete).toHaveBeenCalledWith({}, 3, 1, expect.any(String));
   });
 
   test('an empty list goes back to the main list by itself', async () => {

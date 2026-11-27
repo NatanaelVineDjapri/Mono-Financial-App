@@ -40,12 +40,76 @@ export async function updateAccount(db: Db, id: number, patch: RenameAccountInpu
   }
 }
 
-export async function archiveAccount(db: Db, id: number): Promise<void> {
+// Why an account cannot be archived or deleted. A fixed expense that still runs and a goal both read the account, so the
+// person changes those first. The Valas account is left alone: its records are exchanges that cannot move elsewhere.
+export type AccountRemovalError = 'not_found' | 'valas' | 'in_fixed_expense' | 'in_goal' | 'not_archived' | 'needs_replacement' | 'bad_replacement' | 'failed';
+export type AccountRemovalResult = { ok: true } | { ok: false; error: AccountRemovalError };
+
+const refuse = (error: AccountRemovalError): AccountRemovalResult => ({ ok: false, error });
+
+export async function archiveAccount(db: Db, id: number): Promise<AccountRemovalResult> {
+  const links = await repo.getAccountLinks(db, id);
+  if (!links) return refuse('not_found');
+  if (links.type === 'forex') return refuse('valas');
+  if (links.activeFixedExpenses > 0) return refuse('in_fixed_expense');
+  if (links.goals > 0) return refuse('in_goal');
   try {
     await repo.updateAccount(db, id, { archived: true });
   } catch (err) {
     throwDomainError(err);
   }
+  return { ok: true };
+}
+
+export async function restoreAccount(db: Db, id: number): Promise<void> {
+  try {
+    await repo.updateAccount(db, id, { archived: false });
+  } catch (err) {
+    throwDomainError(err);
+  }
+}
+
+export interface AccountRemoval {
+  links: repo.AccountLinks;
+  needsReplacement: boolean; // something recorded must move before the account can go
+  replacements: { id: number; name: string }[]; // rupiah accounts in use
+}
+
+export async function getAccountRemoval(db: Db, id: number): Promise<AccountRemoval | null> {
+  const links = await repo.getAccountLinks(db, id);
+  if (!links) return null;
+  const others = await repo.listAccounts(db);
+  return {
+    links,
+    needsReplacement: links.records > 0 || links.fixedExpenses > 0 || links.goals > 0,
+    replacements: others.filter(a => a.id !== id && a.type !== 'forex').map(a => ({ id: a.id, name: a.name })),
+  };
+}
+
+// Deletes an archived account for good. With a replacement its records and balance move there first; without one it must
+// have nothing recorded, and its opening balance leaves net worth. All or nothing.
+export async function deleteArchivedAccount(db: Db, id: number, replacementId: number | null, now: string): Promise<AccountRemovalResult> {
+  const removal = await getAccountRemoval(db, id);
+  if (!removal) return refuse('not_found');
+  if (removal.links.type === 'forex') return refuse('valas');
+  if (removal.links.archived !== 1) return refuse('not_archived');
+  if (replacementId == null && removal.needsReplacement) return refuse('needs_replacement');
+  if (replacementId != null && !removal.replacements.some(a => a.id === replacementId)) return refuse('bad_replacement');
+  try {
+    await db.withExclusiveTransactionAsync(async txn => {
+      const before = (await txn.getAllAsync('select * from v_integrity_issues')).length;
+      await txn.runAsync("update meta set value = '1' where key = 'guards_off'");
+      if (replacementId != null) await repo.moveAccount(txn, id, replacementId, now);
+      await repo.deleteAccountRow(txn, id);
+      await txn.runAsync("update meta set value = '0' where key = 'guards_off'");
+      const broken = await txn.getAllAsync('PRAGMA foreign_key_check');
+      const after = (await txn.getAllAsync('select * from v_integrity_issues')).length;
+      if (broken.length > 0 || after > before) throw new Error('ACCOUNT_DELETE_INTEGRITY_CHECK_FAILED');
+    });
+  } catch {
+    return refuse('failed');
+  }
+  return { ok: true };
 }
 
 export interface CreateValasAccountInput {

@@ -140,3 +140,43 @@ export async function findActiveRecurringUsing(db: Db, categoryId: number): Prom
   const row = await db.getFirstAsync<{ name: string }>('select name from recurring where category_id = $id and archived = 0 order by id limit 1', { $id: categoryId });
   return row?.name ?? null;
 }
+
+// ---- deleting an archived category (the rules are features/categories/removal.ts)
+
+export interface CategoryLinks {
+  kind: CategoryKind;
+  archived: number;
+  records: number;
+  fixedExpenses: number;
+  budgets: number;
+}
+
+export async function getCategoryLinks(db: Db, id: number): Promise<CategoryLinks | null> {
+  return db.getFirstAsync<CategoryLinks>(
+    `select kind, archived,
+            (select count(*) from transactions where category_id = $id) as records,
+            (select count(*) from recurring where category_id = $id) as fixedExpenses,
+            (select count(*) from budgets where category_id = $id) as budgets
+       from categories where id = $id`,
+    { $id: id },
+  );
+}
+
+// Its records, fixed expenses and import memory move to `to`; the sub-category labels belong to the old one and are dropped.
+export async function moveCategory(db: Db, from: number, to: number, now: string): Promise<void> {
+  const both = { $from: from, $to: to };
+  await db.runAsync('update transactions set category_id = $to, subcategory_id = null, updated_at = $now where category_id = $from', { ...both, $now: now });
+  await db.runAsync('update recurring set category_id = $to where category_id = $from', both);
+  await db.runAsync('update import_queue set category_id = $to where category_id = $from', both);
+  await db.runAsync('update import_merchant_memory set category_id = $to where category_id = $from', both);
+}
+
+// The category row, with what only made sense for it: its budgets, labels and import memory.
+export async function deleteCategoryRow(db: Db, id: number): Promise<void> {
+  const at = { $id: id };
+  await db.runAsync('delete from budgets where category_id = $id', at);
+  await db.runAsync('update import_queue set category_id = null where category_id = $id', at);
+  await db.runAsync('delete from import_merchant_memory where category_id = $id', at);
+  await db.runAsync('delete from subcategories where category_id = $id', at);
+  await db.runAsync('delete from categories where id = $id', at);
+}

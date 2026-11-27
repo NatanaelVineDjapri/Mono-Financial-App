@@ -1,18 +1,24 @@
-// Archived categories (board Categories-Archived): restore with one tap. A category is never deleted
-// (CLAUDE.md rule 21), so this is where it comes back from. When the last one is restored the screen
-// returns to the list by itself.
+// Archived categories (board Categories-Archived): restore with one tap, or delete for good (CLAUDE.md rule 21: only
+// from here; what was recorded under it moves to another category first). When none is left the screen returns to the
+// list by itself.
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { HeaderRow } from '@/components/HeaderRow';
 import { Icon } from '@/components/Icon';
+import { RemovalFlow, type RemovalTarget } from '@/components/RemovalFlow';
+import { nowIso } from '@/core/clock';
+import { useDb } from '@/data/db/DbProvider';
+import { invalidateAfterWrite } from '@/data/queryKeys';
 
 import { formatShortDate } from '@/core/date';
 import type { ArchivedCategoryRow } from '@/data/repo/categories';
 import { CategoryIcon } from '@/features/categories/CategoryIcon';
+import { deleteArchivedCategory, getCategoryRemoval } from '@/features/categories/removal';
 import { useArchivedCategories, useCategoryActions } from '@/features/categories/useCategories';
 import {
   backLabel,
@@ -26,13 +32,16 @@ import {
   catListExpenseHeader,
   catListIncomeHeader,
   catListLoadError,
+  catRemoveBody,
+  catRemoveNoReplacement,
+  removeRowLabel,
   moreCategoriesTitle,
   retryLabel,
 } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
-function ArchivedRow({ row, last, onRestore }: { row: ArchivedCategoryRow; last: boolean; onRestore: () => void }) {
+function ArchivedRow({ row, last, onRestore, onDelete }: { row: ArchivedCategoryRow; last: boolean; onRestore: () => void; onDelete: () => void }) {
   const sub = row.last_used_on ? catArchivedRowSub(row.transaction_count, formatShortDate(row.last_used_on)) : catArchivedRowSubNone(row.transaction_count);
   return (
     <View style={[styles.row, !last && styles.rowDivider]} testID={`archived-row-${row.id}`}>
@@ -57,11 +66,22 @@ function ArchivedRow({ row, last, onRestore }: { row: ArchivedCategoryRow; last:
         <Icon name="undo" size={16} color={MonoColors.text} />
         <Text style={styles.restoreText}>{catArchivedRestore()}</Text>
       </Pressable>
+      <Pressable
+        onPress={onDelete}
+        accessibilityRole="button"
+        accessibilityLabel={removeRowLabel(row.name)}
+        hitSlop={4}
+        android_ripple={undefined}
+        style={({ pressed }) => [styles.remove, pressed && styles.pressed]}
+        testID={`archived-delete-${row.id}`}
+      >
+        <Icon name="trash" size={16} color={MonoColors.negative} />
+      </Pressable>
     </View>
   );
 }
 
-function Group({ title, rows, onRestore, testID }: { title: string; rows: ArchivedCategoryRow[]; onRestore: (id: number) => void; testID: string }) {
+function Group({ title, rows, onRestore, onDelete, testID }: { title: string; rows: ArchivedCategoryRow[]; onRestore: (id: number) => void; onDelete: (row: ArchivedCategoryRow) => void; testID: string }) {
   if (rows.length === 0) return null;
   return (
     <View style={styles.section} testID={testID}>
@@ -70,7 +90,7 @@ function Group({ title, rows, onRestore, testID }: { title: string; rows: Archiv
       </Text>
       <View style={styles.card}>
         {rows.map((row, i) => (
-          <ArchivedRow key={row.id} row={row} last={i === rows.length - 1} onRestore={() => onRestore(row.id)} />
+          <ArchivedRow key={row.id} row={row} last={i === rows.length - 1} onRestore={() => onRestore(row.id)} onDelete={() => onDelete(row)} />
         ))}
       </View>
     </View>
@@ -90,6 +110,24 @@ export default function ArchivedCategoriesScreen() {
 
   const restore = async (id: number) => {
     await actions.restore(id);
+  };
+
+  const db = useDb();
+  const queryClient = useQueryClient();
+  const [pending, setPending] = useState<(RemovalTarget & { id: number; records: number; fixedExpenses: number; budgets: number }) | null>(null);
+
+  const startDelete = async (row: ArchivedCategoryRow) => {
+    const removal = await getCategoryRemoval(db, row.id);
+    if (!removal) return;
+    const { records, fixedExpenses, budgets } = removal.links;
+    setPending({ id: row.id, name: row.name, needsReplacement: removal.needsReplacement, replacements: removal.replacements, records, fixedExpenses, budgets });
+  };
+
+  const onDelete = async (replacementId: number | null) => {
+    if (!pending) return false;
+    const result = await deleteArchivedCategory(db, pending.id, replacementId, nowIso());
+    if (result.ok) await invalidateAfterWrite(queryClient);
+    return result.ok;
   };
 
   const expense = (data ?? []).filter(r => r.kind === 'expense');
@@ -123,14 +161,22 @@ export default function ArchivedCategoriesScreen() {
           </View>
         )}
 
-        <Group title={catListExpenseHeader(expense.length)} rows={expense} onRestore={id => void restore(id)} testID="archived-expense" />
-        <Group title={catListIncomeHeader(income.length)} rows={income} onRestore={id => void restore(id)} testID="archived-income" />
+        <Group title={catListExpenseHeader(expense.length)} rows={expense} onRestore={id => void restore(id)} onDelete={row => void startDelete(row)} testID="archived-expense" />
+        <Group title={catListIncomeHeader(income.length)} rows={income} onRestore={id => void restore(id)} onDelete={row => void startDelete(row)} testID="archived-income" />
 
         <View style={styles.footnote}>
           <Icon name="lock" size={16} color={MonoColors.textMeta} />
           <Text style={styles.footnoteText}>{catArchivedFootnote()}</Text>
         </View>
       </ScrollView>
+
+      <RemovalFlow
+        target={pending}
+        message={to => catRemoveBody(pending?.records ?? 0, pending?.fixedExpenses ?? 0, pending?.budgets ?? 0, to?.name ?? null)}
+        noReplacement={catRemoveNoReplacement()}
+        onDelete={onDelete}
+        onClose={() => setPending(null)}
+      />
     </View>
   );
 }
@@ -154,6 +200,7 @@ const styles = StyleSheet.create({
   name: { ...MonoText.bodyStrong, fontSize: 14, color: MonoColors.textSecond },
   sub: { ...MonoText.caption, color: MonoColors.textMeta },
   restore: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: MonoColors.border, backgroundColor: MonoColors.card },
+  remove: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: MonoColors.border, alignItems: 'center', justifyContent: 'center' },
   restoreText: { ...MonoText.bodyS, color: MonoColors.text },
   footnote: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingHorizontal: 4 },
   footnoteText: { ...MonoText.caption, color: MonoColors.textMeta, flex: 1, lineHeight: 17 },
