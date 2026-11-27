@@ -239,7 +239,7 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
       <Text style={styles.helpText}>{importOnlyEnabledNote()}</Text>
 
       {!!props.onCheck && (
-        <>
+        <View style={styles.check}>
           <Button label={importCheckButton()} variant="secondary" onPress={props.onCheck} testID="import-check" />
           {!!props.check && (
             <View style={[styles.card, styles.cardPad]} testID="import-check-result">
@@ -252,7 +252,7 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
               <Text style={styles.caption}>{importCheckHint()}</Text>
             </View>
           )}
-        </>
+        </View>
       )}
 
       {(problems.length > 0 || (access.available && access.accessEnabled && !access.ignoringBattery)) && <GroupHeader label={importProblemsHeader()} />}
@@ -390,6 +390,7 @@ function LinkButton({ label, onPress, testID }: { label: string; onPress: () => 
 }
 
 const styles = StyleSheet.create({
+  check: { marginTop: 16, gap: 12 },
   screen: { flex: 1, backgroundColor: MonoColors.bg },
   header: { paddingHorizontal: 8, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 4 },
   title: { ...MonoText.titleM, color: MonoColors.text, flex: 1 },

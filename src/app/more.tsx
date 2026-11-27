@@ -21,8 +21,6 @@ import {
   analysisMoreTitle,
   devToolsHint,
   devToolsLabel,
-  importPendingLink,
-  importReviewTitle,
   moreBackLabel,
   moreBackText,
   moreBackupRestoreSub,
@@ -56,7 +54,7 @@ const LOGO_ASPECT = 499 / 431; // assets/brand/mono-lockup.png
 export default function MoreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { backup, dueCount, importPending } = useMoreData();
+  const { backup, dueCount } = useMoreData();
   const { create: createBackupNow, busy: backupNowBusy } = useCreateBackup();
   const { language, change: changeLanguage } = useLanguageSetting();
   const version = Constants.expoConfig?.version ?? null;
@@ -85,12 +83,6 @@ export default function MoreScreen() {
         </Text>
 
         <BackupStatusCard state={backup} onOpen={go('/backup')} onDownload={createBackupNow} downloadBusy={backupNowBusy} />
-
-        {importPending > 0 && (
-          <Card style={styles.groupCard}>
-            <MoreRow icon="receipt" title={importReviewTitle()} sub={importPendingLink(importPending)} onPress={go('/import/review')} last testID="more-import-review" />
-          </Card>
-        )}
 
         <Text style={styles.group} accessibilityRole="header">
           {moreGroupMoney()}

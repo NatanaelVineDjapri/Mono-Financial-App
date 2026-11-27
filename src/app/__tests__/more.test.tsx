@@ -40,7 +40,7 @@ jest.mock('expo-constants', () => ({
 }));
 
 const METRICS = { insets: { top: 0, left: 0, right: 0, bottom: 34 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
-const RECENT: MoreData = { backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0, importPending: 0 };
+const RECENT: MoreData = { backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0 };
 
 function renderMore(data: MoreData = RECENT) {
   mockUseMoreData.mockReturnValue(data);
@@ -105,17 +105,13 @@ describe('structure', () => {
     expect(flat(screen.getByTestId('more-settings').props.style).borderBottomWidth).toBeUndefined();
   });
 
-  test('the review row shows only when detected transactions are waiting, and opens the queue', async () => {
-    const none = await renderMore();
-    expect(none.queryByTestId('more-import-review')).toBeNull();
-    const waiting = await renderMore({ ...RECENT, importPending: 3 });
-    expect(waiting.getByText('3 transaksi menunggu tinjauan')).toBeTruthy();
-    await fireEvent.press(waiting.getByTestId('more-import-review'));
-    expect(mockPush).toHaveBeenCalledWith('/import/review');
+  test('transactions waiting for review are not on this screen: they are on the notification page', async () => {
+    const screen = await renderMore();
+    expect(screen.queryByTestId('more-import-review')).toBeNull();
   });
 
   test('no amount of money is shown, so hidden-amounts mode has nothing to hide', async () => {
-    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 4 }, dueCount: 2, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 4 }, dueCount: 2 });
     expect(screen.queryByText(/Rp/)).toBeNull();
   });
 
@@ -199,7 +195,7 @@ describe('language', () => {
 
   test('in English the whole screen reads English: title, groups, rows, card and footer', async () => {
     useLanguage.setState({ language: 'en' });
-    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 2 }, dueCount: 1, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 2 }, dueCount: 1 });
     for (const text of [
       'More',
       'Stored only on this device',
@@ -244,7 +240,7 @@ describe('the backup status strip (three states, worked out from the backup log)
   const frame = (screen: Awaited<ReturnType<typeof renderMore>>) => flat(screen.getByTestId('backup-card').props.style);
 
   test('never backed up: the title, "Belum ada cadangan" with a warning icon and a 1.5 px emphasis frame', async () => {
-    const screen = await renderMore({ backup: { kind: 'none' }, dueCount: 0, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
     expect(screen.getByText('Tersimpan hanya di ponsel ini')).toBeTruthy();
     expect(screen.getByText('Belum ada cadangan')).toBeTruthy();
     expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
@@ -252,7 +248,7 @@ describe('the backup status strip (three states, worked out from the backup log)
   });
 
   test('a recent backup: how long ago, how many transactions changed since, no warning and the resting frame', async () => {
-    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0 });
     expect(screen.getByText('Cadangan terakhir 3 hari lalu')).toBeTruthy();
     expect(screen.getByText('5 transaksi berubah sejak itu')).toBeTruthy();
     expect(screen.queryByTestId('backup-warning-icon', HIDDEN)).toBeNull();
@@ -260,13 +256,13 @@ describe('the backup status strip (three states, worked out from the backup log)
   });
 
   test('nothing changed since: the second line is gone', async () => {
-    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'recent', days: 3, changed: 0 }, dueCount: 0 });
     expect(screen.queryByTestId('backup-changed')).toBeNull();
     expect(screen.queryByText(/berubah sejak itu/)).toBeNull();
   });
 
   test('a stale backup (7 days or more): how long ago, with a warning icon and the emphasis frame', async () => {
-    const screen = await renderMore({ backup: { kind: 'stale', days: 9, changed: 0 }, dueCount: 0, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: 'stale', days: 9, changed: 0 }, dueCount: 0 });
     expect(screen.getByText('Cadangan terakhir 9 hari lalu')).toBeTruthy();
     expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
     expect(frame(screen)).toMatchObject({ borderWidth: 1.5, borderColor: '#737373' });
@@ -279,13 +275,13 @@ describe('the backup status strip (three states, worked out from the backup log)
     [14, 'Cadangan terakhir 2 minggu lalu'],
     [70, 'Cadangan terakhir 2 bulan lalu'],
   ])('%s days: "%s"', async (days, text) => {
-    const screen = await renderMore({ backup: { kind: days >= 7 ? 'stale' : 'recent', days, changed: 0 }, dueCount: 0, importPending: 0 });
+    const screen = await renderMore({ backup: { kind: days >= 7 ? 'stale' : 'recent', days, changed: 0 }, dueCount: 0 });
     expect(screen.getByText(text)).toBeTruthy();
   });
 
   test('a warning is an icon and words, never a colour alone, and it is not red (this is not a loss)', async () => {
     for (const backup of [{ kind: 'none' }, { kind: 'stale', days: 9, changed: 0 }] as const) {
-      const screen = await renderMore({ backup, dueCount: 0, importPending: 0 });
+      const screen = await renderMore({ backup, dueCount: 0 });
       expect(screen.getByTestId('backup-warning-icon', HIDDEN)).toBeTruthy();
       expect(screen.getByTestId('backup-line').props.children).toBeTruthy();
       expect(frame(screen).borderColor).not.toBe('#FF6B6B');
@@ -293,9 +289,9 @@ describe('the backup status strip (three states, worked out from the backup log)
   });
 
   test('a screen reader hears the whole strip as one button', async () => {
-    const none = await renderMore({ backup: { kind: 'none' }, dueCount: 0, importPending: 0 });
+    const none = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
     expect(none.getByTestId('backup-open').props.accessibilityLabel).toBe('Tersimpan hanya di ponsel ini. Belum ada cadangan. Ketuk untuk membuka cadangan.');
-    const recent = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0, importPending: 0 });
+    const recent = await renderMore({ backup: { kind: 'recent', days: 3, changed: 5 }, dueCount: 0 });
     expect(recent.getByTestId('backup-open').props.accessibilityLabel).toBe(
       'Tersimpan hanya di ponsel ini. Cadangan terakhir 3 hari lalu. 5 transaksi berubah sejak itu. Ketuk untuk membuka cadangan.',
     );
@@ -345,18 +341,18 @@ describe('the backup status strip (three states, worked out from the backup log)
 
 describe('fixed expenses due', () => {
   test('"n jatuh tempo" appears only when something is due', async () => {
-    const none = await renderMore({ ...RECENT, dueCount: 0, importPending: 0 });
+    const none = await renderMore({ ...RECENT, dueCount: 0 });
     expect(none.getByText('Gym, internet, langganan')).toBeTruthy();
     expect(none.queryByText(/jatuh tempo/)).toBeNull();
 
-    const due = await renderMore({ ...RECENT, dueCount: 1, importPending: 0 });
+    const due = await renderMore({ ...RECENT, dueCount: 1 });
     expect(due.getByText('Gym, internet, langganan · 1 jatuh tempo')).toBeTruthy();
-    const many = await renderMore({ ...RECENT, dueCount: 3, importPending: 0 });
+    const many = await renderMore({ ...RECENT, dueCount: 3 });
     expect(many.getByText('Gym, internet, langganan · 3 jatuh tempo')).toBeTruthy();
   });
 
   test('a screen reader hears it too', async () => {
-    const screen = await renderMore({ ...RECENT, dueCount: 2, importPending: 0 });
+    const screen = await renderMore({ ...RECENT, dueCount: 2 });
     expect(screen.getByTestId('more-recurring').props.accessibilityLabel).toBe('Pengeluaran tetap, Gym, internet, langganan · 2 jatuh tempo');
   });
 });
@@ -386,7 +382,7 @@ describe('every row goes to its own screen', () => {
 
 describe('the screen reads fresh data each time it is shown', () => {
   test('it renders what useMoreData gives now: a new backup shows when it returns', async () => {
-    const before = await renderMore({ backup: { kind: 'none' }, dueCount: 0, importPending: 0 });
+    const before = await renderMore({ backup: { kind: 'none' }, dueCount: 0 });
     expect(before.getByText('Belum ada cadangan')).toBeTruthy();
     const after = await renderMore();
     expect(after.getByText('Cadangan terakhir 3 hari lalu')).toBeTruthy();
