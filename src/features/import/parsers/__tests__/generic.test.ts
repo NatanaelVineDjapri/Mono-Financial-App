@@ -144,6 +144,20 @@ describe('myBCA Catatan Finansial', () => {
     });
   });
 
+  test('money out names no merchant: only the amount and the direction are in the message', () => {
+    for (const category of ['Pembayaran', 'Transfer Rekening', 'Uang Tunai', 'Tagihan Rutin']) {
+      expect(parseGeneric('Catatan Finansial', `Pengeluaran sebesar IDR 52,760.00 di kategori ${category}.`)).toEqual({ kind: 'expense', amountIdr: 52760, merchant: '' });
+    }
+  });
+
+  test('a cancelled payment is never taken as spent: the person decides', () => {
+    expect(parseGeneric('Catatan Finansial', 'Pengeluaran sebesar IDR 10,000.00 di kategori Pendidikan yang dilakukan tanggal 21 November 2026 dibatalkan.')).toEqual({
+      kind: null,
+      amountIdr: 10000,
+      merchant: 'Dibatalkan',
+    });
+  });
+
   test('larger amounts with thousands and cents', () => {
     expect(parseGeneric('Catatan Finansial', 'Pemasukan sebesar IDR 1,250,000.00 dari ***DI SANT**O *A di kategori Transfer Rekening.')?.amountIdr).toBe(1250000);
   });

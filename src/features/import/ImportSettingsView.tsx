@@ -32,6 +32,9 @@ import {
   importAppToAccount,
   importAppUnmapped,
   importAutoTitle,
+  importCheckButton,
+  importCheckHint,
+  importCheckTitle,
   importBatteryNote,
   importDetectedEmpty,
   importDetectedGroup,
@@ -88,6 +91,9 @@ export interface ImportScreenViewProps {
   onOpenPending: () => void;
   onRestartService: () => void;
   onOpenBattery: () => void;
+  // "Check reading": the lines of the last check (null before the first), and the button that runs it.
+  check?: string[] | null;
+  onCheck?: () => void;
 }
 
 // The three letters on an app's tile: "BCA mobile" -> BCA, "GoPay" -> GOP.
@@ -231,6 +237,23 @@ function SettingsBody(props: ImportScreenViewProps & { hasEnabled: boolean }) {
         </>
       )}
       <Text style={styles.helpText}>{importOnlyEnabledNote()}</Text>
+
+      {!!props.onCheck && (
+        <>
+          <Button label={importCheckButton()} variant="secondary" onPress={props.onCheck} testID="import-check" />
+          {!!props.check && (
+            <View style={[styles.card, styles.cardPad]} testID="import-check-result">
+              <Text style={styles.cardTitle}>{importCheckTitle()}</Text>
+              {props.check.map((line, i) => (
+                <Text key={i} style={styles.noteText} selectable>
+                  {line}
+                </Text>
+              ))}
+              <Text style={styles.caption}>{importCheckHint()}</Text>
+            </View>
+          )}
+        </>
+      )}
 
       {(problems.length > 0 || (access.available && access.accessEnabled && !access.ignoringBattery)) && <GroupHeader label={importProblemsHeader()} />}
       <View style={styles.problems}>

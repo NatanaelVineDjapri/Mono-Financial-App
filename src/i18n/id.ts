@@ -4994,3 +4994,17 @@ export const accRemoveMoveBody = (records: number, transfers: number, to: string
     `Tidak bisa dibatalkan.`,
   ].filter(Boolean).join(' ');
 export const accRemoveNoReplacement = () => `Tambah atau pulihkan akun rupiah lain dulu.`;
+
+export const importCheckButton = () => `Cek pembacaan`;
+export const importCheckTitle = () => `Yang dilihat MONO sekarang`;
+export const importCheckHint = () => `Isi pesan tidak ditampilkan dan tidak disimpan. Kalau ada yang janggal, kirim screenshot kotak ini.`;
+export const importCheckAccess = (on: boolean) => `Akses notifikasi: ${on ? 'aktif' : 'MATI'}`;
+export const importCheckService = (on: boolean) => `Layanan pembaca: ${on ? 'tersambung' : 'TIDAK tersambung'}`;
+export const importCheckApps = (names: string) => `Aktif: ${names || 'belum ada. Nyalakan app bank di atas.'}`;
+export const importCheckShadeNone = () => `Tidak ada notifikasi dari BCA atau app yang aktif di bar notifikasi. Lakukan transaksi, biarkan notifikasinya, lalu cek lagi.`;
+export const importCheckShadeEntry = (pkg: string, status: string) => `Di bar, ${pkg}: ${status}`;
+export const importCheckRead = () => `bisa dibaca`;
+export const importCheckSkipNotOn = () => `diabaikan, app ini belum dinyalakan`;
+export const importCheckSkipGroup = () => `diabaikan, ringkasan grup`;
+export const importCheckSkipOngoing = () => `diabaikan, notifikasi berjalan`;
+export const importCheckSkipNoText = () => `tidak ada teks yang bisa dibaca MONO`;

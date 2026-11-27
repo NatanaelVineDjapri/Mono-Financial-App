@@ -15,7 +15,7 @@ import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 
 import { createIngestor, prune } from './ingest';
-import { addNotificationListener, drainQueue, getActiveAllowed, isAccessEnabled, isConnected, requestRebind } from './notifications/native';
+import { addNotificationListener, drainQueue, getActiveAllowed, isAccessEnabled, isConnected, requestRebind, restartService } from './notifications/native';
 import { syncImportApps } from './notifications/sync';
 
 export function ImportSync() {
@@ -38,13 +38,18 @@ export function ImportSync() {
         const { recorded } = await syncImportApps(db);
         if (!cancelled && recorded > 0) await invalidateAfterWrite(queryClient);
         // What arrived while the app was closed.
-        for (const raw of drainQueue()) void ingestor.push(raw);
+        for (const raw of drainQueue()) void ingestor.push(raw, { seenAgain: raw.again === true });
         // The service can be unbound (an update was installed, or Android stopped it): ask for it
         // again and read the shade once it is back.
         if (isAccessEnabled() && !isConnected()) {
           requestRebind();
           clearTimeout(retry);
-          retry = setTimeout(sweep, 1500);
+          retry = setTimeout(() => {
+            if (isConnected()) return sweep();
+            // Asking was not enough (usual after an update): restart the service itself.
+            restartService();
+            retry = setTimeout(sweep, 1500);
+          }, 1500);
         } else {
           sweep();
         }
@@ -58,7 +63,7 @@ export function ImportSync() {
       void prune(db);
       void run();
     }, 800);
-    const live = addNotificationListener(raw => void ingestor.push(raw));
+    const live = addNotificationListener(raw => void ingestor.push(raw, { seenAgain: raw.again === true }));
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') void run();
     });

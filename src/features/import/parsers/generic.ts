@@ -30,6 +30,8 @@ const INCOME = [
   'pemasukan sebesar', 'menerima', 'diterima', 'dana masuk', 'uang masuk', 'transfer masuk', 'transfer dari', 'kredit', 'gaji', 'received',
   'refund', 'pengembalian dana', 'deposit',
 ];
+// A payment that was called off: the money did not leave (or came back), so the person decides what to record.
+const CANCELLED = /\b(dibatalkan|pembatalan)\b/i;
 // Money moved, but whether it is income or expense depends on the account: the person chooses.
 const AMBIGUOUS = ['top up', 'topup', 'isi saldo', 'transfer berhasil', 'transaksi berhasil'];
 // "Transfer" on its own (a bank's "Transfer Dana Berhasil Rp...") says money moved but not which way. It only counts when no clearer
@@ -124,6 +126,8 @@ export function explainGeneric(title: string | null, text: string | null): Gener
   const weak = containsAny(lower, WEAK_MONEY_WORDS);
   if (!expense && !income && !ambiguous && !weak) return { parsed: null, dropped: 'no_money_word' };
   if (PROMO.test(lower) && !expense && !income) return { parsed: null, dropped: 'promo' };
+
+  if (CANCELLED.test(lower)) return { parsed: { kind: null, amountIdr, merchant: 'Dibatalkan' } };
 
   const kind: ParsedNotification['kind'] = expense && !income && !ambiguous ? 'expense' : income && !expense && !ambiguous ? 'income' : null;
   return { parsed: { kind, amountIdr, merchant: findMerchant(original, kind) } };

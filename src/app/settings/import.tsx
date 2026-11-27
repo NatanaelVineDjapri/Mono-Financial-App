@@ -7,6 +7,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { importAppError } from '@/i18n';
 import { ImportPermissionSheet } from '@/features/import/ImportPermissionSheet';
+import { diagnose, diagnosisLines } from '@/features/import/diagnosis';
 import { ImportScreenView } from '@/features/import/ImportSettingsView';
 import { shouldShowPermissionGuide, useNotificationAccess } from '@/features/import/notifications/access';
 import * as native from '@/features/import/notifications/native';
@@ -25,6 +26,7 @@ export default function ImportSettingsRoute() {
   const [guide, setGuide] = useState(false);
   const [picker, setPicker] = useState<{ app: ImportAppRow; activate: boolean } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [check, setCheck] = useState<string[] | null>(null);
 
   const accountNames = useMemo(() => new Map((formData?.accounts ?? []).map(a => [a.id, a.name] as const)), [formData]);
 
@@ -67,8 +69,13 @@ export default function ImportSettingsRoute() {
         onPickAccount={app => setPicker({ app, activate: false })}
         onOpenPending={() => router.push('/import/review' as never)}
         onRestartService={() => {
-          native.requestRebind();
+          native.restartService();
           refresh();
+        }}
+        check={check}
+        onCheck={() => {
+          refresh();
+          setCheck(diagnosisLines(diagnose(data.apps.filter(a => a.enabled === 1).map(a => a.app_name))));
         }}
         onOpenBattery={() => void native.openBatterySettings()}
       />

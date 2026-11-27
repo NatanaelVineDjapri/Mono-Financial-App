@@ -20,6 +20,9 @@ jest.mock('@/features/import/notifications/native', () => ({
   openAccessSettings: jest.fn(),
   openBatterySettings: jest.fn(),
   requestRebind: jest.fn(),
+  restartService: jest.fn(),
+  describeShade: jest.fn(() => []),
+  getActiveAllowed: jest.fn(() => []),
 }));
 jest.mock('@/features/import/notifications/access', () => ({
   ...jest.requireActual('@/features/import/notifications/access'),
@@ -196,7 +199,7 @@ describe('the permission guide', () => {
     setup([row({ enabled: 1, account_id: 1 })], { ...ACCESS_ON, connected: false, ignoringBattery: false });
     const view = await renderRoute();
     await fireEvent.press(view.getByRole('button', { name: 'Hidupkan ulang' }));
-    expect(native.requestRebind).toHaveBeenCalledTimes(1);
+    expect(native.restartService).toHaveBeenCalledTimes(1);
     await fireEvent.press(view.getByRole('button', { name: 'Buka pengaturan baterai' }));
     expect(native.openBatterySettings).toHaveBeenCalledTimes(1);
   });

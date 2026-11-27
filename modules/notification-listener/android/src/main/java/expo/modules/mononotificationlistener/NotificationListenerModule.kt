@@ -4,10 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.service.notification.NotificationListenerService
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -71,11 +69,11 @@ class NotificationListenerModule : Module() {
 
     Function("openBatterySettings") { openSettings(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
 
-    Function("requestRebind") {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-        NotificationListenerService.requestRebind(ComponentName(context, NotificationListener::class.java))
-      }
-    }
+    Function("requestRebind") { ListenerControl.requestRebind(context) }
+
+    Function("restartService") { ListenerControl.restart(context) }
+
+    Function("describeShade") { NotificationBus.service?.describeShade() ?: emptyList<Map<String, Any>>() }
 
     // ---- the allowlist and what the service remembers
     // Development only (the dev sampler): treat system apps like any other app, for the emulator.

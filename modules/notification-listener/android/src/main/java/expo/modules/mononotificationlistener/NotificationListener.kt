@@ -19,6 +19,8 @@ class NotificationListener : NotificationListenerService() {
   override fun onListenerConnected() {
     NotificationBus.connected = true
     NotificationBus.service = this
+    // What arrived while we were not bound and is still in the bar. Marked "again": it may have been handled before.
+    for (event in activeAllowed()) NotificationBus.push(event + ("again" to true))
   }
 
   override fun onListenerDisconnected() {
@@ -80,14 +82,49 @@ class NotificationListener : NotificationListenerService() {
     )
 
   private fun eventOf(sbn: StatusBarNotification, notification: Notification): Map<String, Any?> {
-    val extras = notification.extras
     return mapOf(
       "package" to sbn.packageName,
-      "title" to extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
-      "text" to extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
-      "bigText" to extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
+      "title" to titleOf(notification),
+      "text" to textOf(notification),
+      "bigText" to notification.extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
       "postedAt" to sbn.postTime.toDouble(),
     )
+  }
+
+  private fun titleOf(notification: Notification): String? =
+    notification.extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+      ?: notification.extras?.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()
+
+  // The plain text, or for a list-style notification its lines.
+  private fun textOf(notification: Notification): String? {
+    val extras = notification.extras ?: return null
+    val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+    if (!text.isNullOrBlank() || !extras.getCharSequence(Notification.EXTRA_BIG_TEXT).isNullOrBlank()) return text
+    val lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES) ?: return text
+    return lines.joinToString("\n").ifBlank { text }
+  }
+
+  /**
+   * For the "Check reading" box: which notifications of switched-on apps and of BCA's apps are in the bar, and what
+   * MONO would do with each. Facts about the notification only, never its title or text.
+   */
+  fun describeShade(): List<Map<String, Any>> = try {
+    val store = ImportStore(applicationContext)
+    val allowed = store.allowed()
+    (activeNotifications ?: emptyArray())
+      .filter { it.packageName in allowed || it.packageName.startsWith("com.bca") }
+      .mapNotNull { sbn ->
+        val notification = sbn.notification ?: return@mapNotNull null
+        mapOf<String, Any>(
+          "package" to sbn.packageName,
+          "allowed" to (sbn.packageName in allowed),
+          "ongoing" to ((notification.flags and Notification.FLAG_ONGOING_EVENT) != 0),
+          "groupSummary" to ((notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0),
+          "hasText" to (!textOf(notification).isNullOrBlank() || !notification.extras?.getCharSequence(Notification.EXTRA_BIG_TEXT).isNullOrBlank()),
+        )
+      }
+  } catch (_: Throwable) {
+    emptyList()
   }
 
   // The posting app's own ApplicationInfo travels inside the notification, which gives its name

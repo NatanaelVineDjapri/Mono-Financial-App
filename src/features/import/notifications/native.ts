@@ -12,6 +12,16 @@ export interface RawNotification {
   text: string | null;
   bigText: string | null;
   postedAt: number; // epoch milliseconds
+  again?: boolean; // read from the bar when the service was bound: it may have been handled before
+}
+
+// One notification in the bar as the "Check reading" box sees it: facts only, never its title or text.
+export interface ShadeEntry {
+  package: string;
+  allowed: boolean;
+  ongoing: boolean;
+  groupSummary: boolean;
+  hasText: boolean;
 }
 
 export interface NativeSeenApp {
@@ -32,6 +42,8 @@ interface NativeListenerModule {
   isIgnoringBatteryOptimizations(): boolean;
   openBatterySettings(): void;
   requestRebind(): void;
+  restartService(): void;
+  describeShade(): ShadeEntry[];
   setDevAllowSystemApps(allow: boolean): void;
   getDevAllowSystemApps(): boolean;
   setAllowedPackages(packages: string[]): void;
@@ -64,6 +76,9 @@ export const openAppInfo = () => safe(m => m.openAppInfo(), undefined);
 export const isIgnoringBatteryOptimizations = () => safe(m => m.isIgnoringBatteryOptimizations(), true);
 export const openBatterySettings = () => safe(m => m.openBatterySettings(), undefined);
 export const requestRebind = () => safe(m => m.requestRebind(), undefined);
+// The stronger way, for when asking is not enough (see ListenerControl.kt).
+export const restartService = () => safe(m => m.restartService(), undefined);
+export const describeShade = () => safe(m => m.describeShade(), [] as ShadeEntry[]);
 // Development only: let system apps through (an emulator has no banking apps). A production build
 // can only ever switch it OFF (the flag survives in SharedPreferences when a release build is
 // installed over a dev build, so the app turns it off at start).

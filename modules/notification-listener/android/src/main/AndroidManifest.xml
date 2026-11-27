@@ -13,5 +13,14 @@
         <action android:name="android.service.notification.NotificationListenerService" />
       </intent-filter>
     </service>
+
+    <!-- Brings the listener back after MONO is updated. -->
+    <receiver
+      android:name="expo.modules.mononotificationlistener.ListenerRevivalReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

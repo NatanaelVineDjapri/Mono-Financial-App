@@ -4997,3 +4997,17 @@ export const accRemoveMoveBody = (records: number, transfers: number, to: string
     `This can't be undone.`,
   ].filter(Boolean).join(' ');
 export const accRemoveNoReplacement = () => `Add or restore another rupiah account first.`;
+
+export const importCheckButton = () => `Check reading`;
+export const importCheckTitle = () => `What MONO sees now`;
+export const importCheckHint = () => `No message text is shown or saved. If something looks wrong, send a screenshot of this box.`;
+export const importCheckAccess = (on: boolean) => `Notification access: ${on ? 'on' : 'OFF'}`;
+export const importCheckService = (on: boolean) => `Reader service: ${on ? 'connected' : 'NOT connected'}`;
+export const importCheckApps = (names: string) => `Switched on: ${names || 'none. Turn the bank app on above.'}`;
+export const importCheckShadeNone = () => `Nothing from BCA or a switched-on app is in the notification bar. Make a transaction, leave its notification there, then check again.`;
+export const importCheckShadeEntry = (pkg: string, status: string) => `In the bar, ${pkg}: ${status}`;
+export const importCheckRead = () => `readable`;
+export const importCheckSkipNotOn = () => `ignored, this app is not switched on`;
+export const importCheckSkipGroup = () => `ignored, a group summary`;
+export const importCheckSkipOngoing = () => `ignored, an ongoing notification`;
+export const importCheckSkipNoText = () => `no text MONO can read`;

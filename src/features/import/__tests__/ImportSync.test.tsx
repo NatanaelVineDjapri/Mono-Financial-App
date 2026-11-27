@@ -12,6 +12,7 @@ const mockNative = {
   isAccessEnabled: jest.fn(() => true),
   isConnected: jest.fn(() => true),
   requestRebind: jest.fn(),
+  restartService: jest.fn(),
   addNotificationListener: jest.fn(() => ({ remove: jest.fn() })),
 };
 jest.mock('../notifications/native', () => ({
@@ -20,6 +21,7 @@ jest.mock('../notifications/native', () => ({
   isAccessEnabled: () => mockNative.isAccessEnabled(),
   isConnected: () => mockNative.isConnected(),
   requestRebind: () => mockNative.requestRebind(),
+  restartService: () => mockNative.restartService(),
   addNotificationListener: () => mockNative.addNotificationListener(),
 }));
 jest.mock('../notifications/sync', () => ({ syncImportApps: async () => ({ recorded: 0, allowed: [] }) }));
@@ -43,8 +45,20 @@ beforeEach(() => {
 
 test('the kept notifications go first, then the ones still showing, marked as possibly seen before', async () => {
   await open();
-  expect(mockPush.mock.calls).toEqual([[{ package: 'kept' }], [{ package: 'shade' }, { seenAgain: true }]]);
+  expect(mockPush.mock.calls).toEqual([[{ package: 'kept' }, { seenAgain: false }], [{ package: 'shade' }, { seenAgain: true }]]);
   expect(mockNative.requestRebind).not.toHaveBeenCalled();
+});
+
+test('a service that does not come back when asked is restarted', async () => {
+  jest.useFakeTimers();
+  mockNative.isConnected.mockReturnValue(false);
+  await open();
+  expect(mockNative.restartService).not.toHaveBeenCalled();
+  await act(async () => jest.advanceTimersByTime(1500));
+  expect(mockNative.restartService).toHaveBeenCalledTimes(1);
+  await act(async () => jest.advanceTimersByTime(1500));
+  expect(mockPush).toHaveBeenLastCalledWith({ package: 'shade' }, { seenAgain: true });
+  jest.useRealTimers();
 });
 
 test('an unbound service is asked back, and the shade is read once it had time to return', async () => {
@@ -53,7 +67,9 @@ test('an unbound service is asked back, and the shade is read once it had time t
   await open();
   expect(mockNative.requestRebind).toHaveBeenCalledTimes(1);
   expect(mockNative.getActiveAllowed).not.toHaveBeenCalled();
+  mockNative.isConnected.mockReturnValue(true); // Android bound it again
   await act(async () => jest.advanceTimersByTime(1500));
+  expect(mockNative.restartService).not.toHaveBeenCalled();
   expect(mockPush).toHaveBeenLastCalledWith({ package: 'shade' }, { seenAgain: true });
   jest.useRealTimers();
 });
