@@ -15,7 +15,7 @@ What it does, and why (the rules are CLAUDE.md's):
     expense. By default the corrections are folded into the account's OPENING balance, so every balance today is the same but the
     reports only hold real activity. With --keep-corrections they become records in the system category "Penyesuaian saldo".
   - A category is per kind in MONO (income / expense), so "Inside" used for both becomes two categories. A Cashew subcategory
-    ("Makanan / Pacaran") becomes the description of the record.
+    ("Food / Together") becomes a MONO sub-category of that category; the description is only the record's Cashew title.
   - Nothing here writes a balance. Each account gets an OPENING balance chosen so that the balance after the last correction
     note ("Updated Total Balance ...: Rp647.100,55") comes out exactly as Cashew said; with no note, just enough to never go below 0.
   - The script runs with meta.guards_off = 1 (like a restore) and the app checks v_integrity_issues afterwards.
@@ -152,11 +152,13 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str, keep_correcti
         if r['category'] == 'Koreksi Saldo':
             category = ADJUSTMENT
             description = r['title'] if r['title'] and 'Transfer' not in r['title'] else 'Koreksi saldo'
+            sub = ''
         else:
             category = r['category']
-            description = r['title'] or r['sub']
+            description = r['title']
+            sub = r['sub']
         note = None if (not r['note'] or r['note'].startswith(SYSTEM_NOTES)) else r['note']
-        records.append({'kind': kind, 'account': r['account'], 'amount': abs(r['value']), 'dt': r['dt'], 'i': r['i'], 'category': category, 'description': description, 'note': note})
+        records.append({'kind': kind, 'account': r['account'], 'amount': abs(r['value']), 'dt': r['dt'], 'i': r['i'], 'category': category, 'sub': sub, 'description': description, 'note': note})
 
     # ---- one chronological list of balance movements: (when, order, account, delta)
     events = []
@@ -234,6 +236,18 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str, keep_correcti
     for i, (cat, kind) in enumerate(sorted(used_cats)):
         icon = 'wallet' if cat == ADJUSTMENT else ICONS.get(cat, 'tag')
         w(f"INSERT OR IGNORE INTO categories (name, kind, icon, sort_order, archived) VALUES ({q(cat)}, {q(kind)}, {q(icon)}, {100 + i}, 0);")
+    # sub-categories: one per (category, kind, name without regard to case), the most used first
+    subs = {}  # (category, kind) -> {lower name: [name, count]}
+    for r in records:
+        if r['sub']:
+            entry = subs.setdefault((r['category'], r['kind']), {}).setdefault(r['sub'].lower(), [r['sub'], 0])
+            entry[1] += 1
+    if subs:
+        w('')
+        w('-- sub-categories')
+        for (cat_name, kind), found in sorted(subs.items()):
+            for order, (name, _count) in enumerate(sorted(found.values(), key=lambda e: (-e[1], e[0]))):
+                w(f"INSERT OR IGNORE INTO subcategories (category_id, name, sort_order) VALUES ((SELECT id FROM categories WHERE name = {q(cat_name)} AND kind = {q(kind)}), {q(name)}, {order});")
     w('')
     w('-- records, oldest first')
     acc = lambda n: f'(SELECT id FROM accounts WHERE name = {q(n)})'
@@ -242,11 +256,16 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str, keep_correcti
     items = [('t', t['dt'], t['i'], t) for t in transfers] + [('r', r['dt'], r['i'], r) for r in records]
     items.sort(key=lambda x: (x[1], x[2]))
     cols = 'kind, account_id, currency, to_account_id, to_currency, category_id, amount, amount_to, amount_idr, occurred_on, description, note, source, created_at, updated_at'
+
+    def sub_id(x):
+        if not x['sub']:
+            return 'NULL'
+        return f"(SELECT id FROM subcategories WHERE category_id = {cat(x['category'], x['kind'])} AND lower(name) = lower({q(x['sub'])}))"
     for typ, dt, _, x in items:
         if typ == 't':
             w(f"INSERT INTO transactions ({cols}) VALUES ('transfer', {acc(x['from'])}, 'IDR', {acc(x['to'])}, 'IDR', NULL, {x['amount']}, {x['amount']}, {x['amount']}, {q(dt.date().isoformat())}, '', NULL, 'manual', {q(stamp(dt))}, {q(stamp(dt))});")
         else:
-            w(f"INSERT INTO transactions ({cols}) VALUES ({q(x['kind'])}, {acc(x['account'])}, 'IDR', NULL, NULL, {cat(x['category'], x['kind'])}, {x['amount']}, NULL, {x['amount']}, {q(dt.date().isoformat())}, {q(x['description'])}, {q(x['note']) if x['note'] else 'NULL'}, 'manual', {q(stamp(dt))}, {q(stamp(dt))});")
+            w(f"INSERT INTO transactions ({cols}, subcategory_id) VALUES ({q(x['kind'])}, {acc(x['account'])}, 'IDR', NULL, NULL, {cat(x['category'], x['kind'])}, {x['amount']}, NULL, {x['amount']}, {q(dt.date().isoformat())}, {q(x['description'])}, {q(x['note']) if x['note'] else 'NULL'}, 'manual', {q(stamp(dt))}, {q(stamp(dt))}, {sub_id(x)});")
     w('')
     w("UPDATE meta SET value = '0' WHERE key = 'guards_off';")
     with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
@@ -255,6 +274,7 @@ def main(csv_path: str, out_path: str, rates: dict, rates_at: str, keep_correcti
     # ---- the report (numbers only, nothing to commit)
     print(f'records: {len(records)}  transfers: {len(transfers)}  accounts: {len(names)}')
     print(f'left out: {len(skipped_zero)} zero rows; transfer rows without a partner: {len(unpaired)}')
+    print(f'sub-categories: {sum(len(v) for v in subs.values())}, on {sum(1 for r in records if r["sub"])} records')
     for code, p in sorted(pockets.items()):
         print(f'  Valas / {code}: {p["opening"]:,} minor units from {p["since"]} at rate_e4 {rates[code]:,}')
     for name in names:
