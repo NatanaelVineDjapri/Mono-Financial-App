@@ -15,6 +15,11 @@ import ImportSettingsRoute from '../import';
 
 jest.mock('@/features/import/useImportApps', () => ({ useImportApps: jest.fn(), useImportAppActions: jest.fn() }));
 jest.mock('@/features/transactions/form/useTxForm', () => ({ useTxFormData: jest.fn() }));
+// The screen brings the detected apps up to date itself (features/import/notifications/sync has its own tests).
+const mockSync = jest.fn(async (_db: unknown) => ({ recorded: 0, allowed: [] as string[] }));
+jest.mock('@/features/import/notifications/sync', () => ({ syncImportApps: (db: unknown) => mockSync(db) }));
+jest.mock('@/data/db/DbProvider', () => ({ useDb: () => ({}) }));
+jest.mock('@tanstack/react-query', () => ({ ...jest.requireActual('@tanstack/react-query'), useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
 jest.mock('@/features/import/notifications/native', () => ({
   openAppInfo: jest.fn(),
   openAccessSettings: jest.fn(),
@@ -70,6 +75,12 @@ beforeEach(() => {
   activate.mockResolvedValue({ ok: true });
   deactivate.mockResolvedValue({ ok: true });
   setAccount.mockResolvedValue({ ok: true });
+});
+
+test('opening the screen reads the apps that have a notification, without waiting for the app to be reopened', async () => {
+  setup([]);
+  await renderRoute();
+  expect(mockSync).toHaveBeenCalled();
 });
 
 describe('switching an app on', () => {

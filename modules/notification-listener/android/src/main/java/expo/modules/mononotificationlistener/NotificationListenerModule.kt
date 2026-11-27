@@ -85,7 +85,10 @@ class NotificationListenerModule : Module() {
 
     Function("getAllowedPackages") { store.allowed().toList() }
 
-    Function("getSeenApps") { store.seenApps() }
+    Function("getSeenApps") {
+      NotificationBus.service?.noteShade()
+      store.seenApps()
+    }
 
     Function("forgetSeenApp") { pkg: String -> store.forget(pkg) }
 

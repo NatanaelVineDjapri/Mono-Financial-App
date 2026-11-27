@@ -19,6 +19,8 @@ class NotificationListener : NotificationListenerService() {
   override fun onListenerConnected() {
     NotificationBus.connected = true
     NotificationBus.service = this
+    // The apps already showing something are listed too, not only the ones that post from now on.
+    noteShade()
     // What arrived while we were not bound and is still in the bar. Marked "again": it may have been handled before.
     for (event in activeAllowed()) NotificationBus.push(event + ("again" to true))
   }
@@ -53,6 +55,25 @@ class NotificationListener : NotificationListenerService() {
       }
     } catch (_: Throwable) {
       // The service must never crash, and nothing about a notification may be logged.
+    }
+  }
+
+  /**
+   * Remembers {package, app name, time} of the apps, not switched on, that have a notification in the bar now: without
+   * this an app could only be listed (and so switched on) after posting a new one while the service was bound.
+   */
+  fun noteShade() {
+    try {
+      val store = ImportStore(applicationContext)
+      for (sbn in activeNotifications ?: emptyArray()) {
+        val notification = sbn.notification ?: continue
+        val info = applicationInfoOf(notification)
+        if (decide(sbn, notification, info, store) == Decision.RECORD_SEEN) {
+          store.recordSeen(sbn.packageName, appLabel(sbn.packageName, info), sbn.postTime)
+        }
+      }
+    } catch (_: Throwable) {
+      // The list is only a convenience: the next call tries again.
     }
   }
 

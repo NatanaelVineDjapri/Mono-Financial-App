@@ -10,6 +10,8 @@ import { listImportApps, type ImportAppRow } from '@/data/repo/importApps';
 import { getImportStats, type ImportStats } from '@/data/repo/importStats';
 import { activateImportApp, deactivateImportApp, ImportAppError, pendingReviewCount, setImportAppAccount, type ImportAppErrorCode } from '@/domain/importApps';
 
+import { createIngestor } from './ingest';
+import { getActiveAllowed } from './notifications/native';
 import { pushAllowlist } from './notifications/sync';
 
 export const importAppsKey = [...queryKeys.settings, 'import-apps'] as const;
@@ -49,9 +51,23 @@ export function useImportAppActions() {
     [db, queryClient],
   );
 
+  // What a just switched-on app still shows in the bar goes to the review list at once, not at the next opening.
+  const readBar = useCallback(
+    async (pkg: string) => {
+      const ingestor = createIngestor(db, () => void invalidateAfterWrite(queryClient));
+      for (const raw of getActiveAllowed()) if (raw.package === pkg) void ingestor.push(raw);
+      await ingestor.idle();
+    },
+    [db, queryClient],
+  );
+
   return {
     // Switch an app on, to `accountId` (or the account it already has).
-    activate: (pkg: string, accountId: number | null) => run(() => activateImportApp(db, pkg, accountId)),
+    activate: async (pkg: string, accountId: number | null) => {
+      const result = await run(() => activateImportApp(db, pkg, accountId));
+      if (result.ok) await readBar(pkg);
+      return result;
+    },
     deactivate: (pkg: string) => run(() => deactivateImportApp(db, pkg)),
     setAccount: (pkg: string, accountId: number | null) => run(() => setImportAppAccount(db, pkg, accountId)),
   };

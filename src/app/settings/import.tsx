@@ -1,9 +1,10 @@
 // Automatic import (/settings/import): Import-Setup until something is set up, Import-Settings after.
 // The route only wires data and navigation; the screen is src/features/import/ImportSettingsView.tsx
 // and the rules (an app needs a rupiah account to be switched on) are src/domain/importApps.ts.
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppState, StyleSheet, View } from 'react-native';
 
 import { importAppError } from '@/i18n';
 import { ImportPermissionSheet } from '@/features/import/ImportPermissionSheet';
@@ -11,9 +12,12 @@ import { diagnose, diagnosisLines } from '@/features/import/diagnosis';
 import { ImportScreenView } from '@/features/import/ImportSettingsView';
 import { shouldShowPermissionGuide, useNotificationAccess } from '@/features/import/notifications/access';
 import * as native from '@/features/import/notifications/native';
+import { syncImportApps } from '@/features/import/notifications/sync';
 import { useImportAppActions, useImportApps, type ImportActionResult } from '@/features/import/useImportApps';
 import { AccountSheet } from '@/features/transactions/form/formSheets';
 import { useTxFormData } from '@/features/transactions/form/useTxForm';
+import { useDb } from '@/data/db/DbProvider';
+import { invalidateAfterWrite } from '@/data/queryKeys';
 import type { ImportAppRow } from '@/data/repo/importApps';
 import { MonoColors } from '@/theme/tokens';
 
@@ -27,6 +31,38 @@ export default function ImportSettingsRoute() {
   const [picker, setPicker] = useState<{ app: ImportAppRow; activate: boolean } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [check, setCheck] = useState<string[] | null>(null);
+
+  // The detected apps are read when this screen opens and when the person comes back from Android's settings: once at
+  // once, and once more a moment later, since the service may only just be getting bound.
+  const db = useDb();
+  const queryClient = useQueryClient();
+  const sync = useCallback(async () => {
+    try {
+      const { recorded } = await syncImportApps(db);
+      if (recorded > 0) await invalidateAfterWrite(queryClient);
+    } catch {
+      // The next opening tries again.
+    }
+  }, [db, queryClient]);
+  useEffect(() => {
+    let later: ReturnType<typeof setTimeout> | undefined;
+    const now = () => {
+      void sync();
+      clearTimeout(later);
+      later = setTimeout(() => {
+        void sync();
+        refresh();
+      }, 1500);
+    };
+    now();
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') now();
+    });
+    return () => {
+      clearTimeout(later);
+      subscription.remove();
+    };
+  }, [sync, refresh]);
 
   const accountNames = useMemo(() => new Map((formData?.accounts ?? []).map(a => [a.id, a.name] as const)), [formData]);
 
@@ -75,6 +111,7 @@ export default function ImportSettingsRoute() {
         check={check}
         onCheck={() => {
           refresh();
+          void sync();
           setCheck(diagnosisLines(diagnose(data.apps.filter(a => a.enabled === 1).map(a => a.app_name))));
         }}
         onOpenBattery={() => void native.openBatterySettings()}
