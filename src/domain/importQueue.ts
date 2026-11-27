@@ -54,14 +54,19 @@ export function fingerprintOf(pkg: string, kind: QueueKind | null, amountIdr: nu
   return [pkg, kind ?? '?', amountIdr, merchantKey(merchant), Math.floor(postedAt / TIME_BUCKET_MS)].join('|');
 }
 
-export async function enqueueNotification(db: Db, raw: IncomingNotification): Promise<EnqueueResult> {
+export interface EnqueueOptions {
+  // Read again from the notification shade: it may well have been handled before, so only a new row is counted.
+  seenAgain?: boolean;
+}
+
+export async function enqueueNotification(db: Db, raw: IncomingNotification, { seenAgain = false }: EnqueueOptions = {}): Promise<EnqueueResult> {
   const app = await getImportApp(db, raw.package);
   if (!app || app.enabled !== 1 || app.account_id == null) return 'ignored';
 
   // The account must still be a live rupiah one (the Valas account is never written by the import, rule 19).
   const account = await db.getFirstAsync<{ type: string; archived: number }>('select type, archived from accounts where id = $id', { $id: app.account_id });
   if (!account || account.archived === 1 || account.type === 'forex') {
-    await recordImportOutcome(db, raw.package, 'no_account');
+    if (!seenAgain) await recordImportOutcome(db, raw.package, 'no_account');
     return 'ignored';
   }
 
@@ -70,7 +75,7 @@ export async function enqueueNotification(db: Db, raw: IncomingNotification): Pr
   const outcome = explainNotification(raw.package, raw.title, body);
   if (!outcome.parsed) {
     // Only the reason is counted, never the text: it lets the person see why an app's notifications do not become transactions.
-    await recordImportOutcome(db, raw.package, outcome.dropped);
+    if (!seenAgain) await recordImportOutcome(db, raw.package, outcome.dropped);
     return 'ignored';
   }
   const parsed = outcome.parsed;
@@ -94,7 +99,7 @@ export async function enqueueNotification(db: Db, raw: IncomingNotification): Pr
     fingerprint: fingerprintOf(raw.package, parsed.kind, parsed.amountIdr, parsed.merchant, raw.postedAt),
     createdAt: nowIso(),
   });
-  await recordImportOutcome(db, raw.package, added ? 'queued' : 'duplicate');
+  if (added || !seenAgain) await recordImportOutcome(db, raw.package, added ? 'queued' : 'duplicate');
   return added ? 'added' : 'ignored';
 }
 

@@ -18,10 +18,12 @@ import android.service.notification.StatusBarNotification
 class NotificationListener : NotificationListenerService() {
   override fun onListenerConnected() {
     NotificationBus.connected = true
+    NotificationBus.service = this
   }
 
   override fun onListenerDisconnected() {
     NotificationBus.connected = false
+    NotificationBus.service = null
     // Ask Android to bind us again (the system may have stopped us to save battery).
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
       try {
@@ -38,27 +40,10 @@ class NotificationListener : NotificationListenerService() {
       val notification = sbn.notification ?: return
       val store = ImportStore(applicationContext)
       val info = applicationInfoOf(notification)
-      val decision = Allowlist.decide(
-        packageName = sbn.packageName ?: "",
-        ownPackage = packageName,
-        allowed = store.allowed(),
-        isSystemApp = (info?.let { isSystem(it) } ?: false) && !store.devAllowSystem(),
-        isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
-        isGroupSummary = (notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0,
-      )
       val now = System.currentTimeMillis()
-      when (decision) {
+      when (decide(sbn, notification, info, store)) {
         Decision.FORWARD -> {
-          val extras = notification.extras
-          NotificationBus.push(
-            mapOf(
-              "package" to sbn.packageName,
-              "title" to extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
-              "text" to extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
-              "bigText" to extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
-              "postedAt" to sbn.postTime.toDouble(),
-            ),
-          )
+          NotificationBus.push(eventOf(sbn, notification))
           store.markRead(now)
         }
         Decision.RECORD_SEEN -> store.recordSeen(sbn.packageName, appLabel(sbn.packageName, info), now)
@@ -67,6 +52,42 @@ class NotificationListener : NotificationListenerService() {
     } catch (_: Throwable) {
       // The service must never crash, and nothing about a notification may be logged.
     }
+  }
+
+  /**
+   * The notifications of switched-on apps that are in the shade right now: what arrived while the
+   * process was not running. The same decision as for a new one, so no other app's text is read.
+   */
+  fun activeAllowed(): List<Map<String, Any?>> = try {
+    val store = ImportStore(applicationContext)
+    (activeNotifications ?: emptyArray()).mapNotNull { sbn ->
+      val notification = sbn.notification ?: return@mapNotNull null
+      val decision = decide(sbn, notification, applicationInfoOf(notification), store)
+      if (decision == Decision.FORWARD) eventOf(sbn, notification) else null
+    }
+  } catch (_: Throwable) {
+    emptyList()
+  }
+
+  private fun decide(sbn: StatusBarNotification, notification: Notification, info: ApplicationInfo?, store: ImportStore): Decision =
+    Allowlist.decide(
+      packageName = sbn.packageName ?: "",
+      ownPackage = packageName,
+      allowed = store.allowed(),
+      isSystemApp = (info?.let { isSystem(it) } ?: false) && !store.devAllowSystem(),
+      isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0,
+      isGroupSummary = (notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0,
+    )
+
+  private fun eventOf(sbn: StatusBarNotification, notification: Notification): Map<String, Any?> {
+    val extras = notification.extras
+    return mapOf(
+      "package" to sbn.packageName,
+      "title" to extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
+      "text" to extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
+      "bigText" to extras?.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
+      "postedAt" to sbn.postTime.toDouble(),
+    )
   }
 
   // The posting app's own ApplicationInfo travels inside the notification, which gives its name

@@ -1,13 +1,13 @@
 package expo.modules.mononotificationlistener
 
 /**
- * Where a forwarded notification waits for JavaScript. Memory only, never on disk: if the process
- * dies, whatever was waiting is gone, on purpose (the text of a message is not kept anywhere).
+ * Where a forwarded notification waits for JavaScript. Memory only, never on disk.
  *
- * While JS is listening the event is delivered at once and nothing is queued. When nobody is
- * listening the event is DROPPED, unless `retainWhenIdle` is on (a consumer that wants what it
- * missed turns it on); then it waits in a small queue (the newest MAX_QUEUED) until JS drains it.
- * Nothing consumes notifications yet, so it starts off.
+ * While JS is listening the event is delivered at once. When nobody is listening (MONO is closed
+ * but the listener service is alive, which is how a banking notification usually arrives) it waits
+ * in a small queue (the newest MAX_QUEUED) until JS drains it. If the process itself dies the queue
+ * is gone, on purpose (the text of a message is not kept anywhere); what is still in the
+ * notification shade is read again when the app opens (NotificationListener.activeAllowed).
  */
 object NotificationBus {
   private const val MAX_QUEUED = 100
@@ -17,13 +17,13 @@ object NotificationBus {
   @Volatile
   private var listener: ((Map<String, Any?>) -> Boolean)? = null
 
-  /** Keep events for a JS that is not listening right now. Off by default. */
-  @Volatile
-  var retainWhenIdle: Boolean = false
-
   /** True while Android has the listener service bound (false when the system stopped it). */
   @Volatile
   var connected: Boolean = false
+
+  /** The bound service, to read what is in the shade right now. Null while it is not bound. */
+  @Volatile
+  var service: NotificationListener? = null
 
   /** `deliver` returns true when JS took the event. */
   fun setListener(deliver: ((Map<String, Any?>) -> Boolean)?) {
@@ -36,7 +36,7 @@ object NotificationBus {
     } catch (_: Throwable) {
       false
     }
-    if (delivered || !retainWhenIdle) return
+    if (delivered) return
     synchronized(queue) {
       if (queue.size >= MAX_QUEUED) queue.removeFirst()
       queue.addLast(event)

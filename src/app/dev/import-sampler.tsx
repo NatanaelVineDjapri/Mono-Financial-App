@@ -14,7 +14,7 @@ import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { MonoSwitch } from '@/components/MonoSwitch';
 import { showToast } from '@/components/toast-store';
-import { getDevAllowSystemApps, setDevAllowSystemApps, setRetainWhenIdle } from '@/features/import/notifications/native';
+import { getDevAllowSystemApps, setDevAllowSystemApps } from '@/features/import/notifications/native';
 import { sampleToText, startSampler, useSamplerStore, type Sample } from '@/features/import/notifications/sampler';
 import { useImportApps } from '@/features/import/useImportApps';
 import { backLabel, importSamplerClear, importSamplerCopied, importSamplerCopy, importSamplerEmpty, importSamplerHint, importSamplerSystemHint, importSamplerSystemLabel, importSamplerTitle } from '@/i18n';
@@ -40,10 +40,7 @@ function ImportSamplerContent() {
     allowed.current = new Set((data?.apps ?? []).filter(a => a.enabled === 1).map(a => a.package));
   }, [data]);
 
-  useEffect(() => {
-    setRetainWhenIdle(false);
-    return startSampler(() => allowed.current);
-  }, []);
+  useEffect(() => startSampler(() => allowed.current), []);
 
   const copy = async (sample: Sample) => {
     await Clipboard.setStringAsync(sampleToText(sample));

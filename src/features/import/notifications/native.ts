@@ -39,8 +39,8 @@ interface NativeListenerModule {
   getSeenApps(): NativeSeenApp[];
   forgetSeenApp(pkg: string): void;
   getLastReadAt(): number | null;
-  setRetainWhenIdle(retain: boolean): void;
   drainQueue(): RawNotification[];
+  getActiveAllowed(): RawNotification[];
   addListener(event: 'onNotification', listener: (event: RawNotification) => void): NativeSubscription;
 }
 
@@ -74,8 +74,9 @@ export const getAllowedPackages = () => safe(m => m.getAllowedPackages(), [] as 
 export const getSeenApps = () => safe(m => m.getSeenApps(), [] as NativeSeenApp[]);
 export const forgetSeenApp = (pkg: string) => safe(m => m.forgetSeenApp(pkg), undefined);
 export const getLastReadAt = () => safe(m => m.getLastReadAt(), null as number | null);
-export const setRetainWhenIdle = (retain: boolean) => safe(m => m.setRetainWhenIdle(retain), undefined);
 export const drainQueue = () => safe(m => m.drainQueue(), [] as RawNotification[]);
+// What the switched-on apps still show in the notification shade.
+export const getActiveAllowed = () => safe(m => m.getActiveAllowed(), [] as RawNotification[]);
 
 // Listen for notifications of allowed apps. Returns a subscription, or null when there is no module.
 export function addNotificationListener(listener: (event: RawNotification) => void): NativeSubscription | null {

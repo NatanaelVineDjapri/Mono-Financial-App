@@ -14,8 +14,8 @@ import expo.modules.kotlin.modules.ModuleDefinition
 /**
  * The bridge to JavaScript. JS gives it the allowlist (the apps switched on); the listener service
  * does the filtering. Everything here is about access, settings and the few fields described in
- * ImportStore; there is no function that returns the text of a notification except `drainQueue`,
- * and that only holds notifications of allowed apps.
+ * ImportStore; the only functions that return the text of a notification are `drainQueue` and
+ * `getActiveAllowed`, and both only hold notifications of allowed apps.
  */
 class NotificationListenerModule : Module() {
   private val context: Context
@@ -29,7 +29,9 @@ class NotificationListenerModule : Module() {
 
     Events("onNotification")
 
-    OnCreate {
+    // Only while JS has a listener: with the screens closed React can still be alive with nobody
+    // listening, and an event sent then would be lost instead of queued.
+    OnStartObserving("onNotification") {
       NotificationBus.setListener { event ->
         if (appContext.hasActiveReactInstance) {
           sendEvent("onNotification", event)
@@ -38,6 +40,10 @@ class NotificationListenerModule : Module() {
           false
         }
       }
+    }
+
+    OnStopObserving("onNotification") {
+      NotificationBus.setListener(null)
     }
 
     OnDestroy {
@@ -87,11 +93,11 @@ class NotificationListenerModule : Module() {
 
     Function("getLastReadAt") { store.lastReadAt().takeIf { it > 0L }?.toDouble() }
 
-    // Keep (or stop keeping) notifications of allowed apps that arrive while JS is not listening.
-    Function("setRetainWhenIdle") { retain: Boolean -> NotificationBus.retainWhenIdle = retain }
-
-    // Notifications of allowed apps that arrived while JS was not listening (only if retained).
+    // Notifications of allowed apps that arrived while JS was not listening.
     Function("drainQueue") { NotificationBus.drain() }
+
+    // Notifications of allowed apps still showing in the shade (empty while the service is not bound).
+    Function("getActiveAllowed") { NotificationBus.service?.activeAllowed() ?: emptyList<Map<String, Any?>>() }
   }
 
   private fun openSettings(intent: Intent) {

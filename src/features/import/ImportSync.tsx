@@ -2,9 +2,10 @@
 // listener in step when the app opens and every time it comes back to the front: the apps the
 // listener has seen become rows of import_app_settings, and the apps that are switched on become
 // its allowlist (syncImportApps). It also carries the notifications of the allowed apps into the
-// review queue: the ones the service kept while the app was closed (drained at start and on every
-// return to the front) and the live ones while it is open. Draws nothing. Never throws: the
-// listener may not be in this build.
+// review queue: the live ones while the app is open, and at start and on every return to the front
+// the ones the service kept while the app was closed, then whatever is still in the notification
+// shade (for when Android had killed the process). The queue's fingerprint keeps them from being
+// added twice. Draws nothing. Never throws: the listener may not be in this build.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
@@ -14,7 +15,7 @@ import { useDb } from '@/data/db/DbProvider';
 import { invalidateAfterWrite } from '@/data/queryKeys';
 
 import { createIngestor, prune } from './ingest';
-import { addNotificationListener, drainQueue } from './notifications/native';
+import { addNotificationListener, drainQueue, getActiveAllowed, isAccessEnabled, isConnected, requestRebind } from './notifications/native';
 import { syncImportApps } from './notifications/sync';
 
 export function ImportSync() {
@@ -27,6 +28,10 @@ export function ImportSync() {
       if (!cancelled) void invalidateAfterWrite(queryClient);
     };
     const ingestor = createIngestor(db, refresh);
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const sweep = () => {
+      for (const raw of getActiveAllowed()) void ingestor.push(raw, { seenAgain: true });
+    };
 
     const run = async () => {
       try {
@@ -34,6 +39,15 @@ export function ImportSync() {
         if (!cancelled && recorded > 0) await invalidateAfterWrite(queryClient);
         // What arrived while the app was closed.
         for (const raw of drainQueue()) void ingestor.push(raw);
+        // The service can be unbound (an update was installed, or Android stopped it): ask for it
+        // again and read the shade once it is back.
+        if (isAccessEnabled() && !isConnected()) {
+          requestRebind();
+          clearTimeout(retry);
+          retry = setTimeout(sweep, 1500);
+        } else {
+          sweep();
+        }
       } catch {
         // Nothing to do: the next sync tries again.
       }
@@ -50,6 +64,7 @@ export function ImportSync() {
     });
     return () => {
       cancelled = true;
+      clearTimeout(retry);
       cancelStartupWork();
       live?.remove();
       subscription.remove();

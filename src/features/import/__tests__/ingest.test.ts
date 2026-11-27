@@ -2,6 +2,7 @@
 import { setClockOverride } from '../../../core/clock';
 import { openMigratedTestDb } from '../../../data/db/openTestDb';
 import { countPending } from '../../../data/repo/importQueue';
+import { getImportStats } from '../../../data/repo/importStats';
 import { activateImportApp, recordSeenApps } from '../../../domain/importApps';
 import { createIngestor, prune } from '../ingest';
 
@@ -48,4 +49,19 @@ test('a failure while handling one notification is swallowed and the next one st
 test('prune never throws', async () => {
   const db = await fixture();
   await expect(prune(db)).resolves.toBeUndefined();
+});
+
+test('read again from the shade: a new payment is queued and counted, a repeat or a drop is not counted twice', async () => {
+  const db = await fixture();
+  const ingestor = createIngestor(db, () => undefined);
+  const stats = async () => (await getImportStats(db))['com.example.bank'];
+
+  await ingestor.push(raw('Kamu membayar Rp10.000 di Warung A'), { seenAgain: true });
+  expect(await countPending(db)).toBe(1);
+  expect(await stats()).toMatchObject({ read: 1, queued: 1 });
+
+  await ingestor.push(raw('Kamu membayar Rp10.000 di Warung A'), { seenAgain: true });
+  await ingestor.push(raw('Hanya promo, tanpa nominal'), { seenAgain: true });
+  expect(await countPending(db)).toBe(1);
+  expect(await stats()).toMatchObject({ read: 1, queued: 1, duplicate: 0, no_amount: 0 });
 });
