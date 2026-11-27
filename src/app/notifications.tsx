@@ -1,4 +1,5 @@
-// /notifications — Inbox screen (Notif-Inbox / Notif-Empty boards).
+// /notifications — Inbox screen (Notif-Inbox / Notif-Empty boards). Transactions read from bank notifications that still
+// wait for a check sit on top (asked for by the owner).
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +13,9 @@ import { queryKeys, invalidateAfterWrite } from '@/data/queryKeys';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { MonoColors, radius } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
+import { useImportQueue } from '@/features/import/useImportQueue';
 import { renderNotification } from '@/features/notifications/copy';
+import { PendingReview } from '@/features/notifications/PendingReview';
 import type { NotifPayload, NotifRow } from '@/domain/notify/types';
 import {
   notifBackHome,
@@ -94,7 +97,11 @@ export default function NotificationsScreen() {
     queryFn: () => listNotifications(db),
   });
 
+  const { data: pending = [] } = useImportQueue();
   const sections = groupByDate(rows);
+  const review = (
+    <PendingReview items={pending} onOpen={id => router.push(`/import/edit/${id}` as never)} onOpenAll={() => router.push('/import/review' as never)} />
+  );
 
   const onMarkAllRead = async () => {
     await markAllRead(db, new Date().toISOString());
@@ -167,7 +174,7 @@ export default function NotificationsScreen() {
     );
   };
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && pending.length === 0) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]} testID="notifications-screen">
         <View style={styles.header}>
@@ -217,6 +224,7 @@ export default function NotificationsScreen() {
               )}
             </View>
             <Text style={styles.title}>{notifInboxTitle()}</Text>
+            {review}
           </View>
         )}
         renderItem={({ item: row }) => {

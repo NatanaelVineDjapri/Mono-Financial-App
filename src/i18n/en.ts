@@ -5011,3 +5011,5 @@ export const importCheckSkipNotOn = () => `ignored, this app is not switched on`
 export const importCheckSkipGroup = () => `ignored, a group summary`;
 export const importCheckSkipOngoing = () => `ignored, an ongoing notification`;
 export const importCheckSkipNoText = () => `no text MONO can read`;
+export const notifReviewHeader = () => `Waiting for review`;
+export const notifReviewAll = (count: number) => `Review all (${count})`;

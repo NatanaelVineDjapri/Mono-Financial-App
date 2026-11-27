@@ -1571,3 +1571,5 @@ export const importCheckSkipNotOn = pick(en.importCheckSkipNotOn, id.importCheck
 export const importCheckSkipGroup = pick(en.importCheckSkipGroup, id.importCheckSkipGroup);
 export const importCheckSkipOngoing = pick(en.importCheckSkipOngoing, id.importCheckSkipOngoing);
 export const importCheckSkipNoText = pick(en.importCheckSkipNoText, id.importCheckSkipNoText);
+export const notifReviewHeader = pick(en.notifReviewHeader, id.notifReviewHeader);
+export const notifReviewAll = pick(en.notifReviewAll, id.notifReviewAll);

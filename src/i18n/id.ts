@@ -5008,3 +5008,5 @@ export const importCheckSkipNotOn = () => `diabaikan, app ini belum dinyalakan`;
 export const importCheckSkipGroup = () => `diabaikan, ringkasan grup`;
 export const importCheckSkipOngoing = () => `diabaikan, notifikasi berjalan`;
 export const importCheckSkipNoText = () => `tidak ada teks yang bisa dibaca MONO`;
+export const notifReviewHeader = () => `Menunggu ditinjau`;
+export const notifReviewAll = (count: number) => `Tinjau semua (${count})`;

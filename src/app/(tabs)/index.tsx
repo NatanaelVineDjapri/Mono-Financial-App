@@ -43,6 +43,7 @@ import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { countUnread } from '@/data/repo/notifications';
+import { countQueue } from '@/domain/importQueue';
 import { listRecurring } from '@/domain/recurring';
 import { useTransactionsFilterSummary, useTransactionsList } from '@/features/transactions/useTransactionsList';
 import { allAccountsLabel, overviewEmptyMessage, yourAccountsLabel } from '@/i18n';
@@ -62,6 +63,8 @@ export default function OverviewScreen() {
   const { data: overview } = useOverviewData();
   const { data: recurringData } = useRecurringDue();
   const { data: unreadCount } = useQuery({ queryKey: [...queryKeys.notifications, 'unread'], queryFn: () => countUnread(db), staleTime: 0 });
+  // Transactions waiting for a check are on the same page, so the bell counts them too.
+  const { data: reviewCount } = useQuery({ queryKey: [...queryKeys.importQueue, 'count'], queryFn: () => countQueue(db), staleTime: 0 });
   const { data: recurringTemplates } = useQuery({ queryKey: [...queryKeys.recurring, 'list'], queryFn: () => listRecurring(db) });
   const { data: budget } = useBudgetOverview(null);
   const { data: goals } = useGoalProgress();
@@ -108,7 +111,7 @@ export default function OverviewScreen() {
   }, [router]);
   const onBackup = useCallback(() => router.push('/backup' as never), [router]);
 
-  const header = <OverviewHeader initial={avatarInitial(displayName)} avatarPose={avatarPose} nickname={displayName} greeting={greeting} onAvatarPress={onOpenMore} onBellPress={onOpenNotifications} unreadCount={unreadCount ?? 0} />;
+  const header = <OverviewHeader initial={avatarInitial(displayName)} avatarPose={avatarPose} nickname={displayName} greeting={greeting} onAvatarPress={onOpenMore} onBellPress={onOpenNotifications} unreadCount={(unreadCount ?? 0) + (reviewCount ?? 0)} />;
   // One artwork behind the header and the hero together (the logo down to the balance).
   const top = (hero: ReactNode) => (
     <OverviewTop>
