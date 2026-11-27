@@ -5013,3 +5013,6 @@ export const importCheckSkipOngoing = () => `ignored, an ongoing notification`;
 export const importCheckSkipNoText = () => `no text MONO can read`;
 export const notifReviewHeader = () => `Waiting for review`;
 export const notifReviewAll = (count: number) => `Review all (${count})`;
+export const importNoticeTitle = () => `Transaction to review`;
+export const importNoticeBody = (app: string) => `${app}: tap to check it before it is saved.`;
+export const importNoticeChannel = () => `Transactions to review`;

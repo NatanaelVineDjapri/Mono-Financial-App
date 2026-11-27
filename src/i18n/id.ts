@@ -5010,3 +5010,6 @@ export const importCheckSkipOngoing = () => `diabaikan, notifikasi berjalan`;
 export const importCheckSkipNoText = () => `tidak ada teks yang bisa dibaca MONO`;
 export const notifReviewHeader = () => `Menunggu ditinjau`;
 export const notifReviewAll = (count: number) => `Tinjau semua (${count})`;
+export const importNoticeTitle = () => `Ada transaksi untuk ditinjau`;
+export const importNoticeBody = (app: string) => `${app}: ketuk untuk memeriksa sebelum disimpan.`;
+export const importNoticeChannel = () => `Transaksi untuk ditinjau`;

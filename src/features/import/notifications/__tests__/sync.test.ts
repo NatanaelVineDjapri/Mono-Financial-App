@@ -8,7 +8,7 @@ import { activateImportApp } from '../../../../domain/importApps';
 import * as native from '../native';
 import { pushAllowlist, syncImportApps } from '../sync';
 
-jest.mock('../native', () => ({ getSeenApps: jest.fn(), setAllowedPackages: jest.fn() }));
+jest.mock('../native', () => ({ getSeenApps: jest.fn(), setAllowedPackages: jest.fn(), setReviewNotice: jest.fn() }));
 
 const getSeen = native.getSeenApps as jest.Mock;
 const setAllowed = native.setAllowedPackages as jest.Mock;
@@ -23,6 +23,13 @@ async function withAccount(): Promise<{ db: Db; account: number }> {
 beforeEach(() => {
   getSeen.mockReset();
   setAllowed.mockReset();
+});
+
+test('the listener is given the sentences of its "waiting for review" notification', async () => {
+  getSeen.mockReturnValue([]);
+  const { db } = await withAccount();
+  await syncImportApps(db);
+  expect(native.setReviewNotice).toHaveBeenCalledWith('Ada transaksi untuk ditinjau', '{app}: ketuk untuk memeriksa sebelum disimpan.', 'Transaksi untuk ditinjau');
 });
 
 describe('syncImportApps', () => {

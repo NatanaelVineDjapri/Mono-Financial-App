@@ -47,8 +47,13 @@ class NotificationListener : NotificationListenerService() {
       val now = System.currentTimeMillis()
       when (decide(sbn, notification, info, store)) {
         Decision.FORWARD -> {
-          NotificationBus.push(eventOf(sbn, notification))
+          val event = eventOf(sbn, notification)
+          NotificationBus.push(event)
           store.markRead(now)
+          val message = listOfNotNull(event["title"], event["text"], event["bigText"]).joinToString(" ")
+          if (ReviewNotice.looksLikeMoney(message)) {
+            ReviewNotice.post(applicationContext, store, sbn.packageName, appLabel(sbn.packageName, info), sbn.key + message.hashCode())
+          }
         }
         Decision.RECORD_SEEN -> store.recordSeen(sbn.packageName, appLabel(sbn.packageName, info), now)
         Decision.DROP -> Unit

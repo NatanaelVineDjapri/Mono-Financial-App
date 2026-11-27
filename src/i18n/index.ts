@@ -1573,3 +1573,6 @@ export const importCheckSkipOngoing = pick(en.importCheckSkipOngoing, id.importC
 export const importCheckSkipNoText = pick(en.importCheckSkipNoText, id.importCheckSkipNoText);
 export const notifReviewHeader = pick(en.notifReviewHeader, id.notifReviewHeader);
 export const notifReviewAll = pick(en.notifReviewAll, id.notifReviewAll);
+export const importNoticeTitle = pick(en.importNoticeTitle, id.importNoticeTitle);
+export const importNoticeBody = pick(en.importNoticeBody, id.importNoticeBody);
+export const importNoticeChannel = pick(en.importNoticeChannel, id.importNoticeChannel);

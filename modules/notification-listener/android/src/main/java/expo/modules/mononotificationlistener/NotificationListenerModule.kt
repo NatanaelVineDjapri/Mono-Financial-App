@@ -85,6 +85,8 @@ class NotificationListenerModule : Module() {
 
     Function("getAllowedPackages") { store.allowed().toList() }
 
+    Function("setReviewNotice") { title: String, body: String, channel: String -> store.setReviewNotice(title, body, channel) }
+
     Function("getSeenApps") {
       NotificationBus.service?.noteShade()
       store.seenApps()

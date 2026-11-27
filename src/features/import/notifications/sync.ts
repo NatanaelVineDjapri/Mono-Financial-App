@@ -6,6 +6,7 @@
 // Run when the app opens, when it comes back to the front, and after every change of settings.
 import { isoFromMillis } from '../../../core/clock';
 import type { Db } from '../../../data/db/types';
+import { importNoticeBody, importNoticeChannel, importNoticeTitle } from '../../../i18n';
 import { allowedPackages, recordSeenApps } from '../../../domain/importApps';
 import { supportLevel } from '../parsers/registry';
 import { sanitizeSeenApps } from './allowlist';
@@ -14,6 +15,7 @@ import * as native from './native';
 export async function syncImportApps(db: Db): Promise<{ recorded: number; allowed: string[] }> {
   // The dev-only "allow system apps" flag never stays on in a release build.
   if (!__DEV__) native.setDevAllowSystemApps(false);
+  native.setReviewNotice(importNoticeTitle(), importNoticeBody('{app}'), importNoticeChannel());
   const seen = sanitizeSeenApps(native.getSeenApps());
   const recorded = await recordSeenApps(
     db,

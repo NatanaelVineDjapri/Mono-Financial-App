@@ -11,6 +11,7 @@ import { getImportStats, type ImportStats } from '@/data/repo/importStats';
 import { activateImportApp, deactivateImportApp, ImportAppError, pendingReviewCount, setImportAppAccount, type ImportAppErrorCode } from '@/domain/importApps';
 
 import { createIngestor } from './ingest';
+import { ensureNoticePermission } from './noticePermission';
 import { getActiveAllowed } from './notifications/native';
 import { pushAllowlist } from './notifications/sync';
 
@@ -65,7 +66,10 @@ export function useImportAppActions() {
     // Switch an app on, to `accountId` (or the account it already has).
     activate: async (pkg: string, accountId: number | null) => {
       const result = await run(() => activateImportApp(db, pkg, accountId));
-      if (result.ok) await readBar(pkg);
+      if (result.ok) {
+        await ensureNoticePermission();
+        await readBar(pkg);
+      }
       return result;
     },
     deactivate: (pkg: string) => run(() => deactivateImportApp(db, pkg)),

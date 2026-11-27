@@ -12,6 +12,7 @@ import { diagnose, diagnosisLines } from '@/features/import/diagnosis';
 import { ImportScreenView } from '@/features/import/ImportSettingsView';
 import { shouldShowPermissionGuide, useNotificationAccess } from '@/features/import/notifications/access';
 import * as native from '@/features/import/notifications/native';
+import { ensureNoticePermission } from '@/features/import/noticePermission';
 import { syncImportApps } from '@/features/import/notifications/sync';
 import { useImportAppActions, useImportApps, type ImportActionResult } from '@/features/import/useImportApps';
 import { AccountSheet } from '@/features/transactions/form/formSheets';
@@ -38,7 +39,9 @@ export default function ImportSettingsRoute() {
   const queryClient = useQueryClient();
   const sync = useCallback(async () => {
     try {
-      const { recorded } = await syncImportApps(db);
+      const { recorded, allowed } = await syncImportApps(db);
+      // Apps switched on before this notification existed: ask here too.
+      if (allowed.length > 0) await ensureNoticePermission();
       if (recorded > 0) await invalidateAfterWrite(queryClient);
     } catch {
       // The next opening tries again.

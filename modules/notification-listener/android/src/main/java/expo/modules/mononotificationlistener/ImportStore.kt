@@ -31,6 +31,17 @@ class ImportStore(context: Context) {
     prefs.edit().putBoolean(KEY_DEV_SYSTEM, allow).apply()
   }
 
+  /** The sentences of MONO's "waiting for review" notification, in the app's language ({app} is the bank app's name). */
+  fun setReviewNotice(title: String, body: String, channel: String) {
+    prefs.edit().putString(KEY_NOTICE_TITLE, title).putString(KEY_NOTICE_BODY, body).putString(KEY_NOTICE_CHANNEL, channel).apply()
+  }
+
+  fun reviewNotice(): ReviewWords? {
+    val title = prefs.getString(KEY_NOTICE_TITLE, null) ?: return null
+    val body = prefs.getString(KEY_NOTICE_BODY, null) ?: return null
+    return ReviewWords(title, body, prefs.getString(KEY_NOTICE_CHANNEL, null) ?: title)
+  }
+
   fun lastReadAt(): Long = prefs.getLong(KEY_LAST_READ, 0L)
 
   fun markRead(at: Long) {
@@ -79,6 +90,9 @@ class ImportStore(context: Context) {
   companion object {
     private const val NAME = "mono_notification_import"
     private const val KEY_ALLOWED = "allowed_packages"
+    private const val KEY_NOTICE_TITLE = "notice_title"
+    private const val KEY_NOTICE_BODY = "notice_body"
+    private const val KEY_NOTICE_CHANNEL = "notice_channel"
     private const val KEY_LAST_READ = "last_read_at"
     private const val KEY_SEEN = "seen_apps"
     private const val KEY_DEV_SYSTEM = "dev_allow_system"

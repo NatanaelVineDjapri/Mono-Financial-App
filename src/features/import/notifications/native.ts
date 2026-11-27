@@ -49,6 +49,7 @@ interface NativeListenerModule {
   setAllowedPackages(packages: string[]): void;
   getAllowedPackages(): string[];
   getSeenApps(): NativeSeenApp[];
+  setReviewNotice(title: string, body: string, channel: string): void;
   forgetSeenApp(pkg: string): void;
   getLastReadAt(): number | null;
   drainQueue(): RawNotification[];
@@ -86,6 +87,8 @@ export const setDevAllowSystemApps = (allow: boolean) => safe(m => m.setDevAllow
 export const getDevAllowSystemApps = () => (__DEV__ ? safe(m => m.getDevAllowSystemApps(), false) : false);
 export const setAllowedPackages = (packages: readonly string[]) => safe(m => m.setAllowedPackages([...packages]), undefined);
 export const getAllowedPackages = () => safe(m => m.getAllowedPackages(), [] as string[]);
+// The sentences of MONO's own "waiting for review" notification; {app} is replaced by the bank app's name.
+export const setReviewNotice = (title: string, body: string, channel: string) => safe(m => m.setReviewNotice(title, body, channel), undefined);
 export const getSeenApps = () => safe(m => m.getSeenApps(), [] as NativeSeenApp[]);
 export const forgetSeenApp = (pkg: string) => safe(m => m.forgetSeenApp(pkg), undefined);
 export const getLastReadAt = () => safe(m => m.getLastReadAt(), null as number | null);
