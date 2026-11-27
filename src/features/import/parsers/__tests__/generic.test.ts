@@ -133,3 +133,19 @@ describe('a bank saying only "transfer"', () => {
   });
 });
 
+// The shape of a real myBCA "Catatan Finansial" notification (title and wording as the app posts it); the name is made up,
+// masked the way BCA masks it.
+describe('myBCA Catatan Finansial', () => {
+  test('money in: income, the amount in IDR, the masked sender kept as shown, the category left out', () => {
+    expect(parseGeneric('Catatan Finansial', 'Pemasukan sebesar IDR 1.00 dari ***DI SANT**O *A di kategori Transfer Rekening.')).toEqual({
+      kind: 'income',
+      amountIdr: 1,
+      merchant: '***DI SANT**O *A',
+    });
+  });
+
+  test('larger amounts with thousands and cents', () => {
+    expect(parseGeneric('Catatan Finansial', 'Pemasukan sebesar IDR 1,250,000.00 dari ***DI SANT**O *A di kategori Transfer Rekening.')?.amountIdr).toBe(1250000);
+  });
+});
+

@@ -24,10 +24,10 @@ const PROMO = /\b(promo|diskon|voucher|hemat|dapatkan|gratis|undian|hadiah|ikuti
 
 const EXPENSE = [
   'pembayaran', 'membayar', 'dibayar', 'bayar', 'pembelian', 'membeli', 'belanja', 'debit', 'penarikan', 'tarik tunai',
-  'transfer keluar', 'transfer ke', 'transfer dana ke', 'dikirim', 'mengirim', 'kirim uang', 'qris', 'kartu debit', 'payment', 'purchase', 'paid', 'spent', 'withdrawal',
+  'pengeluaran sebesar', 'uang keluar', 'dana keluar', 'transfer keluar', 'transfer ke', 'transfer dana ke', 'dikirim', 'mengirim', 'kirim uang', 'qris', 'kartu debit', 'payment', 'purchase', 'paid', 'spent', 'withdrawal',
 ];
 const INCOME = [
-  'menerima', 'diterima', 'dana masuk', 'uang masuk', 'transfer masuk', 'transfer dari', 'kredit', 'gaji', 'received',
+  'pemasukan sebesar', 'menerima', 'diterima', 'dana masuk', 'uang masuk', 'transfer masuk', 'transfer dari', 'kredit', 'gaji', 'received',
   'refund', 'pengembalian dana', 'deposit',
 ];
 // Money moved, but whether it is income or expense depends on the account: the person chooses.
@@ -71,20 +71,22 @@ function titleCase(text: string): string {
 }
 
 function cleanMerchant(raw: string): string {
+  // Two or more stars in a row are a bank hiding part of a name ("SANT**O"): keep it exactly as shown.
+  const masked = /\*{2,}/.test(raw);
   let text = raw
     .replace(/\b\d{6,}\b/g, ' ') // account, phone and reference numbers
     .replace(/\b(?:rp|idr)\.?\s*\d[\d.,]*/gi, ' ')
-    .replace(/[|*_#]+/g, ' ')
+    .replace(masked ? /[|_#]+/g : /[|*_#]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   if (text.length < 2 || !/[a-z]/i.test(text)) return '';
-  if (text === text.toUpperCase()) text = titleCase(text); // SHOUTED names read better in Title Case
+  if (!masked && text === text.toUpperCase()) text = titleCase(text); // SHOUTED names read better in Title Case
   return text.slice(0, MERCHANT_MAX).trim();
 }
 
-const STOP = '(?=\\s+(?:pada|tanggal|tgl|jam|pukul|sebesar|senilai|dengan|via|melalui|menggunakan|ref|no|nomor|berhasil|sukses|telah)\\b|\\s+(?:rp|idr)(?=\\d|\\s|\\.)|\\s+\\d|[\\n.,;:()|]|$)';
-const TO = new RegExp(`\\b(?:di|ke|kepada|untuk|to|at)\\s+(?!rekening\\b|bank\\b|akun\\b|saldo\\b|kamu\\b|anda\\b)([^\\n.,;:()|]{2,60}?)${STOP}`, 'i');
-const FROM = new RegExp(`\\b(?:dari|from)\\s+(?!rekening\\b|bank\\b|akun\\b|saldo\\b|kamu\\b|anda\\b)([^\\n.,;:()|]{2,60}?)${STOP}`, 'i');
+const STOP = '(?=\\s+(?:pada|tanggal|tgl|jam|pukul|sebesar|senilai|dengan|via|melalui|menggunakan|ref|no|nomor|berhasil|sukses|telah|di\\s+kategori)\\b|\\s+(?:rp|idr)(?=\\d|\\s|\\.)|\\s+\\d|[\\n.,;:()|]|$)';
+const TO = new RegExp(`\\b(?:di|ke|kepada|untuk|to|at)\\s+(?!rekening\\b|bank\\b|akun\\b|saldo\\b|kamu\\b|anda\\b|kategori\\b)([^\\n.,;:()|]{2,60}?)${STOP}`, 'i');
+const FROM = new RegExp(`\\b(?:dari|from)\\s+(?!rekening\\b|bank\\b|akun\\b|saldo\\b|kamu\\b|anda\\b|kategori\\b)([^\\n.,;:()|]{2,60}?)${STOP}`, 'i');
 
 function findMerchant(text: string, kind: ParsedNotification['kind']): string {
   const order = kind === 'income' ? [FROM, TO] : kind === 'expense' ? [TO, FROM] : [TO, FROM];
