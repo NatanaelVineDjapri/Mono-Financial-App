@@ -9,7 +9,7 @@ import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 const SUPPORTED_SCHEMA_VERSION = LATEST_SCHEMA_VERSION;
 
 // The schema version in which a backup table first appeared (the others have been there from the start).
-const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12, subcategories: 13, debts: 14 };
+const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12, subcategories: 13, debts: 14, portfolios: 15, positions: 15 };
 
 // Every checksum a file of `version` may legitimately carry: the tables as written by the app of that time, i.e. leaving
 // out any subset of the tables that did not exist yet.

@@ -282,6 +282,7 @@ export async function moveAccount(db: Db, from: number, to: number, now: string)
   await db.runAsync('update goals set account_id = $to where account_id = $from', both);
   await db.runAsync('update import_app_settings set account_id = $to where account_id = $from', both);
   await db.runAsync('update import_queue set account_id = $to where account_id = $from', both);
+  await db.runAsync('update portfolios set cash_account_id = $to where cash_account_id = $from', both);
   await db.runAsync(
     `update accounts set
        opening_balance = opening_balance + (select opening_balance from accounts where id = $from),

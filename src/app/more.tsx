@@ -37,6 +37,8 @@ import {
   moreGroupData,
   moreGroupLanguage,
   languageEnglishLabel,
+  portfolioMoreSub,
+  portfolioTitle,
   languageIndonesianLabel,
   moreGroupMoney,
   moreLogoLabel,
@@ -93,6 +95,7 @@ export default function MoreScreen() {
         </Text>
         <Card style={styles.groupCard}>
           <MoreRow icon="flame" title={achievementsTitle()} sub={achievementsMoreSub()} onPress={go('/achievements')} testID="more-achievements" />
+          <MoreRow icon="pulse" title={portfolioTitle()} sub={portfolioMoreSub()} onPress={go('/portfolio')} testID="more-portfolio" />
           <MoreRow icon="target" title={moreGoalsTitle()} sub={moreGoalsSub()} onPress={go('/goals')} testID="more-goals" />
           <MoreRow icon="refresh" title={moreRecurringTitle()} sub={moreRecurringSub(dueCount)} onPress={go('/recurring')} testID="more-recurring" />
           <MoreRow icon="transfer" title={debtsTitle()} sub={debtsMoreSub()} onPress={go('/debts')} testID="more-debts" />

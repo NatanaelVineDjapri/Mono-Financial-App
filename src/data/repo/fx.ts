@@ -27,13 +27,13 @@ export async function listLatestRates(db: Db): Promise<LatestFxRow[]> {
   return db.getAllAsync<LatestFxRow>('select * from v_latest_fx order by currency');
 }
 
-// Every currency with a non-archived pocket somewhere — only these are worth fetching
-// a rate for.
+// Every currency with a non-archived pocket somewhere, or a stock position in it: only these are worth fetching a rate for.
 export async function listHeldCurrencies(db: Db): Promise<string[]> {
-  const rows = await db.getAllAsync<{ currency: string }>(
-    'select distinct currency from account_currencies where archived = 0 order by currency',
-  );
-  return rows.map(r => r.currency);
+  const pockets = await db.getAllAsync<{ currency: string }>('select distinct currency from account_currencies where archived = 0');
+  // (a database that has not reached the portfolio migration has no positions)
+  const hasPositions = await db.getFirstAsync("select 1 as x from sqlite_master where type = 'table' and name = 'positions'");
+  const stocks = hasPositions ? await db.getAllAsync<{ currency: string }>("select distinct currency from positions where currency <> 'IDR'") : [];
+  return [...new Set([...pockets, ...stocks].map(r => r.currency))].sort();
 }
 
 export async function saveFetchedRates(db: Db, rates: { currency: string; rateE4: number }[], fetchedAt: string): Promise<void> {

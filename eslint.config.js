@@ -3,10 +3,10 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = [
   ...expoConfig,
   {
-    // Offline-first (CLAUDE.md rule 8): only src/features/ai_chat and src/features/fx
-    // may call the network.
+    // Offline-first (CLAUDE.md rule 8): only src/features/ai_chat, src/features/fx and
+    // src/features/portfolio (stock prices) may call the network.
     files: ['**/*.{js,jsx,ts,tsx}'],
-    ignores: ['src/features/ai_chat/**', 'src/features/fx/**'],
+    ignores: ['src/features/ai_chat/**', 'src/features/fx/**', 'src/features/portfolio/**'],
     rules: {
       'no-restricted-globals': [
         'error',
