@@ -377,15 +377,10 @@ describe('Overview', () => {
     expect(card.getByText('3,52%')).toBeTruthy();
   });
 
-  test('the carousel is a coverflow: snaps one card (260) at a time, first card centred, one dot per account', async () => {
+  test('the carousel is a coverflow: the first card in the middle, one dot per account', async () => {
     mockFilled();
     const result = await renderScreen();
-    const carousel = result.getByTestId('overview-account-carousel');
-    expect(carousel.props.snapToInterval).toBe(260);
-    expect(carousel.props.decelerationRate).toBe('fast');
-    // The first card starts centred: side padding is (window width - 300) / 2.
-    const style = Object.assign({}, ...[carousel.props.contentContainerStyle].flat());
-    expect(style.paddingHorizontal).toBe((Dimensions.get('window').width - 300) / 2);
+    expect(result.getByTestId('overview-account-carousel')).toBeTruthy();
     expect(result.getAllByTestId(/^overview-account-dot-/, { includeHiddenElements: true })).toHaveLength(4);
   });
 
@@ -399,21 +394,23 @@ describe('Overview', () => {
     mockQuery(useTransactionsList, TX_PAGE);
 
     const result = await renderScreen();
-    const realCards = result.getAllByTestId(/^overview-account-\d+$/);
-    expect(realCards.map(card => card.props.testID)).toEqual(['overview-account-3', 'overview-account-1', 'overview-account-4', 'overview-account-2']);
+    // the first account of the saved order is the focused one (a tap opens it), the second is to its right
+    await fireEvent.press(result.getByTestId('overview-account-1'));
+    expect(mockPush).not.toHaveBeenCalled();
+    await fireEvent.press(result.getByTestId('overview-account-1'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/account/[id]', params: { id: '1' } });
+    mockPush.mockClear();
+    await fireEvent.press(result.getByTestId('overview-account-3'));
+    await fireEvent.press(result.getByTestId('overview-account-3'));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/account/[id]', params: { id: '3' } });
   });
 
   test('the carousel loops: the last account also sits to the left of the first (and the first right of the last)', async () => {
     mockFilled();
     const result = await renderScreen();
-    // 4 accounts give 5 copies of the list. The middle copy is the real one; the copies
-    // before and after it supply the left and right neighbours.
-    for (const id of [1, 2, 3, 4]) {
-      for (const copy of [0, 1, 3, 4]) {
-        expect(result.getByTestId(`overview-account-${id}-copy-${copy}`, { includeHiddenElements: true })).toBeTruthy();
-      }
-      expect(result.getByTestId(`overview-account-${id}`)).toBeTruthy();
-    }
+    // Five places around the middle one: two to the left (accounts 3 and 4), the focused first, two to the right.
+    for (const id of [1, 2, 3, 4]) expect(result.getByTestId(`overview-account-${id}`, { includeHiddenElements: true })).toBeTruthy();
+    expect(result.getAllByTestId(/^overview-account-\d+(-copy--?\d+)?$/, { includeHiddenElements: true })).toHaveLength(5);
   });
 
   test('tapping the focused card opens it; tapping a neighbour only brings it to the centre', async () => {

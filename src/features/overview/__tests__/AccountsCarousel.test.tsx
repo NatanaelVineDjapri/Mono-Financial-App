@@ -1,55 +1,44 @@
-// The Overview's coverflow of account cards: one card per swipe, and the loop's invisible jump to the middle copy happens
-// only once a swipe has come to rest (a jump at the moment the finger lifts would cut the glide short and make it stutter).
-//
-// What the tests can see is which card counts as focused: tapping the focused card opens its account, tapping any other one
-// only brings it to the centre. A swipe that has settled moves the focus; one still gliding does not.
+// The Overview's coverflow of account cards: tapping the focused card opens its account, tapping a neighbour only brings
+// it to the centre, a drag settles on a card (a quick flick moves on by at least one), and only a handful of cards are
+// ever drawn however many accounts there are.
 import { fireEvent, render } from '@testing-library/react-native';
 
 import type { AccountsOverviewAccount } from '@/domain/balances';
 
-import { AccountsCarousel, CARD_INTERVAL } from '../AccountsCarousel';
+import { AccountsCarousel, settleTarget } from '../AccountsCarousel';
 
-const ACCOUNTS = [1, 2, 3].map(id => ({ id, name: `Account ${id}`, type: 'bank', icon: null, balance: id * 1000, pockets: null })) as unknown as AccountsOverviewAccount[];
+const accounts = (n: number) => Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Account ${i + 1}`, type: 'bank', icon: null, balance: (i + 1) * 1000, pockets: null })) as unknown as AccountsOverviewAccount[];
 
-// 3 accounts loop as 5 copies of the list; the middle copy starts at card 6, which is "Account 1". The card at index 10 is
-// "Account 2" of the copy to the right of the middle one.
-const COPY_TO_THE_RIGHT_ACCOUNT_2 = 10;
-
-async function renderCarousel() {
+async function renderCarousel(n = 3) {
   const onOpenAccount = jest.fn();
-  const result = await render(<AccountsCarousel title="Your accounts" linkLabel="See all" accounts={ACCOUNTS} onOpenAll={() => {}} onOpenAccount={onOpenAccount} />);
-  return { result, onOpenAccount, carousel: result.getByTestId('overview-account-carousel') };
+  const result = await render(<AccountsCarousel title="Your accounts" linkLabel="See all" accounts={accounts(n)} onOpenAll={() => {}} onOpenAccount={onOpenAccount} />);
+  return { result, onOpenAccount };
 }
 
-function scrollEvent(x: number, velocity?: number) {
-  return { nativeEvent: { contentOffset: { x, y: 0 }, ...(velocity !== undefined ? { velocity: { x: velocity, y: 0 } } : {}) } };
-}
+test('the focused card opens; a neighbour comes to the centre first and opens on the next tap', async () => {
+  const { result, onOpenAccount } = await renderCarousel();
+  await fireEvent.press(result.getByTestId('overview-account-1'));
+  expect(onOpenAccount).toHaveBeenLastCalledWith(1);
+  await fireEvent.press(result.getByTestId('overview-account-2'));
+  expect(onOpenAccount).toHaveBeenCalledTimes(1);
+  await fireEvent.press(result.getByTestId('overview-account-2'));
+  expect(onOpenAccount).toHaveBeenLastCalledWith(2);
+});
 
-describe('AccountsCarousel', () => {
-  test('one card per swipe: the row snaps card by card and does not coast over several', async () => {
-    const { carousel } = await renderCarousel();
-    expect(carousel.props.snapToInterval).toBe(CARD_INTERVAL);
-    expect(carousel.props.disableIntervalMomentum).toBe(true);
-  });
+test('only the cards around the middle are drawn, and one account does not repeat', async () => {
+  const many = await renderCarousel(8);
+  expect(many.result.getAllByTestId(/^overview-account-\d+(-copy--?\d+)?$/, { includeHiddenElements: true })).toHaveLength(5);
+  await many.result.unmount();
+  const one = await renderCarousel(1);
+  expect(one.result.getAllByTestId(/^overview-account-\d+(-copy--?\d+)?$/, { includeHiddenElements: true })).toHaveLength(1);
+  expect(one.result.queryByTestId('overview-account-dot-0')).toBeNull();
+});
 
-  test('when the glide ends on a card of another copy, that account is the focused one in the middle copy', async () => {
-    const { result, onOpenAccount, carousel } = await renderCarousel();
-    await fireEvent(carousel, 'momentumScrollEnd', scrollEvent(COPY_TO_THE_RIGHT_ACCOUNT_2 * CARD_INTERVAL));
-    await fireEvent.press(result.getByTestId('overview-account-2'));
-    expect(onOpenAccount).toHaveBeenCalledWith(2);
-  });
-
-  test('lifting the finger while the row is still gliding settles nothing: the glide is not cut short', async () => {
-    const { result, onOpenAccount, carousel } = await renderCarousel();
-    await fireEvent(carousel, 'scrollEndDrag', scrollEvent(COPY_TO_THE_RIGHT_ACCOUNT_2 * CARD_INTERVAL + 40, 1.4));
-    await fireEvent.press(result.getByTestId('overview-account-2'));
-    expect(onOpenAccount).not.toHaveBeenCalled(); // still "Account 1" that is focused: this tap only recentres
-  });
-
-  test('released at rest exactly on a card there is no glide to wait for, so it settles at once', async () => {
-    const { result, onOpenAccount, carousel } = await renderCarousel();
-    await fireEvent(carousel, 'scrollEndDrag', scrollEvent(COPY_TO_THE_RIGHT_ACCOUNT_2 * CARD_INTERVAL, 0));
-    await fireEvent.press(result.getByTestId('overview-account-2'));
-    expect(onOpenAccount).toHaveBeenCalledWith(2);
-  });
+test('a released drag rests on a card: carried by the speed, at least one on a flick, never more than three', () => {
+  expect(settleTarget(0.2, 0, 0)).toBe(0); // a short slow drag springs back
+  expect(settleTarget(0.7, 0, 0)).toBe(1);
+  expect(settleTarget(0.2, 0, -600)).toBe(1); // a flick to the left moves on
+  expect(settleTarget(-0.2, 0, 600)).toBe(-1);
+  expect(settleTarget(0.5, 0, -2600)).toBe(2); // carried past one
+  expect(settleTarget(1, 0, -9000)).toBe(3);
 });

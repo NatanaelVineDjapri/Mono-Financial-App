@@ -111,7 +111,9 @@
           "/node_modules/@react-native/babel-preset/"
         ],
         "setupFiles": [
-          "@shopify/react-native-skia/jestSetup.js"
+          "@shopify/react-native-skia/jestSetup.js",
+          "react-native-gesture-handler/jestSetup.js",
+          "<rootDir>/jest.gesture-setup.js"
         ],
         "setupFilesAfterEnv": [
           "<rootDir>/src/i18n/jest-setup.ts"

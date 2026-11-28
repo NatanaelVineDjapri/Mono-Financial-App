@@ -1,31 +1,32 @@
 // "Your accounts" (DESIGN.md "A. Overview", design v77): a 3D coverflow of brand-colour bank
 // cards (300×154). The focused card sits centred at full size with a soft shadow; its
 // neighbours peek in on both sides, smaller (0.88), turned about 26° around the Y axis and
-// darker, tucked slightly behind it. Swiping snaps to the centre one card at a time, and a
-// row of dots under the cards shows the position (the active one is a longer gold pill).
-// Tapping the focused card opens it; tapping a neighbour brings it to the centre first.
+// darker, tucked slightly behind it. A row of dots under the cards shows the position (the
+// active one is a longer pill). Tapping the focused card opens it; tapping a neighbour brings
+// it to the centre first.
 //
-// The row loops: the first card has the last one on its left, and the last card has the
-// first on its right. It is the account list repeated 3 or 5 times with the middle copy in
-// view; whenever a swipe settles, the scroll position silently jumps to the same card in
-// the middle copy, so the user never reaches an end. One account does not loop.
+// The cards follow the finger and then settle with a spring that carries the finger's speed, so
+// a flick can pass a few cards and a slow drag moves one. The row loops without an end: the
+// position is a number of cards that only grows or shrinks, and card k shows account k modulo
+// the number of accounts. Only the five cards around the middle one are drawn.
 //
-// Everything that follows the finger runs on the UI thread from one scroll offset (a shared
-// value), so there is no React re-render per frame. Only the committed index (for the tap
-// behaviour) is JS state, set when a swipe settles.
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+// Everything that follows the finger runs on the UI thread from one shared value; React hears
+// only when another card reaches the middle.
+import { memo, useCallback, useRef, useState } from 'react';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
+  cancelAnimation,
   Extrapolation,
   interpolate,
   interpolateColor,
-  useAnimatedScrollHandler,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
-  withTiming,
+  withSpring,
   type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { PhysicalCard } from '@/components/PhysicalCard';
 import { money } from '@/core/money';
@@ -47,6 +48,10 @@ const SIDE_DIM = 0.45; // opacity of the black veil over a card one step away
 const PERSPECTIVE = 900;
 const DOT = 6;
 const DOT_ACTIVE = 18;
+const AROUND = 2; // cards drawn on each side of the middle one
+const MAX_FLING = 3; // cards one flick can pass
+const GLIDE_SECONDS = 0.15; // how far ahead the finger's speed is carried
+const SPRING = { damping: 20, stiffness: 170, mass: 0.8 };
 
 export interface AccountsCarouselProps {
   title: string;
@@ -56,43 +61,71 @@ export interface AccountsCarouselProps {
   onOpenAccount: (id: number) => void;
 }
 
-function CarouselItem({ index, offset, isLast, hiddenFromA11y, children }: { index: number; offset: SharedValue<number>; isLast: boolean; hiddenFromA11y: boolean; children: ReactNode }) {
-  // `d` is how many card-steps this card is from the centre: 0 focused, -1 one to the left.
+const wrap = (k: number, count: number) => ((k % count) + count) % count;
+
+// Where a released drag comes to rest: `position` (in cards) carried on by the finger's speed, at most MAX_FLING cards
+// from where it started; a quick short flick still moves on by one.
+export function settleTarget(position: number, startedAt: number, velocityX: number): number {
+  'worklet';
+  const speed = -velocityX / CARD_INTERVAL; // cards per second
+  const from = Math.round(startedAt);
+  let target = Math.round(position + speed * GLIDE_SECONDS);
+  if (target === from && Math.abs(velocityX) > 400) target = from + Math.sign(speed);
+  return Math.min(Math.max(target, from - MAX_FLING), from + MAX_FLING);
+}
+
+interface ItemProps {
+  k: number; // which place in the endless row
+  account: AccountsOverviewAccount;
+  position: SharedValue<number>;
+  left: number;
+  zIndex: number;
+  hiddenFromA11y: boolean;
+  onPress: (k: number, id: number) => void;
+  testID: string;
+}
+
+const CarouselItem = memo(function CarouselItem({ k, account, position, left, zIndex, hiddenFromA11y, onPress, testID }: ItemProps) {
+  // `d` is how many card-steps this card is from the middle: 0 focused, -1 one to the left.
   const style = useAnimatedStyle(() => {
-    const d = index - offset.value / CARD_INTERVAL;
+    const d = k - position.value;
     return {
-      zIndex: Math.round(100 - Math.min(Math.abs(d), 5) * 10),
       transform: [
         { perspective: PERSPECTIVE },
+        { translateX: d * CARD_INTERVAL },
         { scale: interpolate(d, [-1, 0, 1], [SIDE_SCALE, 1, SIDE_SCALE], Extrapolation.CLAMP) },
         { rotateY: `${interpolate(d, [-1, 0, 1], [SIDE_ROTATE_DEG, 0, -SIDE_ROTATE_DEG], Extrapolation.CLAMP)}deg` },
       ],
     };
   });
-  const veil = useAnimatedStyle(() => {
-    const d = index - offset.value / CARD_INTERVAL;
-    return { opacity: interpolate(Math.abs(d), [0, 1], [0, SIDE_DIM], Extrapolation.CLAMP) };
-  });
+  const veil = useAnimatedStyle(() => ({ opacity: interpolate(Math.abs(k - position.value), [0, 1], [0, SIDE_DIM], Extrapolation.CLAMP) }));
   return (
-    // The repeated copies exist only to make the row loop; screen readers get each account once.
     <Animated.View
-      style={[styles.item, !isLast && styles.itemOverlap, style]}
+      style={[styles.item, { left, zIndex }, style]}
       renderToHardwareTextureAndroid
       accessibilityElementsHidden={hiddenFromA11y}
       importantForAccessibility={hiddenFromA11y ? 'no-hide-descendants' : 'auto'}
     >
-      {children}
+      <PhysicalCard
+        variant="carousel"
+        name={account.name}
+        type={account.type}
+        icon={account.icon}
+        balance={account.balance}
+        subline={account.pockets?.map(p => money(p.balance, p.currency, p.minorFactor)).join(' · ')}
+        onPress={() => onPress(k, account.id)}
+        testID={testID}
+      />
       <Animated.View pointerEvents="none" style={[styles.veil, veil]} />
     </Animated.View>
   );
-}
+});
 
-function Dot({ index, count, offset }: { index: number; count: number; offset: SharedValue<number> }) {
+function Dot({ index, count, position }: { index: number; count: number; position: SharedValue<number> }) {
   const style = useAnimatedStyle(() => {
-    // Position in card steps, wrapped to the real account list, and its circular distance
-    // from this dot (so the dot after the last account is the first one again).
-    const p = offset.value / CARD_INTERVAL;
-    const diff = (((p - index) % count) + count) % count;
+    // The position wrapped to the real account list, and its circular distance from this dot
+    // (so the dot after the last account is the first one again).
+    const diff = (((position.value - index) % count) + count) % count;
     const distance = Math.min(diff, count - diff);
     return {
       width: interpolate(distance, [0, 1], [DOT_ACTIVE, DOT], Extrapolation.CLAMP),
@@ -102,153 +135,112 @@ function Dot({ index, count, offset }: { index: number; count: number; offset: S
   return <Animated.View style={[styles.dot, style]} testID={`overview-account-dot-${index}`} />;
 }
 
-// Copies of the list laid out side by side. Enough on each side of the middle one that a
-// hard fling cannot run off the end before the swipe settles and re-centres.
-function copiesFor(count: number): number {
-  if (count <= 1) return 1;
-  return count >= 6 ? 3 : 5;
-}
-
 export function AccountsCarousel(props: AccountsCarouselProps) {
-  // Remount when the number of accounts changes: the offsets below depend on it.
+  // Remount when the number of accounts changes: which card sits where depends on it.
   return <Coverflow key={props.accounts.length} {...props} />;
 }
 
 function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: AccountsCarouselProps) {
   const { width } = useWindowDimensions();
-  const sidePadding = Math.max(0, (width - CARD_WIDTH) / 2);
+  const left = Math.max(0, (width - CARD_WIDTH) / 2);
   const count = accounts.length;
-  const copies = copiesFor(count);
-  const middle = Math.floor(copies / 2);
-  const startIndex = count * middle;
-  const offset = useSharedValue(startIndex * CARD_INTERVAL);
-  // The row first draws at its left end and is then moved to the middle copy (Android ignores `contentOffset`): that jump was
-  // visible every time the app opened. It stays invisible until it is in place, with a short timeout in case it never gets there.
-  const ready = useSharedValue(startIndex === 0 ? 1 : 0);
-  const revealStyle = useAnimatedStyle(() => ({ opacity: ready.value }));
-  useEffect(() => {
-    if (startIndex === 0) return;
-    ready.set(withDelay(400, withTiming(1, { duration: 120 })));
-  }, [startIndex, ready]);
-  const scrollRef = useRef<Animated.ScrollView>(null);
-  const placed = useRef(false);
-  const [active, setActive] = useState(startIndex);
+  const loops = count > 1;
+  const position = useSharedValue(0);
+  const dragFrom = useSharedValue(0);
+  const touchFrom = useSharedValue(0);
+  const [center, setCenter] = useState(0);
+  const centerRef = useRef(0);
 
-  const onScroll = useAnimatedScrollHandler(event => {
-    offset.value = event.contentOffset.x;
-  });
+  const focus = useCallback((k: number) => {
+    centerRef.current = k;
+    setCenter(k);
+  }, []);
 
-  // Start with the first account centred in the middle copy (Android ignores the
-  // `contentOffset` prop, so the first layout scrolls there).
-  const placeAtStart = useCallback(() => {
-    if (placed.current || startIndex === 0) return;
-    placed.current = true;
-    scrollRef.current?.scrollTo({ x: startIndex * CARD_INTERVAL, animated: false });
-    // One frame later, once the scroll has been drawn at the new place.
-    requestAnimationFrame(() => {
-      ready.set(withTiming(1, { duration: 120 }));
-    });
-  }, [startIndex, ready]);
+  useAnimatedReaction(
+    () => Math.round(position.value),
+    (now, before) => {
+      if (before !== null && now !== before) scheduleOnRN(focus, now);
+    },
+  );
 
-  const settle = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.min(Math.max(Math.round(event.nativeEvent.contentOffset.x / CARD_INTERVAL), 0), count * copies - 1);
-      if (count <= 1) {
-        setActive(index);
+  // Only a sideways drag is taken: an up or down one is left to the page.
+  const pan = usePanGesture({
+    testID: 'overview-account-pan',
+    activeOffsetX: [-8, 8],
+    failOffsetY: [-12, 12],
+    onActivate: event => {
+      'worklet';
+      cancelAnimation(position);
+      dragFrom.set(position.value);
+      touchFrom.set(event.translationX); // so the card does not jump by the distance it took to activate
+    },
+    onUpdate: event => {
+      'worklet';
+      const moved = (event.translationX - touchFrom.value) / CARD_INTERVAL;
+      // one account has nowhere to go: it gives a little and comes back
+      position.set(loops ? dragFrom.value - moved : -moved * 0.2);
+    },
+    onDeactivate: event => {
+      'worklet';
+      if (!loops) {
+        position.set(withSpring(0, SPRING));
         return;
       }
-      // Same card, middle copy: an invisible jump that keeps both sides full.
-      const home = startIndex + (index % count);
-      if (home !== index) {
-        scrollRef.current?.scrollTo({ x: home * CARD_INTERVAL, animated: false });
-        offset.set(home * CARD_INTERVAL);
-      }
-      setActive(home);
+      const target = settleTarget(position.value, dragFrom.value, event.velocityX);
+      position.set(withSpring(target, { ...SPRING, velocity: -event.velocityX / CARD_INTERVAL }));
     },
-    [count, copies, startIndex, offset],
-  );
-
-  // Letting go of the finger is not the end of a swipe: the row keeps gliding to its snap point. Jumping to the middle copy
-  // at that moment would cut the glide short, which is what made the row stutter. So a release only settles when there is
-  // nothing left to glide: no speed and already on a snap point. Every other swipe settles when the glide ends.
-  const onRelease = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const x = event.nativeEvent.contentOffset.x;
-      const speed = Math.abs(event.nativeEvent.velocity?.x ?? 0);
-      const onSnapPoint = Math.abs(x - Math.round(x / CARD_INTERVAL) * CARD_INTERVAL) < 1;
-      if (speed < 0.05 && onSnapPoint) settle(event);
-    },
-    [settle],
-  );
+  });
 
   const onPressCard = useCallback(
-    (index: number, id: number) => {
-      if (index === active) {
+    (k: number, id: number) => {
+      if (k === centerRef.current) {
         onOpenAccount(id);
         return;
       }
-      scrollRef.current?.scrollTo({ x: index * CARD_INTERVAL, animated: true });
-      setActive(index);
+      position.set(withSpring(k, SPRING));
+      focus(k);
     },
-    [active, onOpenAccount],
+    [onOpenAccount, position, focus],
   );
 
-  const items = Array.from({ length: copies * count }, (_, index) => ({ index, copy: Math.floor(index / count), account: accounts[index % count] }));
+  const places = loops ? Array.from({ length: AROUND * 2 + 1 }, (_, i) => center - AROUND + i) : [0];
+  // The nearest drawn card of each account carries the account's own test id.
+  const nearest = new Map<number, number>();
+  for (const k of [...places].sort((a, b) => Math.abs(a - center) - Math.abs(b - center))) {
+    const index = wrap(k, count);
+    if (!nearest.has(index)) nearest.set(index, k);
+  }
 
   return (
     <View style={styles.section}>
       <SectionHeader title={title} linkLabel={linkLabel} onPress={onOpenAll} />
-      {/* A plain card shape under the row: while the row is hidden (it is placed first), the slot is not an empty gap. The real
-          card, at full size and in the same place, covers it completely. */}
-      <View style={styles.slot}>
-        <View pointerEvents="none" style={[styles.placeholder, { left: sidePadding }]} testID="overview-account-placeholder" />
-      <Animated.ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_INTERVAL}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        disableIntervalMomentum
-        scrollEventThrottle={16}
-        onScroll={onScroll}
-        onContentSizeChange={placeAtStart}
-        onMomentumScrollEnd={settle}
-        onScrollEndDrag={onRelease}
-        contentOffset={{ x: startIndex * CARD_INTERVAL, y: 0 }}
-        contentContainerStyle={[styles.row, { paddingHorizontal: sidePadding }]}
-        style={[styles.scroller, revealStyle]}
-        testID="overview-account-carousel"
-      >
-        {items.map(({ index, copy, account }) => {
-          const real = copy === middle;
-          return (
-            <CarouselItem
-              key={`${copy}-${account.id}`}
-              index={index}
-              offset={offset}
-              isLast={index === items.length - 1}
-              hiddenFromA11y={!real}
-            >
-              <PhysicalCard
-                variant="carousel"
-                name={account.name}
-                type={account.type}
-                icon={account.icon}
-                balance={account.balance}
-                subline={account.pockets?.map(p => money(p.balance, p.currency, p.minorFactor)).join(' · ')}
-                onPress={() => onPressCard(index, account.id)}
-                testID={real ? `overview-account-${account.id}` : `overview-account-${account.id}-copy-${copy}`}
+      <GestureDetector gesture={pan}>
+        <View style={styles.stage} collapsable={false} testID="overview-account-carousel">
+          {places.map(k => {
+            const index = wrap(k, count);
+            const account = accounts[index];
+            const own = nearest.get(index) === k;
+            return (
+              <CarouselItem
+                key={k}
+                k={k}
+                account={account}
+                position={position}
+                left={left}
+                zIndex={10 - Math.abs(k - center)}
+                // screen readers get each account once, from the cards that can be seen
+                hiddenFromA11y={!own || Math.abs(k - center) > 1}
+                onPress={onPressCard}
+                testID={own ? `overview-account-${account.id}` : `overview-account-${account.id}-copy-${k}`}
               />
-            </CarouselItem>
-          );
-        })}
-      </Animated.ScrollView>
-      </View>
+            );
+          })}
+        </View>
+      </GestureDetector>
       {count > 1 && (
         <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {accounts.map((account, index) => (
-            <Dot key={account.id} index={index} count={count} offset={offset} />
+            <Dot key={account.id} index={index} count={count} position={position} />
           ))}
         </View>
       )}
@@ -260,19 +252,15 @@ function Coverflow({ title, linkLabel, accounts, onOpenAll, onOpenAccount }: Acc
 const styles = StyleSheet.create({
   section: { gap: 12 },
   // Room above and below for the shadow and the rotated cards' corners.
-  scroller: { flexGrow: 0, paddingVertical: 12 },
-  slot: { position: 'relative' },
-  // Where the focused card sits: 12 down (the scroller's own padding), centred.
-  placeholder: { position: 'absolute', top: 12, width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 16, backgroundColor: MonoColors.card, borderWidth: 1, borderColor: MonoColors.border },
-  row: { alignItems: 'center' },
+  stage: { height: CARD_HEIGHT + 24, overflow: 'hidden' },
   item: {
+    position: 'absolute',
+    top: 12,
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 16,
     boxShadow: '0px 8px 16px rgba(0,0,0,0.45)',
   },
-  // Pulls the next card back so it tucks behind this one.
-  itemOverlap: { marginRight: CARD_INTERVAL - CARD_WIDTH },
   veil: { ...StyleSheet.absoluteFill, borderRadius: 16, backgroundColor: '#000' },
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   dot: { height: DOT, borderRadius: DOT / 2 },
