@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
 import { useCountUp } from '@/components/Intro';
+import { flameColor, flameSize, StreakFlame } from '@/components/StreakFlame';
 import type { AvatarPoseId } from '@/features/profile/avatarPoses';
 import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
 import { streakLabel, bellUnreadLabel, moreTitle, notificationsLabel, welcomeGreeting, type GreetingKind } from '@/i18n';
@@ -85,8 +86,8 @@ export function OverviewHeader({
           style={({ pressed }) => [styles.streak, pressed && styles.pressed]}
           testID="overview-streak"
         >
-          <Icon name="flame" size={20} color={streak.todayDone ? MonoColors.accent : MonoColors.textMeta} />
-          <StreakNumber value={streak.current} dim={!streak.todayDone} />
+          <StreakFlame days={streak.current} size={flameSize(streak.current, 22)} dim={!streak.todayDone} />
+          <StreakNumber value={streak.current} color={streak.todayDone ? flameColor(streak.current) : MonoColors.textMeta} />
         </Pressable>
       )}
 
@@ -113,14 +114,13 @@ export function OverviewHeader({
   );
 }
 
-function StreakNumber({ value, dim }: { value: number; dim: boolean }) {
-  return <Text style={[styles.streakText, dim && styles.streakOff]}>{useCountUp(value)}</Text>;
+function StreakNumber({ value, color }: { value: number; color: string }) {
+  return <Text style={[styles.streakText, { color }]}>{useCountUp(value)}</Text>;
 }
 
 const styles = StyleSheet.create({
   streak: { minHeight: 44, minWidth: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 8 },
   streakText: { ...MonoText.figureS, color: MonoColors.text },
-  streakOff: { color: MonoColors.textMeta },
   header: {
     paddingHorizontal: 16,
     flexDirection: 'row',

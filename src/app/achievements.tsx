@@ -1,20 +1,20 @@
 // Streak and achievements (/achievements, from the flame on Overview and from More): the running streak with the last
-// seven days, then the 30 badges; a locked one is dimmed and says how far along it is. A press shows what it takes.
+// seven days and the flames still to come, then the 30 badges; a locked one is dimmed and says what it takes. The
+// badges are not pressed: nothing opens over them (the owner's call).
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
-import { Sheet } from '@/components/Sheet';
+import { flameColor, flameSize, StreakFlame } from '@/components/StreakFlame';
 import { today as todayLocal } from '@/core/clock';
 import { addDays, formatShortDate } from '@/core/date';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
-import { getAchievements, type Achievement } from '@/domain/achievements';
+import { getAchievements, STREAK_TIERS, type Achievement } from '@/domain/achievements';
 import { BADGE_IMAGES } from '@/features/achievements/badges';
 import {
   achievementEarned,
@@ -25,7 +25,6 @@ import {
   achievementsLoadError,
   achievementsTitle,
   backLabel,
-  closeLabel,
   retryLabel,
   streakDayLabel,
   streakDays,
@@ -45,7 +44,6 @@ export default function AchievementsScreen() {
   const db = useDb();
   const today = todayLocal();
   const { data, isError, refetch } = useQuery({ queryKey: [...queryKeys.transactions, 'achievements', today], queryFn: () => getAchievements(db, today), staleTime: 0 });
-  const [open, setOpen] = useState<Achievement | null>(null);
 
   const recorded = new Set(data?.days);
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
@@ -73,11 +71,22 @@ export default function AchievementsScreen() {
           <>
             <View style={styles.card} testID="streak-card">
               <View style={styles.streakLine}>
-                <Icon name="flame" size={28} color={data.streak.todayDone ? MonoColors.accent : MonoColors.textMeta} />
-                <Text style={styles.streak}>{streakDays(data.streak.current)}</Text>
+                <StreakFlame days={data.streak.current} size={flameSize(data.streak.current, 56)} dim={!data.streak.todayDone} testID="streak-flame" />
+                <Text style={[styles.streak, { color: flameColor(data.streak.current) }]}>{streakDays(data.streak.current)}</Text>
               </View>
               <Text style={styles.sub}>{data.streak.todayDone ? streakTodayDone() : streakTodayOpen()}</Text>
               <Text style={styles.sub}>{streakLongest(data.streak.longest)}</Text>
+              {/* the flames: what is reached in colour, what is still to come faded */}
+              <View style={styles.ladder} testID="flame-ladder">
+                {STREAK_TIERS.map(days => (
+                  <View key={days} style={styles.rung} accessible accessibilityLabel={`${streakDays(days)}, ${data.streak.longest >= days ? achievementEarned() : achievementLocked()}`}>
+                    <View style={styles.rungFlame}>
+                      <StreakFlame days={days} size={flameSize(days, 24)} dim={data.streak.longest < days} testID={`flame-step-${days}`} />
+                    </View>
+                    <Text style={styles.dayText}>{days}</Text>
+                  </View>
+                ))}
+              </View>
               <Text style={styles.label}>{streakWeek()}</Text>
               <View style={styles.week}>
                 {week.map(day => {
@@ -95,35 +104,17 @@ export default function AchievementsScreen() {
             <Text style={styles.label}>{achievementsCount(earned, data.achievements.length)}</Text>
             <View style={styles.grid}>
               {data.achievements.map(a => (
-                <Pressable
-                  key={a.id}
-                  onPress={() => setOpen(a)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${achievementName(a.id)}, ${status(a)}`}
-                  style={({ pressed }) => [styles.cell, pressed && styles.pressed]}
-                  testID={`badge-${a.id}`}
-                >
+                <View key={a.id} accessible accessibilityLabel={`${achievementName(a.id)}, ${status(a)}. ${achievementText(a.id)}`} style={styles.cell} testID={`badge-${a.id}`}>
                   <Image source={BADGE_IMAGES[a.id - 1]} style={[styles.badge, !a.earned && styles.locked]} fadeDuration={0} />
                   <Text style={[styles.name, !a.earned && styles.nameLocked]}>{achievementName(a.id)}</Text>
+                  {!a.earned && <Text style={styles.progress}>{achievementText(a.id)}</Text>}
                   {!a.earned && a.progress && <Text style={styles.progress}>{status(a)}</Text>}
-                </Pressable>
+                </View>
               ))}
             </View>
           </>
         )}
       </ScrollView>
-
-      <Sheet visible={open != null} onClose={() => setOpen(null)} closeLabel={closeLabel()} testID="badge-sheet">
-        {open && (
-          <View style={styles.detail}>
-            <Image source={BADGE_IMAGES[open.id - 1]} style={[styles.bigBadge, !open.earned && styles.locked]} fadeDuration={0} />
-            <Text style={styles.detailName}>{achievementName(open.id)}</Text>
-            <Text style={styles.detailText}>{achievementText(open.id)}</Text>
-            <Text style={styles.label}>{status(open)}</Text>
-            <Button label={closeLabel()} variant="secondary" onPress={() => setOpen(null)} testID="badge-sheet-close" />
-          </View>
-        )}
-      </Sheet>
     </View>
   );
 }
@@ -136,6 +127,9 @@ const styles = StyleSheet.create({
   centered: { alignItems: 'center', gap: 12, padding: 32 },
   card: { backgroundColor: MonoColors.surface, borderRadius: 20, borderWidth: 1, borderColor: MonoColors.border, padding: 16, gap: 6 },
   streakLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  ladder: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 },
+  rung: { alignItems: 'center', gap: 2, flex: 1 },
+  rungFlame: { height: 44, justifyContent: 'flex-end' },
   streak: { ...MonoText.titleL, color: MonoColors.text, flexShrink: 1 },
   sub: { ...MonoText.bodyS, color: MonoColors.textSecond },
   label: { ...MonoText.label, color: MonoColors.textMeta, textTransform: 'uppercase', marginTop: 8 },
@@ -146,14 +140,9 @@ const styles = StyleSheet.create({
   dayText: { ...MonoText.caption, color: MonoColors.textMeta },
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 16 },
   cell: { width: '33.33%', alignItems: 'center', gap: 4, paddingHorizontal: 4 },
-  pressed: { opacity: 0.7 },
   badge: { width: 96, height: 96 },
   locked: { opacity: 0.22 },
   name: { ...MonoText.caption, color: MonoColors.text, textAlign: 'center' },
   nameLocked: { color: MonoColors.textMeta },
-  progress: { ...MonoText.caption, color: MonoColors.textMeta },
-  detail: { alignItems: 'center', gap: 10, paddingTop: 8 },
-  bigBadge: { width: 160, height: 160 },
-  detailName: { ...MonoText.titleM, color: MonoColors.text, textAlign: 'center' },
-  detailText: { ...MonoText.body, color: MonoColors.textSecond, textAlign: 'center' },
+  progress: { ...MonoText.caption, color: MonoColors.textMeta, textAlign: 'center' },
 });

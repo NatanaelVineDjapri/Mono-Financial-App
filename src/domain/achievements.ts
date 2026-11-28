@@ -13,6 +13,15 @@ export interface Streak {
   todayDone: boolean;
 }
 
+// The flame changes at these streaks (days); the first is the plain one.
+export const STREAK_TIERS = [1, 10, 30, 60, 100] as const;
+
+export function streakTier(days: number): number {
+  let tier = 0;
+  for (let i = 1; i < STREAK_TIERS.length; i++) if (days >= STREAK_TIERS[i]) tier = i;
+  return tier;
+}
+
 // `days`: the days with a record, sorted ascending, each once.
 export function streakOf(days: readonly string[], today: string): Streak {
   let longest = 0;
