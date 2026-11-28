@@ -9,6 +9,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { ListSkeleton } from '@/components/ListSkeleton';
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
+import { Rise, TabEntrance } from '@/components/Intro';
 import { FilterSheet } from '@/components/FilterSheet';
 import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
@@ -186,12 +187,14 @@ function groupByDay(rows: TxListRow[]): { date: string; rows: TxListRow[] }[] {
 }
 
 function DaySection({
+  order,
   date,
   rows,
   daily,
   hidden,
   onPressRow,
 }: {
+  order: number; // its place in the tab's entrance
   date: string;
   rows: TxListRow[];
   daily?: DailyTotalRow;
@@ -199,28 +202,30 @@ function DaySection({
   onPressRow: (id: number) => void;
 }) {
   return (
-    <View style={styles.daySection}>
-      <View style={styles.dayHeader}>
-        <Text style={styles.dayDate}>{formatDayHeader(date)}</Text>
-        {/* Neutral grey, not coloured by sign — only the month's own Net and each row's
-            own amount carry income/expense colour (DESIGN.md: colour marks a figure the
-            reader acts on, not every running subtotal). A day with only transfers has
-            income=expense=0 (a `daily` row only exists for a day with at least one
-            transaction, so this can't also mean "no transactions") — showing "Rp0" there
-            would misread as an actual zero day rather than "nothing counted today". */}
-        {!!daily && (daily.income !== 0 || daily.expense !== 0) && (
-          <Text style={styles.dayTotal}>{shown(rp(daily.net, true), hidden)}</Text>
-        )}
+    <Rise order={order}>
+      <View style={styles.daySection}>
+        <View style={styles.dayHeader}>
+          <Text style={styles.dayDate}>{formatDayHeader(date)}</Text>
+          {/* Neutral grey, not coloured by sign — only the month's own Net and each row's
+              own amount carry income/expense colour (DESIGN.md: colour marks a figure the
+              reader acts on, not every running subtotal). A day with only transfers has
+              income=expense=0 (a `daily` row only exists for a day with at least one
+              transaction, so this can't also mean "no transactions") — showing "Rp0" there
+              would misread as an actual zero day rather than "nothing counted today". */}
+          {!!daily && (daily.income !== 0 || daily.expense !== 0) && (
+            <Text style={styles.dayTotal}>{shown(rp(daily.net, true), hidden)}</Text>
+          )}
+        </View>
+        <View style={styles.dayCard}>
+          {rows.map((row, index) => (
+            <View key={row.id}>
+              <TxRow row={row} hidden={hidden} onPress={() => onPressRow(row.id)} />
+              {index < rows.length - 1 && <View style={styles.rowDivider} />}
+            </View>
+          ))}
+        </View>
       </View>
-      <View style={styles.dayCard}>
-        {rows.map((row, index) => (
-          <View key={row.id}>
-            <TxRow row={row} hidden={hidden} onPress={() => onPressRow(row.id)} />
-            {index < rows.length - 1 && <View style={styles.rowDivider} />}
-          </View>
-        ))}
-      </View>
-    </View>
+    </Rise>
   );
 }
 
@@ -258,14 +263,22 @@ function MonthSection({
           <Amount value={page.summary.net} sign kind={page.summary.net < 0 ? 'expense' : 'income'} variant="figureRow" style={styles.monthNetValue} />
         </View>
       </Pressable>
-      {days.map(day => (
-        <DaySection key={day.date} date={day.date} rows={day.rows} daily={dailyByDate.get(day.date)} hidden={hidden} onPressRow={onPressRow} />
+      {days.map((day, index) => (
+        <DaySection key={day.date} order={Math.min(index, 8) + 1} date={day.date} rows={day.rows} daily={dailyByDate.get(day.date)} hidden={hidden} onPressRow={onPressRow} />
       ))}
     </View>
   );
 }
 
-export default function TransactionsScreen() {
+export default function TransactionsRoute() {
+  return (
+    <TabEntrance id="transactions">
+      <TransactionsScreen />
+    </TabEntrance>
+  );
+}
+
+function TransactionsScreen() {
   const router = useRouter();
   const hidden = useHideAmounts(state => state.hidden);
   const filters = useStatsCollapsed(state => state.filters);
@@ -464,16 +477,18 @@ export default function TransactionsScreen() {
           data={pages}
           keyExtractor={item => item.period}
           ListHeaderComponent={
-            <StatsSection
-              summary={summary.data.summary}
-              filter={summary.data.repoFilter}
-              limitPeriod={summary.data.isLimitMode ? summary.data.currentPeriod : undefined}
-              hidden={hidden}
-              typeFilter={typeFilter}
-              rangeLabel={rangeLabel}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={onSelectCategory}
-            />
+            <Rise order={0}>
+              <StatsSection
+                summary={summary.data.summary}
+                filter={summary.data.repoFilter}
+                limitPeriod={summary.data.isLimitMode ? summary.data.currentPeriod : undefined}
+                hidden={hidden}
+                typeFilter={typeFilter}
+                rangeLabel={rangeLabel}
+                selectedCategoryId={selectedCategoryId}
+                onSelectCategory={onSelectCategory}
+              />
+            </Rise>
           }
           renderItem={({ item, index }) => (
             <MonthSection

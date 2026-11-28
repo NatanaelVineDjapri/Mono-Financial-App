@@ -23,6 +23,7 @@ import Reanimated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue,
 import { Defs, LinearGradient, Rect, Stop, Svg } from 'react-native-svg';
 
 import { Amount } from '@/components/Amount';
+import { Rise, useDropIn } from '@/components/Intro';
 import { PhysicalCard } from '@/components/PhysicalCard';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { rp, shown } from '@/core/money';
@@ -271,6 +272,8 @@ function StackedCard({
   );
 
   const animatedStyle = useAnimatedStyle(() => ({ height: height.value }));
+  // the first time the tab is shown, each card is slipped into the stack in turn (after the total card)
+  const dropIn = useDropIn(index + 1);
   const balanceText = shown(rp(account.balance), hidden);
   const accessibilityLabel = isOpen
     ? cardStackOpenLabel(account.name, balanceText)
@@ -313,7 +316,7 @@ function StackedCard({
         },
       ]}
     >
-      <Reanimated.View style={[styles.clipWrap, animatedStyle]}>
+      <Reanimated.View style={[styles.clipWrap, animatedStyle, dropIn]}>
         <PhysicalCard
           variant={isOpen ? 'list' : 'strip'}
           name={account.name}
@@ -509,7 +512,9 @@ export function CardStack({
 
   return (
     <View testID={testID}>
-      <TotalCard netWorth={netWorth} accountCount={accountCount} note={displayedNote} approximate={approximate} />
+      <Rise order={0}>
+        <TotalCard netWorth={netWorth} accountCount={accountCount} note={displayedNote} approximate={approximate} />
+      </Rise>
       {items.map((account, index) => (
         <StackedCard
           key={account.id}

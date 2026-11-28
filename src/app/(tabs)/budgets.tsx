@@ -16,6 +16,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ListSkeleton } from '@/components/ListSkeleton';
 import { Amount } from '@/components/Amount';
 import { Button } from '@/components/Button';
+import { Rise, TabEntrance } from '@/components/Intro';
 import { HeaderButton } from '@/components/HeaderButton';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { Icon } from '@/components/Icon';
@@ -117,7 +118,15 @@ function CategoryRow({ row, hidden, onPress }: { row: BudgetCategoryRow; hidden:
   );
 }
 
-export default function BudgetsScreen() {
+export default function BudgetsRoute() {
+  return (
+    <TabEntrance id="budgets">
+      <BudgetsScreen />
+    </TabEntrance>
+  );
+}
+
+function BudgetsScreen() {
   const router = useRouter();
   const tabBarClearance = useTabBarClearance();
   const hidden = useHideAmounts(state => state.hidden);
@@ -231,8 +240,14 @@ export default function BudgetsScreen() {
     <View style={styles.screen}>
       {header}
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarClearance }]} testID="budgets-scroll">
-        {data.limit && <MonthCard overview={data} limit={data.limit} hidden={hidden} />}
-        <SavingsCard month={data.month} />
+        {data.limit && (
+          <Rise order={0}>
+            <MonthCard overview={data} limit={data.limit} hidden={hidden} />
+          </Rise>
+        )}
+        <Rise order={1}>
+          <SavingsCard month={data.month} />
+        </Rise>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{byCategoryLabel()}</Text>
@@ -241,10 +256,10 @@ export default function BudgetsScreen() {
         {data.categories.length > 0 ? (
           <View style={styles.listCard}>
             {data.categories.map((row, index) => (
-              <View key={row.budget_id}>
+              <Rise key={row.budget_id} order={Math.min(index, 8) + 2}>
                 {index > 0 && <View style={styles.divider} />}
                 <CategoryRow row={row} hidden={hidden} onPress={() => openCategory(row.category_id)} />
-              </View>
+              </Rise>
             ))}
           </View>
         ) : (

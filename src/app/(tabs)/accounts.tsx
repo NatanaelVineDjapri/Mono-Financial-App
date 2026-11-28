@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { ListSkeleton } from '@/components/ListSkeleton';
 import { Button } from '@/components/Button';
+import { TabEntrance } from '@/components/Intro';
 import { CardStack, type CardStackAccount } from '@/components/CardStack';
 import { HeaderButton } from '@/components/HeaderButton';
 import { HeaderRow } from '@/components/HeaderRow';
@@ -119,7 +120,15 @@ function ArchivedAccountsRow({ count, balance, hidden, onPress }: { count: numbe
   );
 }
 
-export default function AccountsScreen() {
+export default function AccountsRoute() {
+  return (
+    <TabEntrance id="accounts">
+      <AccountsScreen />
+    </TabEntrance>
+  );
+}
+
+function AccountsScreen() {
   const router = useRouter();
   const db = useDb();
   const queryClient = useQueryClient();
