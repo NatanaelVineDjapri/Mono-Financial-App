@@ -5016,3 +5016,54 @@ export const notifReviewAll = (count: number) => `Review all (${count})`;
 export const importNoticeTitle = () => `Transaction to review`;
 export const importNoticeBody = (app: string) => `${app}: tap to check it before it is saved.`;
 export const importNoticeChannel = () => `Transactions to review`;
+
+export const debtsTitle = () => `Debts`;
+export const debtsMoreSub = () => `Money lent and borrowed`;
+export const debtsOwedToMe = () => `Owed to you`;
+export const debtsIOwe = () => `You owe`;
+export const debtsSettled = () => `Settled`;
+export const debtsEmptyTitle = () => `No debts yet`;
+export const debtsEmptyBody = () => `Record money you lend or borrow. Your balances change, but it never counts as income or expense.`;
+export const debtsAdd = () => `Add debt`;
+export const debtsLoadError = () => `Debts could not be loaded.`;
+export const debtNewTitle = () => `New debt`;
+export const debtLent = () => `I lent`;
+export const debtBorrowed = () => `I borrowed`;
+export const debtPersonLabel = (lent: boolean): string => (lent ? `Who borrows it` : `Who lends it`);
+export const debtPersonPlaceholder = () => `Name`;
+export const debtAccountLabel = (leaves: boolean): string => (leaves ? `From account` : `Into account`);
+export const debtPickAccount = () => `Choose an account`;
+export const debtDateLabel = () => `Date`;
+export const debtDueLabel = () => `Due date (optional)`;
+export const debtDueNone = () => `Not set`;
+export const debtDueClear = () => `Remove due date`;
+export const debtNoteLabel = () => `Note (optional)`;
+export const debtSave = () => `Save`;
+export const debtAccountNameFor = (lent: boolean, person: string) => (lent ? `Loan to ${person}` : `Loan from ${person}`);
+export const debtMoveText = (lent: boolean, repayment: boolean, person: string) =>
+  repayment ? (lent ? `Paid back by ${person}` : `Paid back to ${person}`) : (lent ? `Lent to ${person}` : `Borrowed from ${person}`);
+export const debtRemaining = () => `Remaining`;
+export const debtOfTotal = (total: string) => `of ${total}`;
+export const debtDueOn = (date: string) => `Due ${date}`;
+export const debtOverdue = (date: string) => `Overdue since ${date}`;
+export const debtPaidOff = () => `Paid off`;
+export const debtPayTitle = (lent: boolean): string => (lent ? `Record money received` : `Record a payment`);
+export const debtPayButton = () => `Save payment`;
+export const debtHistory = () => `History`;
+export const debtDelete = () => `Delete this debt`;
+export const debtDeleteTitle = () => `Delete this debt?`;
+export const debtDeleteBody = () => `The loan and its payments are removed, and your balances go back to how they would be without it. This can't be undone.`;
+export const debtNotFound = () => `This debt no longer exists.`;
+export const debtErrorText = (code: string): string => {
+  switch (code) {
+    case 'person_required': return `Enter a name (30 characters at most).`;
+    case 'amount_required': return `Enter an amount.`;
+    case 'account_required': return `Choose an account.`;
+    case 'future_date': return `The date cannot be after today.`;
+    case 'before_opening_date': return `The date is before the account or the loan started.`;
+    case 'insufficient_balance': return `The account does not have enough money for this.`;
+    case 'more_than_owed': return `That is more than what remains.`;
+    case 'due_before_start': return `The due date is before the loan.`;
+    default: return `Couldn't save. Nothing was changed.`;
+  }
+};

@@ -19,6 +19,7 @@ const DELETE_ORDER: BackupTable[] = [
   'recurring_events',
   'transaction_locations',
   'card_links',
+  'debts',
   'transactions',
   'subcategories',
   'recurring',

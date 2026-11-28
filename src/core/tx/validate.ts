@@ -28,6 +28,7 @@ export interface FormAccount {
   // being edited (so changing a record's amount is judged against what the account had before it).
   balance: number;
   openingDate: string;
+  mayBeNegative?: boolean; // the hidden account of money borrowed: it lives below zero
 }
 
 // One pocket of the Valas account, with the balance the form may spend from (without the record being
@@ -191,7 +192,7 @@ export function validateTx(values: TxFormValues, ctx: ValidationContext): TxFiel
     const foreign = account.type === 'forex';
     const pocket = foreign ? pocketOf(account.id, srcCur) : undefined;
     const available = foreign ? pocket?.balance : account.balance;
-    if (available != null && available < values.amount) {
+    if (!account.mayBeNegative && available != null && available < values.amount) {
       push({
         field: 'account',
         code: 'insufficient_balance',

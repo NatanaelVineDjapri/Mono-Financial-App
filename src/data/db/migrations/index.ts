@@ -12,6 +12,7 @@ import { addNotifications } from './v10_notifications';
 import { addImportQueue } from './v11_import_queue';
 import { addNfcCardLinks } from './v12_nfc_card_links';
 import { addSubcategories } from './v13_subcategories';
+import { addDebts } from './v14_debts';
 
 export type Migration = (db: Db) => Promise<void>;
 
@@ -35,6 +36,7 @@ export type Migration = (db: Db) => Promise<void>;
 //   11 -> 12: card_links (an e-money card paired with an e-wallet account: issuer, last 4 digits, fingerprint) and the two
 //            system categories of a balance adjustment; transactions.source also accepts 'nfc'.
 //   12 -> 13: subcategories (optional labels inside a category) and transactions.subcategory_id.
+//   13 -> 14: debts (a hidden account per debt); the balance guards let a borrowed one live below zero.
 export const migrations: Record<number, Migration> = {
   1: addScanSource,
   2: addImportAppSettings,
@@ -48,6 +50,7 @@ export const migrations: Record<number, Migration> = {
   10: addImportQueue,
   11: addNfcCardLinks,
   12: addSubcategories,
+  13: addDebts,
 };
 
 // The schema_version a database reaches once every migration above has run (never written by hand).

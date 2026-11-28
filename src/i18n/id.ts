@@ -5013,3 +5013,54 @@ export const notifReviewAll = (count: number) => `Tinjau semua (${count})`;
 export const importNoticeTitle = () => `Ada transaksi untuk ditinjau`;
 export const importNoticeBody = (app: string) => `${app}: ketuk untuk memeriksa sebelum disimpan.`;
 export const importNoticeChannel = () => `Transaksi untuk ditinjau`;
+
+export const debtsTitle = () => `Utang piutang`;
+export const debtsMoreSub = () => `Uang dipinjamkan dan dipinjam`;
+export const debtsOwedToMe = () => `Piutangmu`;
+export const debtsIOwe = () => `Utangmu`;
+export const debtsSettled = () => `Lunas`;
+export const debtsEmptyTitle = () => `Belum ada utang piutang`;
+export const debtsEmptyBody = () => `Catat uang yang kamu pinjamkan atau pinjam. Saldomu berubah, tapi tidak dihitung pemasukan atau pengeluaran.`;
+export const debtsAdd = () => `Tambah`;
+export const debtsLoadError = () => `Utang piutang tidak bisa dimuat.`;
+export const debtNewTitle = () => `Utang piutang baru`;
+export const debtLent = () => `Aku meminjamkan`;
+export const debtBorrowed = () => `Aku meminjam`;
+export const debtPersonLabel = (lent: boolean): string => (lent ? `Siapa yang meminjam` : `Dari siapa`);
+export const debtPersonPlaceholder = () => `Nama`;
+export const debtAccountLabel = (leaves: boolean): string => (leaves ? `Dari akun` : `Masuk ke akun`);
+export const debtPickAccount = () => `Pilih akun`;
+export const debtDateLabel = () => `Tanggal`;
+export const debtDueLabel = () => `Jatuh tempo (boleh kosong)`;
+export const debtDueNone = () => `Belum diisi`;
+export const debtDueClear = () => `Hapus jatuh tempo`;
+export const debtNoteLabel = () => `Catatan (boleh kosong)`;
+export const debtSave = () => `Simpan`;
+export const debtAccountNameFor = (lent: boolean, person: string) => (lent ? `Piutang ${person}` : `Utang ${person}`);
+export const debtMoveText = (lent: boolean, repayment: boolean, person: string) =>
+  repayment ? (lent ? `Dibayar oleh ${person}` : `Bayar ke ${person}`) : (lent ? `Dipinjamkan ke ${person}` : `Pinjam dari ${person}`);
+export const debtRemaining = () => `Sisa`;
+export const debtOfTotal = (total: string) => `dari ${total}`;
+export const debtDueOn = (date: string) => `Jatuh tempo ${date}`;
+export const debtOverdue = (date: string) => `Lewat jatuh tempo sejak ${date}`;
+export const debtPaidOff = () => `Lunas`;
+export const debtPayTitle = (lent: boolean): string => (lent ? `Catat uang diterima` : `Catat pembayaran`);
+export const debtPayButton = () => `Simpan pembayaran`;
+export const debtHistory = () => `Riwayat`;
+export const debtDelete = () => `Hapus utang piutang ini`;
+export const debtDeleteTitle = () => `Hapus utang piutang ini?`;
+export const debtDeleteBody = () => `Pinjaman dan semua pembayarannya dihapus, dan saldomu kembali seperti tanpa itu. Tidak bisa dibatalkan.`;
+export const debtNotFound = () => `Utang piutang ini sudah tidak ada.`;
+export const debtErrorText = (code: string): string => {
+  switch (code) {
+    case 'person_required': return `Isi nama (maksimal 30 huruf).`;
+    case 'amount_required': return `Isi jumlahnya.`;
+    case 'account_required': return `Pilih akun.`;
+    case 'future_date': return `Tanggal tidak boleh setelah hari ini.`;
+    case 'before_opening_date': return `Tanggalnya sebelum akun atau pinjaman dimulai.`;
+    case 'insufficient_balance': return `Saldo akun tidak cukup.`;
+    case 'more_than_owed': return `Lebih besar dari sisanya.`;
+    case 'due_before_start': return `Jatuh tempo sebelum tanggal pinjaman.`;
+    default: return `Gagal menyimpan. Tidak ada yang berubah.`;
+  }
+};

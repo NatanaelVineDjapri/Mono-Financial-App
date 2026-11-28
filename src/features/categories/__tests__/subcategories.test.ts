@@ -243,10 +243,10 @@ describe('migration 12 -> 13', () => {
       "insert into transactions (kind, account_id, currency, category_id, amount, amount_idr, occurred_on, description, source, created_at, updated_at) values ('expense', ?, 'IDR', ?, 100, 100, '2026-02-01', 'x', 'manual', ?, ?)",
       [acc, cat, NOW, NOW],
     );
-    await expect(runMigrations(db, 12)).resolves.toBe(13);
+    await expect(runMigrations(db, 12, 13)).resolves.toBe(13);
     expect(await db.getFirstAsync('select subcategory_id from transactions')).toEqual({ subcategory_id: null });
     expect(await db.getAllAsync('select * from subcategories')).toEqual([]);
     expect(await db.getAllAsync('select * from v_integrity_issues')).toEqual([]);
-    await expect(runMigrations(db, 13)).resolves.toBe(13); // nothing left to run
+    await expect(runMigrations(db, 13, 13)).resolves.toBe(13); // nothing left to run
   });
 });

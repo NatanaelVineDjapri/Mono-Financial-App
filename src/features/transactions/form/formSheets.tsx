@@ -146,9 +146,10 @@ export interface DateSheetProps {
   today: string;
   onSelect: (date: string) => void;
   onClose: () => void;
+  allowFuture?: boolean; // a due date; a record's own date never is
 }
 
-export function DateSheet({ visible, selected, today, onSelect, onClose }: DateSheetProps) {
+export function DateSheet({ visible, selected, today, onSelect, onClose, allowFuture = false }: DateSheetProps) {
   // The month on show restarts at the chosen date's month each time the sheet opens (React's
   // "adjusting state when a prop changes" recipe).
   const [month, setMonth] = useState(monthOf(selected));
@@ -159,7 +160,7 @@ export function DateSheet({ visible, selected, today, onSelect, onClose }: DateS
   }
 
   const weeks = monthGrid(month);
-  const isCurrentMonth = month >= monthOf(today);
+  const isCurrentMonth = !allowFuture && month >= monthOf(today);
 
   return (
     <Sheet visible={visible} onClose={onClose} closeLabel={closeLabel()} testID="tx-date-sheet">
@@ -185,7 +186,7 @@ export function DateSheet({ visible, selected, today, onSelect, onClose }: DateS
           <View key={w} style={styles.weekRow}>
             {week.map((day, i) => {
               if (!day) return <View key={i} style={styles.dayCell} />;
-              const future = day > today;
+              const future = !allowFuture && day > today;
               const isSelected = day === selected;
               return (
                 <Pressable

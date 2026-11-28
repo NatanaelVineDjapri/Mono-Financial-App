@@ -1,20 +1,20 @@
 import { createAccount, createValasAccount } from '../accounts';
 import { insertFxRate } from '../../data/repo/fx';
-import { openTestDb } from '../../data/db/openTestDb';
+import { openMigratedTestDb } from '../../data/db/openTestDb';
 import { getAccountBalance, getAccountsOverview, getPocketValue, listAccountBalances, listPocketBalances, listPocketValues } from '../balances';
 
 const NOW = '2026-01-01T00:00:00+07:00';
 
 describe('domain balances', () => {
   test('getAccountBalance / listAccountBalances read from the view, not a stored column', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     const id = await createAccount(db, { name: 'BCA', type: 'bank', openingBalance: 1200000, openingDate: '2026-01-01' }, NOW);
     expect(await getAccountBalance(db, id)).toEqual({ id, name: 'BCA', type: 'bank', archived: 0, balance: 1200000, missing_rates: 0 });
     expect(await listAccountBalances(db)).toEqual([{ id, name: 'BCA', type: 'bank', archived: 0, balance: 1200000, missing_rates: 0 }]);
   });
 
   test('pocket balances: raw balance vs rupiah value, before and after a rate exists', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     const id = await createValasAccount(db, { name: 'Valas', openingDate: '2026-01-01', pockets: [{ currency: 'USD', openingBalance: 25000 }] }, NOW);
 
     expect(await listPocketBalances(db, id)).toEqual([{ account_id: id, currency: 'USD', minor_factor: 100, archived: 0, balance: 25000 }]);
@@ -26,7 +26,7 @@ describe('domain balances', () => {
 });
 
 describe('getAccountsOverview (Accounts tab)', () => {
-  async function buildIdrAccounts(db: ReturnType<typeof openTestDb>) {
+  async function buildIdrAccounts(db: Awaited<ReturnType<typeof openMigratedTestDb>>) {
     const bca = await createAccount(db, { name: 'BCA Tabungan', type: 'bank', openingBalance: 6842500, openingDate: '2026-01-01' }, NOW);
     const cash = await createAccount(db, { name: 'Cash wallet', type: 'cash', openingBalance: 450000, openingDate: '2026-01-01' }, NOW);
     const gopay = await createAccount(db, { name: 'GoPay', type: 'ewallet', openingBalance: 312500, openingDate: '2026-01-01' }, NOW);
@@ -35,7 +35,7 @@ describe('getAccountsOverview (Accounts tab)', () => {
   }
 
   test('4 accounts, net worth Rp8.880.000, one group per type with the sample subtotals', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     await buildIdrAccounts(db);
 
     const overview = await getAccountsOverview(db);
@@ -52,7 +52,7 @@ describe('getAccountsOverview (Accounts tab)', () => {
   });
 
   test('a Valas account becomes its own forex group with per-pocket amounts and values', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     await buildIdrAccounts(db);
     const valas = await createValasAccount(
       db,
@@ -79,7 +79,7 @@ describe('getAccountsOverview (Accounts tab)', () => {
   });
 
   test('a pocket with no fx rate yet marks the overview incomplete', async () => {
-    const db = openTestDb();
+    const db = await openMigratedTestDb();
     await buildIdrAccounts(db);
     await createValasAccount(db, { name: 'Valas', openingDate: '2026-10-01', pockets: [{ currency: 'USD', openingBalance: 25000 }] }, NOW);
 

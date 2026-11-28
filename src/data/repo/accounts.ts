@@ -227,7 +227,7 @@ export async function listArchivedAccountRows(db: Db): Promise<ArchivedAccountRo
   return db.getAllAsync<ArchivedAccountRow>(
     `select a.id, a.name, a.type, a.icon, vb.balance
        from accounts a join v_account_balance vb on vb.id = a.id
-      where a.archived = 1
+      where a.archived = 1 and a.id not in (select account_id from debts)
       order by a.name`,
   );
 }
@@ -235,7 +235,7 @@ export async function listArchivedAccountRows(db: Db): Promise<ArchivedAccountRo
 // How many archived accounts there are and what they still add to net worth.
 export async function getArchivedSummary(db: Db): Promise<{ count: number; balance: number }> {
   return (await db.getFirstAsync<{ count: number; balance: number }>(
-    'select count(*) as count, coalesce(sum(balance), 0) as balance from v_account_balance where archived = 1',
+    'select count(*) as count, coalesce(sum(balance), 0) as balance from v_account_balance where archived = 1 and id not in (select account_id from debts)',
   ))!;
 }
 

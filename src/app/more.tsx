@@ -19,6 +19,8 @@ import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
 import {
   analysisMoreSub,
   analysisMoreTitle,
+  debtsMoreSub,
+  debtsTitle,
   devToolsHint,
   devToolsLabel,
   moreBackLabel,
@@ -90,6 +92,7 @@ export default function MoreScreen() {
         <Card style={styles.groupCard}>
           <MoreRow icon="target" title={moreGoalsTitle()} sub={moreGoalsSub()} onPress={go('/goals')} testID="more-goals" />
           <MoreRow icon="refresh" title={moreRecurringTitle()} sub={moreRecurringSub(dueCount)} onPress={go('/recurring')} testID="more-recurring" />
+          <MoreRow icon="transfer" title={debtsTitle()} sub={debtsMoreSub()} onPress={go('/debts')} testID="more-debts" />
           <MoreRow icon="file-text" title={moreReportsTitle()} sub={moreReportsSub()} onPress={go('/reports')} testID="more-reports" />
           <MoreRow
             icon="pulse"

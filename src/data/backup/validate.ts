@@ -9,7 +9,7 @@ import type { BackupData, BackupFile, BackupTable, Sha256Hex } from './export';
 const SUPPORTED_SCHEMA_VERSION = LATEST_SCHEMA_VERSION;
 
 // The schema version in which a backup table first appeared (the others have been there from the start).
-const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12, subcategories: 13 };
+const TABLE_SINCE: Partial<Record<BackupTable, number>> = { transaction_locations: 9, card_links: 12, subcategories: 13, debts: 14 };
 
 // Every checksum a file of `version` may legitimately carry: the tables as written by the app of that time, i.e. leaving
 // out any subset of the tables that did not exist yet.
@@ -82,6 +82,9 @@ function checkInternalReferences(data: BackupData): BackupTable | null {
   }
   for (const r of data.transaction_locations) {
     if (!transactionIds.has(row<{ transaction_id: unknown }>(r).transaction_id)) return 'transaction_locations';
+  }
+  for (const r of data.debts) {
+    if (!accountIds.has(row<{ account_id: unknown }>(r).account_id)) return 'debts';
   }
   for (const r of data.card_links) {
     if (!accountIds.has(row<{ account_id: unknown }>(r).account_id)) return 'card_links';
