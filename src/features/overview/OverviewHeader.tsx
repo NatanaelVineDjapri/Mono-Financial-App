@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
+import { useCountUp } from '@/components/Intro';
 import type { AvatarPoseId } from '@/features/profile/avatarPoses';
 import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
 import { streakLabel, bellUnreadLabel, moreTitle, notificationsLabel, welcomeGreeting, type GreetingKind } from '@/i18n';
@@ -85,7 +86,7 @@ export function OverviewHeader({
           testID="overview-streak"
         >
           <Icon name="flame" size={20} color={streak.todayDone ? MonoColors.accent : MonoColors.textMeta} />
-          <Text style={[styles.streakText, !streak.todayDone && styles.streakOff]}>{streak.current}</Text>
+          <StreakNumber value={streak.current} dim={!streak.todayDone} />
         </Pressable>
       )}
 
@@ -110,6 +111,10 @@ export function OverviewHeader({
       </Pressable>
     </View>
   );
+}
+
+function StreakNumber({ value, dim }: { value: number; dim: boolean }) {
+  return <Text style={[styles.streakText, dim && styles.streakOff]}>{useCountUp(value)}</Text>;
 }
 
 const styles = StyleSheet.create({

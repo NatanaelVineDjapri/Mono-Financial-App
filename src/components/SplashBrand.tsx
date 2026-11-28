@@ -9,6 +9,7 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { startReadyTimeout, useAppReady } from '@/core/appReady';
+import { armIntro } from '@/core/intro';
 import { MonoColors } from '@/theme/tokens';
 
 const MARK_WIDTH = 120;
@@ -19,6 +20,8 @@ export function SplashBrand() {
   const nativeReleased = useRef(false);
   // The hard maximum: whatever happens to the first screen, the splash goes.
   useEffect(() => startReadyTimeout(), []);
+  // The app has just been opened: the first screen makes an entrance once the splash lifts.
+  useEffect(() => armIntro(), []);
 
   if (ready) return null;
 

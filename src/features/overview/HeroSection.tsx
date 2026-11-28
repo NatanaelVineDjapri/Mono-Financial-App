@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Defs, LinearGradient, Path, Rect, Stop, Svg } from 'react-native-svg';
 
-import { Amount } from '@/components/Amount';
+import { CountUpAmount, useCountUp } from '@/components/Intro';
 import { Icon } from '@/components/Icon';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatShortDate } from '@/core/date';
@@ -61,7 +61,7 @@ export interface HeroSectionProps {
 
 // The net worth change: a chip in the tone of its sign, then "vs <last month end>".
 export function ChangeChip({ change, hidden }: { change: HeroChange; hidden: boolean }) {
-  const amountText = shown(rp(change.amount, true), hidden);
+  const amountText = shown(rp(useCountUp(change.amount), true), hidden);
   const pctText = change.bp == null ? null : shownPct(pct(change.bp, true), hidden);
   const text = pctText ? `${amountText} (${pctText})` : amountText;
   const vs = formatShortDate(change.vsDate);
@@ -211,7 +211,7 @@ export function HeroSection({
 
         {/* the whole block opens the Summary on touch; for a screen reader the link below does, so the balance is still read */}
         <Pressable style={styles.balanceBlock} onPress={onOpenSummary} disabled={!onOpenSummary} accessible={false} android_ripple={undefined} testID="hero-open-summary">
-          <Amount value={netWorth} variant="heroBalance" testID="hero-balance" />
+          <CountUpAmount value={netWorth} variant="heroBalance" testID="hero-balance" />
           {!!note && <Text style={styles.note}>{note}</Text>}
           {incomplete && <Text style={styles.note}>{netWorthIncompleteNote()}</Text>}
           {change && <ChangeChip change={change} hidden={hidden} />}

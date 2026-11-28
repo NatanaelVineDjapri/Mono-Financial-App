@@ -10,6 +10,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DeferredMount } from '@/components/DeferredMount';
 import { useTabBarClearance } from '@/components/TabBar';
+import { Reveal } from '@/components/Intro';
 import { markAppReady } from '@/core/appReady';
 import { accountShares } from '@/domain/overview';
 import { defaultTransactionFilters, type TxTypeFilter } from '@/domain/transactionFilters';
@@ -170,22 +171,37 @@ export default function OverviewScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: clearance }]} testID="overview-scroll">
-        {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} onAddTransaction={onAddTransaction} onTransfer={onTransfer} onScan={onScan} onOpenSummary={onOpenSummary} />)}
+        {/* the entrance when the app is opened: block after block (src/core/intro) */}
+        <Reveal order={0}>
+          {top(<HeroSection nickname={displayName} greeting={greeting} netWorth={accountsData.netWorth} incomplete={accountsData.incomplete} change={change} onAddTransaction={onAddTransaction} onTransfer={onTransfer} onScan={onScan} onOpenSummary={onOpenSummary} />)}
+        </Reveal>
 
         {/* A little closer to the hero than the screen's 24 gap. */}
         <View style={styles.accountsUp}>
-          <AccountsCarousel
-            title={yourAccountsLabel()}
-            linkLabel={allAccountsLabel()}
-            accounts={accounts}
-            onOpenAll={onOpenAllAccounts}
-            onOpenAccount={onOpenAccount}
-          />
+          <Reveal order={2}>
+            <AccountsCarousel
+              title={yourAccountsLabel()}
+              linkLabel={allAccountsLabel()}
+              accounts={accounts}
+              onOpenAll={onOpenAllAccounts}
+              onOpenAccount={onOpenAccount}
+            />
+          </Reveal>
         </View>
 
-        {quickRecords && quickRecords.length > 0 && <QuickRecordCard items={quickRecords} onOpenRecord={onOpenQuickRecord} />}
-        <AnalysisBanner onPress={onOpenAnalysis} />
-        {overview && <NetCashFlowCard ranges={overview.flowRanges} onOpenTransactions={onOpenTransactionsForType} />}
+        {quickRecords && quickRecords.length > 0 && (
+          <Reveal order={3}>
+            <QuickRecordCard items={quickRecords} onOpenRecord={onOpenQuickRecord} />
+          </Reveal>
+        )}
+        <Reveal order={4}>
+          <AnalysisBanner onPress={onOpenAnalysis} />
+        </Reveal>
+        {overview && (
+          <Reveal order={5}>
+            <NetCashFlowCard ranges={overview.flowRanges} onOpenTransactions={onOpenTransactionsForType} />
+          </Reveal>
+        )}
         {/* The top of the screen is drawn first; the charts and lists below follow a moment later (DeferredMount). */}
         <DeferredMount placeholderHeight={1400}>
           {overview && <CashFlowCard months={overview.cashFlow} />}
