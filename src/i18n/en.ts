@@ -5067,3 +5067,51 @@ export const debtErrorText = (code: string): string => {
     default: return `Couldn't save. Nothing was changed.`;
   }
 };
+
+export const achievementsTitle = () => `Streak and achievements`;
+export const achievementsMoreSub = () => `Days in a row and 30 badges`;
+const BADGES: readonly (readonly [string, string])[] = [
+  ['First step', 'Record your first transaction.'],
+  ['Fifty days', 'Record on 50 different days.'],
+  ['Perfect month', 'Record on every day of a month.'],
+  ['On a roll', 'Reach a 3-day streak.'],
+  ['A whole year', 'Reach a 365-day streak.'],
+  ['One week', 'Reach a 7-day streak.'],
+  ['Two weeks', 'Reach a 14-day streak.'],
+  ['One month', 'Reach a 30-day streak.'],
+  ['Two months', 'Reach a 60-day streak.'],
+  ['Hundred days', 'Reach a 100-day streak.'],
+  ['Growing', 'End a month with a higher net worth than the month before.'],
+  ['Momentum', 'Net worth up three months in a row.'],
+  ['Goal reached', 'Complete a financial goal.'],
+  ['Target saver', 'Meet your savings target in a finished month.'],
+  ['First savings', 'Finish a month with more income than spending.'],
+  ['Organised', 'Keep 3 accounts.'],
+  ['Collector', 'Keep 5 accounts.'],
+  ['Safe keeping', 'Make a backup.'],
+  ['Planner', 'Set a budget.'],
+  ['Hundred records', 'Record 100 transactions.'],
+  ['Bookkeeper', 'Record 500 transactions.'],
+  ['Ten million', 'Reach a net worth of Rp10.000.000.'],
+  ['Hundred million', 'Reach a net worth of Rp100.000.000.'],
+  ['Within budget', 'Finish a month with no budget over.'],
+  ['Settled', 'Pay off a debt.'],
+  ['Master', 'Earn 20 other badges.'],
+  ['On target', 'Stay within the monthly limit 3 months in a row.'],
+  ['One year together', 'Have a record from a year ago.'],
+  ['Thousand records', 'Record 1.000 transactions.'],
+  ['Half saved', "Save half of a month's income."],
+];
+export const achievementName = (id: number): string => BADGES[id - 1][0];
+export const achievementText = (id: number): string => BADGES[id - 1][1];
+export const achievementsCount = (earned: number, total: number) => `${earned} / ${total} badges`;
+export const achievementEarned = () => `Earned`;
+export const achievementLocked = () => `Locked`;
+export const streakDays = (days: number): string => `${days}-day streak`;
+export const streakLongest = (days: number) => `Longest: ${days}`;
+export const streakTodayDone = () => `Recorded today.`;
+export const streakTodayOpen = () => `Record today to keep it going.`;
+export const streakLabel = (days: number, done: boolean) => `Streak ${days}. ${done ? 'Recorded today.' : 'Record today to keep it going.'}`;
+export const streakWeek = () => `Last 7 days`;
+export const streakDayLabel = (date: string, recorded: boolean) => `${date}: ${recorded ? 'recorded' : 'no record'}`;
+export const achievementsLoadError = () => `Achievements could not be loaded.`;

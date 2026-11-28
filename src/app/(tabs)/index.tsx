@@ -43,6 +43,8 @@ import { useRecurringDue } from '@/features/recurring/useRecurringDue';
 import { useDb } from '@/data/db/DbProvider';
 import { queryKeys } from '@/data/queryKeys';
 import { countUnread } from '@/data/repo/notifications';
+import { today as todayLocal } from '@/core/clock';
+import { getStreak } from '@/domain/achievements';
 import { countQueue } from '@/domain/importQueue';
 import { listRecurring } from '@/domain/recurring';
 import { useTransactionsFilterSummary, useTransactionsList } from '@/features/transactions/useTransactionsList';
@@ -64,6 +66,9 @@ export default function OverviewScreen() {
   const { data: recurringData } = useRecurringDue();
   const { data: unreadCount } = useQuery({ queryKey: [...queryKeys.notifications, 'unread'], queryFn: () => countUnread(db), staleTime: 0 });
   // Transactions waiting for a check are on the same page, so the bell counts them too.
+  // under the transactions' key, so a new record moves the flame at once
+  const { data: streak } = useQuery({ queryKey: [...queryKeys.transactions, 'streak'], queryFn: () => getStreak(db, todayLocal()), staleTime: 0 });
+  const onOpenAchievements = useCallback(() => router.push('/achievements' as never), [router]);
   const { data: reviewCount } = useQuery({ queryKey: [...queryKeys.importQueue, 'count'], queryFn: () => countQueue(db), staleTime: 0 });
   const { data: recurringTemplates } = useQuery({ queryKey: [...queryKeys.recurring, 'list'], queryFn: () => listRecurring(db) });
   const { data: budget } = useBudgetOverview(null);
@@ -111,7 +116,7 @@ export default function OverviewScreen() {
   }, [router]);
   const onBackup = useCallback(() => router.push('/backup' as never), [router]);
 
-  const header = <OverviewHeader initial={avatarInitial(displayName)} avatarPose={avatarPose} nickname={displayName} greeting={greeting} onAvatarPress={onOpenMore} onBellPress={onOpenNotifications} unreadCount={(unreadCount ?? 0) + (reviewCount ?? 0)} />;
+  const header = <OverviewHeader initial={avatarInitial(displayName)} avatarPose={avatarPose} nickname={displayName} greeting={greeting} onAvatarPress={onOpenMore} onBellPress={onOpenNotifications} unreadCount={(unreadCount ?? 0) + (reviewCount ?? 0)} streak={streak} onStreakPress={onOpenAchievements} />;
   // One artwork behind the header and the hero together (the logo down to the balance).
   const top = (hero: ReactNode) => (
     <OverviewTop>

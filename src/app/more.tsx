@@ -17,6 +17,8 @@ import { MoreRow } from '@/features/more/MoreRow';
 import { useMoreData } from '@/features/more/useMoreData';
 import { useLanguageSetting } from '@/features/settings/useLanguageSetting';
 import {
+  achievementsMoreSub,
+  achievementsTitle,
   analysisMoreSub,
   analysisMoreTitle,
   debtsMoreSub,
@@ -90,6 +92,7 @@ export default function MoreScreen() {
           {moreGroupMoney()}
         </Text>
         <Card style={styles.groupCard}>
+          <MoreRow icon="flame" title={achievementsTitle()} sub={achievementsMoreSub()} onPress={go('/achievements')} testID="more-achievements" />
           <MoreRow icon="target" title={moreGoalsTitle()} sub={moreGoalsSub()} onPress={go('/goals')} testID="more-goals" />
           <MoreRow icon="refresh" title={moreRecurringTitle()} sub={moreRecurringSub(dueCount)} onPress={go('/recurring')} testID="more-recurring" />
           <MoreRow icon="transfer" title={debtsTitle()} sub={debtsMoreSub()} onPress={go('/debts')} testID="more-debts" />

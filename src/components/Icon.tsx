@@ -47,6 +47,7 @@ export type IconName =
   | 'arrow-up'
   // Transaction detail: delete, and the Food & drink category tile.
   | 'trash'
+  | 'flame'
   | 'food'
   // The + menu: AI chat and receipt scan (Manual uses 'pencil').
   | 'chat'
@@ -138,6 +139,7 @@ const PATHS: Partial<Record<IconName, string>> = {
   spark: 'M12 3 L13.8 8.2 L19 10 L13.8 11.8 L12 17 L10.2 11.8 L5 10 L10.2 8.2 Z M18 16 L18.8 18.2 L21 19 L18.8 19.8 L18 22 L17.2 19.8 L15 19 L17.2 18.2 Z',
   image: 'M4 5 H20 V19 H4 Z M4 17 L9 12 L13 16 L16 13 L20 17 M9 9.5 a1.5 1.5 0 1 0 0.001 0 Z',
   trash: 'M4 7 H20 M9 7 V4 H15 V7 M6 7 L7 20 H17 L18 7 M10 11 V16 M14 11 V16',
+  flame: 'M12 3 C13 7 18 9 18 14.5 A6 6 0 0 1 6 14.5 C6 11.5 8 10 9 7.5 C10.5 9 11 10 11 11.5 C13 9.5 12.5 6 12 3 Z M12 20.5 C10.3 20.5 9.5 19.3 9.5 18 C9.5 16.3 11.3 15.6 12 14 C12.7 15.6 14.5 16.3 14.5 18 C14.5 19.3 13.7 20.5 12 20.5 Z',
   target: 'M12 3 a9 9 0 1 0 0.001 0 Z M12 8 a4 4 0 1 0 0.001 0 Z M12 12 V12.1',
   'file-text': 'M6 3 H14 L19 8 V21 H6 Z M14 3 V8 H19 M9 13 H16 M9 17 H15',
   tag: 'M3 12 V4 H11 L21 14 L14 21 Z M7.5 8 V8.1',

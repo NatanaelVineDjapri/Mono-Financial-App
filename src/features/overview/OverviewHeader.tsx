@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import type { AvatarPoseId } from '@/features/profile/avatarPoses';
 import { ProfileAvatar } from '@/features/profile/ProfileAvatar';
-import { bellUnreadLabel, moreTitle, notificationsLabel, welcomeGreeting, type GreetingKind } from '@/i18n';
+import { streakLabel, bellUnreadLabel, moreTitle, notificationsLabel, welcomeGreeting, type GreetingKind } from '@/i18n';
 import { MonoColors } from '@/theme/tokens';
 import { MonoText } from '@/theme/typography';
 
@@ -20,6 +20,9 @@ export interface OverviewHeaderProps {
   onAvatarPress: () => void;
   onBellPress?: () => void;
   unreadCount?: number; // 0 = no badge; >0 = show dot or count
+  // days in a row with a record; the flame is lit once today has one. Left out until it is known.
+  streak?: { current: number; todayDone: boolean };
+  onStreakPress?: () => void;
 }
 
 export function OverviewHeader({
@@ -30,6 +33,8 @@ export function OverviewHeader({
   onAvatarPress,
   onBellPress,
   unreadCount = 0,
+  streak,
+  onStreakPress,
 }: OverviewHeaderProps) {
   const insets = useSafeAreaInsets();
   const hasName = nickname.trim().length > 0;
@@ -70,6 +75,20 @@ export function OverviewHeader({
 
       <View accessible accessibilityRole="header" accessibilityLabel="MONO" style={styles.monoA11y} />
 
+      {streak && (
+        <Pressable
+          onPress={onStreakPress}
+          accessibilityRole="button"
+          accessibilityLabel={streakLabel(streak.current, streak.todayDone)}
+          android_ripple={undefined}
+          style={({ pressed }) => [styles.streak, pressed && styles.pressed]}
+          testID="overview-streak"
+        >
+          <Icon name="flame" size={20} color={streak.todayDone ? MonoColors.accent : MonoColors.textMeta} />
+          <Text style={[styles.streakText, !streak.todayDone && styles.streakOff]}>{streak.current}</Text>
+        </Pressable>
+      )}
+
       <Pressable
         onPress={onBellPress}
         accessibilityRole="button"
@@ -94,6 +113,9 @@ export function OverviewHeader({
 }
 
 const styles = StyleSheet.create({
+  streak: { minHeight: 44, minWidth: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 8 },
+  streakText: { ...MonoText.figureS, color: MonoColors.text },
+  streakOff: { color: MonoColors.textMeta },
   header: {
     paddingHorizontal: 16,
     flexDirection: 'row',

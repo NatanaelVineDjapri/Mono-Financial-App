@@ -5064,3 +5064,51 @@ export const debtErrorText = (code: string): string => {
     default: return `Gagal menyimpan. Tidak ada yang berubah.`;
   }
 };
+
+export const achievementsTitle = () => `Streak dan pencapaian`;
+export const achievementsMoreSub = () => `Hari berturut-turut dan 30 badge`;
+const BADGES: readonly (readonly [string, string])[] = [
+  ['Langkah pertama', 'Catat transaksi pertamamu.'],
+  ['Lima puluh hari', 'Mencatat di 50 hari berbeda.'],
+  ['Bulan sempurna', 'Mencatat setiap hari selama sebulan.'],
+  ['Lagi panas', 'Streak 3 hari.'],
+  ['Setahun penuh', 'Streak 365 hari.'],
+  ['Seminggu', 'Streak 7 hari.'],
+  ['Dua minggu', 'Streak 14 hari.'],
+  ['Sebulan', 'Streak 30 hari.'],
+  ['Dua bulan', 'Streak 60 hari.'],
+  ['Seratus hari', 'Streak 100 hari.'],
+  ['Bertumbuh', 'Kekayaan bersih naik dari bulan sebelumnya.'],
+  ['Konsisten naik', 'Kekayaan bersih naik tiga bulan berturut-turut.'],
+  ['Target tercapai', 'Selesaikan satu target keuangan.'],
+  ['Penabung target', 'Capai target tabungan di satu bulan penuh.'],
+  ['Tabungan pertama', 'Akhiri bulan dengan pemasukan lebih besar dari pengeluaran.'],
+  ['Rapi', 'Punya 3 akun.'],
+  ['Kolektor', 'Punya 5 akun.'],
+  ['Aman', 'Buat cadangan.'],
+  ['Perencana', 'Buat anggaran.'],
+  ['Seratus catatan', 'Catat 100 transaksi.'],
+  ['Juru buku', 'Catat 500 transaksi.'],
+  ['Sepuluh juta', 'Kekayaan bersih Rp10.000.000.'],
+  ['Seratus juta', 'Kekayaan bersih Rp100.000.000.'],
+  ['Sesuai anggaran', 'Selesaikan sebulan tanpa anggaran yang jebol.'],
+  ['Lunas', 'Lunasi satu utang piutang.'],
+  ['Master', 'Raih 20 badge lainnya.'],
+  ['Tepat sasaran', 'Tiga bulan berturut-turut di bawah batas bulanan.'],
+  ['Setahun bersama', 'Punya catatan dari setahun lalu.'],
+  ['Seribu catatan', 'Catat 1.000 transaksi.'],
+  ['Separuh disimpan', 'Simpan setengah pemasukan sebulan.'],
+];
+export const achievementName = (id: number): string => BADGES[id - 1][0];
+export const achievementText = (id: number): string => BADGES[id - 1][1];
+export const achievementsCount = (earned: number, total: number) => `${earned} / ${total} badge`;
+export const achievementEarned = () => `Sudah diraih`;
+export const achievementLocked = () => `Belum diraih`;
+export const streakDays = (days: number): string => `Streak ${days} hari`;
+export const streakLongest = (days: number) => `Terpanjang: ${days}`;
+export const streakTodayDone = () => `Sudah mencatat hari ini.`;
+export const streakTodayOpen = () => `Catat hari ini supaya tidak putus.`;
+export const streakLabel = (days: number, done: boolean) => `Streak ${days}. ${done ? 'Sudah mencatat hari ini.' : 'Catat hari ini supaya tidak putus.'}`;
+export const streakWeek = () => `7 hari terakhir`;
+export const streakDayLabel = (date: string, recorded: boolean) => `${date}: ${recorded ? 'ada catatan' : 'tidak ada catatan'}`;
+export const achievementsLoadError = () => `Pencapaian tidak bisa dimuat.`;
