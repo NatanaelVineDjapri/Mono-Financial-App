@@ -94,8 +94,8 @@ describe('Periksa: one card', () => {
     record: null,
   };
   const handlers = () => ({ onBack: jest.fn(), onSave: jest.fn(), onReject: jest.fn() });
-  const open = async (item: QueueRowWithNames, h = handlers(), error: string | null = null) => ({
-    view: await render(wrap(<ImportEditView item={item} data={data} today="2026-11-03" saving={false} error={error} {...h} />)),
+  const open = async (item: QueueRowWithNames, h = handlers(), error: string | null = null, extra: Partial<typeof data> = {}) => ({
+    view: await render(wrap(<ImportEditView item={item} data={{ ...data, ...extra }} today="2026-11-03" saving={false} error={error} {...h} />)),
     h,
   });
 
@@ -103,7 +103,17 @@ describe('Periksa: one card', () => {
     const { view, h } = await open(row({}));
     expect(view.getByTestId('import-edit-source').props.children).toContain('Example Bank');
     await fireEvent.press(view.getByTestId('import-edit-save'));
-    expect(h.onSave).toHaveBeenCalledWith({ kind: 'expense', amountIdr: 25000, merchant: 'Kopi Kenangan', categoryId: 10, accountId: 1, date: '2026-11-03' }, false);
+    expect(h.onSave).toHaveBeenCalledWith({ kind: 'expense', amountIdr: 25000, merchant: 'Kopi Kenangan', categoryId: 10, accountId: 1, date: '2026-11-03', subcategoryId: null }, false);
+  });
+
+  test('a sub-category the merchant names is filled in; it can be taken off or another chosen', async () => {
+    const subcategories = [{ id: 5, categoryId: 10, name: 'Kopi' }, { id: 6, categoryId: 10, name: 'Roti' }];
+    const { view, h } = await open(row({}), handlers(), null, { subcategories });
+    await fireEvent.press(view.getByTestId('import-edit-save'));
+    expect(h.onSave).toHaveBeenLastCalledWith(expect.objectContaining({ categoryId: 10, subcategoryId: 5 }), false);
+    await fireEvent.press(view.getByTestId('tx-subcategory-6'));
+    await fireEvent.press(view.getByTestId('import-edit-save'));
+    expect(h.onSave).toHaveBeenLastCalledWith(expect.objectContaining({ subcategoryId: 6 }), false);
   });
 
   test('Simpan stays off until a kind and a category are chosen', async () => {

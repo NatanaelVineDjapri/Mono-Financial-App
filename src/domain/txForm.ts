@@ -9,6 +9,7 @@ import { getCategory, listCategories } from '../data/repo/categories';
 import { listLatestRates } from '../data/repo/fx';
 import { getTransaction, type TransactionRow } from '../data/repo/transactions';
 import { getSubcategory, listFormSubcategories } from '../data/repo/subcategories';
+import type { DescriptionUse } from '../core/tx/suggest';
 import type { FormAccount, FormCategory, FormPocket, FormSubcategory, TxType } from '../core/tx/validate';
 import { getTransactionLocation, type TransactionLocation } from '../data/repo/transactionLocations';
 
@@ -40,6 +41,7 @@ export interface TxFormData {
   pockets: FormPocket[]; // the pockets of the Valas account (not archived)
   rates: Record<string, number>; // latest rate_e4 per foreign currency
   record: TxEditRecord | null;
+  history?: DescriptionUse[]; // how each description was filed before, to fill the category from the words typed
 }
 
 type RecordEffect = Pick<TransactionRow, 'kind' | 'account_id' | 'to_account_id' | 'amount' | 'amount_to' | 'currency' | 'to_currency'>;
@@ -150,5 +152,11 @@ export async function getTxFormData(db: Db, editId?: number): Promise<TxFormData
       location: await getTransactionLocation(db, row.id),
     };
   }
-  return { accounts, categories, subcategories, pockets, rates, record };
+  const history = await db.getAllAsync<DescriptionUse>(
+    `select description, kind, category_id as categoryId, subcategory_id as subcategoryId, count(*) as uses, max(occurred_on) as lastOn
+       from transactions
+      where kind in ('income', 'expense') and description <> ''
+      group by description, kind, category_id, subcategory_id`,
+  );
+  return { accounts, categories, subcategories, pockets, rates, record, history };
 }

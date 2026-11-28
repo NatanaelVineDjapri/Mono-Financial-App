@@ -14,11 +14,12 @@ import { Segmented } from '@/components/Segmented';
 import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatDateTime, formatShortDate } from '@/core/date';
 import { rp, shown } from '@/core/money';
+import { suggestFromDescription } from '@/core/tx/suggest';
 import { balanceAfter } from '@/core/tx/validate';
 import type { QueueKind, QueueRowWithNames } from '@/data/repo/importQueue';
 import type { TxFormData } from '@/domain/txForm';
 import { merchantKey } from '@/features/import/categorize';
-import { ErrorLine, parseDigits } from '@/features/transactions/form/formParts';
+import { ErrorLine, parseDigits, SubcategoryRow } from '@/features/transactions/form/formParts';
 import { AccountSheet, CategorySheet, DateSheet } from '@/features/transactions/form/formSheets';
 import {
   importAccountLabel,
@@ -57,6 +58,7 @@ export interface ImportEditChange {
   categoryId: number | null;
   accountId: number;
   date: string;
+  subcategoryId: number | null;
 }
 
 export interface ImportEditViewProps {
@@ -80,7 +82,10 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
   const [kind, setKind] = useState<QueueKind | null>(item.kind);
   const [amount, setAmount] = useState(item.amount_idr);
   const [merchant, setMerchant] = useState(item.merchant);
-  const [categoryId, setCategoryId] = useState<number | null>(item.category_id);
+  // What the same merchant was filed under before; it fills only what the notification import left empty.
+  const [found] = useState(() => (item.kind ? suggestFromDescription(item.merchant, item.kind, data) : null));
+  const [categoryId, setCategoryId] = useState<number | null>(item.category_id ?? found?.categoryId ?? null);
+  const [subcategoryId, setSubcategoryId] = useState<number | null>(found && found.categoryId === (item.category_id ?? found.categoryId) ? found.subcategoryId : null);
   const [accountId, setAccountId] = useState(item.account_id);
   const [date, setDate] = useState(item.occurred_at.slice(0, 10));
   const [remember, setRemember] = useState(false);
@@ -90,6 +95,7 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
   const account = accounts.find(a => a.id === accountId);
   const categories = useMemo(() => (kind ? data.categories.filter(c => c.kind === kind) : []), [data.categories, kind]);
   const category = categories.find(c => c.id === categoryId);
+  const subcategories = category ? (data.subcategories ?? []).filter(s => s.categoryId === category.id) : [];
   const after = kind === 'expense' || kind === 'income' ? balanceAfter(account, amount, kind === 'expense' ? 'out' : 'in') : null;
   const canRemember = !!merchantKey(merchant) && categoryId !== null;
   const canSave = kind !== null && categoryId !== null && amount > 0 && !saving;
@@ -98,7 +104,10 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
     const value = next as QueueKind;
     setKind(value);
     // A category of the other kind no longer fits.
-    if (category && category.kind !== value) setCategoryId(null);
+    if (category && category.kind !== value) {
+      setCategoryId(null);
+      setSubcategoryId(null);
+    }
   };
 
   return (
@@ -197,6 +206,12 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
             </EditRow>
           </View>
 
+          {subcategories.length > 0 && (
+            <View style={styles.section}>
+              <SubcategoryRow subcategories={subcategories} selectedId={subcategoryId} onSelect={setSubcategoryId} />
+            </View>
+          )}
+
           {canRemember && (
             <View style={styles.rememberRow}>
               <Text style={styles.rememberText}>{importRememberSwitch()}</Text>
@@ -212,7 +227,7 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
           <Button label={importReject()} variant="secondary" onPress={onReject} disabled={saving} style={styles.reject} testID="import-edit-reject" />
           <Button
             label={saving ? importSaving() : importSave()}
-            onPress={() => onSave({ kind, amountIdr: amount, merchant: merchant.trim(), categoryId, accountId, date }, remember)}
+            onPress={() => onSave({ kind, amountIdr: amount, merchant: merchant.trim(), categoryId, accountId, date, subcategoryId: subcategories.some(s => s.id === subcategoryId) ? subcategoryId : null }, remember)}
             disabled={!canSave}
             style={styles.save}
             testID="import-edit-save"
@@ -237,6 +252,7 @@ export function ImportEditView({ item, data, today, saving, error, onBack, onSav
         categories={categories}
         selectedId={categoryId}
         onSelect={id => {
+          if (id !== categoryId) setSubcategoryId(null);
           setCategoryId(id);
           setSheet(null);
         }}

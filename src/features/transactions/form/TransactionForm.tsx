@@ -7,7 +7,7 @@
 // Errors appear after their field was touched or Save was tapped, never all at once on a fresh
 // form; a short balance appears as soon as the amount makes it so. Save is disabled while an
 // error is showing, and tapping it on an invalid form reveals what is wrong instead of saving.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +19,7 @@ import { useHideAmounts } from '@/components/hide-amounts-store';
 import { formatShortDate } from '@/core/date';
 import { money, rp, shown, toIdr } from '@/core/money';
 import { dayBefore } from '@/core/tx/calendar';
+import { suggestFromDescription } from '@/core/tx/suggest';
 import {
     balanceAfter,
     validateTx,
@@ -219,6 +220,16 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   }, []);
   const touch = useCallback((field: TxFieldKey) => setTouched(t => (t.has(field) ? t : new Set(t).add(field))), []);
 
+  // A new record whose category was not chosen by hand takes it from the description (what the same words were filed
+  // under before, or the sub-category they name). A choice made by the person is never replaced.
+  const autoFilled = useRef(false);
+  const onDescription = (description: string) => {
+    if (mode !== 'add' || values.type === 'transfer' || (values.categoryId != null && !autoFilled.current)) return set({ description });
+    const found = suggestFromDescription(description, values.type, data);
+    autoFilled.current = found != null;
+    set({ description, categoryId: found?.categoryId ?? null, subcategoryId: found?.subcategoryId ?? null });
+  };
+
   // Android back closes an open sheet before it leaves the screen.
   useEffect(() => {
     if (!sheet) return undefined;
@@ -313,6 +324,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
   const changeType = (next: TxType) => {
     if (next === values.type) return;
     // The amount, date and description stay; a category belongs to its kind, so it goes.
+    autoFilled.current = false;
     setValues(v => ({ ...v, type: next, categoryId: null, subcategoryId: null }));
     setTouched(t => {
       const n = new Set(t);
@@ -426,6 +438,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
             categories={kindCategories}
             selectedId={values.categoryId}
             onSelect={id => {
+              autoFilled.current = false;
               set({ categoryId: id, subcategoryId: id === values.categoryId ? values.subcategoryId : null });
               touch('category');
             }}
@@ -434,7 +447,14 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
           />
         )}
 
-        {categorySubs.length > 0 && <SubcategoryRow subcategories={categorySubs} selectedId={values.subcategoryId ?? null} onSelect={id => set({ subcategoryId: id })} />}
+        {categorySubs.length > 0 && <SubcategoryRow
+            subcategories={categorySubs}
+            selectedId={values.subcategoryId ?? null}
+            onSelect={id => {
+              autoFilled.current = false;
+              set({ subcategoryId: id });
+            }}
+          />}
 
         {isTransfer ? (
           <TransferAccounts
@@ -521,7 +541,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
         <TextBox
           label={isTransfer ? formDescriptionOptionalLabel() : formDescriptionLabel()}
           value={values.description}
-          onChange={description => set({ description })}
+          onChange={onDescription}
           placeholder={descriptionPlaceholder()}
           testID="tx-description"
         />
@@ -588,6 +608,7 @@ export function TransactionForm({ mode, draft, data, today, initialType, initial
         categories={kindCategories}
         selectedId={values.categoryId}
         onSelect={id => {
+          autoFilled.current = false;
           set({ categoryId: id, subcategoryId: id === values.categoryId ? values.subcategoryId : null });
           touch('category');
           setSheet(null);

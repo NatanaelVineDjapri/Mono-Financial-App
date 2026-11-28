@@ -133,6 +133,15 @@ describe('saveQueueItem (Simpan)', () => {
     expect(await countQueue(db)).toBe(0);
   });
 
+  test('the sub-category chosen on the check screen is saved with it', async () => {
+    const { db } = await fixture();
+    await enqueueNotification(db, payment());
+    const [row] = await listPending(db);
+    const sub = (await db.runAsync("insert into subcategories (category_id, name) values (?, 'Kopi')", [row.category_id])).lastInsertRowId;
+    expect((await saveQueueItem(db, row.id, { subcategoryId: sub })).ok).toBe(true);
+    expect(await db.getFirstAsync('select subcategory_id from transactions')).toEqual({ subcategory_id: sub });
+  });
+
   test('nothing is saved without Simpan: queueing writes no transaction', async () => {
     const { db } = await fixture();
     await enqueueNotification(db, payment());

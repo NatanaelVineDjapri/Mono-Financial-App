@@ -136,6 +136,7 @@ export function isComplete(item: Pick<QueueRowWithNames, 'kind' | 'category_id'>
 
 export interface SaveOptions {
   rememberMerchant?: boolean; // remember the category for this merchant
+  subcategoryId?: number | null; // chosen on the check screen (the queue itself keeps only the category)
 }
 
 // Simpan. Only a pending row with a kind and a category; the same checks as the manual form, then one normal
@@ -151,13 +152,14 @@ export async function saveQueueItem(db: Db, id: number, options: SaveOptions = {
     type: item.kind,
     amount: item.amount_idr,
     categoryId: item.category_id,
+    subcategoryId: options.subcategoryId ?? null,
     accountId: item.account_id,
     toAccountId: null,
     date: item.occurred_at.slice(0, 10),
     description: item.merchant || item.app_name,
     note: '',
   };
-  const errors = validateTx(values, { today: today(), accounts: data.accounts, categories: data.categories });
+  const errors = validateTx(values, { today: today(), accounts: data.accounts, categories: data.categories, subcategories: data.subcategories });
   if (errors.length > 0) return { ok: false, message: txFieldErrorMessage({ ...errors[0], type: item.kind }, rp, formatShortDate).text };
 
   const outcome = await saveNewTransaction(db, values, nowIso(), 'import');

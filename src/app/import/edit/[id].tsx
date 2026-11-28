@@ -48,7 +48,7 @@ export default function ImportEditRoute() {
       accountId: change.accountId,
       occurredAt: `${change.date}${item.occurred_at.slice(10)}`,
     });
-    const outcome = await actions.save(id, remember ? { rememberMerchant: true } : undefined);
+    const outcome = await actions.save(id, { subcategoryId: change.subcategoryId, ...(remember ? { rememberMerchant: true } : {}) });
     setSaving(false);
     if (outcome.ok) {
       router.back();

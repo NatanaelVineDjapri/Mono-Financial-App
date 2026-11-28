@@ -125,3 +125,29 @@ describe('TransactionForm: the optional sub-category', () => {
     expect(selected(result.getByTestId('tx-subcategory-102'))).toMatchObject({ selected: true });
   });
 });
+
+describe('TransactionForm: the category filled from the description', () => {
+  const history = [{ description: 'Boba', kind: 'expense' as const, categoryId: 1, subcategoryId: 102, uses: 3, lastOn: '2026-10-20' }];
+
+  test('typing what was filed before fills category and sub-category, and clearing the words takes them back', async () => {
+    const { view, onSubmit } = await renderForm({ ...DATA, history });
+    const result = await view;
+    await fireEvent.changeText(result.getByTestId('tx-description'), 'boba');
+    expect(selected(result.getByTestId('tx-category-1'))).toMatchObject({ selected: true });
+    expect(selected(result.getByTestId('tx-subcategory-102'))).toMatchObject({ selected: true });
+    await fireEvent.changeText(result.getByTestId('tx-description'), 'bo');
+    expect(selected(result.getByTestId('tx-category-1'))).toMatchObject({ selected: false });
+    await fireEvent.changeText(result.getByTestId('tx-description'), 'boba');
+    await fireEvent.changeText(result.getByTestId('tx-amount-input'), '15000');
+    await fireEvent.press(result.getByRole('button', { name: 'Save expense' }));
+    expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ categoryId: 1, subcategoryId: 102 }));
+  });
+
+  test('a category chosen by hand is never replaced', async () => {
+    const result = await (await renderForm({ ...DATA, history })).view;
+    await fireEvent.press(result.getByTestId('tx-category-2'));
+    await fireEvent.changeText(result.getByTestId('tx-description'), 'boba');
+    expect(selected(result.getByTestId('tx-category-2'))).toMatchObject({ selected: true });
+    expect(selected(result.getByTestId('tx-category-1'))).toMatchObject({ selected: false });
+  });
+});
